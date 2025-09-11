@@ -1,54 +1,85 @@
-import {
-    eventBus,
-    EVENTS
-} from './eventBus.js';
-const _queue = [],
-    _coalesceMap = new Map();
-let _rafScheduled = ![];
-const _0x5c744f = {};
-_0x5c744f['autoFrameFlush'] = !![], _0x5c744f['frameSchedulerLazyImport'] = !![], _0x5c744f['useMicrotaskPriming'] = !![];
-let _config = _0x5c744f;
-const _coalescableEvents = new Set([EVENTS['WINDOW_FOCUSED'], EVENTS['WINDOW_BLURRED'], EVENTS['WINDOW_MAXIMIZED'], EVENTS['WINDOW_UNMAXIMIZED'], EVENTS['WINDOW_MINIMIZED'], EVENTS['WINDOW_RESTORED'], EVENTS['STARTMENU_TOGGLE'], EVENTS['STARTMENU_CLOSE_REQUEST'], EVENTS['STARTMENU_OPENED'], EVENTS['STARTMENU_CLOSED'], EVENTS['TASKBAR_ITEM_CLICKED'], EVENTS['MUSIC_PLAYER_PLAYING'], EVENTS['MUSIC_PLAYER_STOPPED'], EVENTS['MEDIA_PLAYER_PLAYING'], EVENTS['MEDIA_PLAYER_STOPPED']]);
+import { eventBus, EVENTS } from './eventBus.js';
+
+const publishQueue = [];
+const coalesceMap = new Map();
+let rafScheduled = false;
+
+const defaultConfig = {
+    autoFrameFlush: true,
+    frameSchedulerLazyImport: true,
+    useMicrotaskPriming: true
+};
+
+let config = defaultConfig;
+
+const coalescableEvents = new Set([
+    EVENTS.WINDOW_FOCUSED,
+    EVENTS.WINDOW_BLURRED,
+    EVENTS.WINDOW_MAXIMIZED,
+    EVENTS.WINDOW_UNMAXIMIZED,
+    EVENTS.WINDOW_MINIMIZED,
+    EVENTS.WINDOW_RESTORED,
+    EVENTS.STARTMENU_TOGGLE,
+    EVENTS.STARTMENU_CLOSE_REQUEST,
+    EVENTS.STARTMENU_OPENED,
+    EVENTS.STARTMENU_CLOSED,
+    EVENTS.TASKBAR_ITEM_CLICKED,
+    EVENTS.MUSIC_PLAYER_PLAYING,
+    EVENTS.MUSIC_PLAYER_STOPPED,
+    EVENTS.MEDIA_PLAYER_PLAYING,
+    EVENTS.MEDIA_PLAYER_STOPPED
+]);
 
 function scheduleFlush() {
-    if (_rafScheduled || !_config['autoFrameFlush']) return;
-    _rafScheduled = !![], _config['frameSchedulerLazyImport'] ? import('./frameScheduler.js')['then'](({
-        scheduleAfter: _0x3ce587
-    }) => {
-        _0x3ce587(flushEventBusQueue);
-    })['catch'](() => {
+    if (rafScheduled || !config.autoFrameFlush) return;
+    rafScheduled = true;
+    if (config.frameSchedulerLazyImport) {
+        import('./frameScheduler.js')
+            .then(({ scheduleAfter }) => {
+                scheduleAfter(flushEventBusQueue);
+            })
+            .catch(() => {
+                requestAnimationFrame(flushEventBusQueue);
+            });
+    } else {
         requestAnimationFrame(flushEventBusQueue);
-    }) : requestAnimationFrame(flushEventBusQueue);
-}
-export function batchedPublish(_0x55eba1, _0x1f7760) {
-    const _0x4fa061 = _coalescableEvents['has'](_0x55eba1) || _0x1f7760 && _0x1f7760['__coalesce'] === !![];
-    _0x4fa061 ? _coalesceMap['set'](_0x55eba1, {
-        'event': _0x55eba1,
-        'data': _0x1f7760,
-        'ts': Date['now'](),
-        'coalesced': !![]
-    }) : _queue['push']({
-        'event': _0x55eba1,
-        'data': _0x1f7760,
-        'ts': Date['now'](),
-        'coalesced': ![]
-    }), scheduleFlush();
-}
-export function flushEventBusQueue() {
-    _rafScheduled = ![];
-    if (_coalesceMap['size']) {
-        const _0x1fe53f = Array['from'](_coalesceMap['values']())['sort']((_0x52dc5a, _0x5b8646) => _0x52dc5a['ts'] - _0x5b8646['ts']);
-        for (const _0x4df1d7 of _0x1fe53f) _queue['push'](_0x4df1d7);
-        _coalesceMap['clear']();
     }
-    if (!_queue['length']) return;
-    while (_queue['length']) {
-        const {
-            event: _0x55bf16,
-            data: _0x26c3f3
-        } = _queue['shift']();
+}
+
+export function batchedPublish(event, data) {
+    const shouldCoalesce = coalescableEvents.has(event) || (data && data.__coalesce === true);
+    if (shouldCoalesce) {
+        coalesceMap.set(event, {
+            event,
+            data,
+            ts: Date.now(),
+            coalesced: true
+        });
+    } else {
+        publishQueue.push({
+            event,
+            data,
+            ts: Date.now(),
+            coalesced: false
+        });
+    }
+    scheduleFlush();
+}
+
+export function flushEventBusQueue() {
+    rafScheduled = false;
+    if (coalesceMap.size) {
+        const coalescedEvents = Array.from(coalesceMap.values()).sort((a, b) => a.ts - b.ts);
+        for (const entry of coalescedEvents) {
+            publishQueue.push(entry);
+        }
+        coalesceMap.clear();
+    }
+    if (!publishQueue.length) return;
+    while (publishQueue.length) {
+        const { event, data } = publishQueue.shift();
         try {
-            eventBus['publish'](_0x55bf16, _0x26c3f3);
-        } catch (_0x11481b) {}
+            eventBus.publish(event, data);
+        } catch (err) {}
     }
 }

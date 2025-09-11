@@ -3,24 +3,24 @@ const SCANLINE_MIN_DELAY_MS = 0x3e8,
     SCANLINE_BASE_DURATION_MS = 0xbb8,
     SCANLINE_DURATION_RANDOM_ADDITION_MS = 0x3e8;
 export function initRandomScanline() {
-    const _0x583d8a = document['querySelector']('.crt-scanline');
-    if (!_0x583d8a) return;
-    let _0xb7237a = ![];
-    _0x583d8a['addEventListener']('transitionend', () => {
-        _0x583d8a['style']['willChange'] = 'auto', _0x583d8a['style']['transition'] = 'none', _0x583d8a['style']['transform'] = 'translateY(-20px)';
-        const _0x4cf62f = SCANLINE_MIN_DELAY_MS + Math['random']() * SCANLINE_MAX_DELAY_MS;
-        setTimeout(_0x1184fa, _0x4cf62f);
+    const scanlineElement = document['querySelector']('.crt-scanline');
+    if (!scanlineElement) return;
+    let hasStarted = ![];
+    scanlineElement['addEventListener']('transitionend', () => {
+        scanlineElement['style']['willChange'] = 'auto', scanlineElement['style']['transition'] = 'none', scanlineElement['style']['transform'] = 'translateY(-20px)';
+        const delay = SCANLINE_MIN_DELAY_MS + Math['random']() * SCANLINE_MAX_DELAY_MS;
+        setTimeout(startScanline, delay);
     });
 
-    function _0x1184fa() {
-        void _0x583d8a['offsetWidth'];
+    function startScanline() {
+        void scanlineElement['offsetWidth'];
         const duration = SCANLINE_BASE_DURATION_MS + Math['random']() * SCANLINE_DURATION_RANDOM_ADDITION_MS;
-        _0x583d8a['style']['willChange'] = 'transform', _0x583d8a['style']['transition'] = 'transform\x20' + duration + 'ms\x20linear', _0x583d8a['style']['transform'] = 'translateY(100vh)', _0xb7237a = !![];
+        scanlineElement['style']['willChange'] = 'transform', scanlineElement['style']['transition'] = 'transform\x20' + duration + 'ms\x20linear', scanlineElement['style']['transform'] = 'translateY(100vh)', hasStarted = !![];
     }
-    const _0x210a8a = {};
-    _0x210a8a['once'] = !![], document['querySelector']('.desktop')['addEventListener']('click', () => {
-        !_0xb7237a && _0x1184fa();
-    }, _0x210a8a), document['addEventListener']('reinitScanline', () => {
-        setTimeout(_0x1184fa, 0x1f4);
-    }), sessionStorage['getItem']('logged_in') === 'true' && setTimeout(_0x1184fa, 0x1f4);
+    const onceOption = {};
+    onceOption['once'] = !![], document['querySelector']('.desktop')['addEventListener']('click', () => {
+        !hasStarted && startScanline();
+    }, onceOption), document['addEventListener']('reinitScanline', () => {
+        setTimeout(startScanline, 0x1f4);
+    }), sessionStorage['getItem']('logged_in') === 'true' && setTimeout(startScanline, 0x1f4);
 }

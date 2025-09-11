@@ -1,43 +1,43 @@
-const _listenerRegistry = new Map(),
-    _elementListeners = new WeakMap();
-let _nextListenerId = 0x1;
-export function addManagedEventListener(_0x4ca72a, _0x830ded, _0x36ff05, _0x3cff5d = {}) {
-    if (!_0x4ca72a || typeof _0x36ff05 !== 'function') throw new Error('addManagedEventListener:\x20Invalid\x20element\x20or\x20handler');
-    const _0x469ab6 = _nextListenerId++,
-        _0x2f1172 = _0x3cff5d['listenerOptions'];
-    _0x4ca72a['addEventListener'](_0x830ded, _0x36ff05, _0x2f1172);
-    const _0x32b8d7 = () => {
-            _0x4ca72a['removeEventListener'](_0x830ded, _0x36ff05, _0x2f1172);
+const listenerRegistry = new Map(),
+    elementListeners = new WeakMap();
+let nextListenerId = 0x1;
+export function addManagedEventListener(element, eventType, handler, options = {}) {
+    if (!element || typeof handler !== 'function') throw new Error('addManagedEventListener:\x20Invalid\x20element\x20or\x20handler');
+    const listenerId = nextListenerId++,
+        listenerOptions = options['listenerOptions'];
+    element['addEventListener'](eventType, handler, listenerOptions);
+    const removeListener = () => {
+            element['removeEventListener'](eventType, handler, listenerOptions);
         },
-        _0x100280 = {
-            'id': _0x469ab6,
-            'element': _0x4ca72a,
-            'eventType': _0x830ded,
-            'handler': _0x36ff05,
-            'cleanup': _0x32b8d7,
+        entry = {
+            'id': listenerId,
+            'element': element,
+            'eventType': eventType,
+            'handler': handler,
+            'cleanup': removeListener,
             'timestamp': Date['now'](),
-            'options': _0x3cff5d
+            'options': options
         };
-    return _listenerRegistry['set'](_0x469ab6, _0x100280), !_elementListeners['has'](_0x4ca72a) && _elementListeners['set'](_0x4ca72a, new Set()), _elementListeners['get'](_0x4ca72a)['add'](_0x469ab6),
-        function _0x5137a4() {
-            _0x32b8d7(), _listenerRegistry['delete'](_0x469ab6);
-            const _0x39e3e0 = _elementListeners['get'](_0x4ca72a);
-            _0x39e3e0 && (_0x39e3e0['delete'](_0x469ab6), _0x39e3e0['size'] === 0x0 && _elementListeners['delete'](_0x4ca72a));
+    return listenerRegistry['set'](listenerId, entry), !elementListeners['has'](element) && elementListeners['set'](element, new Set()), elementListeners['get'](element)['add'](listenerId),
+        function unlisten() {
+            removeListener(), listenerRegistry['delete'](listenerId);
+            const elementSet = elementListeners['get'](element);
+            elementSet && (elementSet['delete'](listenerId), elementSet['size'] === 0x0 && elementListeners['delete'](element));
         };
 }
-export function addManagedResizeListener(_0x4ea9cf, _0x279fd3 = {}) {
-    const _0x36a7e3 = {
+export function addManagedResizeListener(resizeHandler, opts = {}) {
+    const config = {
         'performanceOptimized': !![],
         'useDebounce': !![],
-        ..._0x279fd3
+        ...opts
     };
-    return addManagedEventListener(window, 'resize', _0x4ea9cf, _0x36a7e3);
+    return addManagedEventListener(window, 'resize', resizeHandler, config);
 }
-export function addManagedOrientationListener(_0x586caf, _0x20c7b3 = {}) {
-    const _0x7e791e = {
+export function addManagedOrientationListener(orientationHandler, opts = {}) {
+    const config = {
         'performanceOptimized': !![],
         'immediate': !![],
-        ..._0x20c7b3
+        ...opts
     };
-    return addManagedEventListener(window, 'orientationchange', _0x586caf, _0x7e791e);
+    return addManagedEventListener(window, 'orientationchange', orientationHandler, config);
 }

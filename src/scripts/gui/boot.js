@@ -8,115 +8,115 @@ let SYSTEM_ASSETS = null;
 async function getSystemAssets() {
     if (SYSTEM_ASSETS) return SYSTEM_ASSETS;
     try {
-        const _0x502313 = await fetch('./ui.json');
-        return SYSTEM_ASSETS = await _0x502313['json'](), SYSTEM_ASSETS;
-    } catch (_0x142bfa) {
+        const response = await fetch('./ui.json');
+        return SYSTEM_ASSETS = await response['json'](), SYSTEM_ASSETS;
+    } catch (error) {
         return SYSTEM_ASSETS = {}, SYSTEM_ASSETS;
     }
 }
-export function initBootSequence(eventBus, EVENTS, _0x3aa17a) {
-    const _0x166b12 = document['getElementById']('boot-screen'),
-        _0x3b3646 = document['getElementById']('login-screen'),
-        _0x1ff7f8 = document['querySelector']('.desktop'),
-        _0x707cd0 = document['querySelector']('.crt-scanline'),
-        _0x565a53 = document['querySelector']('.crt-vignette'),
-        _0x2af845 = document['getElementById']('boot-delay-message');
-    let _0x41d5b8 = _0x3aa17a || [];
+export function initBootSequence(eventBus, EVENTS, projectsData) {
+    const bootScreen = document['getElementById']('boot-screen'),
+        loginScreen = document['getElementById']('login-screen'),
+        desktopElement = document['querySelector']('.desktop'),
+        scanlineOverlay = document['querySelector']('.crt-scanline'),
+        vignetteOverlay = document['querySelector']('.crt-vignette'),
+        bootDelayMessage = document['getElementById']('boot-delay-message');
+    let projects = projectsData || [];
 
-    function _0x3920b2(_0x2aee2a) {
-        _0x41d5b8 = _0x2aee2a;
+    function updateProjectsData(newProjects) {
+        projects = newProjects;
     }
-    window['updateBootProjectsData'] = _0x3920b2;
-    const _0x3bb91b = new URLSearchParams(window['location']['search']),
-        _0x3edc9a = _0x3bb91b['get']('forceBoot') === 'true',
-        _0x917976 = document['getElementById']('logoff-dialog-container'),
-        _0x3e691e = document['getElementById']('logoff-log-off-btn'),
-        _0x2b208d = document['getElementById']('logoff-switch-user-btn'),
-        _0x291099 = document['getElementById']('logoff-cancel-btn');
-    let _0xf4e13b = null,
-        _0x193ab1 = 'logOff';
+    window['updateBootProjectsData'] = updateProjectsData;
+    const urlParams = new URLSearchParams(window['location']['search']),
+        forceBoot = urlParams['get']('forceBoot') === 'true',
+        logoffDialog = document['getElementById']('logoff-dialog-container'),
+        logoffButton = document['getElementById']('logoff-log-off-btn'),
+        switchUserButton = document['getElementById']('logoff-switch-user-btn'),
+        cancelButton = document['getElementById']('logoff-cancel-btn');
+    let grayscaleTimeout = null,
+        logoffMode = 'logOff';
     initializeSystemAudio();
-    let _0x4859ca = ![];
-    const _0x449beb = () => {
-            if (_0x4859ca) return;
-            _0x4859ca = !![];
-            const _0x5ab0e8 = new Audio();
-            _0x5ab0e8['src'] = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=', _0x5ab0e8['volume'] = 0.01, _0x5ab0e8['play']()['then'](() => {
-                _0x5ab0e8['pause'](), _0x5ab0e8['remove']();
+    let audioUnlocked = ![];
+    const unlockAudio = () => {
+            if (audioUnlocked) return;
+            audioUnlocked = !![];
+            const audioElement = new Audio();
+            audioElement['src'] = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=', audioElement['volume'] = 0.01, audioElement['play']()['then'](() => {
+                audioElement['pause'](), audioElement['remove']();
             })['catch'](() => {});
         },
-        _0x5af313 = {};
-    _0x5af313['once'] = !![], document['addEventListener']('touchstart', _0x449beb, _0x5af313);
-    const _0x1da4bb = {};
-    _0x1da4bb['once'] = !![], document['addEventListener']('mousedown', _0x449beb, _0x1da4bb);
-    const _0x4127ba = {};
-    _0x4127ba['once'] = !![], document['addEventListener']('keydown', _0x449beb, _0x4127ba);
-    if (_0x3edc9a) {
-        const _0xfc2a54 = window['location']['pathname'] + window['location']['hash'];
-        history['replaceState']({}, document['title'], _0xfc2a54), sessionStorage['removeItem']('logged_in'), _0x81c9bb(_0x41d5b8);
+        touchOptions = {};
+    touchOptions['once'] = !![], document['addEventListener']('touchstart', unlockAudio, touchOptions);
+    const mouseOptions = {};
+    mouseOptions['once'] = !![], document['addEventListener']('mousedown', unlockAudio, mouseOptions);
+    const keyOptions = {};
+    keyOptions['once'] = !![], document['addEventListener']('keydown', unlockAudio, keyOptions);
+    if (forceBoot) {
+        const newPath = window['location']['pathname'] + window['location']['hash'];
+        history['replaceState']({}, document['title'], newPath), sessionStorage['removeItem']('logged_in'), showBoot(projects);
     } else {
-        const _0x277e40 = sessionStorage['getItem']('logged_in') === 'true';
-        _0x277e40 ? _0x16c176() : _0x81c9bb(_0x41d5b8);
+        const loggedIn = sessionStorage['getItem']('logged_in') === 'true';
+        loggedIn ? showDesktop() : showBoot(projects);
     }
 
-    function _0x16c176() {
-        _0x166b12['style']['display'] = 'none', _0x3b3646['style']['display'] = 'none', _0x1ff7f8['style']['opacity'] = '1', _0x1ff7f8['style']['pointerEvents'] = 'auto';
-        if (_0x2af845) _0x2af845['style']['display'] = 'none';
+    function showDesktop() {
+        bootScreen['style']['display'] = 'none', loginScreen['style']['display'] = 'none', desktopElement['style']['opacity'] = '1', desktopElement['style']['pointerEvents'] = 'auto';
+        if (bootDelayMessage) bootDelayMessage['style']['display'] = 'none';
         window['__MARK_BOOT_COMPLETE'] && window['__MARK_BOOT_COMPLETE'](), window['initializeUIComponents'] && window['initializeUIComponents']();
     }
 
-    function _0x81c9bb(_0x337aa1) {
+    function showBoot(projectList) {
         setTimeout(async () => {
-            _0x1ff7f8['style']['opacity'] = '0', _0x1ff7f8['style']['pointerEvents'] = 'none';
-            if (_0x707cd0) _0x707cd0['style']['display'] = 'none';
-            if (_0x565a53) _0x565a53['style']['display'] = 'none';
-            if (!_0x166b12) return;
-            const _0x319f84 = await getSystemAssets(),
-                _0x5831ff = document['getElementById']('boot-logo');
-            _0x5831ff && _0x319f84 && _0x319f84['loading'] && (_0x5831ff['src'] = _0x319f84['loading']);
-            _0x166b12['style']['display'] = 'flex', _0x166b12['style']['opacity'] = '1', _0x166b12['style']['pointerEvents'] = 'auto';
-            const _0x3ac09b = () => {
-                _0x166b12['style']['display'] === 'flex' && _0x2af845 && !_0xb449d5 && (_0x2af845['style']['opacity'] = '0', _0x2af845['style']['transition'] = 'opacity\x200.5s\x20ease-in-out', _0x2af845['style']['display'] = 'block', void _0x2af845['offsetWidth'], _0x2af845['style']['opacity'] = '1');
+            desktopElement['style']['opacity'] = '0', desktopElement['style']['pointerEvents'] = 'none';
+            if (scanlineOverlay) scanlineOverlay['style']['display'] = 'none';
+            if (vignetteOverlay) vignetteOverlay['style']['display'] = 'none';
+            if (!bootScreen) return;
+            const assets = await getSystemAssets(),
+                bootLogo = document['getElementById']('boot-logo');
+            bootLogo && assets && assets['loading'] && (bootLogo['src'] = assets['loading']);
+            bootScreen['style']['display'] = 'flex', bootScreen['style']['opacity'] = '1', bootScreen['style']['pointerEvents'] = 'auto';
+            const showDelayMessage = () => {
+                bootScreen['style']['display'] === 'flex' && bootDelayMessage && !resourcesReady && (bootDelayMessage['style']['opacity'] = '0', bootDelayMessage['style']['transition'] = 'opacity\x200.5s\x20ease-in-out', bootDelayMessage['style']['display'] = 'block', void bootDelayMessage['offsetWidth'], bootDelayMessage['style']['opacity'] = '1');
             };
-            let _0x11d28f = ![],
-                _0xb449d5 = ![];
-            const _0x4b09c8 = 0xea6,
-                _0x4c4816 = async () => {
+            let minimumDelayPassed = ![],
+                resourcesReady = ![];
+            const minimumBootDelay = 0xea6,
+                checkResources = async () => {
                     try {
-                        if (!_0x319f84 || Object['keys'](_0x319f84)['length'] === 0x0) return ![];
-                        const _0x34c581 = ['./assets/gui/bgs/bliss.webp', './assets/gui/desktop/about.webp', './assets/gui/desktop/projects.webp', './assets/gui/desktop/contact.webp', './assets/gui/desktop/resume.webp', './assets/gui/taskbar/start-button.webp', './assets/gui/taskbar/taskbar-bg.webp', './assets/gui/taskbar/system-tray.webp'],
-                            _0x312a8b = _0x34c581['map'](src => {
-                                return new Promise(_0x11c712 => {
-                                    const _0x5f0372 = new Image();
-                                    _0x5f0372['onload'] = () => _0x11c712(!![]), _0x5f0372['onerror'] = () => _0x11c712(![]), _0x5f0372['src'] = src;
+                        if (!assets || Object['keys'](assets)['length'] === 0x0) return ![];
+                        const preloadImages = ['./assets/gui/bgs/bliss.webp', './assets/gui/desktop/about.webp', './assets/gui/desktop/projects.webp', './assets/gui/desktop/contact.webp', './assets/gui/desktop/resume.webp', './assets/gui/taskbar/start-button.webp', './assets/gui/taskbar/taskbar-bg.webp', './assets/gui/taskbar/system-tray.webp'],
+                            imagePromises = preloadImages['map'](src => {
+                                return new Promise(resolveFn => {
+                                    const img = new Image();
+                                    img['onload'] = () => resolveFn(!![]), img['onerror'] = () => resolveFn(![]), img['src'] = src;
                                 });
                             }),
-                            _0x5302b6 = await Promise['all'](_0x312a8b),
-                            _0x44a8d5 = _0x5302b6['every'](loaded => loaded),
-                            _0x3fb205 = typeof window['updateBootProjectsData'] === 'function';
-                        return _0x44a8d5 && _0x3fb205;
-                    } catch (_0x1810ed) {
-                        return console['warn']('Resource\x20check\x20failed:', _0x1810ed), ![];
+                            loadResults = await Promise['all'](imagePromises),
+                            allLoaded = loadResults['every'](loaded => loaded),
+                            hasProjectData = typeof window['updateBootProjectsData'] === 'function';
+                        return allLoaded && hasProjectData;
+                    } catch (resourceError) {
+                        return console['warn']('Resource\x20check\x20failed:', resourceError), ![];
                     }
-                }, _0x3a3f42 = () => {
-                    _0x11d28f && _0xb449d5 && _0x568429();
+                }, startTransitionIfReady = () => {
+                    minimumDelayPassed && resourcesReady && transitionToLogin();
                 };
             setTimeout(() => {
-                _0x11d28f = !![], !_0xb449d5 && _0x3ac09b(), _0x3a3f42();
-            }, _0x4b09c8);
-            const _0x2ff547 = async () => {
-                _0xb449d5 = await _0x4c4816(), _0xb449d5 ? _0x3a3f42() : setTimeout(_0x2ff547, 0x64);
+                minimumDelayPassed = !![], !resourcesReady && showDelayMessage(), startTransitionIfReady();
+            }, minimumBootDelay);
+            const pollResourceLoad = async () => {
+                resourcesReady = await checkResources(), resourcesReady ? startTransitionIfReady() : setTimeout(pollResourceLoad, 0x64);
             };
-            _0x2ff547();
-            const _0x568429 = () => {
-                _0x2af845 && _0x2af845['parentNode'] && _0x2af845['parentNode']['removeChild'](_0x2af845), _0x166b12['classList']['remove']('boot-fade-in'), setTimeout(() => {
-                    const _0x570ce4 = document['getElementById']('boot-fadeout-overlay');
-                    _0x570ce4 && (_0x570ce4['style']['display'] = 'block', void _0x570ce4['offsetWidth'], _0x570ce4['style']['transition'] = 'opacity\x200.5s', _0x570ce4['style']['opacity'] = '1', setTimeout(() => {
-                        _0x166b12['style']['display'] = 'none', _0x3b3646['style']['display'] = 'flex', _0x3b3646['style']['opacity'] = '1', _0x3b3646['style']['pointerEvents'] = 'auto';
-                        const _0xd80aaf = _0x3b3646['querySelector']('.login-screen');
-                        if (_0xd80aaf) _0xd80aaf['style']['opacity'] = '1';
-                        _0x107d25(_0x337aa1), _0x570ce4['style']['opacity'] = '0', _0x2af845 && _0x2af845['parentNode'] && _0x2af845['parentNode']['removeChild'](_0x2af845), setTimeout(() => {
-                            _0x570ce4['style']['display'] = 'none';
+            pollResourceLoad();
+            const transitionToLogin = () => {
+                bootDelayMessage && bootDelayMessage['parentNode'] && bootDelayMessage['parentNode']['removeChild'](bootDelayMessage), bootScreen['classList']['remove']('boot-fade-in'), setTimeout(() => {
+                    const fadeOverlay = document['getElementById']('boot-fadeout-overlay');
+                    fadeOverlay && (fadeOverlay['style']['display'] = 'block', void fadeOverlay['offsetWidth'], fadeOverlay['style']['transition'] = 'opacity\x200.5s', fadeOverlay['style']['opacity'] = '1', setTimeout(() => {
+                        bootScreen['style']['display'] = 'none', loginScreen['style']['display'] = 'flex', loginScreen['style']['opacity'] = '1', loginScreen['style']['pointerEvents'] = 'auto';
+                        const loginScreenInnerEl = loginScreen['querySelector']('.login-screen');
+                        if (loginScreenInnerEl) loginScreenInnerEl['style']['opacity'] = '1';
+                        setupLoginHandlers(projectList), fadeOverlay['style']['opacity'] = '0', bootDelayMessage && bootDelayMessage['parentNode'] && bootDelayMessage['parentNode']['removeChild'](bootDelayMessage), setTimeout(() => {
+                            fadeOverlay['style']['display'] = 'none';
                         }, 0x1f4);
                     }, 0x47e));
                 }, 0xfa);
@@ -124,214 +124,214 @@ export function initBootSequence(eventBus, EVENTS, _0x3aa17a) {
         }, 0x3e8);
     }
 
-    function _0x5c0c77() {
-        const _0xfec029 = _0x3b3646['querySelector']('.login-screen'),
-            _0x49d263 = _0x3b3646['querySelector']('.welcome-message'),
-            _0x9f6fa7 = [_0xfec029['querySelector']('.login-screen-center'), _0xfec029['querySelector']('.back-gradient'), _0xfec029['querySelector']('.turn-off'), _0xfec029['querySelector']('.right-bottom'), _0xfec029['querySelector']('.xp-logo-image'), _0xfec029['querySelector']('.left-text'), _0xfec029['querySelector']('.login-separator.mobile-only')];
-        _0x9f6fa7['forEach'](_0x54dc3a => {
-            _0x54dc3a && (_0x54dc3a['style']['transition'] = 'opacity\x200.3s', _0x54dc3a['style']['opacity'] = '0');
+    function showLoginAnimation() {
+        const loginScreenElement = loginScreen['querySelector']('.login-screen'),
+            welcomeMessage = loginScreen['querySelector']('.welcome-message'),
+            loginFadeElements = [loginScreenElement['querySelector']('.login-screen-center'), loginScreenElement['querySelector']('.back-gradient'), loginScreenElement['querySelector']('.turn-off'), loginScreenElement['querySelector']('.right-bottom'), loginScreenElement['querySelector']('.xp-logo-image'), loginScreenElement['querySelector']('.left-text'), loginScreenElement['querySelector']('.login-separator.mobile-only')];
+        loginFadeElements['forEach'](elem => {
+            elem && (elem['style']['transition'] = 'opacity\x200.3s', elem['style']['opacity'] = '0');
         }), setTimeout(() => {
-            _0x9f6fa7['forEach'](_0x2ead76 => {
-                if (_0x2ead76) _0x2ead76['style']['display'] = 'none';
-            }), _0x49d263['style']['display'] = 'block', _0x49d263['classList']['remove']('welcome-message-initial-hidden'), import('../utils/frameScheduler.js')['then'](({
-                scheduleAfter: _0x3e6d47
+            loginFadeElements['forEach'](elem2 => {
+                if (elem2) elem2['style']['display'] = 'none';
+            }), welcomeMessage['style']['display'] = 'block', welcomeMessage['classList']['remove']('welcome-message-initial-hidden'), import('../utils/frameScheduler.js')['then'](({
+                scheduleAfter: scheduleAfter
             }) => {
-                _0x3e6d47(() => {
-                    _0x49d263['classList']['add']('visible');
+                scheduleAfter(() => {
+                    welcomeMessage['classList']['add']('visible');
                 });
             }), setTimeout(() => {
-                _0x49d263['classList']['remove']('visible'), _0x3b3646['style']['display'] = 'none', _0x3b3646['style']['pointerEvents'] = 'none', _0x1ff7f8['style']['opacity'] = '1', _0x1ff7f8['style']['pointerEvents'] = 'auto';
-                if (_0x707cd0) _0x707cd0['style']['display'] = 'block';
-                if (_0x565a53) _0x565a53['style']['display'] = 'block';
+                welcomeMessage['classList']['remove']('visible'), loginScreen['style']['display'] = 'none', loginScreen['style']['pointerEvents'] = 'none', desktopElement['style']['opacity'] = '1', desktopElement['style']['pointerEvents'] = 'auto';
+                if (scanlineOverlay) scanlineOverlay['style']['display'] = 'block';
+                if (vignetteOverlay) vignetteOverlay['style']['display'] = 'block';
                 window['__MARK_BOOT_COMPLETE'] && window['__MARK_BOOT_COMPLETE']();
-                const _0x34724d = getLoginSound();
-                if (_0x34724d) {
-                    _0x34724d['pause'](), _0x34724d['currentTime'] = 0x0, _0x34724d['volume'] = 0x1;
-                    const _0x453c5d = navigator['userAgent']['toLowerCase']()['includes']('firefox'),
-                        _0x514606 = _0x453c5d ? 0x32 : 0xa;
+                const loginSound = getLoginSound();
+                if (loginSound) {
+                    loginSound['pause'](), loginSound['currentTime'] = 0x0, loginSound['volume'] = 0x1;
+                    const isFirefox = navigator['userAgent']['toLowerCase']()['includes']('firefox'),
+                        playDelay = isFirefox ? 0x32 : 0xa;
                     setTimeout(() => {
-                        _0x34724d['play']()['catch'](() => {});
-                    }, _0x514606), setTimeout(() => {
-                        const _0xd46170 = getBalloonSound();
-                        _0xd46170 && (_0xd46170['volume'] = 0.01, _0xd46170['currentTime'] = 0x0, _0xd46170['play']()['then'](() => {
-                            _0xd46170['pause'](), _0xd46170['currentTime'] = 0x0, _0xd46170['volume'] = 0x1;
+                        loginSound['play']()['catch'](() => {});
+                    }, playDelay), setTimeout(() => {
+                        const balloonSound = getBalloonSound();
+                        balloonSound && (balloonSound['volume'] = 0.01, balloonSound['currentTime'] = 0x0, balloonSound['play']()['then'](() => {
+                            balloonSound['pause'](), balloonSound['currentTime'] = 0x0, balloonSound['volume'] = 0x1;
                         })['catch'](() => {
-                            _0xd46170['volume'] = 0x1;
+                            balloonSound['volume'] = 0x1;
                         }));
                     }, 0x32), setTimeout(() => {
                         !document['getElementById']('balloon-root') && import('./taskbar.js')['then'](({
-                            showWelcomeBalloon: _0x3eef9f
+                            showWelcomeBalloon: showWelcomeBalloon
                         }) => {
-                            _0x3eef9f();
+                            showWelcomeBalloon();
                         });
                     }, 0x12c0);
                 } else setTimeout(() => {
                     !document['getElementById']('balloon-root') && import('./taskbar.js')['then'](({
-                        showWelcomeBalloon: _0x3bf6c4
+                        showWelcomeBalloon: showWelcomeBalloonAlt
                     }) => {
-                        _0x3bf6c4();
+                        showWelcomeBalloonAlt();
                     });
                 }, 0x3e8);
                 sessionStorage['setItem']('logged_in', 'true'), window['_logoffEnableTime'] = Date['now']() + 0x1194;
             }, 0x7d0);
         }, 0x12c);
     }
-    window['addEventListener']('message', _0x16f823 => {
-        _0x16f823['data']?.['type'] === 'shutdownRequest' && (eventBus && EVENTS && eventBus['publish'](EVENTS['SHUTDOWN_REQUESTED']));
+    window['addEventListener']('message', messageEvent => {
+        messageEvent['data']?.['type'] === 'shutdownRequest' && (eventBus && EVENTS && eventBus['publish'](EVENTS['SHUTDOWN_REQUESTED']));
     });
     if (!eventBus || !EVENTS) return;
-    eventBus['subscribe'](EVENTS['LOG_OFF_CONFIRMATION_REQUESTED'], _0x5aec5e => {
-        _0x193ab1 = _0x5aec5e?.['dialogType'] || 'logOff', _0x4f6228();
+    eventBus['subscribe'](EVENTS['LOG_OFF_CONFIRMATION_REQUESTED'], data => {
+        logoffMode = data?.['dialogType'] || 'logOff', openLogoffDialog();
     });
 
-    function _0x4f6228() {
-        if (!_0x917976) return;
-        const _0x71ea17 = _0x917976['querySelector']('.logoff-dialog-header-text'),
-            _0x1fde38 = _0x917976['querySelector']('#logoff-log-off-btn'),
-            _0x313024 = _0x1fde38?.['querySelector']('img'),
-            _0x69ac5a = _0x1fde38?.['querySelector']('span');
-        if (_0x193ab1 === 'shutDown') {
-            if (_0x71ea17) _0x71ea17['textContent'] = 'Turn\x20off\x20MitchIvin\x20XP';
-            if (_0x69ac5a) _0x69ac5a['textContent'] = 'Shut\x20Down';
-            if (_0x313024) _0x313024['src'] = 'assets/gui/start-menu/shutdown.webp';
-            _0x1fde38 && (_0x1fde38['style']['opacity'] = '0.6', _0x1fde38['style']['pointerEvents'] = 'none');
+    function openLogoffDialog() {
+        if (!logoffDialog) return;
+        const headerText = logoffDialog['querySelector']('.logoff-dialog-header-text'),
+            logoffConfirmButton = logoffDialog['querySelector']('#logoff-log-off-btn'),
+            logoffButtonImage = logoffConfirmButton?.['querySelector']('img'),
+            logoffButtonLabel = logoffConfirmButton?.['querySelector']('span');
+        if (logoffMode === 'shutDown') {
+            if (headerText) headerText['textContent'] = 'Turn\x20off\x20MitchIvin\x20XP';
+            if (logoffButtonLabel) logoffButtonLabel['textContent'] = 'Shut\x20Down';
+            if (logoffButtonImage) logoffButtonImage['src'] = 'assets/gui/start-menu/shutdown.webp';
+            logoffConfirmButton && (logoffConfirmButton['style']['opacity'] = '0.6', logoffConfirmButton['style']['pointerEvents'] = 'none');
         } else {
-            if (_0x71ea17) _0x71ea17['textContent'] = 'Log\x20Off\x20MitchIvin\x20XP';
-            if (_0x69ac5a) _0x69ac5a['textContent'] = 'Log\x20Off';
-            if (_0x313024) _0x313024['src'] = 'assets/gui/start-menu/logoff.webp';
-            _0x1fde38 && (_0x1fde38['style']['opacity'] = '', _0x1fde38['style']['pointerEvents'] = '');
+            if (headerText) headerText['textContent'] = 'Log\x20Off\x20MitchIvin\x20XP';
+            if (logoffButtonLabel) logoffButtonLabel['textContent'] = 'Log\x20Off';
+            if (logoffButtonImage) logoffButtonImage['src'] = 'assets/gui/start-menu/logoff.webp';
+            logoffConfirmButton && (logoffConfirmButton['style']['opacity'] = '', logoffConfirmButton['style']['pointerEvents'] = '');
         }
-        _0x917976['classList']['remove']('logoff-dialog-hidden'), _0x917976['classList']['add']('visible');
-        _0x2b208d && (_0x2b208d['style']['opacity'] = '', _0x2b208d['style']['pointerEvents'] = '', _0x2b208d['classList']['remove']('disabled'));
-        if (_0x1fde38 && _0x193ab1 === 'logOff') {
-            const _0x3fe1e4 = Date['now'](),
-                _0x1785a5 = window['_logoffEnableTime'] || 0x0;
-            _0x3fe1e4 < _0x1785a5 ? (_0x1fde38['classList']['add']('logoff-button-timed-disable'), _0x1fde38['style']['pointerEvents'] = 'none', _0x1fde38['style']['opacity'] = '0.6', setTimeout(() => {
-                _0x1fde38 && _0x917976['classList']['contains']('visible') && _0x193ab1 === 'logOff' && (_0x1fde38['classList']['remove']('logoff-button-timed-disable'), _0x1fde38['style']['pointerEvents'] = '', _0x1fde38['style']['opacity'] = '');
-            }, _0x1785a5 - _0x3fe1e4)) : (_0x1fde38['classList']['remove']('logoff-button-timed-disable'), _0x1fde38['style']['pointerEvents'] = '', _0x1fde38['style']['opacity'] = '');
+        logoffDialog['classList']['remove']('logoff-dialog-hidden'), logoffDialog['classList']['add']('visible');
+        switchUserButton && (switchUserButton['style']['opacity'] = '', switchUserButton['style']['pointerEvents'] = '', switchUserButton['classList']['remove']('disabled'));
+        if (logoffConfirmButton && logoffMode === 'logOff') {
+            const now = Date['now'](),
+                enableTimestamp = window['_logoffEnableTime'] || 0x0;
+            now < enableTimestamp ? (logoffConfirmButton['classList']['add']('logoff-button-timed-disable'), logoffConfirmButton['style']['pointerEvents'] = 'none', logoffConfirmButton['style']['opacity'] = '0.6', setTimeout(() => {
+                logoffConfirmButton && logoffDialog['classList']['contains']('visible') && logoffMode === 'logOff' && (logoffConfirmButton['classList']['remove']('logoff-button-timed-disable'), logoffConfirmButton['style']['pointerEvents'] = '', logoffConfirmButton['style']['opacity'] = '');
+            }, enableTimestamp - now)) : (logoffConfirmButton['classList']['remove']('logoff-button-timed-disable'), logoffConfirmButton['style']['pointerEvents'] = '', logoffConfirmButton['style']['opacity'] = '');
         }
-        clearTimeout(_0xf4e13b), _0xf4e13b = setTimeout(() => {
+        clearTimeout(grayscaleTimeout), grayscaleTimeout = setTimeout(() => {
             document['body']['classList']['add']('screen-grayscale-active');
         }, 0x2bc);
     }
 
-    function _0x5544ba() {
-        if (!_0x917976) return;
-        _0x917976['classList']['remove']('visible'), _0x917976['classList']['add']('logoff-dialog-hidden'), document['body']['classList']['remove']('screen-grayscale-active'), clearTimeout(_0xf4e13b);
+    function closeLogoffDialog() {
+        if (!logoffDialog) return;
+        logoffDialog['classList']['remove']('visible'), logoffDialog['classList']['add']('logoff-dialog-hidden'), document['body']['classList']['remove']('screen-grayscale-active'), clearTimeout(grayscaleTimeout);
     }
-    if (_0x3e691e) {
-        const _0x58f272 = _0x2768c4 => {
-            _0x2768c4['stopPropagation']();
-            const _0x370a2c = _0x3e691e['style']['opacity'] === '0.6' || _0x3e691e['style']['pointerEvents'] === 'none';
-            if (_0x370a2c) return;
-            _0x5544ba();
-            if (_0x193ab1 === 'shutDown') return;
+    if (logoffButton) {
+        const handleLogoffClick = event => {
+            event['stopPropagation']();
+            const isDisabled = logoffButton['style']['opacity'] === '0.6' || logoffButton['style']['pointerEvents'] === 'none';
+            if (isDisabled) return;
+            closeLogoffDialog();
+            if (logoffMode === 'shutDown') return;
             else eventBus['publish'](EVENTS['LOG_OFF_REQUESTED']);
         };
-        !_0x3e691e['_logOffActionAttached'] && (_0x3e691e['addEventListener']('click', _0x58f272), _0x3e691e['addEventListener']('keydown', _0xfb69db => {
-            (_0xfb69db['key'] === 'Enter' || _0xfb69db['key'] === '\x20') && (_0xfb69db['preventDefault'](), _0x58f272(_0xfb69db));
-        }), _0x3e691e['_logOffActionAttached'] = !![]);
+        !logoffButton['_logOffActionAttached'] && (logoffButton['addEventListener']('click', handleLogoffClick), logoffButton['addEventListener']('keydown', keyEvt => {
+            (keyEvt['key'] === 'Enter' || keyEvt['key'] === '\x20') && (keyEvt['preventDefault'](), handleLogoffClick(keyEvt));
+        }), logoffButton['_logOffActionAttached'] = !![]);
     }
-    if (_0x2b208d) {
-        const _0x22f19b = _0x569702 => {
-            _0x569702['stopPropagation'](), _0x5544ba(), sessionStorage['removeItem']('logged_in'), window['location']['reload']();
+    if (switchUserButton) {
+        const handleSwitchUser = event2 => {
+            event2['stopPropagation'](), closeLogoffDialog(), sessionStorage['removeItem']('logged_in'), window['location']['reload']();
         };
-        !_0x2b208d['_restartActionAttached'] && (_0x2b208d['addEventListener']('click', _0x22f19b), _0x2b208d['addEventListener']('keydown', _0x55d26e => {
-            (_0x55d26e['key'] === 'Enter' || _0x55d26e['key'] === '\x20') && (_0x55d26e['preventDefault'](), _0x22f19b(_0x55d26e));
-        }), _0x2b208d['_restartActionAttached'] = !![]);
+        !switchUserButton['_restartActionAttached'] && (switchUserButton['addEventListener']('click', handleSwitchUser), switchUserButton['addEventListener']('keydown', keyEvent => {
+            (keyEvent['key'] === 'Enter' || keyEvent['key'] === '\x20') && (keyEvent['preventDefault'](), handleSwitchUser(keyEvent));
+        }), switchUserButton['_restartActionAttached'] = !![]);
     }
-    if (_0x291099) {
-        const _0x207521 = () => {
-            _0x5544ba();
+    if (cancelButton) {
+        const handleCancel = () => {
+            closeLogoffDialog();
         };
-        !_0x291099['_cancelActionAttached'] && (_0x291099['addEventListener']('click', _0x207521), _0x291099['_cancelActionAttached'] = !![]);
+        !cancelButton['_cancelActionAttached'] && (cancelButton['addEventListener']('click', handleCancel), cancelButton['_cancelActionAttached'] = !![]);
     }
-    const _0x15b2f3 = _0x28b941 => {
-        _0x28b941['key'] === 'Escape' && _0x917976 && _0x917976['classList']['contains']('visible') && _0x5544ba();
+    const handleEscKey = event => {
+        event['key'] === 'Escape' && logoffDialog && logoffDialog['classList']['contains']('visible') && closeLogoffDialog();
     };
-    document['addEventListener']('keydown', _0x15b2f3), eventBus['subscribe'](EVENTS['LOG_OFF_REQUESTED'], () => {
+    document['addEventListener']('keydown', handleEscKey), eventBus['subscribe'](EVENTS['LOG_OFF_REQUESTED'], () => {
         try {
-            const _0x230474 = getLogoffSound();
-            if (_0x230474) {
-                _0x230474['pause'](), _0x230474['currentTime'] = 0x0;
-                const _0x32e7d4 = navigator['userAgent']['toLowerCase']()['includes']('firefox'),
-                    _0x3783f6 = _0x32e7d4 ? 0x32 : 0xa;
+            const logoffSound = getLogoffSound();
+            if (logoffSound) {
+                logoffSound['pause'](), logoffSound['currentTime'] = 0x0;
+                const isFirefoxFlag = navigator['userAgent']['toLowerCase']()['includes']('firefox'),
+                    soundDelay = isFirefoxFlag ? 0x32 : 0xa;
                 setTimeout(() => {
-                    _0x230474['play']()['catch'](() => {});
-                }, _0x3783f6);
+                    logoffSound['play']()['catch'](() => {});
+                }, soundDelay);
             }
-        } catch (_0xa024bd) {}
+        } catch (logoffError) {}
         try {
             if (eventBus && EVENTS && EVENTS['MEDIA_GLOBAL_PAUSE']) {
-                const _0xdfe870 = {};
-                _0xdfe870['reason'] = 'logoff', eventBus['publish'](EVENTS['MEDIA_GLOBAL_PAUSE'], _0xdfe870);
+                const pauseEvent = {};
+                pauseEvent['reason'] = 'logoff', eventBus['publish'](EVENTS['MEDIA_GLOBAL_PAUSE'], pauseEvent);
             } else {
                 if (window['eventBus'] && window['EVENTS'] && window['EVENTS']['MEDIA_GLOBAL_PAUSE']) {
-                    const _0x3e48c9 = {};
-                    _0x3e48c9['reason'] = 'logoff', window['eventBus']['publish'](window['EVENTS']['MEDIA_GLOBAL_PAUSE'], _0x3e48c9);
+                    const globalPauseEvent = {};
+                    globalPauseEvent['reason'] = 'logoff', window['eventBus']['publish'](window['EVENTS']['MEDIA_GLOBAL_PAUSE'], globalPauseEvent);
                 }
             }
-        } catch (_0x581ec6) {}
-        _0x3b3646['style']['display'] = 'flex', _0x3b3646['style']['opacity'] = '1', _0x3b3646['style']['pointerEvents'] = 'auto';
-        const _0x585937 = _0x3b3646['querySelector']('.login-screen');
-        if (_0x585937) {
-            _0x585937['style']['opacity'] = '1';
-            const _0x1bdcdd = [_0x585937['querySelector']('.login-screen-center'), _0x585937['querySelector']('.back-gradient'), _0x585937['querySelector']('.turn-off'), _0x585937['querySelector']('.right-bottom'), _0x585937['querySelector']('.xp-logo-image'), _0x585937['querySelector']('.left-text'), _0x585937['querySelector']('hr.login-separator'), _0x585937['querySelector']('.login-separator.mobile-only'), _0x3b3646['querySelector']('.welcome-message')];
-            _0x1bdcdd['forEach'](_0x255743 => {
-                _0x255743 && (_0x255743['style']['display'] = '', _0x255743['style']['opacity'] = '1', _0x255743['classList']['contains']('welcome-message') && (_0x255743['classList']['remove']('visible'), _0x255743['style']['display'] = 'none'));
+        } catch (pauseError) {}
+        loginScreen['style']['display'] = 'flex', loginScreen['style']['opacity'] = '1', loginScreen['style']['pointerEvents'] = 'auto';
+        const loginScreenInner = loginScreen['querySelector']('.login-screen');
+        if (loginScreenInner) {
+            loginScreenInner['style']['opacity'] = '1';
+            const loginElementsArray = [loginScreenInner['querySelector']('.login-screen-center'), loginScreenInner['querySelector']('.back-gradient'), loginScreenInner['querySelector']('.turn-off'), loginScreenInner['querySelector']('.right-bottom'), loginScreenInner['querySelector']('.xp-logo-image'), loginScreenInner['querySelector']('.left-text'), loginScreenInner['querySelector']('hr.login-separator'), loginScreenInner['querySelector']('.login-separator.mobile-only'), loginScreen['querySelector']('.welcome-message')];
+            loginElementsArray['forEach'](item => {
+                item && (item['style']['display'] = '', item['style']['opacity'] = '1', item['classList']['contains']('welcome-message') && (item['classList']['remove']('visible'), item['style']['display'] = 'none'));
             });
         }
-        _0x1ff7f8['style']['opacity'] = '0', _0x1ff7f8['style']['pointerEvents'] = 'none', sessionStorage['removeItem']('logged_in');
-        if (_0x707cd0) _0x707cd0['style']['display'] = 'none';
-        if (_0x565a53) _0x565a53['style']['display'] = 'none';
+        desktopElement['style']['opacity'] = '0', desktopElement['style']['pointerEvents'] = 'none', sessionStorage['removeItem']('logged_in');
+        if (scanlineOverlay) scanlineOverlay['style']['display'] = 'none';
+        if (vignetteOverlay) vignetteOverlay['style']['display'] = 'none';
         try {
             import('./taskbar.js')['then'](({
-                hideBalloon: _0x4fb436
+                hideBalloon: hideBalloon
             }) => {
-                _0x4fb436(!![]);
+                hideBalloon(!![]);
             });
-        } catch (_0x4d8adb) {}
-        const _0x6e29d8 = {};
-        _0x6e29d8['__coalesce'] = !![], (window['batchedPublish'] || eventBus['publish'])['call'](window['batchedPublish'] ? undefined : eventBus, EVENTS['STARTMENU_CLOSE_REQUEST'], _0x6e29d8), _0x107d25(_0x41d5b8);
+        } catch (hideError) {}
+        const startMenuClosePayload = {};
+        startMenuClosePayload['__coalesce'] = !![], (window['batchedPublish'] || eventBus['publish'])['call'](window['batchedPublish'] ? undefined : eventBus, EVENTS['STARTMENU_CLOSE_REQUEST'], startMenuClosePayload), setupLoginHandlers(projects);
     });
 
-    function _0x107d25(_0x3b00a6) {
-        const _0x3ef7c6 = document['querySelector']('.back-gradient');
-        _0x3ef7c6 && !_0x3ef7c6['_loginHandlerAttached'] && (_0x3ef7c6['addEventListener']('click', function() {
-            _0x3ef7c6['classList']['add']('active'), _0x5c0c77(_0x3b00a6);
-        }), _0x3ef7c6['_loginHandlerAttached'] = !![]);
-        const _0x485001 = document['getElementById']('shutdown-icon');
-        _0x485001 && !_0x485001['_shutdownHandlerAttached'] && (_0x485001['addEventListener']('click', () => {
+    function setupLoginHandlers(projectData) {
+        const backGradient = document['querySelector']('.back-gradient');
+        backGradient && !backGradient['_loginHandlerAttached'] && (backGradient['addEventListener']('click', function() {
+            backGradient['classList']['add']('active'), showLoginAnimation(projectData);
+        }), backGradient['_loginHandlerAttached'] = !![]);
+        const shutdownIcon = document['getElementById']('shutdown-icon');
+        shutdownIcon && !shutdownIcon['_shutdownHandlerAttached'] && (shutdownIcon['addEventListener']('click', () => {
             if (eventBus && EVENTS) {
-                const _0x258abf = {};
-                _0x258abf['dialogType'] = 'shutDown', eventBus['publish'](EVENTS['LOG_OFF_CONFIRMATION_REQUESTED'], _0x258abf);
+                const logoffRequest = {};
+                logoffRequest['dialogType'] = 'shutDown', eventBus['publish'](EVENTS['LOG_OFF_CONFIRMATION_REQUESTED'], logoffRequest);
             }
-        }), _0x485001['_shutdownHandlerAttached'] = !![]);
+        }), shutdownIcon['_shutdownHandlerAttached'] = !![]);
     }
 }
 document['addEventListener']('DOMContentLoaded', async () => {
-    const _0x13f10e = await getSystemAssets(),
-        _0x207a79 = document['getElementById']('boot-logo');
-    if (_0x207a79 && _0x13f10e['loading']) _0x207a79['src'] = _0x13f10e['loading'];
-    document['querySelectorAll']('.xp-logo-image')['forEach'](_0x379db1 => {
-        if (_0x13f10e['loading']) _0x379db1['src'] = _0x13f10e['loading'];
-    }), document['querySelectorAll']('.login-screen\x20.user\x20img')['forEach'](_0x4886a8 => {
-        if (_0x13f10e['userIcon']) _0x4886a8['src'] = _0x13f10e['userIcon'];
+    const assets = await getSystemAssets(),
+        logoImg = document['getElementById']('boot-logo');
+    if (logoImg && assets['loading']) logoImg['src'] = assets['loading'];
+    document['querySelectorAll']('.xp-logo-image')['forEach'](xpLogoImg => {
+        if (assets['loading']) xpLogoImg['src'] = assets['loading'];
+    }), document['querySelectorAll']('.login-screen\x20.user\x20img')['forEach'](userImage => {
+        if (assets['userIcon']) userImage['src'] = assets['userIcon'];
     });
     try {
-        const _0x201b9d = await fetch('./ui.json'),
-            _0x42471d = await _0x201b9d['json'](),
-            _0x5c6b6e = _0x42471d?.['contact']?.['name'] || 'Mitch\x20Ivin';
-        document['querySelectorAll']('.login-screen\x20.name')['forEach'](_0x4ba190 => {
-            _0x4ba190['textContent'] = _0x5c6b6e;
-        }), document['querySelectorAll']('.login-instruction-name')['forEach'](_0x398ae5 => {
-            _0x398ae5['textContent'] = _0x5c6b6e;
+        const response = await fetch('./ui.json'),
+            data = await response['json'](),
+            contactName = data?.['contact']?.['name'] || 'Mitch\x20Ivin';
+        document['querySelectorAll']('.login-screen\x20.name')['forEach'](element => {
+            element['textContent'] = contactName;
+        }), document['querySelectorAll']('.login-instruction-name')['forEach'](element2 => {
+            element2['textContent'] = contactName;
         });
-    } catch (_0x368126) {}
-    const _0x261f2f = document['getElementById']('pre-boot-overlay'),
-        _0x296144 = document['getElementById']('boot-screen');
-    _0x261f2f && _0x296144 && setTimeout(() => {
-        if (_0x261f2f['parentNode']) _0x261f2f['parentNode']['removeChild'](_0x261f2f);
-        _0x296144['classList']['add']('boot-fade-in');
+    } catch (uiError) {}
+    const preBootOverlay = document['getElementById']('pre-boot-overlay'),
+        bootScreenElem = document['getElementById']('boot-screen');
+    preBootOverlay && bootScreenElem && setTimeout(() => {
+        if (preBootOverlay['parentNode']) preBootOverlay['parentNode']['removeChild'](preBootOverlay);
+        bootScreenElem['classList']['add']('boot-fade-in');
     }, 0x3e8);
 });
