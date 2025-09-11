@@ -20,142 +20,196 @@ export default class WindowManager {
     constructor(eventBus) {
         this['eventBus'] = eventBus, this['windows'] = {}, this['activeWindow'] = null, this['taskbarItems'] = {}, this['windowCount'] = 0x0, this['programData'] = _0x6506b7, this['baseZIndex'] = parseInt(getComputedStyle(document['documentElement'])['getPropertyValue']('--z-window')) || 0x64, this['windowsContainer'] = document['getElementById']('windows-container'), this['taskbarPrograms'] = document['querySelector']('.taskbar-programs'), this['zIndexStack'] = [], this['_cachedTaskbarHeight'] = null, this['_cachedViewportDimensions'] = null, this['_cachedTaskbarElement'] = null, this['_setupGlobalHandlers'](), this['_subscribeToEvents'](), window['addEventListener']('resize', () => {
             this['_handleViewportChange']();
-        }), window['addEventListener']('message', _0x59744f => {
-            !this['_toggleButtonState'] && (this['_toggleButtonState'] = (_0x349acd, _0x2f2c2e) => {
-                if (!_0x349acd) return;
-                _0x2f2c2e ? (_0x349acd['classList']['remove']('disabled'), _0x349acd['disabled'] = ![]) : (_0x349acd['classList']['add']('disabled'), _0x349acd['disabled'] = !![]);
-            });
-            if (_0x59744f['data'] && _0x59744f['data']['type'] === 'ui:home-enabled') {
-                const _0x250953 = this['_findWindowByIframe'](_0x59744f['source']);
-                if (_0x250953) {
-                    const _0xf01ecc = _0x250953['querySelector']('.toolbar-button.home');
-                    this['_toggleButtonState'](_0xf01ecc, _0x59744f['data']['enabled']);
+        }), window.addEventListener('message', event => {
+            if (!this.toggleButtonState) {
+                this.toggleButtonState = (button, enabled) => {
+                    if (!button) return;
+                    if (enabled) {
+                        button.classList.remove('disabled');
+                        button.disabled = false;
+                    } else {
+                        button.classList.add('disabled');
+                        button.disabled = true;
+                    }
+                };
+            }
+            const data = event.data;
+            if (data && data.type === 'ui:home-enabled') {
+                const sourceWindow = this._findWindowByIframe(event.source);
+                if (sourceWindow) {
+                    const homeButton = sourceWindow.querySelector('.toolbar-button.home');
+                    this.toggleButtonState(homeButton, data.enabled);
                 }
             }
-            if (_0x59744f['data'] && _0x59744f['data']['type'] === 'nav:enabled') {
-                const _0x572cad = this['_findWindowByIframe'](_0x59744f['source']);
-                if (_0x572cad) {
-                    const _0xde2617 = _0x572cad['querySelector']('.toolbar-button.previous'),
-                        _0x157875 = _0x572cad['querySelector']('.toolbar-button.next');
-                    this['_toggleButtonState'](_0xde2617, _0x59744f['data']['enabled']), this['_toggleButtonState'](_0x157875, _0x59744f['data']['enabled']);
+            if (data && data.type === 'nav:enabled') {
+                const sourceWindow = this._findWindowByIframe(event.source);
+                if (sourceWindow) {
+                    const backBtn = sourceWindow.querySelector('.toolbar-button.previous');
+                    const forwardBtn = sourceWindow.querySelector('.toolbar-button.next');
+                    this.toggleButtonState(backBtn, data.enabled);
+                    this.toggleButtonState(forwardBtn, data.enabled);
                 }
             }
-            if (_0x59744f['data'] && _0x59744f['data']['type'] === 'throttle-nav-buttons') {
-                this['projectNavigationDisabled'] = _0x59744f['data']['active'];
-                const _0x4415c0 = this['windows']['projects-window'];
-                if (_0x4415c0) {
-                    const backBtn = _0x4415c0['querySelector']('.toolbar-button.previous'),
-                        forwardBtn = _0x4415c0['querySelector']('.toolbar-button.next');
-                    if (this['projectNavigationDisabled']) this['_toggleButtonState'](backBtn, ![]), this['_toggleButtonState'](forwardBtn, ![]);
-                    else {}
+            if (data && data.type === 'throttle-nav-buttons') {
+                this.projectNavigationDisabled = data.active;
+                const projectsWindow = this.windows['projects-window'];
+                if (projectsWindow) {
+                    const backBtn = projectsWindow.querySelector('.toolbar-button.previous');
+                    const forwardBtn = projectsWindow.querySelector('.toolbar-button.next');
+                    if (this.projectNavigationDisabled) {
+                        this.toggleButtonState(backBtn, false);
+                        this.toggleButtonState(forwardBtn, false);
+                    }
                 }
             }
-            _0x59744f['data'] && _0x59744f['data']['type'] === 'open-app' && (_0x59744f['data']['appName'] && this['openProgram'](_0x59744f['data']['appName']));
-            if (_0x59744f['data'] && _0x59744f['data']['type'] === 'set-external-link-enabled') {
-                const _0x35a17c = this['_findWindowByIframe'](_0x59744f['source']);
-                if (_0x35a17c) {
-                    const _0x2e3507 = _0x35a17c['querySelector']('.toolbar-button.viewExternalLink');
-                    _0x2e3507 && (this['_toggleButtonState'](_0x2e3507, _0x59744f['data']['enabled']), _0x59744f['data']['enabled'] ? (_0x2e3507['style']['display'] = '', _0x59744f['data']['url'] && (_0x2e3507['dataset']['urlToOpen'] = _0x59744f['data']['url'])) : (_0x2e3507['style']['display'] = 'none', delete _0x2e3507['dataset']['urlToOpen']));
+            if (data && data.type === 'open-app' && data.appName) {
+                this.openProgram(data.appName);
+            }
+            if (data && data.type === 'set-external-link-enabled') {
+                const sourceWindow = this._findWindowByIframe(event.source);
+                if (sourceWindow) {
+                    const externalLinkBtn = sourceWindow.querySelector('.toolbar-button.viewExternalLink');
+                    if (externalLinkBtn) {
+                        this.toggleButtonState(externalLinkBtn, data.enabled);
+                        if (data.enabled) {
+                            externalLinkBtn.style.display = '';
+                            if (data.url) externalLinkBtn.dataset.urlToOpen = data.url;
+                        } else {
+                            externalLinkBtn.style.display = 'none';
+                            delete externalLinkBtn.dataset.urlToOpen;
+                        }
+                    }
                 }
             }
-            if (_0x59744f['data'] && _0x59744f['data']['type'] === 'update-status-bar') {
-                const _0x415f56 = this['_findWindowByIframe'](_0x59744f['source']);
-                _0x415f56 && _0x415f56['statusBarField'] && (_0x415f56['statusBarField']['textContent'] = _0x59744f['data']['text']);
-            }
-            if (_0x59744f['data'] && _0x59744f['data']['type'] === 'toolbar:zoom-state') {
-                const _0x3e91a2 = this['_findWindowByIframe'](_0x59744f['source']);
-                if (_0x3e91a2) {
-                    const _0xc040a = _0x3e91a2['querySelector']('.toolbar-button.zoom');
-                    _0xc040a && (_0x59744f['data']['active'] ? _0xc040a['classList']['add']('pressed') : _0xc040a['classList']['remove']('pressed'));
+            if (data && data.type === 'update-status-bar') {
+                const sourceWindow = this._findWindowByIframe(event.source);
+                if (sourceWindow && sourceWindow.statusBarField) {
+                    sourceWindow.statusBarField.textContent = data.text;
                 }
             }
-            if (_0x59744f['data'] && _0x59744f['data']['type'] === 'update-overlay-button-state') {
-                const _0x22bc31 = this['_findWindowByIframe'](_0x59744f['source']);
-                if (_0x22bc31) {
-                    const _0x1374d4 = _0x22bc31['querySelector']('.toolbar-button.search,\x20.toolbar-button.overlayToggleMobile,\x20.toolbar-button.overlaysToggle');
-                    _0x1374d4 && (_0x59744f['data']['active'] ? _0x1374d4['classList']['add']('touch-active') : _0x1374d4['classList']['remove']('touch-active'));
+            if (data && data.type === 'toolbar:zoom-state') {
+                const sourceWindow = this._findWindowByIframe(event.source);
+                if (sourceWindow) {
+                    const zoomButton = sourceWindow.querySelector('.toolbar-button.zoom');
+                    if (zoomButton) {
+                        data.active ? zoomButton.classList.add('pressed') : zoomButton.classList.remove('pressed');
+                    }
                 }
             }
-            if (_0x59744f['data'] && _0x59744f['data']['type'] === 'update-address-bar') {
-                const _0x34cf86 = this['_findWindowByIframe'](_0x59744f['source']);
-                if (_0x34cf86) {
-                    const addressBarTitle = _0x34cf86['querySelector']('.addressbar-title');
-                    addressBarTitle && _0x59744f['data']['title'] && (addressBarTitle['textContent'] = _0x59744f['data']['title']);
+            if (data && data.type === 'update-overlay-button-state') {
+                const sourceWindow = this._findWindowByIframe(event.source);
+                if (sourceWindow) {
+                    const overlayButton = sourceWindow.querySelector('.toolbar-button.search, .toolbar-button.overlayToggleMobile, .toolbar-button.overlaysToggle');
+                    if (overlayButton) {
+                        data.active ? overlayButton.classList.add('touch-active') : overlayButton.classList.remove('touch-active');
+                    }
                 }
             }
-            if (!(window['location']['protocol'] === 'file:' || _0x59744f['origin'] === window['origin'])) return;
-            if (_0x59744f['data'] && _0x59744f['data']['type'] === 'contact:form-state') {
-                let _0x4aacde = null;
-                for (const _0x1448ce in this['windows']) {
-                    const _0x612517 = this['windows'][_0x1448ce],
-                        _0x8a3740 = _0x612517['querySelector']('iframe');
-                    if (_0x8a3740 && _0x8a3740['contentWindow'] === _0x59744f['source']) {
-                        _0x4aacde = _0x612517;
+            if (data && data.type === 'update-address-bar') {
+                const sourceWindow = this._findWindowByIframe(event.source);
+                if (sourceWindow) {
+                    const titleElement = sourceWindow.querySelector('.addressbar-title');
+                    if (titleElement && data.title) {
+                        titleElement.textContent = data.title;
+                    }
+                }
+            }
+            if (!(window.location.protocol === 'file:' || event.origin === window.origin)) return;
+            if (data && data.type === 'contact:form-state') {
+                let targetWindow = null;
+                for (const windowId in this.windows) {
+                    const win = this.windows[windowId];
+                    const iframe = win.querySelector('iframe');
+                    if (iframe && iframe.contentWindow === event.source) {
+                        targetWindow = win;
                         break;
                     }
                 }
-                if (_0x4aacde) {
-                    const _0x44c76d = _0x4aacde['querySelector']('.toolbar-button.send'),
-                        _0x53873f = _0x4aacde['querySelector']('.toolbar-button.new');
-                    this['_toggleButtonState'](_0x44c76d, _0x59744f['data']['hasValue']), this['_toggleButtonState'](_0x53873f, _0x59744f['data']['hasValue']);
+                if (targetWindow) {
+                    const sendBtn = targetWindow.querySelector('.toolbar-button.send');
+                    const newBtn = targetWindow.querySelector('.toolbar-button.new');
+                    this.toggleButtonState(sendBtn, data.hasValue);
+                    this.toggleButtonState(newBtn, data.hasValue);
                 }
             }
-            let _0x34405d = null;
-            _0x59744f['data']?.['type'] === 'window:iframe-interaction' && _0x59744f['data']['windowId'] && (_0x34405d = document['getElementById'](_0x59744f['data']['windowId']));
-            !_0x34405d && (_0x34405d = Array['from'](document['querySelectorAll']('.app-window'))['find'](_0x5cb706 => {
-                const _0x53b081 = _0x5cb706['querySelector']('iframe');
-                return _0x53b081 && _0x53b081['contentWindow'] === _0x59744f['source'];
-            }));
-            !_0x34405d && _0x59744f['data']?.['type'] === 'window:iframe-interaction' && (_0x34405d = Array['from'](document['querySelectorAll']('.app-window'))['find'](_0x904555 => {
-                const _0x1ddec7 = _0x904555['querySelector']('iframe');
-                return _0x1ddec7 && _0x1ddec7['src']['includes']('contact.html');
-            }));
-            if (!_0x34405d) return;
-            if (_0x59744f['data']?.['type'] === 'window:iframe-interaction') {
-                const _0x50b131 = {};
-                _0x50b131['bubbles'] = ![], _0x34405d['dispatchEvent'](new CustomEvent('window:iframe-interaction', _0x50b131));
+            let targetWindow = null;
+            if (data?.type === 'window:iframe-interaction' && data.windowId) {
+                targetWindow = document.getElementById(data.windowId);
+            }
+            if (!targetWindow) {
+                targetWindow = Array.from(document.querySelectorAll('.app-window')).find(win => {
+                    const iframe = win.querySelector('iframe');
+                    return iframe && iframe.contentWindow === event.source;
+                });
+            }
+            if (!targetWindow && data?.type === 'window:iframe-interaction') {
+                targetWindow = Array.from(document.querySelectorAll('.app-window')).find(win => {
+                    const iframe = win.querySelector('iframe');
+                    return iframe && iframe.src.includes('contact.html');
+                });
+            }
+            if (!targetWindow) return;
+            if (data?.type === 'window:iframe-interaction') {
+                targetWindow.dispatchEvent(new CustomEvent('window:iframe-interaction', { bubbles: false }));
                 return;
             }
-            if (_0x59744f['data']?.['type'] === 'minimize-window') this['minimizeWindow'](_0x34405d);
-            else {
-                if (_0x59744f['data']?.['type'] === 'close-window') this['closeWindow'](_0x34405d);
-                else _0x59744f['data']?.['type'] === 'updateStatusBar' && typeof _0x59744f['data']['text'] === 'string' && (_0x34405d['statusBarField'] && (_0x34405d['statusBarField']['textContent'] = _0x59744f['data']['text']));
+            if (data?.type === 'minimize-window') {
+                this.minimizeWindow(targetWindow);
+            } else if (data?.type === 'close-window') {
+                this.closeWindow(targetWindow);
+            } else if (data?.type === 'updateStatusBar' && typeof data.text === 'string') {
+                if (targetWindow.statusBarField) targetWindow.statusBarField.textContent = data.text;
             }
-            if (_0x59744f['data'] && _0x59744f['data']['type'] === 'project:view-state') {
-                const _0x3c7be9 = this['windows']['projects-window'];
-                let _0x12d72e, backBtn, forwardBtn, _0x1cace7;
-                _0x3c7be9 && (_0x12d72e = _0x3c7be9['querySelector']('.toolbar-button.home'), backBtn = _0x3c7be9['querySelector']('.toolbar-button.previous'), forwardBtn = _0x3c7be9['querySelector']('.toolbar-button.next'), _0x1cace7 = _0x3c7be9['querySelector']('.toolbar-button.search,\x20.toolbar-button.overlayToggleMobile,\x20.toolbar-button.overlaysToggle')), _0x12d72e && this['_toggleButtonState'](_0x12d72e, _0x59744f['data']['inDetailView']), backBtn && this['_toggleButtonState'](backBtn, _0x59744f['data']['inDetailView'] && _0x59744f['data']['hasPrevious']), forwardBtn && this['_toggleButtonState'](forwardBtn, _0x59744f['data']['inDetailView'] && _0x59744f['data']['hasNext']), _0x1cace7 && this['_toggleButtonState'](_0x1cace7, !_0x59744f['data']['inDetailView']);
-            }
-        });
-        const _0x10b810 = document['querySelector']('.toolbar-button.home');
-        _0x10b810 && _0x10b810['addEventListener']('click', () => {
-            if (!_0x10b810['classList']['contains']('disabled')) {
-                const _0x4641cc = document['getElementById']('projects-window'),
-                    _0x266866 = _0x4641cc ? _0x4641cc['querySelector']('iframe') : null;
-                if (_0x266866 && _0x266866['contentWindow']) {
-                    const _0x5e86f0 = {};
-                    _0x5e86f0['type'] = 'toolbar:action', _0x5e86f0['action'] = 'home', _0x266866['contentWindow']['postMessage'](_0x5e86f0, '*');
+            if (data && data.type === 'project:view-state') {
+                const projectsWindow = this.windows['projects-window'];
+                let homeButton, backBtn, forwardBtn, overlayBtn;
+                if (projectsWindow) {
+                    homeButton = projectsWindow.querySelector('.toolbar-button.home');
+                    backBtn = projectsWindow.querySelector('.toolbar-button.previous');
+                    forwardBtn = projectsWindow.querySelector('.toolbar-button.next');
+                    overlayBtn = projectsWindow.querySelector('.toolbar-button.search, .toolbar-button.overlayToggleMobile, .toolbar-button.overlaysToggle');
                 }
+                if (homeButton) this.toggleButtonState(homeButton, data.inDetailView);
+                if (backBtn) this.toggleButtonState(backBtn, data.inDetailView && data.hasPrevious);
+                if (forwardBtn) this.toggleButtonState(forwardBtn, data.inDetailView && data.hasNext);
+                if (overlayBtn) this.toggleButtonState(overlayBtn, !data.inDetailView);
             }
         });
-    } ['_createElement'](_0x46d470, _0x34ecab = '', _0x461f47 = {}) {
-        const _0x55cb01 = document['createElement'](_0x46d470);
-        if (_0x34ecab) _0x55cb01['className'] = _0x34ecab;
-        return Object['entries'](_0x461f47)['forEach'](([_0x127ea6, _0x224d0b]) => {
-            _0x55cb01['setAttribute'](_0x127ea6, _0x224d0b);
-        }), _0x55cb01;
-    } ['_isMobileDevice']() {
-        return document['documentElement']['classList']['contains']('mobile-device');
-    } ['_findWindowByIframe'](_0x533c09) {
-        for (const _0x440de6 in this['windows']) {
-            const _0x1bdd7b = this['windows'][_0x440de6],
-                _0x2234ef = _0x1bdd7b['querySelectorAll']('iframe');
-            for (const _0x1091e7 of _0x2234ef) {
-                if (_0x1091e7['contentWindow'] === _0x533c09) return _0x1bdd7b;
+        const globalHomeButton = document.querySelector('.toolbar-button.home');
+        if (globalHomeButton) {
+            globalHomeButton.addEventListener('click', () => {
+                if (!globalHomeButton.classList.contains('disabled')) {
+                    const projectsWindow = document.getElementById('projects-window');
+                    const projectsIframe = projectsWindow ? projectsWindow.querySelector('iframe') : null;
+                    if (projectsIframe && projectsIframe.contentWindow) {
+                        projectsIframe.contentWindow.postMessage({ type: 'toolbar:action', action: 'home' }, '*');
+                    }
+                }
+            });
+        }
+    }
+    ['_createElement'](tagName, className = '', attributes = {}) {
+        const element = document.createElement(tagName);
+        if (className) element.className = className;
+        Object.entries(attributes).forEach(([key, value]) => {
+            element.setAttribute(key, value);
+        });
+        return element;
+    }
+    ['_isMobileDevice']() {
+        return document.documentElement.classList.contains('mobile-device');
+    }
+    ['_findWindowByIframe'](iframeWindow) {
+        for (const windowId in this.windows) {
+            const win = this.windows[windowId];
+            const iframes = win.querySelectorAll('iframe');
+            for (const iframe of iframes) {
+                if (iframe.contentWindow === iframeWindow) return win;
             }
         }
         return null;
-    } ['_setupGlobalHandlers']() {
+    }
+    ['_setupGlobalHandlers']() {
         document['addEventListener']('mousedown', _0x4702f6 => {
             const _0x2e92b7 = _0x4702f6['target']['classList']['contains']('desktop') || _0x4702f6['target']['classList']['contains']('selection-overlay');
             _0x2e92b7 && !_0x4702f6['target']['closest']('.window') && (this['activeWindow'] && this['deactivateAllWindows']());

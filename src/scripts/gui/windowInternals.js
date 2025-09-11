@@ -74,13 +74,13 @@ export class WindowTemplates {
         let iframe = null;
         // Respect global exclusion list: some programs manage their own loading and should not
         // reuse cached iframes from the global cache.
-        const cacheAllowed = !(
+        const useCache = !(
             window.__IFRAME_CACHE_EXCLUDE && window.__IFRAME_CACHE_EXCLUDE.has(windowId)
         );
-        if (cacheAllowed && window.__IFRAME_CACHE && window.__IFRAME_CACHE.has(windowId)) {
-            const cachedData = window.__IFRAME_CACHE.get(windowId);
-            if (cachedData.fullyLoaded && cachedData.iframe) {
-                iframe = cachedData.iframe;
+        if (useCache && window.__IFRAME_CACHE && window.__IFRAME_CACHE.has(windowId)) {
+            const cacheEntry = window.__IFRAME_CACHE.get(windowId);
+            if (cacheEntry.fullyLoaded && cacheEntry.iframe) {
+                iframe = cacheEntry.iframe;
                 try {
                     if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
                 } catch (_) {
@@ -101,12 +101,12 @@ export class WindowTemplates {
                 for (const [attr, value] of Object.entries(attrs)) iframe.setAttribute(attr, value);
                 iframe.src = appPath;
                 window.__IFRAME_CACHE.set(windowId, {
-                    ...cachedData,
+                    ...cacheEntry,
                     iframe
                 });
-            } else if (cachedData.fullyLoaded && cachedData.src) {
+            } else if (cacheEntry.fullyLoaded && cacheEntry.src) {
                 iframe = this.createElement('iframe');
-                iframe.src = cachedData.src;
+                iframe.src = cacheEntry.src;
                 iframe.name = windowId;
                 iframe.title = `${windowId}-content`;
                 const attrs = {

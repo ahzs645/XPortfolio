@@ -1,68 +1,68 @@
 export function createAddressBar({
-    icon: _0x27832d,
+    icon: iconSrc,
     title: title = 'About\x20Me'
 } = {}) {
-    const _0x5301cf = document['createElement']('div');
-    _0x5301cf['className'] = 'addressbar-container';
-    const _0x389489 = _0x27832d ? '<img\x20decoding=\x22async\x22\x20loading=\x22lazy\x22\x20style=\x22margin:\x200\x203px\x200\x200\x22\x20alt=\x22icon\x22\x20width=\x2214\x22\x20height=\x2214\x22\x20src=\x22' + _0x27832d + '\x22\x20/>' : '';
-    return _0x5301cf['innerHTML'] = '\x0a\x20\x20\x20\x20<div\x20class=\x22addressbar-row\x22>\x0a\x20\x20\x20\x20\x20\x20<div\x20class=\x22address-label-container\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<span\x20style=\x22color:\x20#7f7c73;\x20font-size:\x2011px;\x22>Address</span>\x0a\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20<div\x20class=\x22addressbar\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20style=\x22display:\x20flex;\x20align-items:\x20center;\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20' + _0x389489 + '\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<span\x20class=\x22addressbar-title\x22>' + title + '</span>\x0a\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<img\x20decoding=\x22async\x22\x20loading=\x22lazy\x22\x20alt=\x22dropdown\x22\x20class=\x22dropdownIcon\x22\x20width=\x2216\x22\x20height=\x2218\x22\x20src=\x22./assets/gui/toolbar/tooldropdown.webp\x22\x20style=\x22filter:\x20grayscale(100%);\x20opacity:\x200.6;\x22\x20/>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22address-bar-progress\x22\x20aria-hidden=\x22true\x22></div>\x0a\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20<div\x20class=\x22go-button-container\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<img\x20decoding=\x22async\x22\x20loading=\x22lazy\x22\x20alt=\x22go\x22\x20class=\x22goIcon\x22\x20width=\x2220\x22\x20height=\x2220\x22\x20src=\x22./assets/gui/toolbar/go.webp\x22\x20style=\x22filter:\x20grayscale(100%);\x20opacity:\x200.6;\x22\x20/>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<span>Go</span>\x0a\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20</div>\x0a\x20\x20', _0x5301cf;
+    const container = document['createElement']('div');
+    container['className'] = 'addressbar-container';
+    const iconHtml = iconSrc ? '<img\x20decoding=\x22async\x22\x20loading=\x22lazy\x22\x20style=\x22margin:\x200\x203px\x200\x200\x22\x20alt=\x22icon\x22\x20width=\x2214\x22\x20height=\x2214\x22\x20src=\x22' + iconSrc + '\x22\x20/>' : '';
+    return container['innerHTML'] = '\x0a\x20\x20\x20\x20<div\x20class=\x22addressbar-row\x22>\x0a\x20\x20\x20\x20\x20\x20<div\x20class=\x22address-label-container\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<span\x20style=\x22color:\x20#7f7c73;\x20font-size:\x2011px;\x22>Address</span>\x0a\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20<div\x20class=\x22addressbar\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20style=\x22display:\x20flex;\x20align-items:\x20center;\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20' + iconHtml + '\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<span\x20class=\x22addressbar-title\x22>' + title + '</span>\x0a\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<img\x20decoding=\x22async\x22\x20loading=\x22lazy\x22\x20alt=\x22dropdown\x22\x20class=\x22dropdownIcon\x22\x20width=\x2216\x22\x20height=\x2218\x22\x20src=\x22./assets/gui/toolbar/tooldropdown.webp\x22\x20style=\x22filter:\x20grayscale(100%);\x20opacity:\x200.6;\x22\x20/>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22address-bar-progress\x22\x20aria-hidden=\x22true\x22></div>\x0a\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20<div\x20class=\x22go-button-container\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<img\x20decoding=\x22async\x22\x20loading=\x22lazy\x22\x20alt=\x22go\x22\x20class=\x22goIcon\x22\x20width=\x2220\x22\x20height=\x2220\x22\x20src=\x22./assets/gui/toolbar/go.webp\x22\x20style=\x22filter:\x20grayscale(100%);\x20opacity:\x200.6;\x22\x20/>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<span>Go</span>\x0a\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20</div>\x0a\x20\x20', container;
 }
 let SOCIALS_CACHE = null;
 async function getSocials() {
     if (SOCIALS_CACHE) return SOCIALS_CACHE;
     try {
-        const _0x5802d7 = await fetch('ui.json'),
-            _0x1b1bed = await _0x5802d7['json']();
-        return SOCIALS_CACHE = Array['isArray'](_0x1b1bed['socials']) ? _0x1b1bed['socials'] : [], SOCIALS_CACHE;
-    } catch (_0x69d638) {
+        const response = await fetch('ui.json'),
+            data = await response['json']();
+        return SOCIALS_CACHE = Array['isArray'](data['socials']) ? data['socials'] : [], SOCIALS_CACHE;
+    } catch (error) {
         return SOCIALS_CACHE = [], SOCIALS_CACHE;
     }
 }
-export function createMenuBar(_0x2c4792, _0xbb366, parentWindowElement) {
-    if (!_0x2c4792 || !_0x2c4792['items']) return null;
-    const _0x168b39 = document['createElement']('div');
-    _0x168b39['className'] = 'menu-bar-container';
+export function createMenuBar(menuConfig, windowId, parentWindowElement) {
+    if (!menuConfig || !menuConfig['items']) return null;
+    const container = document['createElement']('div');
+    container['className'] = 'menu-bar-container';
     let _parentWindowElement = parentWindowElement,
-        _0x3c9d40 = null;
-    _0x168b39['setParentWindowElement'] = function(_0x58c38) {
-        _parentWindowElement && _0x3c9d40 && (_parentWindowElement['removeEventListener']('window-drag-start', _0x3c9d40), _parentWindowElement['removeEventListener']('request-close-window', _0x3c9d40)), _parentWindowElement = _0x58c38, _parentWindowElement && _0x3c9d40 && (_parentWindowElement['addEventListener']('window-drag-start', _0x3c9d40), _parentWindowElement['addEventListener']('request-close-window', _0x3c9d40));
+        cleanupHandler = null;
+    container['setParentWindowElement'] = function(_0x58c38) {
+        _parentWindowElement && cleanupHandler && (_parentWindowElement['removeEventListener']('window-drag-start', cleanupHandler), _parentWindowElement['removeEventListener']('request-close-window', cleanupHandler)), _parentWindowElement = _0x58c38, _parentWindowElement && cleanupHandler && (_parentWindowElement['addEventListener']('window-drag-start', cleanupHandler), _parentWindowElement['addEventListener']('request-close-window', cleanupHandler));
     };
-    const _0x224bd9 = document['createElement']('div');
-    _0x224bd9['className'] = 'menu-bar', _0x2c4792['items']['forEach'](_0x439523 => {
-        if (_0xbb366 === 'resume-window' && _0x439523['key'] === 'file' && Array['isArray'](_0x439523['dropdown'])) {
-            _0x439523['dropdown'] = _0x439523['dropdown']['filter'](_0x36599a => _0x36599a['action'] !== 'pageSetup');
-            if (!_0x439523['dropdown']['some'](_0x2f1bbc => _0x2f1bbc['action'] === 'saveResume')) {
-                const _0x294f82 = _0x439523['dropdown']['findIndex'](_0x5a6425 => _0x5a6425['action'] === 'filePrint');
+    const menuBar = document['createElement']('div');
+    menuBar['className'] = 'menu-bar', menuConfig['items']['forEach'](menuItem => {
+        if (windowId === 'resume-window' && menuItem['key'] === 'file' && Array['isArray'](menuItem['dropdown'])) {
+            menuItem['dropdown'] = menuItem['dropdown']['filter'](_0x36599a => _0x36599a['action'] !== 'pageSetup');
+            if (!menuItem['dropdown']['some'](_0x2f1bbc => _0x2f1bbc['action'] === 'saveResume')) {
+                const _0x294f82 = menuItem['dropdown']['findIndex'](_0x5a6425 => _0x5a6425['action'] === 'filePrint');
                 if (_0x294f82 !== -0x1) {
                     const _0x33a1ca = {};
-                    _0x33a1ca['text'] = 'Save', _0x33a1ca['action'] = 'saveResume', _0x33a1ca['enabled'] = !![], _0x439523['dropdown']['splice'](_0x294f82, 0x0, _0x33a1ca);
+                    _0x33a1ca['text'] = 'Save', _0x33a1ca['action'] = 'saveResume', _0x33a1ca['enabled'] = !![], menuItem['dropdown']['splice'](_0x294f82, 0x0, _0x33a1ca);
                 } else {
                     const _0x6d702 = {};
-                    _0x6d702['text'] = 'Download', _0x6d702['action'] = 'saveResume', _0x6d702['enabled'] = !![], _0x439523['dropdown']['push'](_0x6d702);
+                    _0x6d702['text'] = 'Download', _0x6d702['action'] = 'saveResume', _0x6d702['enabled'] = !![], menuItem['dropdown']['push'](_0x6d702);
                 }
             }
         }
-        const _0x51e347 = document['createElement']('div');
-        _0x51e347['className'] = 'menu-item' + (!_0x439523['enabled'] ? '\x20disabled' : ''), _0x51e347['textContent'] = _0x439523['text'], _0x51e347['setAttribute']('data-menu', _0x439523['key']), _0x224bd9['appendChild'](_0x51e347);
-        if (_0x439523['dropdown'] && _0x439523['dropdown']['length'] > 0x0 && !['edit', 'tools', 'help']['includes'](_0x439523['key'])) {
-            const _0x1e34b4 = document['createElement']('div');
-            _0x1e34b4['id'] = _0x439523['key'] + '-menu-' + _0xbb366, _0x1e34b4['className'] = 'dropdown-menu', _0x1e34b4['style']['position'] = 'absolute', _0x1e34b4['style']['zIndex'] = '99999', _0x439523['dropdown']['forEach'](_0x522199 => {
-                if (_0x522199['type'] === 'separator') {
-                    const _0x598072 = document['createElement']('div');
-                    _0x598072['className'] = 'menu-separator', _0x1e34b4['appendChild'](_0x598072);
+        const itemElement = document['createElement']('div');
+        itemElement['className'] = 'menu-item' + (!menuItem['enabled'] ? '\x20disabled' : ''), itemElement['textContent'] = menuItem['text'], itemElement['setAttribute']('data-menu', menuItem['key']), menuBar['appendChild'](itemElement);
+        if (menuItem['dropdown'] && menuItem['dropdown']['length'] > 0x0 && !['edit', 'tools', 'help']['includes'](menuItem['key'])) {
+            const dropdownMenu = document['createElement']('div');
+            dropdownMenu['id'] = menuItem['key'] + '-menu-' + windowId, dropdownMenu['className'] = 'dropdown-menu', dropdownMenu['style']['position'] = 'absolute', dropdownMenu['style']['zIndex'] = '99999', menuItem['dropdown']['forEach'](dropdownEntry => {
+                if (dropdownEntry['type'] === 'separator') {
+                    const separator = document['createElement']('div');
+                    separator['className'] = 'menu-separator', dropdownMenu['appendChild'](separator);
                 } else {
-                    const _0x371a2d = document['createElement']('div');
-                    let _0x2b2ff7 = _0x522199['enabled'] !== ![];
-                    _0x522199['action'] === 'maximizeWindow' && document['documentElement']['classList']['contains']('mobile-device') && (_0x2b2ff7 = ![]), _0x371a2d['className'] = 'menu-option' + (!_0x2b2ff7 ? '\x20disabled' : ''), _0x371a2d['textContent'] = _0x522199['text'], _0x522199['action'] && _0x2b2ff7 && _0x371a2d['setAttribute']('data-action', _0x522199['action']), _0x1e34b4['appendChild'](_0x371a2d);
+                    const option = document['createElement']('div');
+                    let enabled = dropdownEntry['enabled'] !== ![];
+                    dropdownEntry['action'] === 'maximizeWindow' && document['documentElement']['classList']['contains']('mobile-device') && (enabled = ![]), option['className'] = 'menu-option' + (!enabled ? '\x20disabled' : ''), option['textContent'] = dropdownEntry['text'], dropdownEntry['action'] && enabled && option['setAttribute']('data-action', dropdownEntry['action']), dropdownMenu['appendChild'](option);
                 }
-            }), _0x168b39['appendChild'](_0x1e34b4);
+            }), container['appendChild'](dropdownMenu);
         }
     });
-    const _0x238d89 = document['createElement']('img');
-    return _0x238d89['className'] = 'menu-bar-logo-placeholder', _0x238d89['src'] = './assets/gui/toolbar/barlogo.webp', _0x238d89['decoding'] = 'async', _0x238d89['loading'] = 'lazy', _0x238d89['alt'] = 'Logo', _0x224bd9['appendChild'](_0x238d89), _0x168b39['insertBefore'](_0x224bd9, _0x168b39['firstChild']), setTimeout(() => {
+    const logoPlaceholder = document['createElement']('img');
+    return logoPlaceholder['className'] = 'menu-bar-logo-placeholder', logoPlaceholder['src'] = './assets/gui/toolbar/barlogo.webp', logoPlaceholder['decoding'] = 'async', logoPlaceholder['loading'] = 'lazy', logoPlaceholder['alt'] = 'Logo', menuBar['appendChild'](logoPlaceholder), container['insertBefore'](menuBar, container['firstChild']), setTimeout(() => {
         let _0x14bff1 = null;
         const _0x5b5e8a = {};
-        _0x168b39['querySelectorAll']('.dropdown-menu')['forEach'](_0x75c60a => {
+        container['querySelectorAll']('.dropdown-menu')['forEach'](_0x75c60a => {
             const _0x4f01a9 = _0x75c60a['id']['split']('-')[0x0];
             _0x5b5e8a[_0x4f01a9] = _0x75c60a;
         });
@@ -75,7 +75,7 @@ export function createMenuBar(_0x2c4792, _0xbb366, parentWindowElement) {
                 _0x14bff1['classList']['remove']('active'), _0x14bff1 = null;
             }
         }
-        _0x3c9d40 = _0x17ede2;
+        cleanupHandler = _0x17ede2;
         if (_parentWindowElement) {
             _parentWindowElement['addEventListener']('window-drag-start', _0x17ede2), _parentWindowElement['addEventListener']('request-close-window', _0x17ede2), _parentWindowElement['addEventListener']('window:iframe-interaction', _0x17ede2);
             const _0x1bd6b9 = _parentWindowElement['querySelector']('iframe');
@@ -87,7 +87,7 @@ export function createMenuBar(_0x2c4792, _0xbb366, parentWindowElement) {
                 });
             }
         }
-        const _0x365965 = _0x168b39['querySelectorAll']('.menu-bar\x20.menu-item:not(.disabled)');
+        const _0x365965 = container['querySelectorAll']('.menu-bar\x20.menu-item:not(.disabled)');
         _0x365965['forEach'](_0x5e1a3d => {
             _0x5e1a3d['addEventListener']('mouseenter', () => {
                 _0x14bff1 && _0x14bff1 !== _0x5e1a3d && _0x5e1a3d['click']();
@@ -119,7 +119,7 @@ export function createMenuBar(_0x2c4792, _0xbb366, parentWindowElement) {
                 _0x47646d['style']['left'] = _0x4681e2 + 'px', _0x47646d['style']['top'] = Math['round'](_0x41279b['bottom'] + window['scrollY']) - 0x2 + 'px', _0x47646d['style']['minWidth'] = '130px', _0x47646d['classList']['add']('show'), _0x14bff1 = _0x5e1a3d;
                 const _0x2b1332 = _0x30d38d => {
                     const _0x4952ab = _0x30d38d['relatedTarget'];
-                    (!_0x4952ab || !_0x47646d['contains'](_0x4952ab) && !_0x168b39['contains'](_0x4952ab)) && (_0x17ede2(), _0x47646d['removeEventListener']('mouseleave', _0x2b1332, !![]));
+                    (!_0x4952ab || !_0x47646d['contains'](_0x4952ab) && !container['contains'](_0x4952ab)) && (_0x17ede2(), _0x47646d['removeEventListener']('mouseleave', _0x2b1332, !![]));
                 };
                 _0x47646d['addEventListener']('mouseleave', _0x2b1332, !![]);
             });
@@ -129,14 +129,14 @@ export function createMenuBar(_0x2c4792, _0xbb366, parentWindowElement) {
             const _0x3e78e8 = _0x14bff1['getAttribute']('data-menu'),
                 _0x265eb6 = _0x5b5e8a[_0x3e78e8];
             if (!_0x265eb6) return _0x17ede2();
-            !_0x265eb6['contains'](_0x55abb2['target']) && !_0x168b39['contains'](_0x55abb2['target']) && _0x17ede2();
+            !_0x265eb6['contains'](_0x55abb2['target']) && !container['contains'](_0x55abb2['target']) && _0x17ede2();
         };
         setTimeout(() => {
             document['addEventListener']('click', _0x2eaabb), document['addEventListener']('pointerdown', _0x2eaabb, !![]), document['addEventListener']('keydown', _0x2f53f3 => {
                 if (_0x2f53f3['key'] === 'Escape') _0x17ede2();
             }), window['addEventListener']('scroll', _0x17ede2, !![]), window['addEventListener']('resize', _0x17ede2);
         }, 0x0);
-        const _0x51a74f = _0x168b39['querySelectorAll']('.dropdown-menu\x20.menu-option:not(.disabled)');
+        const _0x51a74f = container['querySelectorAll']('.dropdown-menu\x20.menu-option:not(.disabled)');
         _0x51a74f['forEach'](_0x34fe91 => {
             const _0x4673a8 = _0x34fe91['cloneNode'](!![]);
             _0x34fe91['replaceWith'](_0x4673a8), _0x4673a8['addEventListener']('click', _0x10a2ab => {
@@ -176,7 +176,7 @@ export function createMenuBar(_0x2c4792, _0xbb366, parentWindowElement) {
                 _0x17ede2();
             });
         });
-    }, 0x0), _0x168b39;
+    }, 0x0), container;
 }
 export function createToolbar(_0x1cdb1b, _0xf64797, _0x16d4cb) {
     if (!_0x1cdb1b || !_0x1cdb1b['buttons']) return null;
