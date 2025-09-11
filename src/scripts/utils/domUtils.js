@@ -1,56 +1,93 @@
-const HIDDEN_CONTAINER_STYLES = '\x0a\x20\x20position:\x20fixed\x20!important;\x0a\x20\x20top:\x20-10000px\x20!important;\x0a\x20\x20left:\x20-10000px\x20!important;\x0a\x20\x20width:\x201px\x20!important;\x0a\x20\x20height:\x201px\x20!important;\x0a\x20\x20overflow:\x20hidden\x20!important;\x0a\x20\x20visibility:\x20hidden\x20!important;\x0a\x20\x20opacity:\x200\x20!important;\x0a\x20\x20pointer-events:\x20none\x20!important;\x0a\x20\x20z-index:\x20-9999\x20!important;\x0a\x20\x20display:\x20block\x20!important;\x0a',
-    HIDDEN_IFRAME_STYLES = '\x0a\x20\x20position:\x20absolute\x20!important;\x0a\x20\x20top:\x200\x20!important;\x0a\x20\x20left:\x200\x20!important;\x0a\x20\x20width:\x20100%\x20!important;\x0a\x20\x20height:\x20100%\x20!important;\x0a\x20\x20border:\x20none\x20!important;\x0a\x20\x20visibility:\x20hidden\x20!important;\x0a\x20\x20opacity:\x200\x20!important;\x0a\x20\x20pointer-events:\x20none\x20!important;\x0a',
-    HIDDEN_IFRAME_STYLES_WITH_TRANSFORM = '\x0a\x20\x20' + HIDDEN_IFRAME_STYLES + '\x0a\x20\x20transform:\x20translateX(-10000px);\x20/*\x20keep\x20off-screen\x20to\x20avoid\x20resize\x20costs\x20*/\x0a';
+const HIDDEN_CONTAINER_STYLES = `
+  position: fixed !important;
+  top: -10000px !important;
+  left: -10000px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  z-index: -9999 !important;
+  display: block !important;
+`;
 
-function normalizeCSSText(_0x3dfc78) {
-    return _0x3dfc78['replace'](/\s+/g, '\x20')['trim']();
+const HIDDEN_IFRAME_STYLES = `
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  border: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+`;
+
+const HIDDEN_IFRAME_STYLES_WITH_TRANSFORM = `
+  ${HIDDEN_IFRAME_STYLES}
+  transform: translateX(-10000px); /* keep off-screen to avoid resize costs */
+`;
+
+function normalizeCSSText(css) {
+    return css.replace(/\s+/g, ' ').trim();
 }
-export function ensureDOMReady(_0x4ceae3, _0x35dbb7 = 0xfa) {
-    setTimeout(_0x4ceae3, _0x35dbb7);
+
+export function ensureDOMReady(fn, delay = 250) {
+    setTimeout(fn, delay);
 }
-export function updateTaskbarPlayingIndicator({
-    windowId: _0x1dd04e,
-    indicatorClass: _0xd65e0,
-    isPlaying: isPlaying
-}) {
+
+export function updateTaskbarPlayingIndicator({ windowId, indicatorClass, isPlaying }) {
     ensureDOMReady(() => {
-        const _0x20dbdb = document['querySelector']('.taskbar-item[data-program-id=\x22' + _0x1dd04e + '\x22]');
-        if (!_0x20dbdb) return;
-        const _0x45763a = _0x20dbdb['querySelector']('span'),
-            _0x4395b9 = _0x20dbdb['querySelector']('img');
-        if (!_0x45763a || !_0x4395b9) return;
-        const _0x157418 = _0x4395b9['alt'],
-            _0x2c7327 = _0x45763a['querySelector']('.' + _0xd65e0);
-        if (isPlaying && !_0x2c7327) _0x45763a['innerHTML'] = _0x157418 + '<span\x20class=\x22' + _0xd65e0 + '\x22\x20style=\x22color:\x20white;\x20margin-left:\x204px;\x22>🔊</span>';
-        else !isPlaying && _0x2c7327 && (_0x45763a['innerHTML'] = _0x157418);
+        const taskbarItem = document.querySelector(`.taskbar-item[data-program-id="${windowId}"]`);
+        if (!taskbarItem) return;
+        const labelSpan = taskbarItem.querySelector('span');
+        const iconImg = taskbarItem.querySelector('img');
+        if (!labelSpan || !iconImg) return;
+        const labelText = iconImg.alt;
+        const existingIndicator = labelSpan.querySelector(`.${indicatorClass}`);
+        if (isPlaying && !existingIndicator) {
+            labelSpan.innerHTML = `${labelText}<span class="${indicatorClass}" style="color: white; margin-left: 4px;">🔊</span>`;
+        } else if (!isPlaying && existingIndicator) {
+            labelSpan.innerHTML = labelText;
+        }
     });
 }
-export function createHiddenContainer(_0x333b2b, {
-    tagName: tagName = 'div',
-    attributes: attributes = {}
-} = {}) {
-    const _0x3b2cd3 = document['createElement'](tagName);
-    return _0x3b2cd3['id'] = _0x333b2b, _0x3b2cd3['style']['cssText'] = normalizeCSSText(HIDDEN_CONTAINER_STYLES), Object['entries'](attributes)['forEach'](([_0x712e0c, _0x17e304]) => {
-        _0x3b2cd3['setAttribute'](_0x712e0c, _0x17e304);
-    }), _0x3b2cd3;
+
+export function createHiddenContainer(id, { tagName = 'div', attributes = {} } = {}) {
+    const container = document.createElement(tagName);
+    container.id = id;
+    container.style.cssText = normalizeCSSText(HIDDEN_CONTAINER_STYLES);
+    Object.entries(attributes).forEach(([attr, value]) => {
+        container.setAttribute(attr, value);
+    });
+    return container;
 }
-export function applyHiddenContainerStyles(_0x17004e) {
-    _0x17004e['style']['cssText'] = normalizeCSSText(HIDDEN_CONTAINER_STYLES);
+
+export function applyHiddenContainerStyles(container) {
+    container.style.cssText = normalizeCSSText(HIDDEN_CONTAINER_STYLES);
 }
-export function createPreloadIframe({
-    src: src,
-    id: _0x185e8c,
-    withTransform: withTransform = !![]
-}) {
-    const _0x1f81ae = document['createElement']('iframe');
-    _0x1f81ae['src'] = src, _0x1f81ae['name'] = _0x185e8c + '-preload', _0x1f81ae['setAttribute']('data-preload-app', _0x185e8c);
+
+export function createPreloadIframe({ src, id, withTransform = true }) {
+    const iframe = document.createElement('iframe');
+    iframe.src = src;
+    iframe.name = `${id}-preload`;
+    iframe.setAttribute('data-preload-app', id);
     const styles = withTransform ? HIDDEN_IFRAME_STYLES_WITH_TRANSFORM : HIDDEN_IFRAME_STYLES;
-    return _0x1f81ae['style']['cssText'] = normalizeCSSText(styles), _0x1f81ae['setAttribute']('frameborder', '0'), _0x1f81ae['setAttribute']('scrolling', 'no'), _0x1f81ae['setAttribute']('sandbox', 'allow-scripts\x20allow-same-origin\x20allow-forms\x20allow-popups\x20allow-modals\x20allow-downloads'), _0x1f81ae['setAttribute']('aria-hidden', 'true'), _0x1f81ae;
+    iframe.style.cssText = normalizeCSSText(styles);
+    iframe.setAttribute('frameborder', '0');
+    iframe.setAttribute('scrolling', 'no');
+    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads');
+    iframe.setAttribute('aria-hidden', 'true');
+    return iframe;
 }
-export function applyHiddenIframeStyles(_0x2c2816, _0x5288c4 = ![]) {
-    const _0x4916ce = Array['isArray'](_0x2c2816) ? Array['from'](_0x2c2816) : [_0x2c2816],
-        styles = _0x5288c4 ? HIDDEN_IFRAME_STYLES_WITH_TRANSFORM : HIDDEN_IFRAME_STYLES;
-    _0x4916ce['forEach'](_0xcb7de1 => {
-        _0xcb7de1 && _0xcb7de1['style'] && (_0xcb7de1['style']['cssText'] = normalizeCSSText(styles));
+
+export function applyHiddenIframeStyles(iframes, withTransform = false) {
+    const elements = Array.isArray(iframes) ? Array.from(iframes) : [iframes];
+    const styles = withTransform ? HIDDEN_IFRAME_STYLES_WITH_TRANSFORM : HIDDEN_IFRAME_STYLES;
+    elements.forEach(el => {
+        if (el && el.style) {
+            el.style.cssText = normalizeCSSText(styles);
+        }
     });
 }

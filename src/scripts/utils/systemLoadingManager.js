@@ -7,13 +7,13 @@ class SystemLoadingManager {
         this['loadingOverlay'] = document['createElement']('div'), this['loadingOverlay']['className'] = 'system-loading-overlay', this['loadingOverlay']['style']['cssText'] = '\x0a\x20\x20\x20\x20\x20\x20position:\x20fixed;\x0a\x20\x20\x20\x20\x20\x20top:\x200;\x0a\x20\x20\x20\x20\x20\x20left:\x200;\x0a\x20\x20\x20\x20\x20\x20width:\x20100vw;\x0a\x20\x20\x20\x20\x20\x20height:\x20100vh;\x0a\x20\x20\x20\x20\x20\x20z-index:\x2099999;\x0a\x20\x20\x20\x20\x20\x20cursor:\x20' + this['xpHourglassCursor'] + ';\x0a\x20\x20\x20\x20\x20\x20background:\x20transparent;\x0a\x20\x20\x20\x20\x20\x20pointer-events:\x20all;\x0a\x20\x20\x20\x20\x20\x20display:\x20none;\x0a\x20\x20\x20\x20\x20\x20will-change:\x20cursor;\x0a\x20\x20\x20\x20', this['loadingOverlay']['addEventListener']('mouseover', () => {
             this['loadingStates']['size'] > 0x0 && (this['loadingOverlay']['style']['cursor'] = this['xpHourglassCursor']);
         }), document['body']['appendChild'](this['loadingOverlay']);
-    } ['startLoading'](_0x7e2997) {
-        this['loadingStates']['add'](_0x7e2997), this['updateLoadingState']();
-    } ['endLoading'](_0x4047ee) {
-        this['loadingStates']['delete'](_0x4047ee), this['updateLoadingState']();
+    } ['startLoading'](operation) {
+        this['loadingStates']['add'](operation), this['updateLoadingState']();
+    } ['endLoading'](operation) {
+        this['loadingStates']['delete'](operation), this['updateLoadingState']();
     } ['updateLoadingState']() {
-        const _0x569ff9 = this['loadingStates']['size'] > 0x0;
-        _0x569ff9 ? (document['body']['style']['cursor'] = this['xpHourglassCursor'], this['loadingOverlay']['style']['display'] = 'block', this['loadingOverlay']['style']['cursor'] = this['xpHourglassCursor'], this['loadingOverlay']['offsetHeight'], document['documentElement']['style']['cursor'] = this['xpHourglassCursor']) : (document['body']['style']['cursor'] = '', document['documentElement']['style']['cursor'] = '', this['loadingOverlay']['style']['display'] = 'none', this['loadingOverlay']['style']['cursor'] = '', document['body']['offsetHeight']);
+        const shouldShow = this['loadingStates']['size'] > 0x0;
+        shouldShow ? (document['body']['style']['cursor'] = this['xpHourglassCursor'], this['loadingOverlay']['style']['display'] = 'block', this['loadingOverlay']['style']['cursor'] = this['xpHourglassCursor'], this['loadingOverlay']['offsetHeight'], document['documentElement']['style']['cursor'] = this['xpHourglassCursor']) : (document['body']['style']['cursor'] = '', document['documentElement']['style']['cursor'] = '', this['loadingOverlay']['style']['display'] = 'none', this['loadingOverlay']['style']['cursor'] = '', document['body']['offsetHeight']);
     } ['isLoading']() {
         return this['loadingStates']['size'] > 0x0;
     } ['getActiveOperations']() {

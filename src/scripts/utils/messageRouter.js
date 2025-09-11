@@ -1,62 +1,64 @@
 const validators = new Map();
-export function registerMessageValidator(_0x588dc9, _0x4513d0) {
-    typeof _0x588dc9 === 'string' && typeof _0x4513d0 === 'function' && validators['set'](_0x588dc9, _0x4513d0);
+
+export function registerMessageValidator(type, validator) {
+    if (typeof type === 'string' && typeof validator === 'function') {
+        validators.set(type, validator);
+    }
 }
+
 const handlers = new Map();
-let initialized = ![];
-export function initMessageRouter(_0x4a1693 = {}) {
+let initialized = false;
+
+export function initMessageRouter({ allowFileProtocol = true } = {}) {
     if (initialized) return;
-    const {
-        allowFileProtocol: allowFileProtocol = !![]
-    } = _0x4a1693;
-    window['addEventListener']('message', _0x11af4d => {
+    window.addEventListener('message', event => {
         try {
-            if (!allowFileProtocol && window['location']['protocol'] === 'file:') return;
-            if (window['location']['protocol'] !== 'file:') {
-                if (_0x11af4d['origin'] !== window['origin']) return;
-            } else {
-                if (!allowFileProtocol) return;
+            if (!allowFileProtocol && window.location.protocol === 'file:') return;
+            if (window.location.protocol !== 'file:') {
+                if (event.origin !== window.origin) return;
+            } else if (!allowFileProtocol) {
+                return;
             }
-            const _0x33b343 = _0x11af4d?.['data']?.['type'];
-            if (!_0x33b343 || typeof _0x33b343 !== 'string') return;
-            const _0x1aeae3 = handlers['get'](_0x33b343);
-            if (!_0x1aeae3) return;
-            const _0x5855b0 = validators['get'](_0x33b343);
-            if (_0x5855b0 && !_0x5855b0(_0x11af4d['data'])) return;
-            _0x1aeae3(_0x11af4d);
-        } catch (_0x470a3b) {}
-    }), initialized = !![];
+            const messageType = event?.data?.type;
+            if (!messageType || typeof messageType !== 'string') return;
+            const handler = handlers.get(messageType);
+            if (!handler) return;
+            const validator = validators.get(messageType);
+            if (validator && !validator(event.data)) return;
+            handler(event);
+        } catch (err) {}
+    });
+    initialized = true;
 }
-export function registerMessageHandler(_0x3eb22d, _0x1c0a15) {
-    handlers['set'](_0x3eb22d, _0x1c0a15);
+
+export function registerMessageHandler(type, handler) {
+    handlers.set(type, handler);
 }
-export function handleProgramOpenRequest({
-    programName: _0x2ed302,
-    eventData: _0x9de99e,
-    publish: publish,
-    EVENTS: EVENTS
-}) {
-    if (!_0x2ed302 || !publish || !EVENTS) return;
-    if (document['documentElement']['classList']['contains']('mobile-device') && ['mediaPlayer', 'paint']['includes'](_0x2ed302)) {
-        import('./popupManager.js')['then'](({
-            default: _0x2ed44b
-        }) => {
-            if (!_0x2ed44b['isInitialized']) _0x2ed44b['init']();
-            const _0x445b9d = {};
-            _0x445b9d['title'] = 'Media\x20Player', _0x445b9d['icon'] = './assets/gui/start-menu/mediaPlayer.webp';
-            const _0x2f8f17 = {};
-            _0x2f8f17['title'] = 'Paint', _0x2f8f17['icon'] = './assets/gui/start-menu/paint.webp';
-            const _0x1d11d8 = {};
-            _0x1d11d8['mediaPlayer'] = _0x445b9d, _0x1d11d8['paint'] = _0x2f8f17;
-            const _0x272a82 = _0x1d11d8,
-                _0x451e32 = {};
-            _0x451e32['title'] = 'This\x20App', _0x451e32['icon'] = null;
-            const _0x8c601 = _0x272a82[_0x2ed302] || _0x451e32;
-            _0x2ed44b['showMobileRestrictionPopup'](_0x8c601['title'], _0x8c601['icon']);
+
+export function handleProgramOpenRequest({ programName, eventData, publish, EVENTS }) {
+    if (!programName || !publish || !EVENTS) return;
+    if (
+        document.documentElement.classList.contains('mobile-device') &&
+        ['mediaPlayer', 'paint'].includes(programName)
+    ) {
+        import('./popupManager.js').then(({ default: popupManager }) => {
+            if (!popupManager.isInitialized) popupManager.init();
+            const appInfo = {
+                mediaPlayer: { title: 'Media Player', icon: './assets/gui/start-menu/mediaPlayer.webp' },
+                paint: { title: 'Paint', icon: './assets/gui/start-menu/paint.webp' }
+            };
+            const { title, icon } = appInfo[programName] || { title: 'This App', icon: null };
+            popupManager.showMobileRestrictionPopup(title, icon);
         });
         return;
     }
-    const _0x580bd3 = {};
-    _0x580bd3['programName'] = _0x2ed302, publish(EVENTS['PROGRAM_OPEN'], _0x9de99e || _0x580bd3);
+    const defaultData = { programName };
+    publish(EVENTS.PROGRAM_OPEN, eventData || defaultData);
 }
-registerMessageValidator('open-program', _0x47448c => typeof _0x47448c['programName'] === 'string' && _0x47448c['programName']['length'] < 0x28), registerMessageValidator('confirm-open-program', _0x5b9c92 => typeof _0x5b9c92['programName'] === 'string'), registerMessageValidator('confirm-open-link', _0x2b3106 => typeof _0x2b3106['url'] === 'string' && _0x2b3106['url']['startsWith']('http')), registerMessageValidator('resume-interaction', () => !![]), registerMessageValidator('open-projects-from-overlay-studio', () => !![]), registerMessageValidator('open-social-from-about', _0x3cf3f1 => typeof _0x3cf3f1['key'] === 'string' && typeof _0x3cf3f1['url'] === 'string');
+
+registerMessageValidator('open-program', data => typeof data.programName === 'string' && data.programName.length < 40);
+registerMessageValidator('confirm-open-program', data => typeof data.programName === 'string');
+registerMessageValidator('confirm-open-link', data => typeof data.url === 'string' && data.url.startsWith('http'));
+registerMessageValidator('resume-interaction', () => true);
+registerMessageValidator('open-projects-from-overlay-studio', () => true);
+registerMessageValidator('open-social-from-about', data => typeof data.key === 'string' && typeof data.url === 'string');

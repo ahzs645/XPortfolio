@@ -1,75 +1,212 @@
-import {
-    EVENTS
-} from '../utils/eventBus.js';
-const _0x5ec48a = {};
-_0x5ec48a['type'] = 'program', _0x5ec48a['programName'] = 'about', _0x5ec48a['icon'] = './assets/gui/desktop/about.webp', _0x5ec48a['label'] = 'About\x20Me';
-const _0x6eb516 = {};
-_0x6eb516['type'] = 'program', _0x6eb516['programName'] = 'projects', _0x6eb516['icon'] = './assets/gui/desktop/projects.webp', _0x6eb516['label'] = 'My\x20Projects';
-const _0x1cf3d0 = {};
-_0x1cf3d0['type'] = 'program', _0x1cf3d0['programName'] = 'resume', _0x1cf3d0['icon'] = './assets/gui/desktop/resume.webp', _0x1cf3d0['label'] = 'My\x20Resume';
-const _0x123071 = {};
-_0x123071['type'] = 'program', _0x123071['programName'] = 'contact', _0x123071['icon'] = './assets/gui/desktop/contact.webp', _0x123071['label'] = 'Contact\x20Me';
-const _0xcebe11 = {};
-_0xcebe11['type'] = 'separator';
-const _0x40d209 = {};
-_0x40d209['type'] = 'program', _0x40d209['programName'] = 'mediaPlayer', _0x40d209['icon'] = './assets/gui/start-menu/mediaPlayer.webp', _0x40d209['label'] = 'Media\x20Player', _0x40d209['disabled'] = ![];
-const _0x35083a = {};
-_0x35083a['type'] = 'program', _0x35083a['programName'] = 'musicPlayer', _0x35083a['icon'] = './assets/gui/start-menu/music.webp', _0x35083a['label'] = 'Music\x20Player', _0x35083a['disabled'] = ![];
-const _0x4090ee = {};
-_0x4090ee['type'] = 'program', _0x4090ee['programName'] = 'image-viewer', _0x4090ee['icon'] = './assets/gui/start-menu/photos.webp', _0x4090ee['label'] = 'Image\x20Viewer', _0x4090ee['disabled'] = ![];
-const _0x47a26d = {};
-_0x47a26d['type'] = 'program', _0x47a26d['programName'] = 'paint', _0x47a26d['icon'] = './assets/gui/start-menu/paint.webp', _0x47a26d['label'] = 'Paint', _0x47a26d['disabled'] = ![];
-const _0x5d129a = {};
-_0x5d129a['type'] = 'program', _0x5d129a['programName'] = 'cmd', _0x5d129a['icon'] = './assets/gui/start-menu/cmd.webp', _0x5d129a['label'] = 'Command\x20Prompt', _0x5d129a['disabled'] = ![];
-const _0x15a7d2 = {};
-_0x15a7d2['type'] = 'separator';
-const ALL_PROGRAMS_ITEMS_BASE = [_0x5ec48a, _0x6eb516, _0x1cf3d0, _0x123071, _0xcebe11, _0x40d209, _0x35083a, _0x4090ee, _0x47a26d, _0x5d129a, _0x15a7d2],
-    _0x3d19af = {};
-_0x3d19af['type'] = 'program', _0x3d19af['programName'] = 'program3', _0x3d19af['icon'] = './assets/gui/start-menu/vanity-apps/after-effects.webp', _0x3d19af['label'] = 'Adobe\x20After\x20Effects', _0x3d19af['disabled'] = !![];
-const _0x456610 = {};
-_0x456610['type'] = 'program', _0x456610['programName'] = 'program4', _0x456610['icon'] = './assets/gui/start-menu/vanity-apps/illustrator.webp', _0x456610['label'] = 'Adobe\x20Illustrator', _0x456610['disabled'] = !![];
-const _0x4c45b7 = {};
-_0x4c45b7['type'] = 'program', _0x4c45b7['programName'] = 'program5', _0x4c45b7['icon'] = './assets/gui/start-menu/vanity-apps/illustrator.webp', _0x4c45b7['label'] = 'Adobe\x20InDesign', _0x4c45b7['disabled'] = !![];
-const _0x1427e1 = {};
-_0x1427e1['type'] = 'program', _0x1427e1['programName'] = 'program1', _0x1427e1['icon'] = './assets/gui/start-menu/vanity-apps/photoshop.webp', _0x1427e1['label'] = 'Adobe\x20Photoshop', _0x1427e1['disabled'] = !![];
-const _0x3c9d2e = {};
-_0x3c9d2e['type'] = 'program', _0x3c9d2e['programName'] = 'program2', _0x3c9d2e['icon'] = './assets/gui/start-menu/vanity-apps/premiere.webp', _0x3c9d2e['label'] = 'Adobe\x20Premiere\x20Pro', _0x3c9d2e['disabled'] = !![];
-const _0x547390 = {};
-_0x547390['type'] = 'program', _0x547390['programName'] = 'program10', _0x547390['icon'] = './assets/gui/start-menu/vanity-apps/blender.webp', _0x547390['label'] = 'Blender', _0x547390['disabled'] = !![];
-const _0xf91342 = {};
-_0xf91342['type'] = 'program', _0xf91342['programName'] = 'program6', _0xf91342['icon'] = './assets/gui/start-menu/vanity-apps/davinci.webp', _0xf91342['label'] = 'Davinci\x20Resolve', _0xf91342['disabled'] = !![];
-const _0x3a65bb = {};
-_0x3a65bb['type'] = 'program', _0x3a65bb['programName'] = 'program7', _0x3a65bb['icon'] = './assets/gui/start-menu/vanity-apps/figma.webp', _0x3a65bb['label'] = 'Figma', _0x3a65bb['disabled'] = !![];
-const _0xf9921 = {};
-_0xf9921['type'] = 'program', _0xf9921['programName'] = 'program11', _0xf9921['icon'] = './assets/gui/start-menu/vanity-apps/copilot.webp', _0xf9921['label'] = 'GitHub\x20Copilot', _0xf9921['disabled'] = !![];
-const _0x33215f = {};
-_0x33215f['type'] = 'program', _0x33215f['programName'] = 'program9', _0x33215f['icon'] = './assets/gui/start-menu/vanity-apps/obs.webp', _0x33215f['label'] = 'OBS\x20Studio', _0x33215f['disabled'] = !![];
-const _0x3e1475 = {};
-_0x3e1475['type'] = 'program', _0x3e1475['programName'] = 'vscode', _0x3e1475['icon'] = './assets/gui/start-menu/vanity-apps/vscode.webp', _0x3e1475['label'] = 'VS\x20Code', _0x3e1475['disabled'] = !![];
-const _0xe66aa6 = {};
-_0xe66aa6['type'] = 'program', _0xe66aa6['programName'] = 'program8', _0xe66aa6['icon'] = './assets/gui/start-menu/vanity-apps/wordpress.webp', _0xe66aa6['label'] = 'Wordpress', _0xe66aa6['disabled'] = !![];
-const RECENTLY_USED_ITEMS = [_0x3d19af, _0x456610, _0x4c45b7, _0x1427e1, _0x3c9d2e, _0x547390, _0xf91342, _0x3a65bb, _0xf9921, _0x33215f, _0x3e1475, _0xe66aa6];
-let SOCIALS = [],
-    systemAssets = null;
-const _0x1dd77b = {};
-_0x1dd77b['id'] = 'cmd', _0x1dd77b['icon'] = './assets/gui/start-menu/cmd.webp', _0x1dd77b['title'] = 'Command\x20Prompt', _0x1dd77b['programName'] = 'cmd', _0x1dd77b['action'] = 'open-program';
-const CMD_CONFIG = _0x1dd77b;
+import { EVENTS } from '../utils/eventBus.js';
+
+const ABOUT_ITEM = {
+    type: 'program',
+    programName: 'about',
+    icon: './assets/gui/desktop/about.webp',
+    label: 'About Me'
+};
+const PROJECTS_ITEM = {
+    type: 'program',
+    programName: 'projects',
+    icon: './assets/gui/desktop/projects.webp',
+    label: 'My Projects'
+};
+const RESUME_ITEM = {
+    type: 'program',
+    programName: 'resume',
+    icon: './assets/gui/desktop/resume.webp',
+    label: 'My Resume'
+};
+const CONTACT_ITEM = {
+    type: 'program',
+    programName: 'contact',
+    icon: './assets/gui/desktop/contact.webp',
+    label: 'Contact Me'
+};
+const MENU_SEPARATOR = { type: 'separator' };
+const MEDIA_PLAYER_ITEM = {
+    type: 'program',
+    programName: 'mediaPlayer',
+    icon: './assets/gui/start-menu/mediaPlayer.webp',
+    label: 'Media Player',
+    disabled: false
+};
+const MUSIC_PLAYER_ITEM = {
+    type: 'program',
+    programName: 'musicPlayer',
+    icon: './assets/gui/start-menu/music.webp',
+    label: 'Music Player',
+    disabled: false
+};
+const IMAGE_VIEWER_ITEM = {
+    type: 'program',
+    programName: 'image-viewer',
+    icon: './assets/gui/start-menu/photos.webp',
+    label: 'Image Viewer',
+    disabled: false
+};
+const PAINT_ITEM = {
+    type: 'program',
+    programName: 'paint',
+    icon: './assets/gui/start-menu/paint.webp',
+    label: 'Paint',
+    disabled: false
+};
+const CMD_ITEM = {
+    type: 'program',
+    programName: 'cmd',
+    icon: './assets/gui/start-menu/cmd.webp',
+    label: 'Command Prompt',
+    disabled: false
+};
+const TRAILING_SEPARATOR = { type: 'separator' };
+
+const ALL_PROGRAMS_ITEMS_BASE = [
+    ABOUT_ITEM,
+    PROJECTS_ITEM,
+    RESUME_ITEM,
+    CONTACT_ITEM,
+    MENU_SEPARATOR,
+    MEDIA_PLAYER_ITEM,
+    MUSIC_PLAYER_ITEM,
+    IMAGE_VIEWER_ITEM,
+    PAINT_ITEM,
+    CMD_ITEM,
+    TRAILING_SEPARATOR
+],
+    AFTER_EFFECTS_ITEM = {
+        type: 'program',
+        programName: 'program3',
+        icon: './assets/gui/start-menu/vanity-apps/after-effects.webp',
+        label: 'Adobe After Effects',
+        disabled: true
+    };
+const ILLUSTRATOR_ITEM = {
+    type: 'program',
+    programName: 'program4',
+    icon: './assets/gui/start-menu/vanity-apps/illustrator.webp',
+    label: 'Adobe Illustrator',
+    disabled: true
+};
+const INDESIGN_ITEM = {
+    type: 'program',
+    programName: 'program5',
+    icon: './assets/gui/start-menu/vanity-apps/illustrator.webp',
+    label: 'Adobe InDesign',
+    disabled: true
+};
+const PHOTOSHOP_ITEM = {
+    type: 'program',
+    programName: 'program1',
+    icon: './assets/gui/start-menu/vanity-apps/photoshop.webp',
+    label: 'Adobe Photoshop',
+    disabled: true
+};
+const PREMIERE_ITEM = {
+    type: 'program',
+    programName: 'program2',
+    icon: './assets/gui/start-menu/vanity-apps/premiere.webp',
+    label: 'Adobe Premiere Pro',
+    disabled: true
+};
+const BLENDER_ITEM = {
+    type: 'program',
+    programName: 'program10',
+    icon: './assets/gui/start-menu/vanity-apps/blender.webp',
+    label: 'Blender',
+    disabled: true
+};
+const DAVINCI_ITEM = {
+    type: 'program',
+    programName: 'program6',
+    icon: './assets/gui/start-menu/vanity-apps/davinci.webp',
+    label: 'Davinci Resolve',
+    disabled: true
+};
+const FIGMA_ITEM = {
+    type: 'program',
+    programName: 'program7',
+    icon: './assets/gui/start-menu/vanity-apps/figma.webp',
+    label: 'Figma',
+    disabled: true
+};
+const COPILOT_ITEM = {
+    type: 'program',
+    programName: 'program11',
+    icon: './assets/gui/start-menu/vanity-apps/copilot.webp',
+    label: 'GitHub Copilot',
+    disabled: true
+};
+const OBS_ITEM = {
+    type: 'program',
+    programName: 'program9',
+    icon: './assets/gui/start-menu/vanity-apps/obs.webp',
+    label: 'OBS Studio',
+    disabled: true
+};
+const VSCODE_ITEM = {
+    type: 'program',
+    programName: 'vscode',
+    icon: './assets/gui/start-menu/vanity-apps/vscode.webp',
+    label: 'VS Code',
+    disabled: true
+};
+const WORDPRESS_ITEM = {
+    type: 'program',
+    programName: 'program8',
+    icon: './assets/gui/start-menu/vanity-apps/wordpress.webp',
+    label: 'Wordpress',
+    disabled: true
+};
+
+const RECENTLY_USED_ITEMS = [
+    AFTER_EFFECTS_ITEM,
+    ILLUSTRATOR_ITEM,
+    INDESIGN_ITEM,
+    PHOTOSHOP_ITEM,
+    PREMIERE_ITEM,
+    BLENDER_ITEM,
+    DAVINCI_ITEM,
+    FIGMA_ITEM,
+    COPILOT_ITEM,
+    OBS_ITEM,
+    VSCODE_ITEM,
+    WORDPRESS_ITEM
+];
+
+let SOCIALS = [];
+let systemAssets = null;
+
+const CMD_CONFIG = {
+    id: 'cmd',
+    icon: './assets/gui/start-menu/cmd.webp',
+    title: 'Command Prompt',
+    programName: 'cmd',
+    action: 'open-program'
+};
+
 async function getSystemAssets() {
     if (systemAssets) return systemAssets;
     try {
-        const _0x38175 = await fetch('./ui.json');
-        return systemAssets = await _0x38175['json'](), systemAssets;
-    } catch (_0x2b472f) {
-        return systemAssets = {}, systemAssets;
+        const response = await fetch('./ui.json');
+        systemAssets = await response.json();
+        return systemAssets;
+    } catch (error) {
+        systemAssets = {};
+        return systemAssets;
     }
 }
+
 async function loadSocials() {
     try {
-        const _0x127457 = await fetch('./ui.json'),
-            _0x39a032 = await _0x127457['json']();
-        return SOCIALS = Array['isArray'](_0x39a032['socials']) ? _0x39a032['socials'] : [], _0x39a032;
-    } catch (_0x11f765) {
-        return SOCIALS = [], {};
+        const response = await fetch('./ui.json');
+        const data = await response.json();
+        SOCIALS = Array.isArray(data.socials) ? data.socials : [];
+        return data;
+    } catch (error) {
+        SOCIALS = [];
+        return {};
     }
 }
 

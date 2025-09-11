@@ -1,166 +1,245 @@
-import _0x6506b7 from '../utils/programRegistry.js';
-import {
-    EVENTS
-} from '../utils/eventBus.js';
-import {
-    isFirefox
-} from '../utils/device.js';
-import _0x5457da from '../utils/systemLoadingManager.js';
+import programRegistry from '../utils/programRegistry.js';
+import { EVENTS } from '../utils/eventBus.js';
+import { isFirefox } from '../utils/device.js';
+import systemLoadingManager from '../utils/systemLoadingManager.js';
 import {
     WindowTemplates,
-    positionWindow as _0x18b074,
-    makeDraggable as _0x488f5b,
-    makeResizable as _0x4abb4f,
-    updateStackOrder as _0x5f3d24,
-    applyZIndices as _0x3f3089,
-    viewportInternals as _0x59f4c3,
-    lifecycleInternals as _0x4a0cd5
+    positionWindow,
+    makeDraggable,
+    makeResizable,
+    updateStackOrder,
+    applyZIndices,
+    viewportInternals,
+    lifecycleInternals,
 } from './windowInternals.js';
 export default class WindowManager {
     constructor(eventBus) {
-        this['eventBus'] = eventBus, this['windows'] = {}, this['activeWindow'] = null, this['taskbarItems'] = {}, this['windowCount'] = 0x0, this['programData'] = _0x6506b7, this['baseZIndex'] = parseInt(getComputedStyle(document['documentElement'])['getPropertyValue']('--z-window')) || 0x64, this['windowsContainer'] = document['getElementById']('windows-container'), this['taskbarPrograms'] = document['querySelector']('.taskbar-programs'), this['zIndexStack'] = [], this['_cachedTaskbarHeight'] = null, this['_cachedViewportDimensions'] = null, this['_cachedTaskbarElement'] = null, this['_setupGlobalHandlers'](), this['_subscribeToEvents'](), window['addEventListener']('resize', () => {
-            this['_handleViewportChange']();
-        }), window['addEventListener']('message', _0x59744f => {
-            !this['_toggleButtonState'] && (this['_toggleButtonState'] = (_0x349acd, _0x2f2c2e) => {
-                if (!_0x349acd) return;
-                _0x2f2c2e ? (_0x349acd['classList']['remove']('disabled'), _0x349acd['disabled'] = ![]) : (_0x349acd['classList']['add']('disabled'), _0x349acd['disabled'] = !![]);
-            });
-            if (_0x59744f['data'] && _0x59744f['data']['type'] === 'ui:home-enabled') {
-                const _0x250953 = this['_findWindowByIframe'](_0x59744f['source']);
-                if (_0x250953) {
-                    const _0xf01ecc = _0x250953['querySelector']('.toolbar-button.home');
-                    this['_toggleButtonState'](_0xf01ecc, _0x59744f['data']['enabled']);
+        this.eventBus = eventBus;
+        this.windows = {};
+        this.activeWindow = null;
+        this.taskbarItems = {};
+        this.windowCount = 0;
+        this.programData = programRegistry;
+        this.baseZIndex = parseInt(
+            getComputedStyle(document.documentElement).getPropertyValue('--z-window')
+        ) || 100;
+        this.windowsContainer = document.getElementById('windows-container');
+        this.taskbarPrograms = document.querySelector('.taskbar-programs');
+        this.zIndexStack = [];
+        this._cachedTaskbarHeight = null;
+        this._cachedViewportDimensions = null;
+        this._cachedTaskbarElement = null;
+        this._setupGlobalHandlers();
+        this._subscribeToEvents();
+        window.addEventListener('resize', () => {
+            this._handleViewportChange();
+        });
+        window.addEventListener('message', messageEvent => {
+            if (!this._toggleButtonState) {
+                this._toggleButtonState = (button, enabled) => {
+                    if (!button) return;
+                    if (enabled) {
+                        button.classList.remove('disabled');
+                        button.disabled = false;
+                    } else {
+                        button.classList.add('disabled');
+                        button.disabled = true;
+                    }
+                };
+            }
+            if (messageEvent.data && messageEvent.data.type === 'ui:home-enabled') {
+                const targetWindow = this._findWindowByIframe(messageEvent.source);
+                if (targetWindow) {
+                    const homeButton = targetWindow.querySelector('.toolbar-button.home');
+                    this._toggleButtonState(homeButton, messageEvent.data.enabled);
                 }
             }
-            if (_0x59744f['data'] && _0x59744f['data']['type'] === 'nav:enabled') {
-                const _0x572cad = this['_findWindowByIframe'](_0x59744f['source']);
-                if (_0x572cad) {
-                    const _0xde2617 = _0x572cad['querySelector']('.toolbar-button.previous'),
-                        _0x157875 = _0x572cad['querySelector']('.toolbar-button.next');
-                    this['_toggleButtonState'](_0xde2617, _0x59744f['data']['enabled']), this['_toggleButtonState'](_0x157875, _0x59744f['data']['enabled']);
+            if (messageEvent.data && messageEvent.data.type === 'nav:enabled') {
+                const navWindow = this._findWindowByIframe(messageEvent.source);
+                if (navWindow) {
+                    const previousButton = navWindow.querySelector('.toolbar-button.previous');
+                    const nextButton = navWindow.querySelector('.toolbar-button.next');
+                    this._toggleButtonState(previousButton, messageEvent.data.enabled);
+                    this._toggleButtonState(nextButton, messageEvent.data.enabled);
                 }
             }
-            if (_0x59744f['data'] && _0x59744f['data']['type'] === 'throttle-nav-buttons') {
-                this['projectNavigationDisabled'] = _0x59744f['data']['active'];
-                const _0x4415c0 = this['windows']['projects-window'];
-                if (_0x4415c0) {
-                    const backBtn = _0x4415c0['querySelector']('.toolbar-button.previous'),
-                        forwardBtn = _0x4415c0['querySelector']('.toolbar-button.next');
-                    if (this['projectNavigationDisabled']) this['_toggleButtonState'](backBtn, ![]), this['_toggleButtonState'](forwardBtn, ![]);
-                    else {}
+            if (messageEvent['data'] && messageEvent['data']['type'] === 'throttle-nav-buttons') {
+                this.projectNavigationDisabled = messageEvent.data.active;
+                const projectsWindow = this.windows['projects-window'];
+                if (projectsWindow) {
+                    const backBtn = projectsWindow.querySelector('.toolbar-button.previous');
+                    const forwardBtn = projectsWindow.querySelector('.toolbar-button.next');
+                    if (this.projectNavigationDisabled) {
+                        this._toggleButtonState(backBtn, false);
+                        this._toggleButtonState(forwardBtn, false);
+                    }
                 }
             }
-            _0x59744f['data'] && _0x59744f['data']['type'] === 'open-app' && (_0x59744f['data']['appName'] && this['openProgram'](_0x59744f['data']['appName']));
-            if (_0x59744f['data'] && _0x59744f['data']['type'] === 'set-external-link-enabled') {
-                const _0x35a17c = this['_findWindowByIframe'](_0x59744f['source']);
-                if (_0x35a17c) {
-                    const _0x2e3507 = _0x35a17c['querySelector']('.toolbar-button.viewExternalLink');
-                    _0x2e3507 && (this['_toggleButtonState'](_0x2e3507, _0x59744f['data']['enabled']), _0x59744f['data']['enabled'] ? (_0x2e3507['style']['display'] = '', _0x59744f['data']['url'] && (_0x2e3507['dataset']['urlToOpen'] = _0x59744f['data']['url'])) : (_0x2e3507['style']['display'] = 'none', delete _0x2e3507['dataset']['urlToOpen']));
+            messageEvent['data'] && messageEvent['data']['type'] === 'open-app' && (messageEvent['data']['appName'] && this['openProgram'](messageEvent['data']['appName']));
+            if (messageEvent.data && messageEvent.data.type === 'set-external-link-enabled') {
+                const linkWindow = this._findWindowByIframe(messageEvent.source);
+                if (linkWindow) {
+                    const externalLinkButton = linkWindow.querySelector('.toolbar-button.viewExternalLink');
+                    if (externalLinkButton) {
+                        this._toggleButtonState(externalLinkButton, messageEvent.data.enabled);
+                        if (messageEvent.data.enabled) {
+                            externalLinkButton.style.display = '';
+                            if (messageEvent.data.url) {
+                                externalLinkButton.dataset.urlToOpen = messageEvent.data.url;
+                            }
+                        } else {
+                            externalLinkButton.style.display = 'none';
+                            delete externalLinkButton.dataset.urlToOpen;
+                        }
+                    }
                 }
             }
-            if (_0x59744f['data'] && _0x59744f['data']['type'] === 'update-status-bar') {
-                const _0x415f56 = this['_findWindowByIframe'](_0x59744f['source']);
-                _0x415f56 && _0x415f56['statusBarField'] && (_0x415f56['statusBarField']['textContent'] = _0x59744f['data']['text']);
-            }
-            if (_0x59744f['data'] && _0x59744f['data']['type'] === 'toolbar:zoom-state') {
-                const _0x3e91a2 = this['_findWindowByIframe'](_0x59744f['source']);
-                if (_0x3e91a2) {
-                    const _0xc040a = _0x3e91a2['querySelector']('.toolbar-button.zoom');
-                    _0xc040a && (_0x59744f['data']['active'] ? _0xc040a['classList']['add']('pressed') : _0xc040a['classList']['remove']('pressed'));
+            if (messageEvent.data && messageEvent.data.type === 'update-status-bar') {
+                const statusWindow = this._findWindowByIframe(messageEvent.source);
+                if (statusWindow && statusWindow.statusBarField) {
+                    statusWindow.statusBarField.textContent = messageEvent.data.text;
                 }
             }
-            if (_0x59744f['data'] && _0x59744f['data']['type'] === 'update-overlay-button-state') {
-                const _0x22bc31 = this['_findWindowByIframe'](_0x59744f['source']);
-                if (_0x22bc31) {
-                    const _0x1374d4 = _0x22bc31['querySelector']('.toolbar-button.search,\x20.toolbar-button.overlayToggleMobile,\x20.toolbar-button.overlaysToggle');
-                    _0x1374d4 && (_0x59744f['data']['active'] ? _0x1374d4['classList']['add']('touch-active') : _0x1374d4['classList']['remove']('touch-active'));
+            if (messageEvent.data && messageEvent.data.type === 'toolbar:zoom-state') {
+                const zoomWindow = this._findWindowByIframe(messageEvent.source);
+                if (zoomWindow) {
+                    const zoomButton = zoomWindow.querySelector('.toolbar-button.zoom');
+                    if (zoomButton) {
+                        if (messageEvent.data.active) {
+                            zoomButton.classList.add('pressed');
+                        } else {
+                            zoomButton.classList.remove('pressed');
+                        }
+                    }
                 }
             }
-            if (_0x59744f['data'] && _0x59744f['data']['type'] === 'update-address-bar') {
-                const _0x34cf86 = this['_findWindowByIframe'](_0x59744f['source']);
-                if (_0x34cf86) {
-                    const addressBarTitle = _0x34cf86['querySelector']('.addressbar-title');
-                    addressBarTitle && _0x59744f['data']['title'] && (addressBarTitle['textContent'] = _0x59744f['data']['title']);
+            if (messageEvent.data && messageEvent.data.type === 'update-overlay-button-state') {
+                const overlayWindow = this._findWindowByIframe(messageEvent.source);
+                if (overlayWindow) {
+                    const overlayButton = overlayWindow.querySelector('.toolbar-button.search, .toolbar-button.overlayToggleMobile, .toolbar-button.overlaysToggle');
+                    if (overlayButton) {
+                        if (messageEvent.data.active) {
+                            overlayButton.classList.add('touch-active');
+                        } else {
+                            overlayButton.classList.remove('touch-active');
+                        }
+                    }
                 }
             }
-            if (!(window['location']['protocol'] === 'file:' || _0x59744f['origin'] === window['origin'])) return;
-            if (_0x59744f['data'] && _0x59744f['data']['type'] === 'contact:form-state') {
-                let _0x4aacde = null;
-                for (const _0x1448ce in this['windows']) {
-                    const _0x612517 = this['windows'][_0x1448ce],
-                        _0x8a3740 = _0x612517['querySelector']('iframe');
-                    if (_0x8a3740 && _0x8a3740['contentWindow'] === _0x59744f['source']) {
-                        _0x4aacde = _0x612517;
+            if (messageEvent.data && messageEvent.data.type === 'update-address-bar') {
+                const addressWindow = this._findWindowByIframe(messageEvent.source);
+                if (addressWindow) {
+                    const addressBarTitle = addressWindow.querySelector('.addressbar-title');
+                    if (addressBarTitle && messageEvent.data.title) {
+                        addressBarTitle.textContent = messageEvent.data.title;
+                    }
+                }
+            }
+            if (!(window['location']['protocol'] === 'file:' || messageEvent['origin'] === window['origin'])) return;
+            if (messageEvent.data && messageEvent.data.type === 'contact:form-state') {
+                let contactWindow = null;
+                for (const windowKey in this.windows) {
+                    const candidate = this.windows[windowKey];
+                    const iframe = candidate.querySelector('iframe');
+                    if (iframe && iframe.contentWindow === messageEvent.source) {
+                        contactWindow = candidate;
                         break;
                     }
                 }
-                if (_0x4aacde) {
-                    const _0x44c76d = _0x4aacde['querySelector']('.toolbar-button.send'),
-                        _0x53873f = _0x4aacde['querySelector']('.toolbar-button.new');
-                    this['_toggleButtonState'](_0x44c76d, _0x59744f['data']['hasValue']), this['_toggleButtonState'](_0x53873f, _0x59744f['data']['hasValue']);
+                if (contactWindow) {
+                    const sendButton = contactWindow.querySelector('.toolbar-button.send');
+                    const newButton = contactWindow.querySelector('.toolbar-button.new');
+                    this._toggleButtonState(sendButton, messageEvent.data.hasValue);
+                    this._toggleButtonState(newButton, messageEvent.data.hasValue);
                 }
             }
-            let _0x34405d = null;
-            _0x59744f['data']?.['type'] === 'window:iframe-interaction' && _0x59744f['data']['windowId'] && (_0x34405d = document['getElementById'](_0x59744f['data']['windowId']));
-            !_0x34405d && (_0x34405d = Array['from'](document['querySelectorAll']('.app-window'))['find'](_0x5cb706 => {
-                const _0x53b081 = _0x5cb706['querySelector']('iframe');
-                return _0x53b081 && _0x53b081['contentWindow'] === _0x59744f['source'];
-            }));
-            !_0x34405d && _0x59744f['data']?.['type'] === 'window:iframe-interaction' && (_0x34405d = Array['from'](document['querySelectorAll']('.app-window'))['find'](_0x904555 => {
-                const _0x1ddec7 = _0x904555['querySelector']('iframe');
-                return _0x1ddec7 && _0x1ddec7['src']['includes']('contact.html');
-            }));
-            if (!_0x34405d) return;
-            if (_0x59744f['data']?.['type'] === 'window:iframe-interaction') {
-                const _0x50b131 = {};
-                _0x50b131['bubbles'] = ![], _0x34405d['dispatchEvent'](new CustomEvent('window:iframe-interaction', _0x50b131));
+            let sourceWindow = null;
+            if (messageEvent.data?.type === 'window:iframe-interaction' && messageEvent.data.windowId) {
+                sourceWindow = document.getElementById(messageEvent.data.windowId);
+            }
+            if (!sourceWindow) {
+                sourceWindow = Array.from(document.querySelectorAll('.app-window')).find(candidateWindow => {
+                    const candidateIframe = candidateWindow.querySelector('iframe');
+                    return candidateIframe && candidateIframe.contentWindow === messageEvent.source;
+                });
+            }
+            if (!sourceWindow && messageEvent.data?.type === 'window:iframe-interaction') {
+                sourceWindow = Array.from(document.querySelectorAll('.app-window')).find(contactCandidate => {
+                    const contactIframe = contactCandidate.querySelector('iframe');
+                    return contactIframe && contactIframe.src.includes('contact.html');
+                });
+            }
+            if (!sourceWindow) return;
+            if (messageEvent.data?.type === 'window:iframe-interaction') {
+                const customEventOptions = { bubbles: false };
+                sourceWindow.dispatchEvent(new CustomEvent('window:iframe-interaction', customEventOptions));
                 return;
             }
-            if (_0x59744f['data']?.['type'] === 'minimize-window') this['minimizeWindow'](_0x34405d);
-            else {
-                if (_0x59744f['data']?.['type'] === 'close-window') this['closeWindow'](_0x34405d);
-                else _0x59744f['data']?.['type'] === 'updateStatusBar' && typeof _0x59744f['data']['text'] === 'string' && (_0x34405d['statusBarField'] && (_0x34405d['statusBarField']['textContent'] = _0x59744f['data']['text']));
-            }
-            if (_0x59744f['data'] && _0x59744f['data']['type'] === 'project:view-state') {
-                const _0x3c7be9 = this['windows']['projects-window'];
-                let _0x12d72e, backBtn, forwardBtn, _0x1cace7;
-                _0x3c7be9 && (_0x12d72e = _0x3c7be9['querySelector']('.toolbar-button.home'), backBtn = _0x3c7be9['querySelector']('.toolbar-button.previous'), forwardBtn = _0x3c7be9['querySelector']('.toolbar-button.next'), _0x1cace7 = _0x3c7be9['querySelector']('.toolbar-button.search,\x20.toolbar-button.overlayToggleMobile,\x20.toolbar-button.overlaysToggle')), _0x12d72e && this['_toggleButtonState'](_0x12d72e, _0x59744f['data']['inDetailView']), backBtn && this['_toggleButtonState'](backBtn, _0x59744f['data']['inDetailView'] && _0x59744f['data']['hasPrevious']), forwardBtn && this['_toggleButtonState'](forwardBtn, _0x59744f['data']['inDetailView'] && _0x59744f['data']['hasNext']), _0x1cace7 && this['_toggleButtonState'](_0x1cace7, !_0x59744f['data']['inDetailView']);
-            }
-        });
-        const _0x10b810 = document['querySelector']('.toolbar-button.home');
-        _0x10b810 && _0x10b810['addEventListener']('click', () => {
-            if (!_0x10b810['classList']['contains']('disabled')) {
-                const _0x4641cc = document['getElementById']('projects-window'),
-                    _0x266866 = _0x4641cc ? _0x4641cc['querySelector']('iframe') : null;
-                if (_0x266866 && _0x266866['contentWindow']) {
-                    const _0x5e86f0 = {};
-                    _0x5e86f0['type'] = 'toolbar:action', _0x5e86f0['action'] = 'home', _0x266866['contentWindow']['postMessage'](_0x5e86f0, '*');
+            if (messageEvent.data?.type === 'minimize-window') {
+                this.minimizeWindow(sourceWindow);
+            } else if (messageEvent.data?.type === 'close-window') {
+                this.closeWindow(sourceWindow);
+            } else if (messageEvent.data?.type === 'updateStatusBar' && typeof messageEvent.data.text === 'string') {
+                if (sourceWindow.statusBarField) {
+                    sourceWindow.statusBarField.textContent = messageEvent.data.text;
                 }
             }
+            if (messageEvent.data && messageEvent.data.type === 'project:view-state') {
+                const projectsWindow = this.windows['projects-window'];
+                let homeBtn, backBtn, forwardBtn, overlayToggleButton;
+                if (projectsWindow) {
+                    homeBtn = projectsWindow.querySelector('.toolbar-button.home');
+                    backBtn = projectsWindow.querySelector('.toolbar-button.previous');
+                    forwardBtn = projectsWindow.querySelector('.toolbar-button.next');
+                    overlayToggleButton = projectsWindow.querySelector('.toolbar-button.search, .toolbar-button.overlayToggleMobile, .toolbar-button.overlaysToggle');
+                }
+                homeBtn && this._toggleButtonState(homeBtn, messageEvent.data.inDetailView);
+                backBtn && this._toggleButtonState(backBtn, messageEvent.data.inDetailView && messageEvent.data.hasPrevious);
+                forwardBtn && this._toggleButtonState(forwardBtn, messageEvent.data.inDetailView && messageEvent.data.hasNext);
+                overlayToggleButton && this._toggleButtonState(overlayToggleButton, !messageEvent.data.inDetailView);
+            }
         });
-    } ['_createElement'](_0x46d470, _0x34ecab = '', _0x461f47 = {}) {
-        const _0x55cb01 = document['createElement'](_0x46d470);
-        if (_0x34ecab) _0x55cb01['className'] = _0x34ecab;
-        return Object['entries'](_0x461f47)['forEach'](([_0x127ea6, _0x224d0b]) => {
-            _0x55cb01['setAttribute'](_0x127ea6, _0x224d0b);
-        }), _0x55cb01;
-    } ['_isMobileDevice']() {
-        return document['documentElement']['classList']['contains']('mobile-device');
-    } ['_findWindowByIframe'](_0x533c09) {
-        for (const _0x440de6 in this['windows']) {
-            const _0x1bdd7b = this['windows'][_0x440de6],
-                _0x2234ef = _0x1bdd7b['querySelectorAll']('iframe');
-            for (const _0x1091e7 of _0x2234ef) {
-                if (_0x1091e7['contentWindow'] === _0x533c09) return _0x1bdd7b;
+        const globalHomeButton = document.querySelector('.toolbar-button.home');
+        if (globalHomeButton) {
+            globalHomeButton.addEventListener('click', () => {
+                if (!globalHomeButton.classList.contains('disabled')) {
+                    const projectsElement = document.getElementById('projects-window');
+                    const projectsIframe = projectsElement ? projectsElement.querySelector('iframe') : null;
+                    if (projectsIframe && projectsIframe.contentWindow) {
+                        const actionMessage = { type: 'toolbar:action', action: 'home' };
+                        projectsIframe.contentWindow.postMessage(actionMessage, '*');
+                    }
+                }
+            });
+        }
+    } _createElement(tagName, className = '', attributes = {}) {
+        const element = document.createElement(tagName);
+        if (className) element.className = className;
+        Object.entries(attributes).forEach(([key, value]) => {
+            element.setAttribute(key, value);
+        });
+        return element;
+    }
+    _isMobileDevice() {
+        return document.documentElement.classList.contains('mobile-device');
+    }
+    _findWindowByIframe(iframeWindow) {
+        for (const windowKey in this.windows) {
+            const windowElement = this.windows[windowKey];
+            const iframes = windowElement.querySelectorAll('iframe');
+            for (const iframe of iframes) {
+                if (iframe.contentWindow === iframeWindow) return windowElement;
             }
         }
         return null;
-    } ['_setupGlobalHandlers']() {
-        document['addEventListener']('mousedown', _0x4702f6 => {
-            const _0x2e92b7 = _0x4702f6['target']['classList']['contains']('desktop') || _0x4702f6['target']['classList']['contains']('selection-overlay');
-            _0x2e92b7 && !_0x4702f6['target']['closest']('.window') && (this['activeWindow'] && this['deactivateAllWindows']());
-        }, !![]);
-    } ['_subscribeToEvents']() {
+    }
+    _setupGlobalHandlers() {
+        document.addEventListener('mousedown', event => {
+            const clickedOnDesktop = event.target.classList.contains('desktop') || event.target.classList.contains('selection-overlay');
+            clickedOnDesktop && !event.target.closest('.window') && (this.activeWindow && this.deactivateAllWindows());
+        }, true);
+    }
+    _subscribeToEvents() {
         this['eventBus']['subscribe'](EVENTS['PROGRAM_OPEN'], _0x3f53e3 => {
             if (_0x3f53e3['programName'] === 'mediaPlayer' && !_0x3f53e3['skipLoading']) this['openMediaPlayerWithLoading']();
             else {
@@ -174,74 +253,94 @@ export default class WindowManager {
             }
         });
     } ['_calculateWindowToTaskbarTransform'](_0x60af45, _0x5804d5) {
-        return _0x4a0cd5['calculateWindowToTaskbarTransform'](_0x60af45, _0x5804d5);
+        return lifecycleInternals['calculateWindowToTaskbarTransform'](_0x60af45, _0x5804d5);
     } ['openPaintWithLoading']() {
         const loadingId = 'paint-' + Date['now']();
-        _0x5457da['startLoading'](loadingId);
-        const _0xf9f211 = this['programData']['paint'];
-        if (!_0xf9f211) {
-            _0x5457da['endLoading'](loadingId);
+        systemLoadingManager.startLoading(loadingId);
+        const paintProgram = this.programData['paint'];
+        if (!paintProgram) {
+            systemLoadingManager.endLoading(loadingId);
             return;
         }
-        let _0x1c4805 = document['getElementById'](_0xf9f211['id']);
-        if (_0x1c4805) {
-            _0x5457da['endLoading'](loadingId);
-            _0x1c4805['classList']['contains']('minimized') ? this['restoreWindow'](_0x1c4805) : this['bringToFront'](_0x1c4805);
+        let existingWindow = document.getElementById(paintProgram.id);
+        if (existingWindow) {
+            systemLoadingManager.endLoading(loadingId);
+            existingWindow.classList.contains('minimized') ? this.restoreWindow(existingWindow) : this.bringToFront(existingWindow);
             return;
         }
-        const preloadIframe = document['createElement']('iframe');
-        preloadIframe['src'] = _0xf9f211['appPath'], preloadIframe['style']['cssText'] = '\x0a\x20\x20\x20\x20\x20\x20position:\x20absolute;\x0a\x20\x20\x20\x20\x20\x20top:\x20-9999px;\x0a\x20\x20\x20\x20\x20\x20left:\x20-9999px;\x0a\x20\x20\x20\x20\x20\x20width:\x201px;\x0a\x20\x20\x20\x20\x20\x20height:\x201px;\x0a\x20\x20\x20\x20\x20\x20visibility:\x20hidden;\x0a\x20\x20\x20\x20\x20\x20opacity:\x200;\x0a\x20\x20\x20\x20\x20\x20pointer-events:\x20none;\x0a\x20\x20\x20\x20', preloadIframe['setAttribute']('aria-hidden', 'true'), document['body']['appendChild'](preloadIframe);
-        const _0x5922e2 = () => {
-            document['body']['contains'](preloadIframe) && document['body']['removeChild'](preloadIframe);
-            _0x5457da['endLoading'](loadingId);
-            const _0xa2d864 = {};
-            _0xa2d864['programName'] = 'paint', _0xa2d864['skipLoading'] = !![], this['eventBus']['publish'](EVENTS['PROGRAM_OPEN'], _0xa2d864);
+        const preloadIframe = document.createElement('iframe');
+        preloadIframe.src = paintProgram.appPath;
+        preloadIframe.style.cssText = '\n      position: absolute;\n      top: -9999px;\n      left: -9999px;\n      width: 1px;\n      height: 1px;\n      visibility: hidden;\n      opacity: 0;\n      pointer-events: none;\n    ';
+        preloadIframe.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(preloadIframe);
+        const finishLoading = () => {
+            document.body.contains(preloadIframe) && document.body.removeChild(preloadIframe);
+            systemLoadingManager.endLoading(loadingId);
+            const openEvent = { programName: 'paint', skipLoading: true };
+            this.eventBus.publish(EVENTS['PROGRAM_OPEN'], openEvent);
         };
-        preloadIframe['onload'] = _0x5922e2, preloadIframe['onerror'] = _0x5922e2, setTimeout(() => {
-            document['body']['contains'](preloadIframe) && _0x5922e2();
+        preloadIframe.onload = finishLoading;
+        preloadIframe.onerror = finishLoading;
+        setTimeout(() => {
+            document.body.contains(preloadIframe) && finishLoading();
         }, 0x1388);
     } ['openMediaPlayerWithLoading']() {
         const loadingId = 'mediaPlayer-' + Date['now']();
-        _0x5457da['startLoading'](loadingId);
-        const _0x226e25 = this['programData']['mediaPlayer'];
-        if (!_0x226e25) {
-            _0x5457da['endLoading'](loadingId);
+        systemLoadingManager.startLoading(loadingId);
+        const mediaProgram = this.programData['mediaPlayer'];
+        if (!mediaProgram) {
+            systemLoadingManager.endLoading(loadingId);
             return;
         }
-        let _0x52f5c1 = document['getElementById'](_0x226e25['id']);
-        if (_0x52f5c1) {
-            _0x5457da['endLoading'](loadingId);
-            _0x52f5c1['classList']['contains']('minimized') ? this['restoreWindow'](_0x52f5c1) : this['bringToFront'](_0x52f5c1);
+        let existingWindow = document.getElementById(mediaProgram.id);
+        if (existingWindow) {
+            systemLoadingManager.endLoading(loadingId);
+            existingWindow.classList.contains('minimized') ? this.restoreWindow(existingWindow) : this.bringToFront(existingWindow);
             return;
         }
-        const preloadIframe = document['createElement']('iframe');
-        preloadIframe['src'] = _0x226e25['appPath'], preloadIframe['style']['cssText'] = '\x0a\x20\x20\x20\x20\x20\x20position:\x20absolute;\x0a\x20\x20\x20\x20\x20\x20top:\x20-9999px;\x0a\x20\x20\x20\x20\x20\x20left:\x20-9999px;\x0a\x20\x20\x20\x20\x20\x20width:\x201px;\x0a\x20\x20\x20\x20\x20\x20height:\x201px;\x0a\x20\x20\x20\x20\x20\x20visibility:\x20hidden;\x0a\x20\x20\x20\x20\x20\x20opacity:\x200;\x0a\x20\x20\x20\x20\x20\x20pointer-events:\x20none;\x0a\x20\x20\x20\x20', preloadIframe['setAttribute']('aria-hidden', 'true'), document['body']['appendChild'](preloadIframe), setTimeout(() => {
-            document['body']['contains'](preloadIframe) && document['body']['removeChild'](preloadIframe);
-            _0x5457da['endLoading'](loadingId);
-            const _0x57895c = {};
-            _0x57895c['programName'] = 'mediaPlayer', _0x57895c['skipLoading'] = !![], this['eventBus']['publish'](EVENTS['PROGRAM_OPEN'], _0x57895c);
+        const preloadIframe = document.createElement('iframe');
+        preloadIframe.src = mediaProgram.appPath;
+        preloadIframe.style.cssText = '\n      position: absolute;\n      top: -9999px;\n      left: -9999px;\n      width: 1px;\n      height: 1px;\n      visibility: hidden;\n      opacity: 0;\n      pointer-events: none;\n    ';
+        preloadIframe.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(preloadIframe);
+        setTimeout(() => {
+            document.body.contains(preloadIframe) && document.body.removeChild(preloadIframe);
+            systemLoadingManager.endLoading(loadingId);
+            const openEvent = { programName: 'mediaPlayer', skipLoading: true };
+            this.eventBus.publish(EVENTS['PROGRAM_OPEN'], openEvent);
         }, 0x5dc);
     } ['openMusicPlayerWithLoading']() {
         const loadingId = 'musicPlayer-' + Date['now']();
-        _0x5457da['startLoading'](loadingId);
-        const _0x23b859 = this['programData']['musicPlayer'];
-        if (!_0x23b859) {
-            _0x5457da['endLoading'](loadingId);
+        systemLoadingManager.startLoading(loadingId);
+        const musicProgram = this.programData['musicPlayer'];
+        if (!musicProgram) {
+            systemLoadingManager.endLoading(loadingId);
             return;
         }
-        let _0xb0c7a3 = document['getElementById'](_0x23b859['id']);
-        if (_0xb0c7a3) {
-            _0x5457da['endLoading'](loadingId);
-            _0xb0c7a3['classList']['contains']('minimized') ? this['restoreWindow'](_0xb0c7a3) : this['bringToFront'](_0xb0c7a3);
+        let existingWindow = document.getElementById(musicProgram.id);
+        if (existingWindow) {
+            systemLoadingManager.endLoading(loadingId);
+            existingWindow.classList.contains('minimized') ? this.restoreWindow(existingWindow) : this.bringToFront(existingWindow);
             return;
         }
-        const preloadIframe = document['createElement']('iframe');
-        preloadIframe['src'] = _0x23b859['appPath'], preloadIframe['style']['cssText'] = '\x0a\x20\x20\x20\x20\x20\x20position:\x20absolute;\x0a\x20\x20\x20\x20\x20\x20top:\x20-9999px;\x0a\x20\x20\x20\x20\x20\x20left:\x20-9999px;\x0a\x20\x20\x20\x20\x20\x20width:\x201px;\x0a\x20\x20\x20\x20\x20\x20height:\x201px;\x0a\x20\x20\x20\x20\x20\x20visibility:\x20hidden;\x0a\x20\x20\x20\x20\x20\x20opacity:\x200;\x0a\x20\x20\x20\x20\x20\x20pointer-events:\x20none;\x0a\x20\x20\x20\x20', preloadIframe['setAttribute']('aria-hidden', 'true'), document['body']['appendChild'](preloadIframe), setTimeout(() => {
-            document['body']['contains'](preloadIframe) && document['body']['removeChild'](preloadIframe);
-            const _0x1ce7a3 = this['_createWindowElement'](_0x23b859);
-            _0x1ce7a3['classList']['add']('window-opening'), this['_registerWindow'](_0x1ce7a3, _0x23b859), this['_setupWindowEvents'](_0x1ce7a3), document['getElementById']('windows-container')['appendChild'](_0x1ce7a3), this['positionWindow'](_0x1ce7a3), this['bringToFront'](_0x1ce7a3), setTimeout(() => {
-                _0x1ce7a3 && _0x1ce7a3['classList']['remove']('window-opening');
-            }, 0xc8), _0x5457da['endLoading'](loadingId);
+        const preloadIframe = document.createElement('iframe');
+        preloadIframe.src = musicProgram.appPath;
+        preloadIframe.style.cssText = '\n      position: absolute;\n      top: -9999px;\n      left: -9999px;\n      width: 1px;\n      height: 1px;\n      visibility: hidden;\n      opacity: 0;\n      pointer-events: none;\n    ';
+        preloadIframe.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(preloadIframe);
+        setTimeout(() => {
+            document.body.contains(preloadIframe) && document.body.removeChild(preloadIframe);
+            const newWindow = this._createWindowElement(musicProgram);
+            newWindow.classList.add('window-opening');
+            this._registerWindow(newWindow, musicProgram);
+            this._setupWindowEvents(newWindow);
+            document.getElementById('windows-container').appendChild(newWindow);
+            this.positionWindow(newWindow);
+            this.bringToFront(newWindow);
+            setTimeout(() => {
+                newWindow && newWindow.classList.remove('window-opening');
+            }, 0xc8);
+            systemLoadingManager.endLoading(loadingId);
         }, 0x1f4);
     } ['openProgram'](_0x445207, _0xc19382 = {}) {
         if (!window['__BOOT_COMPLETE']) return null;
@@ -268,7 +367,7 @@ export default class WindowManager {
         }
         let _0xdcc7f = document['getElementById'](_0x15442b['id']);
         if (_0xdcc7f) {
-            _0xdcc7f['classList']['contains']('minimized') ? this['restoreWindow'](_0xdcc7f) : (this['bringToFront'](_0xdcc7f), this['_handleWindowFocus'](_0xdcc7f['id']), _0xdcc7f['style']['transition'] = 'transform\x200.15s\x20ease-out', _0xdcc7f['style']['transform'] = 'scale(1.02)', setTimeout(() => {
+            _0xdcc7f['classList']['contains']('minimized') ? this['restoreWindow'](_0xdcc7f) : (this.bringToFront(_0xdcc7f), this['_handleWindowFocus'](_0xdcc7f['id']), _0xdcc7f['style']['transition'] = 'transform\x200.15s\x20ease-out', _0xdcc7f['style']['transform'] = 'scale(1.02)', setTimeout(() => {
                 _0xdcc7f && (_0xdcc7f['style']['transform'] = '', setTimeout(() => {
                     if (_0xdcc7f) _0xdcc7f['style']['transition'] = '';
                 }, 0x96));
@@ -282,24 +381,24 @@ export default class WindowManager {
             }
             return _0xdcc7f;
         }
-        _0xdcc7f = this['_createWindowElement'](_0x15442b), this['_registerWindow'](_0xdcc7f, _0x15442b), this['_setupWindowEvents'](_0xdcc7f), document['getElementById']('windows-container')['appendChild'](_0xdcc7f), this['positionWindow'](_0xdcc7f);
+        _0xdcc7f = this._createWindowElement(_0x15442b), this._registerWindow(_0xdcc7f, _0x15442b), this._setupWindowEvents(_0xdcc7f), document['getElementById']('windows-container')['appendChild'](_0xdcc7f), this.positionWindow(_0xdcc7f);
         if (_0x15442b['id'] === 'projects') {
             _0xdcc7f['style']['opacity'] = '0', _0xdcc7f['setAttribute']('data-program-loading', 'true');
             const _0xe4a3a0 = _0xdcc7f['querySelector']('iframe');
             if (_0xe4a3a0) {
                 const _0x42793e = _0x5ee2e7 => {
-                        _0x5ee2e7['source'] === _0xe4a3a0['contentWindow'] && _0x5ee2e7['data'] && _0x5ee2e7['data']['type'] === 'projects-ready' && (window['removeEventListener']('message', _0x42793e), clearTimeout(_0x400e52), _0xdcc7f['style']['opacity'] = '1', _0xdcc7f['removeAttribute']('data-program-loading'), this['bringToFront'](_0xdcc7f), this['_handleWindowFocus'](_0xdcc7f['id']));
+                        _0x5ee2e7['source'] === _0xe4a3a0['contentWindow'] && _0x5ee2e7['data'] && _0x5ee2e7['data']['type'] === 'projects-ready' && (window['removeEventListener']('message', _0x42793e), clearTimeout(_0x400e52), _0xdcc7f['style']['opacity'] = '1', _0xdcc7f['removeAttribute']('data-program-loading'), this.bringToFront(_0xdcc7f), this['_handleWindowFocus'](_0xdcc7f['id']));
                     },
                     _0x400e52 = setTimeout(() => {
-                        window['removeEventListener']('message', _0x42793e), _0xdcc7f['hasAttribute']('data-program-loading') && (_0xdcc7f['style']['opacity'] = '1', _0xdcc7f['removeAttribute']('data-program-loading'), this['bringToFront'](_0xdcc7f), this['_handleWindowFocus'](_0xdcc7f['id']));
+                        window['removeEventListener']('message', _0x42793e), _0xdcc7f['hasAttribute']('data-program-loading') && (_0xdcc7f['style']['opacity'] = '1', _0xdcc7f['removeAttribute']('data-program-loading'), this.bringToFront(_0xdcc7f), this['_handleWindowFocus'](_0xdcc7f['id']));
                     }, 0x1b58);
                 window['addEventListener']('message', _0x42793e);
             }
-            this['bringToFront'](_0xdcc7f);
+            this.bringToFront(_0xdcc7f);
         } else {
             const _0x3c22ba = window['__IS_IFRAME_CACHED'] && window['__IS_IFRAME_CACHED'](_0x15442b['id']);
             if (_0x3c22ba) {
-                this['bringToFront'](_0xdcc7f), this['_handleWindowFocus'](_0xdcc7f['id']);
+                this.bringToFront(_0xdcc7f), this['_handleWindowFocus'](_0xdcc7f['id']);
                 if (_0x445207 === 'image-viewer' && _0xc19382 && typeof _0xc19382['initialIndex'] !== 'undefined') {
                     const _0x63f9a4 = _0xdcc7f['querySelector']('iframe');
                     if (_0x63f9a4 && _0x63f9a4['contentWindow']) {
@@ -307,7 +406,7 @@ export default class WindowManager {
                         _0xa395f5['type'] = 'set-initial-index', _0xa395f5['initialIndex'] = _0xc19382['initialIndex'], _0xa395f5['projectTitle'] = _0xc19382['projectTitle'], _0x63f9a4['contentWindow']['postMessage'](_0xa395f5, '*');
                     }
                 }
-            } else _0xdcc7f['style']['opacity'] = '0', this['bringToFront'](_0xdcc7f), import('../utils/frameScheduler.js')['then'](({
+            } else _0xdcc7f['style']['opacity'] = '0', this.bringToFront(_0xdcc7f), import('../utils/frameScheduler.js')['then'](({
                 scheduleWrite: _0x69b940
             }) => {
                 _0x69b940(() => {
@@ -431,7 +530,7 @@ export default class WindowManager {
             _0x1c51d5 && _0x1c51d5['canMaximize'] !== ![] && this['toggleMaximize'](_0x334f90);
         }), this['makeDraggable'](_0x334f90, _0x1661ee));
         this['_bindControl'](_0x334f90, 'mousedown', () => {
-            _0x334f90 !== this['activeWindow'] && this['bringToFront'](_0x334f90);
+            _0x334f90 !== this['activeWindow'] && this.bringToFront(_0x334f90);
         }, !![]);
         _0x555527 && this['_bindControl'](_0x555527, 'mousedown', _0x524b21 => {
             _0x524b21['stopPropagation'](), _0x524b21['preventDefault']();
@@ -557,7 +656,7 @@ export default class WindowManager {
             _0x551aef['style']['position'] = 'absolute', _0x551aef['style']['top'] = '0', _0x551aef['style']['left'] = '0', _0x551aef['style']['width'] = '100%', _0x551aef['style']['height'] = '100%', _0x551aef['style']['display'] = 'none';
             const _0x52abef = _0x3851ce['parentElement'];
             _0x52abef && (_0x52abef['style']['position'] = 'relative', _0x52abef['appendChild'](_0x551aef), this['_bindControl'](_0x551aef, 'mousedown', _0x4ea4e4 => {
-                _0x4ea4e4['preventDefault'](), _0x4ea4e4['stopPropagation'](), _0x2d7a79 !== this['activeWindow'] && this['bringToFront'](_0x2d7a79);
+                _0x4ea4e4['preventDefault'](), _0x4ea4e4['stopPropagation'](), _0x2d7a79 !== this['activeWindow'] && this.bringToFront(_0x2d7a79);
             }), _0x2d7a79['iframeOverlays']['push'](_0x551aef)), _0x3851ce['addEventListener']('focus', () => {
                 const _0x18f7bd = {};
                 _0x18f7bd['bubbles'] = ![], _0x2d7a79['dispatchEvent'](new CustomEvent('window:iframe-interaction', _0x18f7bd));
@@ -570,17 +669,17 @@ export default class WindowManager {
         const _0x14526b = this['windows'][_0x9c8ba9];
         if (_0x14526b) {
             if (_0x14526b['windowState']['isMinimized']) this['restoreWindow'](_0x14526b);
-            else this['activeWindow'] === _0x14526b ? this['minimizeWindow'](_0x14526b) : this['bringToFront'](_0x14526b);
+            else this['activeWindow'] === _0x14526b ? this['minimizeWindow'](_0x14526b) : this.bringToFront(_0x14526b);
         } else {
             const _0x5357f9 = _0x9c8ba9['replace']('-window', ''),
                 _0x79ca7b = Object['values'](this['windows']),
                 _0xcc9732 = _0x79ca7b['find'](_0xb6a397 => _0xb6a397['getAttribute']('data-program') === _0x5357f9);
-            if (_0xcc9732) _0xcc9732['windowState']['isMinimized'] ? this['restoreWindow'](_0xcc9732) : this['bringToFront'](_0xcc9732);
+            if (_0xcc9732) _0xcc9732['windowState']['isMinimized'] ? this['restoreWindow'](_0xcc9732) : this.bringToFront(_0xcc9732);
             else _0x5357f9 && this['programData'][_0x5357f9] && this['openProgram'](_0x5357f9);
         }
     } ['_handleWindowFocus'](_0x4e3ab4) {
         const _0x3a69f3 = this['windows'][_0x4e3ab4];
-        _0x3a69f3 && !_0x3a69f3['windowState']['isMinimized'] && this['bringToFront'](_0x3a69f3);
+        _0x3a69f3 && !_0x3a69f3['windowState']['isMinimized'] && this.bringToFront(_0x3a69f3);
     } ['_handleWindowRestore'](_0x1f4f4e) {
         const _0x1a156f = this['windows'][_0x1f4f4e];
         _0x1a156f && this['restoreWindow'](_0x1a156f);
@@ -610,19 +709,19 @@ export default class WindowManager {
         const _0x362b75 = {};
         _0x362b75['windowId'] = _0x14d4b5, this['eventBus']['publish'](EVENTS['WINDOW_CLOSED'], _0x362b75);
     } ['_refreshActiveWindow']() {
-        _0x4a0cd5['refreshActiveWindow'](this);
+        lifecycleInternals['refreshActiveWindow'](this);
     } ['_clearAllTaskbarItemStates']() {
-        _0x4a0cd5['clearAllTaskbarItemStates'](this);
+        lifecycleInternals['clearAllTaskbarItemStates'](this);
     } ['_updateTaskbarItemState'](_0x3e8c23, _0x4f469f) {
-        _0x4a0cd5['updateTaskbarItemState'](this, _0x3e8c23, _0x4f469f);
+        lifecycleInternals['updateTaskbarItemState'](this, _0x3e8c23, _0x4f469f);
     } ['closeWindow'](_0x57cd0c) {
-        _0x4a0cd5['closeWindow'](this, _0x57cd0c, EVENTS);
+        lifecycleInternals['closeWindow'](this, _0x57cd0c, EVENTS);
     } ['minimizeWindow'](_0x599b60) {
-        _0x4a0cd5['minimizeWindow'](this, _0x599b60, EVENTS);
+        lifecycleInternals['minimizeWindow'](this, _0x599b60, EVENTS);
     } ['restoreWindow'](_0x18bec6) {
-        _0x4a0cd5['restoreWindow'](this, _0x18bec6, EVENTS);
+        lifecycleInternals['restoreWindow'](this, _0x18bec6, EVENTS);
     } ['toggleMaximize'](_0x374dc0) {
-        _0x4a0cd5['toggleMaximize'](this, _0x374dc0, EVENTS);
+        lifecycleInternals['toggleMaximize'](this, _0x374dc0, EVENTS);
     } ['bringToFront'](_0x234836) {
         if (!_0x234836 || this['activeWindow'] === _0x234836 || _0x234836['windowState']['isMinimized']) return;
         const _0x2a1c8f = this['activeWindow'];
@@ -648,7 +747,7 @@ export default class WindowManager {
             }
         }
     } ['deactivateAllWindows'](_0x438f3e = null) {
-        _0x4a0cd5['deactivateAllWindows'](this, _0x438f3e);
+        lifecycleInternals['deactivateAllWindows'](this, _0x438f3e);
     } ['_setWindowZIndex'](_0x38b075, _0x56465b) {
         _0x38b075 && (_0x38b075['style']['zIndex'] = _0x56465b);
     } ['_toggleInactiveMask'](_0x119bdc, _0x41b9e1) {
@@ -657,13 +756,13 @@ export default class WindowManager {
     } ['_toggleIframeOverlays'](_0x318d5f, _0x32872c) {
         _0x318d5f['iframeOverlays'] && _0x318d5f['iframeOverlays']['forEach'](_0xe80c9e => _0xe80c9e['style']['display'] = _0x32872c ? 'block' : 'none');
     } ['positionWindow'](_0x49ee73) {
-        _0x18b074(this, _0x49ee73);
+        positionWindow(this, _0x49ee73);
     } ['makeDraggable'](_0x1a2eaf, _0x3c13b0) {
-        _0x488f5b(this, _0x1a2eaf, _0x3c13b0);
+        makeDraggable(this, _0x1a2eaf, _0x3c13b0);
     } ['_updateStackOrder'](_0x1f5195, _0x54cd86 = 'add') {
-        _0x5f3d24(this, _0x1f5195, _0x54cd86);
+        updateStackOrder(this, _0x1f5195, _0x54cd86);
     } ['_updateZIndices']() {
-        _0x3f3089(this);
+        applyZIndices(this);
     } ['_findTopWindow']() {
         for (let _0x2cf162 = this['zIndexStack']['length'] - 0x1; _0x2cf162 >= 0x0; _0x2cf162--) {
             const _0x33fb89 = this['zIndexStack'][_0x2cf162],
@@ -674,16 +773,16 @@ export default class WindowManager {
     } ['_bindControl'](_0x405619, _0x4a0c4f, _0x38888e, _0x555ade = ![]) {
         _0x405619 && _0x405619['addEventListener'](_0x4a0c4f, _0x38888e, _0x555ade);
     } ['makeResizable'](_0x31ec72) {
-        _0x4abb4f(this, _0x31ec72);
+        makeResizable(this, _0x31ec72);
     } ['_getTaskbarHeight']() {
-        return _0x59f4c3['getTaskbarHeight'](this);
+        return viewportInternals['getTaskbarHeight'](this);
     } ['_getTaskbarElement']() {
-        return _0x59f4c3['getTaskbarElement'](this);
+        return viewportInternals['getTaskbarElement'](this);
     } ['_getViewportDimensions']() {
-        return _0x59f4c3['getViewportDimensions'](this);
+        return viewportInternals['getViewportDimensions'](this);
     } ['_clearCachedValues']() {
-        _0x59f4c3['clearCachedValues'](this);
+        viewportInternals['clearCachedValues'](this);
     } ['_handleViewportChange']() {
-        _0x59f4c3['handleViewportChange'](this);
+        viewportInternals['handleViewportChange'](this);
     }
 }

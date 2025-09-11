@@ -1,11 +1,31 @@
 export function createAddressBar({
-    icon: _0x27832d,
-    title: title = 'About\x20Me'
+    icon: iconPath,
+    title: title = 'About Me',
 } = {}) {
-    const _0x5301cf = document['createElement']('div');
-    _0x5301cf['className'] = 'addressbar-container';
-    const _0x389489 = _0x27832d ? '<img\x20decoding=\x22async\x22\x20loading=\x22lazy\x22\x20style=\x22margin:\x200\x203px\x200\x200\x22\x20alt=\x22icon\x22\x20width=\x2214\x22\x20height=\x2214\x22\x20src=\x22' + _0x27832d + '\x22\x20/>' : '';
-    return _0x5301cf['innerHTML'] = '\x0a\x20\x20\x20\x20<div\x20class=\x22addressbar-row\x22>\x0a\x20\x20\x20\x20\x20\x20<div\x20class=\x22address-label-container\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<span\x20style=\x22color:\x20#7f7c73;\x20font-size:\x2011px;\x22>Address</span>\x0a\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20<div\x20class=\x22addressbar\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20style=\x22display:\x20flex;\x20align-items:\x20center;\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20' + _0x389489 + '\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<span\x20class=\x22addressbar-title\x22>' + title + '</span>\x0a\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<img\x20decoding=\x22async\x22\x20loading=\x22lazy\x22\x20alt=\x22dropdown\x22\x20class=\x22dropdownIcon\x22\x20width=\x2216\x22\x20height=\x2218\x22\x20src=\x22./assets/gui/toolbar/tooldropdown.webp\x22\x20style=\x22filter:\x20grayscale(100%);\x20opacity:\x200.6;\x22\x20/>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22address-bar-progress\x22\x20aria-hidden=\x22true\x22></div>\x0a\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20<div\x20class=\x22go-button-container\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<img\x20decoding=\x22async\x22\x20loading=\x22lazy\x22\x20alt=\x22go\x22\x20class=\x22goIcon\x22\x20width=\x2220\x22\x20height=\x2220\x22\x20src=\x22./assets/gui/toolbar/go.webp\x22\x20style=\x22filter:\x20grayscale(100%);\x20opacity:\x200.6;\x22\x20/>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<span>Go</span>\x0a\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20</div>\x0a\x20\x20', _0x5301cf;
+    const container = document.createElement('div');
+    container.className = 'addressbar-container';
+    const iconHtml = iconPath
+        ? `<img decoding="async" loading="lazy" style="margin: 0 3px 0 0" alt="icon" width="14" height="14" src="${iconPath}" />`
+        : '';
+    container.innerHTML = `
+    <div class="addressbar-row">
+        <div class="address-label-container">
+            <span style="color: #7f7c73; font-size: 11px;">Address</span>
+        </div>
+        <div class="addressbar">
+            <div style="display: flex; align-items: center;">
+                ${iconHtml}
+                <span class="addressbar-title">${title}</span>
+            </div>
+            <img decoding="async" loading="lazy" alt="dropdown" class="dropdownIcon" width="16" height="18" src="./assets/gui/toolbar/tooldropdown.webp" style="filter: grayscale(100%); opacity: 0.6;" />
+            <div class="address-bar-progress" aria-hidden="true"></div>
+        </div>
+        <div class="go-button-container">
+            <img decoding="async" loading="lazy" alt="go" class="goIcon" width="20" height="20" src="./assets/gui/toolbar/go.webp" style="filter: grayscale(100%); opacity: 0.6;" />
+            <span>Go</span>
+        </div>
+    </div>`;
+    return container;
 }
 let SOCIALS_CACHE = null;
 async function getSocials() {
@@ -18,18 +38,21 @@ async function getSocials() {
         return SOCIALS_CACHE = [], SOCIALS_CACHE;
     }
 }
-export function createMenuBar(_0x2c4792, _0xbb366, parentWindowElement) {
-    if (!_0x2c4792 || !_0x2c4792['items']) return null;
-    const _0x168b39 = document['createElement']('div');
-    _0x168b39['className'] = 'menu-bar-container';
+export function createMenuBar(menuBarConfig, windowId, parentWindowElement) {
+    if (!menuBarConfig || !menuBarConfig.items) return null;
+    const container = document.createElement('div');
+    container.className = 'menu-bar-container';
     let _parentWindowElement = parentWindowElement,
-        _0x3c9d40 = null;
-    _0x168b39['setParentWindowElement'] = function(_0x58c38) {
-        _parentWindowElement && _0x3c9d40 && (_parentWindowElement['removeEventListener']('window-drag-start', _0x3c9d40), _parentWindowElement['removeEventListener']('request-close-window', _0x3c9d40)), _parentWindowElement = _0x58c38, _parentWindowElement && _0x3c9d40 && (_parentWindowElement['addEventListener']('window-drag-start', _0x3c9d40), _parentWindowElement['addEventListener']('request-close-window', _0x3c9d40));
+        closeMenus = null;
+    container.setParentWindowElement = function(newParent) {
+        _parentWindowElement && closeMenus && (_parentWindowElement.removeEventListener('window-drag-start', closeMenus), _parentWindowElement.removeEventListener('request-close-window', closeMenus));
+        _parentWindowElement = newParent;
+        _parentWindowElement && closeMenus && (_parentWindowElement.addEventListener('window-drag-start', closeMenus), _parentWindowElement.addEventListener('request-close-window', closeMenus));
     };
-    const _0x224bd9 = document['createElement']('div');
-    _0x224bd9['className'] = 'menu-bar', _0x2c4792['items']['forEach'](_0x439523 => {
-        if (_0xbb366 === 'resume-window' && _0x439523['key'] === 'file' && Array['isArray'](_0x439523['dropdown'])) {
+    const bar = document.createElement('div');
+    bar.className = 'menu-bar';
+    menuBarConfig.items.forEach(_0x439523 => {
+        if (windowId === 'resume-window' && _0x439523['key'] === 'file' && Array['isArray'](_0x439523['dropdown'])) {
             _0x439523['dropdown'] = _0x439523['dropdown']['filter'](_0x36599a => _0x36599a['action'] !== 'pageSetup');
             if (!_0x439523['dropdown']['some'](_0x2f1bbc => _0x2f1bbc['action'] === 'saveResume')) {
                 const _0x294f82 = _0x439523['dropdown']['findIndex'](_0x5a6425 => _0x5a6425['action'] === 'filePrint');
