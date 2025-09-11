@@ -1,411 +1,803 @@
-export const CAROUSEL_DRAG_THRESHOLD = 0x3c;
-export const CAROUSEL_MAX_VERTICAL_DRIFT = 0x50;
-const _0x4e59d8 = {};
-_0x4e59d8['grid'] = '#projects-grid-view', _0x4e59d8['gridContainer'] = '#grid-container', _0x4e59d8['detailContainer'] = '#detail-container', _0x4e59d8['detailContent'] = '.detail-container', _0x4e59d8['slider'] = '.cascade-slider_slides', _0x4e59d8['sliderItem'] = '.cascade-slider_item', _0x4e59d8['sliderDot'] = '.cascade-slider_dot', _0x4e59d8['arrowLeft'] = '.cascade-slider_arrow-left', _0x4e59d8['arrowRight'] = '.cascade-slider_arrow-right', _0x4e59d8['mobileBlocker'] = 'mobile-interaction-blocker';
-export const SELECTORS = _0x4e59d8;
-const _0x51eb3a = {};
-_0x51eb3a['loaded'] = 'loaded', _0x51eb3a['visible'] = 'visible', _0x51eb3a['hover'] = 'hover', _0x51eb3a['dimmed'] = 'dimmed', _0x51eb3a['empty'] = 'empty', _0x51eb3a['now'] = 'now', _0x51eb3a['next'] = 'next', _0x51eb3a['prev'] = 'prev', _0x51eb3a['cur'] = 'cur';
-export const CLASSES = _0x51eb3a;
-const _0x25048c = {};
-_0x25048c['SOFT_RESET'] = 'window:soft-reset', _0x25048c['WINDOW_MINIMIZED'] = 'window:minimized', _0x25048c['WINDOW_RESTORED'] = 'window:restored', _0x25048c['SET_MAXIMIZED_STATE'] = 'set-maximized-state', _0x25048c['WINDOW_MAXIMIZED'] = 'window:maximized', _0x25048c['WINDOW_UNMAXIMIZED'] = 'window:unmaximized', _0x25048c['WINDOW_FOCUSED'] = 'window:focused', _0x25048c['WINDOW_BLURRED'] = 'window:blurred', _0x25048c['TOOLBAR_ACTION'] = 'toolbar:action';
-export const MESSAGE_TYPES = _0x25048c;
-export const queryAll = (_0xe277d9, _0x17e10c = document) => _0x17e10c ? Array['from'](_0x17e10c['querySelectorAll'](_0xe277d9)) : [];
-export const queryWorkLabels = (_0x5bc925 = document) => queryAll('.project-text\x20.project-work-label', _0x5bc925);
-export const queryActiveHoverWorkLabels = (_0x429ef8 = document) => queryAll('.project.hover\x20.project-text\x20.project-work-label', _0x429ef8);
-export const queryProjectVideos = (_0x270c15 = document) => queryAll('.project\x20video', _0x270c15);
-export const guardedCall = _0x209784 => {
+export const CAROUSEL_DRAG_THRESHOLD = 60;
+export const CAROUSEL_MAX_VERTICAL_DRIFT = 80;
+
+export const SELECTORS = {
+    grid: '#projects-grid-view',
+    gridContainer: '#grid-container',
+    detailContainer: '#detail-container',
+    detailContent: '.detail-container',
+    slider: '.cascade-slider_slides',
+    sliderItem: '.cascade-slider_item',
+    sliderDot: '.cascade-slider_dot',
+    arrowLeft: '.cascade-slider_arrow-left',
+    arrowRight: '.cascade-slider_arrow-right',
+    mobileBlocker: 'mobile-interaction-blocker',
+};
+
+export const CLASSES = {
+    loaded: 'loaded',
+    visible: 'visible',
+    hover: 'hover',
+    dimmed: 'dimmed',
+    empty: 'empty',
+    now: 'now',
+    next: 'next',
+    prev: 'prev',
+    cur: 'cur',
+};
+
+export const MESSAGE_TYPES = {
+    SOFT_RESET: 'window:soft-reset',
+    WINDOW_MINIMIZED: 'window:minimized',
+    WINDOW_RESTORED: 'window:restored',
+    SET_MAXIMIZED_STATE: 'set-maximized-state',
+    WINDOW_MAXIMIZED: 'window:maximized',
+    WINDOW_UNMAXIMIZED: 'window:unmaximized',
+    WINDOW_FOCUSED: 'window:focused',
+    WINDOW_BLURRED: 'window:blurred',
+    TOOLBAR_ACTION: 'toolbar:action',
+};
+
+export const queryAll = (selector, parent = document) => (parent ? Array.from(parent.querySelectorAll(selector)) : []);
+
+export const queryWorkLabels = (parent = document) => queryAll('.project-text .project-work-label', parent);
+
+export const queryActiveHoverWorkLabels = (parent = document) => queryAll('.project.hover .project-text .project-work-label', parent);
+
+export const queryProjectVideos = (parent = document) => queryAll('.project video', parent);
+
+export const guardedCall = (callback) => {
     try {
-        return _0x209784();
-    } catch (_0xe18454) {}
+        return callback();
+    } catch (e) {
+        // ignore
+    }
     return undefined;
 };
-export const createElement = (_0x5a6051, _0xab0677 = '', _0x2d9f07 = '') => {
-    const _0x43118c = document['createElement'](_0x5a6051);
-    if (_0xab0677) _0x43118c['className'] = _0xab0677;
-    if (_0x2d9f07) _0x43118c['textContent'] = _0x2d9f07;
-    return _0x43118c;
+
+export const createElement = (tagName, className = '', textContent = '') => {
+    const element = document.createElement(tagName);
+    if (className) {
+        element.className = className;
+    }
+    if (textContent) {
+        element.textContent = textContent;
+    }
+    return element;
 };
-export const formatWorkLabel = (_0xce52b1, _0x377bf6) => {
-    const _0x21e7bc = _0xce52b1 === 'client';
-    return _0x377bf6 ? _0x21e7bc ? 'Client' : 'Personal' : _0x21e7bc ? 'Client\x20Work' : 'Personal\x20Work';
+
+export const formatWorkLabel = (workType, isCompact) => {
+    const isClient = workType === 'client';
+    if (isCompact) {
+        return isClient ? 'Client' : 'Personal';
+    }
+    return isClient ? 'Client Work' : 'Personal Work';
 };
-export const isCompactViewport = () => window['innerHeight'] <= 0x1f4;
-export const sendMessageToParent = payload => {
-    window['parent'] && window['parent'] !== window && window['parent']['postMessage'](payload, '*');
+
+export const isCompactViewport = () => window.innerHeight <= 500;
+
+export const sendMessageToParent = (payload) => {
+    if (window.parent && window.parent !== window) {
+        window.parent.postMessage(payload, '*');
+    }
 };
-export const getHoverLabelForProject = _0x59a477 => {
-    if (_0x59a477['category']) return _0x59a477['category'];
-    const _0x38349f = _0x59a477['headerButton'] || {},
-        _0x566fc0 = _0x38349f['url'] || '';
-    if (_0x38349f['programName'] === 'image-viewer' || _0x38349f['action'] === 'openImageViewer') return 'Image';
-    if (_0x38349f['action'] === 'openMediaPlayer' || _0x38349f['programName'] === 'mediaPlayer') return 'Video';
-    if (_0x566fc0['includes']('github.com')) return 'Web';
-    if (_0x59a477['workType'] === 'client') return 'Client';
+
+export const getHoverLabelForProject = (project) => {
+    if (project.category) {
+        return project.category;
+    }
+    const headerButton = project.headerButton || {};
+    const url = headerButton.url || '';
+
+    if (headerButton.programName === 'image-viewer' || headerButton.action === 'openImageViewer') {
+        return 'Image';
+    }
+    if (headerButton.action === 'openMediaPlayer' || headerButton.programName === 'mediaPlayer') {
+        return 'Video';
+    }
+    if (url.includes('github.com')) {
+        return 'Web';
+    }
+    if (project.workType === 'client') {
+        return 'Client';
+    }
     return 'Personal';
 };
-export const resolveAssetPath = _0x17b7c2 => {
-    if (!_0x17b7c2 || _0x17b7c2 === 'placeholder' || _0x17b7c2['startsWith']('../../../') || _0x17b7c2['startsWith']('http')) return _0x17b7c2;
-    return '../../../' + _0x17b7c2;
-};
-export const resolveOptimizedSrc = (_0x22bd29, srcType = 'src') => {
-    const _0x496d86 = _0x22bd29[srcType + 'Mobile'],
-        _0x43ace9 = _0x22bd29[srcType];
-    return typeof document !== 'undefined' && document['documentElement']['classList']['contains']('mobile-device') && _0x496d86 ? resolveAssetPath(_0x496d86) : resolveAssetPath(_0x43ace9);
-};
-export const createVideoElement = _0x5a030b => {
-    const _0xb48c57 = createElement('video');
-    _0xb48c57['src'] = resolveOptimizedSrc(_0x5a030b, 'src');
-    _0x5a030b['poster'] && (_0xb48c57['poster'] = resolveOptimizedSrc(_0x5a030b, 'poster'));
-    const _0x5b00d6 = {};
-    _0x5b00d6['autoplay'] = !![], _0x5b00d6['muted'] = !![], _0x5b00d6['loop'] = !![], _0x5b00d6['playsInline'] = !![], _0x5b00d6['preload'] = 'auto', Object['assign'](_0xb48c57, _0x5b00d6);
-    try {
-        _0xb48c57['setAttribute']('disablePictureInPicture', ''), _0xb48c57['setAttribute']('playsinline', ''), _0xb48c57['setAttribute']('webkit-playsinline', ''), _0xb48c57['setAttribute']('disableremoteplayback', '');
-    } catch (_0x1fad63) {}
-    _0xb48c57['alt'] = _0x5a030b['alt'] || _0x5a030b['title'] || 'Project\x20Video';
-    try {
-        _0xb48c57['load'](), _0xb48c57['play']()['catch'](() => {});
-    } catch (_0x5d17d2) {}
-    return _0xb48c57;
-};
-export const createImageElement = _0xa7e01c => {
-    const _0x59d2d2 = createElement('img');
-    return _0x59d2d2['src'] = resolveOptimizedSrc(_0xa7e01c, 'src'), _0x59d2d2['alt'] = _0xa7e01c['alt'] || _0xa7e01c['title'] || 'Project\x20Image', _0x59d2d2;
-};
-export const createTextOverlay = (_0x596cc0, {
-    formatWorkLabelRef: formatWorkLabelRef = formatWorkLabel,
-    isCompactViewportRef: isCompactViewportRef = isCompactViewport
-} = {}) => {
-    const _0x325ed8 = createElement('div', 'project-text'),
-        _0x3525b0 = typeof document !== 'undefined' && document['documentElement']['classList']['contains']('mobile-device') || isCompactViewportRef(),
-        _0x4c9f19 = formatWorkLabelRef(_0x596cc0['workType'] === 'client' ? 'client' : 'personal', _0x3525b0),
-        _0x494d71 = createElement('div', 'project-work-label', _0x4c9f19);
-    _0x494d71['setAttribute']('data-work-type', _0x596cc0['workType'] === 'client' ? 'client' : 'personal');
-    try {
-        const _0x7f07fc = _0x596cc0['headerButton'] || {},
-            _0x24ba7b = _0x7f07fc['url'] || '',
-            _0x2c9ad3 = _0x596cc0['category'] ? _0x596cc0['category'] : _0x7f07fc['programName'] === 'image-viewer' || _0x7f07fc['action'] === 'openImageViewer' ? 'Image' : _0x7f07fc['action'] === 'openMediaPlayer' || _0x7f07fc['programName'] === 'mediaPlayer' ? 'Video' : _0x24ba7b['includes']('github.com') ? 'Web' : _0x596cc0['workType'] === 'client' ? 'Client' : 'Personal';
-        _0x494d71['setAttribute']('data-hover-label', _0x2c9ad3);
-    } catch (_0x406496) {}
-    const _0x58b5bf = createElement('div', 'project-main-text');
-    _0x58b5bf['appendChild'](createElement('div', 'project-title', _0x596cc0['title']));
-    _0x596cc0['subtitle']?.['trim']() && _0x58b5bf['appendChild'](createElement('div', 'project-subtitle', _0x596cc0['subtitle']));
-    _0x325ed8['appendChild'](_0x494d71), _0x325ed8['appendChild'](_0x58b5bf);
-    let _0x4ffb15 = (_0x596cc0['images'] && _0x596cc0['images']['length'] ? _0x596cc0['images'] : [_0x596cc0['src']])['length'];
-    const _0x136095 = createElement('div', 'project-dots');
-    let _0x2fb85f = 0x0;
-    typeof _0x596cc0['defaultSlide'] === 'number' && _0x596cc0['defaultSlide'] >= 0x0 && _0x596cc0['defaultSlide'] < Math['max'](0x1, _0x4ffb15) && (_0x2fb85f = _0x596cc0['defaultSlide']);
-    for (let _0x58a39e = 0x0; _0x58a39e < Math['max'](0x1, _0x4ffb15); _0x58a39e++) {
-        const _0x50ec1f = createElement('span', 'project-dot');
-        if (_0x58a39e === _0x2fb85f) _0x50ec1f['classList']['add']('cur');
-        _0x136095['appendChild'](_0x50ec1f);
+
+export const resolveAssetPath = (path) => {
+    if (!path || path === 'placeholder' || path.startsWith('../../../') || path.startsWith('http')) {
+        return path;
     }
-    return _0x325ed8['appendChild'](_0x136095), _0x325ed8;
+    return `../../../${path}`;
 };
-export const createProject = (_0x4fa786, _0x58afe2, {
-    isMobileDeviceRef: isMobileDeviceRef = () => typeof document !== 'undefined' && document['documentElement']['classList']['contains']('mobile-device')
-} = {}) => {
-    if (!_0x4fa786 || !_0x4fa786['type'] || !_0x4fa786['title'] || !_0x4fa786['src'] && !_0x4fa786['placeholder']) return createElement('div', 'project\x20error-project');
-    const _0x49f264 = !!_0x4fa786['placeholder'],
-        _0x2782c4 = createElement('div', 'project\x20' + _0x4fa786['type'] + '-project' + (_0x49f264 ? '\x20placeholder-project' : ''));
-    Object['assign'](_0x2782c4['dataset'], {
-        'type': _0x4fa786['type'],
-        'title': _0x49f264 ? 'Coming\x20Soon' : _0x4fa786['title'],
-        'subtitle': _0x4fa786['subtitle'] || '',
-        'workType': _0x4fa786['workType'] || 'personal',
-        'idx': _0x58afe2['toString'](),
-        'orientation': _0x4fa786['orientation'] || 'landscape'
+
+export const resolveOptimizedSrc = (project, srcType = 'src') => {
+    const mobileSrc = project[`${srcType}Mobile`];
+    const desktopSrc = project[srcType];
+    if (typeof document !== 'undefined' && document.documentElement.classList.contains('mobile-device') && mobileSrc) {
+        return resolveAssetPath(mobileSrc);
+    }
+    return resolveAssetPath(desktopSrc);
+};
+
+export const createVideoElement = (project) => {
+    const video = createElement('video');
+    video.src = resolveOptimizedSrc(project, 'src');
+    if (project.poster) {
+        video.poster = resolveOptimizedSrc(project, 'poster');
+    }
+
+    Object.assign(video, {
+        autoplay: true,
+        muted: true,
+        loop: true,
+        playsInline: true,
+        preload: 'auto',
     });
-    if (!_0x49f264 && _0x4fa786['description']) try {
-        _0x2782c4['setAttribute']('data-full-description', _0x4fa786['description']);
-    } catch (_0x3d9829) {}
     try {
-        let _0x36e91d;
-        if (_0x49f264) {
-            _0x36e91d = createElement('div', 'placeholder-spinner-container');
-            const _0x34d40f = createElement('div', 'media-spinner');
-            _0x36e91d['appendChild'](_0x34d40f);
-        } else {
-            if (isMobileDeviceRef() && _0x4fa786['srcMobile']) {
-                const _0x17d96f = _0x4fa786['srcMobile']['match'](/\.mp4($|\?)/i),
-                    _0x41a145 = {
-                        ..._0x4fa786
-                    };
-                _0x41a145['src'] = _0x4fa786['srcMobile'], _0x41a145['poster'] = _0x4fa786['poster'];
-                const _0x376f87 = {
-                    ..._0x4fa786
-                };
-                _0x376f87['src'] = _0x4fa786['srcMobile'], _0x36e91d = _0x17d96f ? createVideoElement(_0x41a145) : createImageElement(_0x376f87);
-            } else {
-                const srcIsVideo = _0x4fa786['src'] && _0x4fa786['src']['match'](/\.mp4($|\?)/i);
-                _0x4fa786['type'] === 'video' && srcIsVideo ? _0x36e91d = createVideoElement(_0x4fa786) : _0x36e91d = createImageElement(_0x4fa786);
-            }
-        }
-        _0x2782c4['appendChild'](_0x36e91d);
-        if (_0x49f264) {
-            const _0x52e012 = createElement('div', 'project-text'),
-                _0x547950 = createElement('div', 'project-work-label', 'Personal');
-            _0x547950['style']['visibility'] = 'hidden', _0x547950['setAttribute']('aria-hidden', 'true'), _0x52e012['appendChild'](_0x547950);
-            const _0x71a5ac = createElement('div', 'project-main-text');
-            _0x71a5ac['appendChild'](createElement('div', 'project-title', 'Coming\x20Soon')), _0x52e012['appendChild'](_0x71a5ac);
-            const _0x137b4a = createElement('div', 'project-dots'),
-                _0x26ad16 = createElement('span', 'project-dot');
-            _0x26ad16['classList']['add']('cur'), _0x137b4a['appendChild'](_0x26ad16), _0x52e012['appendChild'](_0x137b4a), _0x2782c4['appendChild'](_0x52e012);
-        } else _0x2782c4['appendChild'](createTextOverlay(_0x4fa786));
-    } catch {
-        _0x2782c4['classList']['add']('error-project');
+        video.setAttribute('disablePictureInPicture', '');
+        video.setAttribute('playsinline', '');
+        video.setAttribute('webkit-playsinline', '');
+        video.setAttribute('disableremoteplayback', '');
+    } catch (e) {
+        //
     }
-    return _0x2782c4;
+
+    video.alt = project.alt || project.title || 'Project Video';
+
+    try {
+        video.load();
+        video.play().catch(() => {});
+    } catch (e) {
+        //
+    }
+    return video;
 };
-export class SwipeGestureHandler {
-    constructor(_0x34dc2e, _0x16ab6e, _0x507d0d) {
-        this['contentContainer'] = _0x34dc2e, this['onSwipeLeft'] = _0x16ab6e, this['onSwipeRight'] = _0x507d0d, this['isEnabled'] = ![], this['touchStartX'] = 0x0, this['touchStartY'] = 0x0, this['touchStartTime'] = 0x0, this['isTracking'] = ![], this['isTransitioning'] = ![], this['gestureDirection'] = null, this['currentTouchX'] = 0x0, this['currentTouchY'] = 0x0, this['visualFeedbackElement'] = null, this['feedbackTimeout'] = null, this['isDestroyed'] = ![], this['supportsTouch'] = this['checkTouchSupport'](), this['lastMoveTime'] = 0x0;
-        const _0x1d0bc5 = {};
-        _0x1d0bc5['minDistance'] = CAROUSEL_DRAG_THRESHOLD * 0.8, _0x1d0bc5['maxVerticalDrift'] = CAROUSEL_MAX_VERTICAL_DRIFT * 0.6, _0x1d0bc5['maxTime'] = 0x258, _0x1d0bc5['minVelocity'] = 0.25, _0x1d0bc5['directionThreshold'] = 0xc, _0x1d0bc5['feedbackThreshold'] = 0x14, this['gestureParams'] = _0x1d0bc5, this['handleTouchStart'] = this['handleTouchStart']['bind'](this), this['handleTouchMove'] = this['handleTouchMove']['bind'](this), this['handleTouchEnd'] = this['handleTouchEnd']['bind'](this), this['handlePointerStart'] = this['handlePointerStart']['bind'](this), this['handlePointerMove'] = this['handlePointerMove']['bind'](this), this['handlePointerEnd'] = this['handlePointerEnd']['bind'](this);
-    } ['checkTouchSupport']() {
-        try {
-            return 'ontouchstart' in window || navigator['maxTouchPoints'] > 0x0 || navigator['msMaxTouchPoints'] > 0x0;
-        } catch (_0x29a63f) {
-            return ![];
+
+export const createImageElement = (project) => {
+    const img = createElement('img');
+    img.src = resolveOptimizedSrc(project, 'src');
+    img.alt = project.alt || project.title || 'Project Image';
+    return img;
+};
+
+export const createTextOverlay = (project, {
+    formatWorkLabelRef = formatWorkLabel,
+    isCompactViewportRef = isCompactViewport
+} = {}) => {
+    const textContainer = createElement('div', 'project-text');
+    const isCompact = (typeof document !== 'undefined' && document.documentElement.classList.contains('mobile-device')) || isCompactViewportRef();
+    const workLabelText = formatWorkLabelRef(project.workType === 'client' ? 'client' : 'personal', isCompact);
+    const workLabel = createElement('div', 'project-work-label', workLabelText);
+    workLabel.setAttribute('data-work-type', project.workType === 'client' ? 'client' : 'personal');
+
+    try {
+        const headerButton = project.headerButton || {};
+        const url = headerButton.url || '';
+        const hoverLabel = project.category ?
+            project.category :
+            (headerButton.programName === 'image-viewer' || headerButton.action === 'openImageViewer') ?
+            'Image' :
+            (headerButton.action === 'openMediaPlayer' || headerButton.programName === 'mediaPlayer') ?
+            'Video' :
+            url.includes('github.com') ?
+            'Web' :
+            project.workType === 'client' ?
+            'Client' :
+            'Personal';
+        workLabel.setAttribute('data-hover-label', hoverLabel);
+    } catch (e) {
+        //
+    }
+
+    const mainText = createElement('div', 'project-main-text');
+    mainText.appendChild(createElement('div', 'project-title', project.title));
+    if (project.subtitle ? .trim()) {
+        mainText.appendChild(createElement('div', 'project-subtitle', project.subtitle));
+    }
+
+    textContainer.appendChild(workLabel);
+    textContainer.appendChild(mainText);
+
+    let imageCount = (project.images && project.images.length ? project.images : [project.src]).length;
+    const dotsContainer = createElement('div', 'project-dots');
+
+    let defaultSlide = 0;
+    if (typeof project.defaultSlide === 'number' && project.defaultSlide >= 0 && project.defaultSlide < Math.max(1, imageCount)) {
+        defaultSlide = project.defaultSlide;
+    }
+
+    for (let i = 0; i < Math.max(1, imageCount); i++) {
+        const dot = createElement('span', 'project-dot');
+        if (i === defaultSlide) {
+            dot.classList.add('cur');
         }
-    } ['enable']() {
-        if (this['isEnabled'] || !this['contentContainer'] || this['isDestroyed']) return;
+        dotsContainer.appendChild(dot);
+    }
+    textContainer.appendChild(dotsContainer);
+
+    return textContainer;
+};
+
+export const createProject = (project, index, {
+    isMobileDeviceRef = () => typeof document !== 'undefined' && document.documentElement.classList.contains('mobile-device')
+} = {}) => {
+    if (!project || !project.type || !project.title || (!project.src && !project.placeholder)) {
+        return createElement('div', 'project error-project');
+    }
+
+    const isPlaceholder = !!project.placeholder;
+    const projectClass = `project ${project.type}-project${isPlaceholder ? ' placeholder-project' : ''}`;
+    const projectElement = createElement('div', projectClass);
+
+    Object.assign(projectElement.dataset, {
+        type: project.type,
+        title: isPlaceholder ? 'Coming Soon' : project.title,
+        subtitle: project.subtitle || '',
+        workType: project.workType || 'personal',
+        idx: index.toString(),
+        orientation: project.orientation || 'landscape',
+    });
+
+    if (!isPlaceholder && project.description) {
         try {
-            if (this['supportsTouch']) {
-                const _0x3fa2da = {};
-                _0x3fa2da['passive'] = ![], _0x3fa2da['capture'] = ![], this['contentContainer']['addEventListener']('touchstart', this['handleTouchStart'], _0x3fa2da);
-                const _0x2cbb6d = {};
-                _0x2cbb6d['passive'] = ![], _0x2cbb6d['capture'] = ![], this['contentContainer']['addEventListener']('touchmove', this['handleTouchMove'], _0x2cbb6d);
-                const _0x5d37e0 = {};
-                _0x5d37e0['passive'] = ![], _0x5d37e0['capture'] = ![], this['contentContainer']['addEventListener']('touchend', this['handleTouchEnd'], _0x5d37e0);
+            projectElement.setAttribute('data-full-description', project.description);
+        } catch (e) {
+            //
+        }
+    }
+
+    try {
+        let mediaElement;
+        if (isPlaceholder) {
+            mediaElement = createElement('div', 'placeholder-spinner-container');
+            const spinner = createElement('div', 'media-spinner');
+            mediaElement.appendChild(spinner);
+        } else if (isMobileDeviceRef() && project.srcMobile) {
+            const isVideo = project.srcMobile.match(/\.mp4($|\?)/i);
+            const mobileProjectData = { ...project
+            };
+            mobileProjectData.src = project.srcMobile;
+            mobileProjectData.poster = project.poster;
+            const mobileImageProjectData = { ...project
+            };
+            mobileImageProjectData.src = project.srcMobile;
+            mediaElement = isVideo ? createVideoElement(mobileProjectData) : createImageElement(mobileImageProjectData);
+        } else {
+            const srcIsVideo = project.src && project.src.match(/\.mp4($|\?)/i);
+            if (project.type === 'video' && srcIsVideo) {
+                mediaElement = createVideoElement(project);
             } else {
-                const _0x4939d9 = {};
-                _0x4939d9['passive'] = ![], _0x4939d9['capture'] = ![], this['contentContainer']['addEventListener']('pointerdown', this['handlePointerStart'], _0x4939d9);
-                const _0x4fa566 = {};
-                _0x4fa566['passive'] = ![], _0x4fa566['capture'] = ![], this['contentContainer']['addEventListener']('pointermove', this['handlePointerMove'], _0x4fa566);
-                const _0x511d8b = {};
-                _0x511d8b['passive'] = ![], _0x511d8b['capture'] = ![], this['contentContainer']['addEventListener']('pointerup', this['handlePointerEnd'], _0x511d8b);
+                mediaElement = createImageElement(project);
             }
-            this['isEnabled'] = !![];
-        } catch (_0x538161) {
-            this['isEnabled'] = ![];
         }
-    } ['disable']() {
-        if (!this['isEnabled'] || !this['contentContainer']) return;
+        projectElement.appendChild(mediaElement);
+
+        if (isPlaceholder) {
+            const textOverlay = createElement('div', 'project-text');
+            const workLabel = createElement('div', 'project-work-label', 'Personal');
+            workLabel.style.visibility = 'hidden';
+            workLabel.setAttribute('aria-hidden', 'true');
+            textOverlay.appendChild(workLabel);
+
+            const mainText = createElement('div', 'project-main-text');
+            mainText.appendChild(createElement('div', 'project-title', 'Coming Soon'));
+            textOverlay.appendChild(mainText);
+
+            const dotsContainer = createElement('div', 'project-dots');
+            const dot = createElement('span', 'project-dot');
+            dot.classList.add('cur');
+            dotsContainer.appendChild(dot);
+            textOverlay.appendChild(dotsContainer);
+
+            projectElement.appendChild(textOverlay);
+        } else {
+            projectElement.appendChild(createTextOverlay(project));
+        }
+    } catch {
+        projectElement.classList.add('error-project');
+    }
+    return projectElement;
+};
+
+
+export class SwipeGestureHandler {
+    constructor(contentContainer, onSwipeLeft, onSwipeRight) {
+        this.contentContainer = contentContainer;
+        this.onSwipeLeft = onSwipeLeft;
+        this.onSwipeRight = onSwipeRight;
+
+        this.isEnabled = false;
+        this.touchStartX = 0;
+        this.touchStartY = 0;
+        this.touchStartTime = 0;
+        this.isTracking = false;
+        this.isTransitioning = false;
+        this.gestureDirection = null;
+
+        this.currentTouchX = 0;
+        this.currentTouchY = 0;
+
+        this.visualFeedbackElement = null;
+        this.feedbackTimeout = null;
+        this.isDestroyed = false;
+
+        this.supportsTouch = this.checkTouchSupport();
+
+        this.lastMoveTime = 0;
+
+        this.gestureParams = {
+            minDistance: CAROUSEL_DRAG_THRESHOLD * 0.8,
+            maxVerticalDrift: CAROUSEL_MAX_VERTICAL_DRIFT * 0.6,
+            maxTime: 600,
+            minVelocity: 0.25,
+            directionThreshold: 12,
+            feedbackThreshold: 20,
+        };
+
+        this.handleTouchStart = this.handleTouchStart.bind(this);
+        this.handleTouchMove = this.handleTouchMove.bind(this);
+        this.handleTouchEnd = this.handleTouchEnd.bind(this);
+        this.handlePointerStart = this.handlePointerStart.bind(this);
+        this.handlePointerMove = this.handlePointerMove.bind(this);
+        this.handlePointerEnd = this.handlePointerEnd.bind(this);
+    }
+
+    checkTouchSupport() {
         try {
-            this['supportsTouch'] ? (this['contentContainer']['removeEventListener']('touchstart', this['handleTouchStart']), this['contentContainer']['removeEventListener']('touchmove', this['handleTouchMove']), this['contentContainer']['removeEventListener']('touchend', this['handleTouchEnd'])) : (this['contentContainer']['removeEventListener']('pointerdown', this['handlePointerStart']), this['contentContainer']['removeEventListener']('pointermove', this['handlePointerMove']), this['contentContainer']['removeEventListener']('pointerup', this['handlePointerEnd']));
-        } catch (_0x2a58ad) {}
-        this['isEnabled'] = ![], this['isTracking'] = ![], this['isTransitioning'] = ![], this['gestureDirection'] = null, this['cleanupVisualFeedback']();
-    } ['destroy']() {
-        if (this['isDestroyed']) return;
+            return 'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    enable() {
+        if (this.isEnabled || !this.contentContainer || this.isDestroyed) return;
         try {
-            this['disable'](), this['cleanupVisualFeedback'](), this['feedbackTimeout'] && (clearTimeout(this['feedbackTimeout']), this['feedbackTimeout'] = null), this['contentContainer'] = null, this['onSwipeLeft'] = null, this['onSwipeRight'] = null, this['visualFeedbackElement'] = null, this['isDestroyed'] = !![];
-        } catch (_0x3b326f) {}
-    } ['setTransitioning'](_0x3e762b) {
-        this['isTransitioning'] = _0x3e762b, _0x3e762b && this['cleanupVisualFeedback']();
-    } ['showVisualFeedback'](_0x3cfb3a, _0x4aae0f) {
-        if (!this['contentContainer'] || typeof document === 'undefined' || this['isDestroyed']) return;
-        try {
-            if (!this['visualFeedbackElement']) {
-                this['visualFeedbackElement'] = createElement('div', 'swipe-feedback-overlay');
-                if (this['contentContainer'] && this['contentContainer']['appendChild']) this['contentContainer']['appendChild'](this['visualFeedbackElement']);
-                else return;
+            if (this.supportsTouch) {
+                this.contentContainer.addEventListener('touchstart', this.handleTouchStart, {
+                    passive: false,
+                    capture: false
+                });
+                this.contentContainer.addEventListener('touchmove', this.handleTouchMove, {
+                    passive: false,
+                    capture: false
+                });
+                this.contentContainer.addEventListener('touchend', this.handleTouchEnd, {
+                    passive: false,
+                    capture: false
+                });
+            } else {
+                this.contentContainer.addEventListener('pointerdown', this.handlePointerStart, {
+                    passive: false,
+                    capture: false
+                });
+                this.contentContainer.addEventListener('pointermove', this.handlePointerMove, {
+                    passive: false,
+                    capture: false
+                });
+                this.contentContainer.addEventListener('pointerup', this.handlePointerEnd, {
+                    passive: false,
+                    capture: false
+                });
             }
-            const _0x1f7850 = Math['min'](_0x4aae0f * 2.5, 0.25),
-                _0x21eb7b = _0x3cfb3a === 'left' ? -_0x4aae0f * 0xf : _0x4aae0f * 0xf,
-                _0x44a96c = 'translate3d(' + _0x21eb7b + 'px,\x200,\x200)';
-            this['visualFeedbackElement']['style']['transform'] = _0x44a96c, this['visualFeedbackElement']['style']['opacity'] = _0x1f7850, this['visualFeedbackElement']['setAttribute']('data-direction', _0x3cfb3a), !this['visualFeedbackElement']['classList']['contains']('active') && this['visualFeedbackElement']['classList']['add']('active');
-        } catch (_0x5c872b) {}
-    } ['showBounceBack'](_0x18db24) {
-        if (!this['contentContainer'] || !this['visualFeedbackElement'] || typeof document === 'undefined' || this['isDestroyed']) return;
-        try {
-            this['visualFeedbackElement']['style']['setProperty']('--bounce-direction', _0x18db24 === 'left' ? '-12px' : '12px'), this['visualFeedbackElement']['classList']['add']('bounce-back'), this['visualFeedbackElement']['setAttribute']('data-direction', _0x18db24), this['feedbackTimeout'] = setTimeout(() => {
-                !this['isDestroyed'] && this['cleanupVisualFeedback']();
-            }, 0x12c);
-        } catch (_0x7db79) {
-            this['cleanupVisualFeedback']();
+            this.isEnabled = true;
+        } catch (error) {
+            this.isEnabled = false;
         }
-    } ['cleanupVisualFeedback']() {
+    }
+
+    disable() {
+        if (!this.isEnabled || !this.contentContainer) return;
         try {
-            this['feedbackTimeout'] && (clearTimeout(this['feedbackTimeout']), this['feedbackTimeout'] = null);
-            if (this['visualFeedbackElement'] && typeof document !== 'undefined') {
-                this['visualFeedbackElement']['classList']['remove']('active', 'bounce-back'), this['visualFeedbackElement']['style']['opacity'] = '0', this['visualFeedbackElement']['style']['transform'] = 'translate3d(0,\x200,\x200)';
-                const _0x40147f = setTimeout(() => {
+            if (this.supportsTouch) {
+                this.contentContainer.removeEventListener('touchstart', this.handleTouchStart);
+                this.contentContainer.removeEventListener('touchmove', this.handleTouchMove);
+                this.contentContainer.removeEventListener('touchend', this.handleTouchEnd);
+            } else {
+                this.contentContainer.removeEventListener('pointerdown', this.handlePointerStart);
+                this.contentContainer.removeEventListener('pointermove', this.handlePointerMove);
+                this.contentContainer.removeEventListener('pointerup', this.handlePointerEnd);
+            }
+        } catch (e) {
+            //
+        }
+        this.isEnabled = false;
+        this.isTracking = false;
+        this.isTransitioning = false;
+        this.gestureDirection = null;
+        this.cleanupVisualFeedback();
+    }
+
+    destroy() {
+        if (this.isDestroyed) return;
+        try {
+            this.disable();
+            this.cleanupVisualFeedback();
+            if (this.feedbackTimeout) {
+                clearTimeout(this.feedbackTimeout);
+                this.feedbackTimeout = null;
+            }
+            this.contentContainer = null;
+            this.onSwipeLeft = null;
+            this.onSwipeRight = null;
+            this.visualFeedbackElement = null;
+            this.isDestroyed = true;
+        } catch (e) {
+            //
+        }
+    }
+
+    setTransitioning(isTransitioning) {
+        this.isTransitioning = isTransitioning;
+        if (isTransitioning) {
+            this.cleanupVisualFeedback();
+        }
+    }
+
+    showVisualFeedback(direction, progress) {
+        if (!this.contentContainer || typeof document === 'undefined' || this.isDestroyed) return;
+        try {
+            if (!this.visualFeedbackElement) {
+                this.visualFeedbackElement = createElement('div', 'swipe-feedback-overlay');
+                if (this.contentContainer && this.contentContainer.appendChild) {
+                    this.contentContainer.appendChild(this.visualFeedbackElement);
+                } else {
+                    return;
+                }
+            }
+
+            const opacity = Math.min(progress * 2.5, 0.25);
+            const translateX = direction === 'left' ? -progress * 15 : progress * 15;
+            const transform = `translate3d(${translateX}px, 0, 0)`;
+
+            this.visualFeedbackElement.style.transform = transform;
+            this.visualFeedbackElement.style.opacity = opacity;
+            this.visualFeedbackElement.setAttribute('data-direction', direction);
+            if (!this.visualFeedbackElement.classList.contains('active')) {
+                this.visualFeedbackElement.classList.add('active');
+            }
+        } catch (e) {
+            //
+        }
+    }
+
+    showBounceBack(direction) {
+        if (!this.contentContainer || !this.visualFeedbackElement || typeof document === 'undefined' || this.isDestroyed) return;
+
+        try {
+            this.visualFeedbackElement.style.setProperty('--bounce-direction', direction === 'left' ? '-12px' : '12px');
+            this.visualFeedbackElement.classList.add('bounce-back');
+            this.visualFeedbackElement.setAttribute('data-direction', direction);
+
+            this.feedbackTimeout = setTimeout(() => {
+                if (!this.isDestroyed) {
+                    this.cleanupVisualFeedback();
+                }
+            }, 300);
+        } catch (e) {
+            this.cleanupVisualFeedback();
+        }
+    }
+
+    cleanupVisualFeedback() {
+        try {
+            if (this.feedbackTimeout) {
+                clearTimeout(this.feedbackTimeout);
+                this.feedbackTimeout = null;
+            }
+            if (this.visualFeedbackElement && typeof document !== 'undefined') {
+                this.visualFeedbackElement.classList.remove('active', 'bounce-back');
+                this.visualFeedbackElement.style.opacity = '0';
+                this.visualFeedbackElement.style.transform = 'translate3d(0, 0, 0)';
+
+                const timeoutId = setTimeout(() => {
                     try {
-                        this['visualFeedbackElement'] && this['visualFeedbackElement']['parentNode'] && (this['visualFeedbackElement']['parentNode']['removeChild'](this['visualFeedbackElement']), this['visualFeedbackElement'] = null);
-                    } catch (_0x263a4d) {
-                        this['visualFeedbackElement'] = null;
+                        if (this.visualFeedbackElement && this.visualFeedbackElement.parentNode) {
+                            this.visualFeedbackElement.parentNode.removeChild(this.visualFeedbackElement);
+                            this.visualFeedbackElement = null;
+                        }
+                    } catch (e) {
+                        this.visualFeedbackElement = null;
                     }
-                }, 0x96);
-                !this['isDestroyed'] && (this['feedbackTimeout'] = _0x40147f);
+                }, 150);
+                if (!this.isDestroyed) {
+                    this.feedbackTimeout = timeoutId;
+                }
             }
-        } catch (_0x20697a) {
-            this['visualFeedbackElement'] = null, this['feedbackTimeout'] = null;
+        } catch (e) {
+            this.visualFeedbackElement = null;
+            this.feedbackTimeout = null;
         }
-    } ['handleTouchStart'](_0x280b0e) {
-        if (this['isDestroyed']) return;
+    }
+
+    handleTouchStart(event) {
+        if (this.isDestroyed) return;
         try {
-            if (_0x280b0e['touches']['length'] !== 0x1) return;
-            if (this['isTransitioning']) return;
-            const _0x43aa60 = _0x280b0e['touches'][0x0];
-            this['touchStartX'] = _0x43aa60['clientX'], this['touchStartY'] = _0x43aa60['clientY'], this['currentTouchX'] = _0x43aa60['clientX'], this['currentTouchY'] = _0x43aa60['clientY'], this['touchStartTime'] = Date['now'](), this['isTracking'] = !![], this['gestureDirection'] = null;
-        } catch (_0x1d8f67) {
-            this['isTracking'] = ![];
+            if (event.touches.length !== 1) return;
+            if (this.isTransitioning) return;
+
+            const touch = event.touches[0];
+            this.touchStartX = touch.clientX;
+            this.touchStartY = touch.clientY;
+            this.currentTouchX = touch.clientX;
+            this.currentTouchY = touch.clientY;
+            this.touchStartTime = Date.now();
+            this.isTracking = true;
+            this.gestureDirection = null;
+        } catch (e) {
+            this.isTracking = false;
         }
-    } ['handlePointerStart'](_0x5372ce) {
-        if (this['isDestroyed']) return;
+    }
+
+    handlePointerStart(event) {
+        if (this.isDestroyed) return;
         try {
-            if (!_0x5372ce['isPrimary']) return;
-            if (this['isTransitioning']) return;
-            this['touchStartX'] = _0x5372ce['clientX'], this['touchStartY'] = _0x5372ce['clientY'], this['currentTouchX'] = _0x5372ce['clientX'], this['currentTouchY'] = _0x5372ce['clientY'], this['touchStartTime'] = Date['now'](), this['isTracking'] = !![], this['gestureDirection'] = null;
-        } catch (_0x2e70e3) {
-            this['isTracking'] = ![];
+            if (!event.isPrimary) return;
+            if (this.isTransitioning) return;
+
+            this.touchStartX = event.clientX;
+            this.touchStartY = event.clientY;
+            this.currentTouchX = event.clientX;
+            this.currentTouchY = event.clientY;
+            this.touchStartTime = Date.now();
+            this.isTracking = true;
+            this.gestureDirection = null;
+        } catch (e) {
+            this.isTracking = false;
         }
-    } ['handleTouchMove'](_0x4099f8) {
-        if (!this['isTracking'] || this['isDestroyed']) return;
+    }
+
+    handleTouchMove(event) {
+        if (!this.isTracking || this.isDestroyed) return;
         try {
-            if (_0x4099f8['touches']['length'] === 0x1) {
-                const _0x45ba05 = _0x4099f8['touches'][0x0];
-                this['currentTouchX'] = _0x45ba05['clientX'], this['currentTouchY'] = _0x45ba05['clientY'];
+            if (event.touches.length === 1) {
+                const touch = event.touches[0];
+                this.currentTouchX = touch.clientX;
+                this.currentTouchY = touch.clientY;
             }
-            const _0x583d49 = Date['now']();
-            if (_0x583d49 - this['lastMoveTime'] < this['moveThrottleDelay']) {
-                this['pendingMoveEvent'] = _0x4099f8;
+
+            const now = Date.now();
+            if (now - this.lastMoveTime < this.moveThrottleDelay) {
+                this.pendingMoveEvent = event;
                 return;
             }
-            this['lastMoveTime'] = _0x583d49;
-            if (_0x4099f8['touches']['length'] !== 0x1) {
-                this['isTracking'] = ![], this['gestureDirection'] = null, this['cleanupVisualFeedback']();
+            this.lastMoveTime = now;
+
+            if (event.touches.length !== 1) {
+                this.isTracking = false;
+                this.gestureDirection = null;
+                this.cleanupVisualFeedback();
                 return;
             }
-            const _0x10fd51 = _0x4099f8['touches'][0x0];
-            this['processGestureMove'](_0x10fd51['clientX'], _0x10fd51['clientY'], _0x4099f8);
-        } catch (_0x255671) {
-            this['isTracking'] = ![], this['cleanupVisualFeedback']();
+            const touch = event.touches[0];
+            this.processGestureMove(touch.clientX, touch.clientY, event);
+        } catch (e) {
+            this.isTracking = false;
+            this.cleanupVisualFeedback();
         }
-    } ['handlePointerMove'](_0x167a1f) {
-        if (!this['isTracking'] || this['isDestroyed']) return;
+    }
+
+    handlePointerMove(event) {
+        if (!this.isTracking || this.isDestroyed) return;
         try {
-            if (!_0x167a1f['isPrimary']) return;
-            this['currentTouchX'] = _0x167a1f['clientX'], this['currentTouchY'] = _0x167a1f['clientY'], this['processGestureMove'](_0x167a1f['clientX'], _0x167a1f['clientY'], _0x167a1f);
-        } catch (_0x2d2fb3) {
-            this['isTracking'] = ![], this['cleanupVisualFeedback']();
+            if (!event.isPrimary) return;
+            this.currentTouchX = event.clientX;
+            this.currentTouchY = event.clientY;
+            this.processGestureMove(event.clientX, event.clientY, event);
+        } catch (e) {
+            this.isTracking = false;
+            this.cleanupVisualFeedback();
         }
-    } ['processGestureMove'](_0x47e54d, _0x10730e, _0x4f7a3b) {
-        const _0x2085b2 = _0x47e54d - this['touchStartX'],
-            _0x44b57c = _0x10730e - this['touchStartY'],
-            _0x533410 = Math['abs'](_0x2085b2),
-            _0x47fa8b = Math['abs'](_0x44b57c);
-        if (!this['gestureDirection'] && (_0x533410 > this['gestureParams']['directionThreshold'] || _0x47fa8b > this['gestureParams']['directionThreshold'])) {
-            if (_0x533410 > _0x47fa8b * 2.5 && _0x533410 > 0x14) this['gestureDirection'] = 'horizontal';
-            else _0x47fa8b > _0x533410 && _0x47fa8b > 0xf && (this['gestureDirection'] = 'vertical');
+    }
+
+    processGestureMove(x, y, event) {
+        const deltaX = x - this.touchStartX;
+        const deltaY = y - this.touchStartY;
+        const absDeltaX = Math.abs(deltaX);
+        const absDeltaY = Math.abs(deltaY);
+
+        if (!this.gestureDirection && (absDeltaX > this.gestureParams.directionThreshold || absDeltaY > this.gestureParams.directionThreshold)) {
+            if (absDeltaX > absDeltaY * 2.5 && absDeltaX > 20) {
+                this.gestureDirection = 'horizontal';
+            } else if (absDeltaY > absDeltaX && absDeltaY > 15) {
+                this.gestureDirection = 'vertical';
+            }
         }
-        if (_0x47fa8b > this['gestureParams']['maxVerticalDrift']) {
-            this['isTracking'] = ![], this['gestureDirection'] = null, this['cleanupVisualFeedback']();
+
+        if (absDeltaY > this.gestureParams.maxVerticalDrift) {
+            this.isTracking = false;
+            this.gestureDirection = null;
+            this.cleanupVisualFeedback();
             return;
         }
-        if (this['gestureDirection'] === 'vertical') {
-            this['isTracking'] = ![], this['cleanupVisualFeedback']();
+
+        if (this.gestureDirection === 'vertical') {
+            this.isTracking = false;
+            this.cleanupVisualFeedback();
             return;
         }
-        if (this['gestureDirection'] === 'horizontal' && _0x533410 > this['gestureParams']['feedbackThreshold']) {
+
+        if (this.gestureDirection === 'horizontal' && absDeltaX > this.gestureParams.feedbackThreshold) {
             try {
-                _0x4f7a3b['preventDefault']();
-            } catch (_0x110af8) {}
-            const _0x49860f = Math['min'](_0x533410 / this['gestureParams']['minDistance'], 0x1),
-                _0x304ddc = _0x2085b2 > 0x0 ? 'right' : 'left';
-            this['showVisualFeedback'](_0x304ddc, _0x49860f);
+                event.preventDefault();
+            } catch (e) {
+                //
+            }
+            const progress = Math.min(absDeltaX / this.gestureParams.minDistance, 1);
+            const direction = deltaX > 0 ? 'right' : 'left';
+            this.showVisualFeedback(direction, progress);
         }
-    } ['handleTouchEnd'](_0x3e1416) {
-        if (!this['isTracking'] || this['isDestroyed']) return;
+    }
+
+    handleTouchEnd(event) {
+        if (!this.isTracking || this.isDestroyed) return;
         try {
-            this['isTracking'] = ![];
-            const _0x3335be = _0x3e1416['changedTouches'][0x0];
-            this['processGestureEnd'](_0x3335be['clientX'], _0x3335be['clientY']);
-        } catch (_0x453542) {
-            this['isTracking'] = ![], this['cleanupVisualFeedback']();
+            this.isTracking = false;
+            const touch = event.changedTouches[0];
+            this.processGestureEnd(touch.clientX, touch.clientY);
+        } catch (e) {
+            this.isTracking = false;
+            this.cleanupVisualFeedback();
         }
-    } ['handlePointerEnd'](_0x38f3a5) {
-        if (!this['isTracking'] || this['isDestroyed']) return;
+    }
+
+    handlePointerEnd(event) {
+        if (!this.isTracking || this.isDestroyed) return;
         try {
-            if (!_0x38f3a5['isPrimary']) return;
-            this['isTracking'] = ![], this['processGestureEnd'](_0x38f3a5['clientX'], _0x38f3a5['clientY']);
-        } catch (_0x36e056) {
-            this['isTracking'] = ![], this['cleanupVisualFeedback']();
+            if (!event.isPrimary) return;
+            this.isTracking = false;
+            this.processGestureEnd(event.clientX, event.clientY);
+        } catch (e) {
+            this.isTracking = false;
+            this.cleanupVisualFeedback();
         }
-    } ['processGestureEnd'](_0x186ca8, _0x411e09) {
-        const _0x1a6e92 = _0x186ca8 - this['touchStartX'],
-            _0x2cd350 = _0x411e09 - this['touchStartY'],
-            _0x14e2b2 = Math['abs'](_0x1a6e92),
-            _0x151c07 = Math['abs'](_0x2cd350),
-            _0x3e314f = Date['now']() - this['touchStartTime'];
-        !this['gestureDirection'] && (_0x14e2b2 > this['gestureParams']['directionThreshold'] || _0x151c07 > this['gestureParams']['directionThreshold']) && (_0x14e2b2 > _0x151c07 ? this['gestureDirection'] = 'horizontal' : this['gestureDirection'] = 'vertical');
-        const _0x2c95d7 = this['gestureDirection'];
-        this['gestureDirection'] = null;
-        if (_0x2c95d7 !== 'horizontal') {
-            this['cleanupVisualFeedback']();
+    }
+
+    processGestureEnd(x, y) {
+        const deltaX = x - this.touchStartX;
+        const deltaY = y - this.touchStartY;
+        const absDeltaX = Math.abs(deltaX);
+        const absDeltaY = Math.abs(deltaY);
+        const elapsedTime = Date.now() - this.touchStartTime;
+
+        if (!this.gestureDirection && (absDeltaX > this.gestureParams.directionThreshold || absDeltaY > this.gestureParams.directionThreshold)) {
+            if (absDeltaX > absDeltaY) {
+                this.gestureDirection = 'horizontal';
+            } else {
+                this.gestureDirection = 'vertical';
+            }
+        }
+        const finalDirection = this.gestureDirection;
+        this.gestureDirection = null;
+
+        if (finalDirection !== 'horizontal') {
+            this.cleanupVisualFeedback();
             return;
         }
-        const _0x1e3907 = _0x14e2b2,
-            _0x378739 = _0x3e314f > 0x0 ? _0x1e3907 / _0x3e314f : 0x0,
-            _0x16a24e = _0x1a6e92 > 0x0 ? 'right' : 'left';
-        if (_0x1e3907 < this['gestureParams']['minDistance'] || _0x151c07 > this['gestureParams']['maxVerticalDrift'] || _0x3e314f > this['gestureParams']['maxTime'] || _0x378739 < this['gestureParams']['minVelocity'] || this['isTransitioning']) {
-            _0x2c95d7 === 'horizontal' && _0x1e3907 > this['gestureParams']['feedbackThreshold'] ? this['showBounceBack'](_0x16a24e) : this['cleanupVisualFeedback']();
+
+        const distance = absDeltaX;
+        const velocity = elapsedTime > 0 ? distance / elapsedTime : 0;
+        const swipeDirection = deltaX > 0 ? 'right' : 'left';
+
+        if (
+            distance < this.gestureParams.minDistance ||
+            absDeltaY > this.gestureParams.maxVerticalDrift ||
+            elapsedTime > this.gestureParams.maxTime ||
+            velocity < this.gestureParams.minVelocity ||
+            this.isTransitioning
+        ) {
+            if (finalDirection === 'horizontal' && distance > this.gestureParams.feedbackThreshold) {
+                this.showBounceBack(swipeDirection);
+            } else {
+                this.cleanupVisualFeedback();
+            }
             return;
         }
-        this['isTransitioning'] = !![], this['cleanupVisualFeedback']();
+
+        this.isTransitioning = true;
+        this.cleanupVisualFeedback();
+
         try {
-            _0x1a6e92 > 0x0 ? this['onSwipeRight'] && typeof this['onSwipeRight'] === 'function' && this['onSwipeRight']() : this['onSwipeLeft'] && typeof this['onSwipeLeft'] === 'function' && this['onSwipeLeft']();
-        } catch (_0x331da7) {}
+            if (deltaX > 0) {
+                if (this.onSwipeRight && typeof this.onSwipeRight === 'function') {
+                    this.onSwipeRight();
+                }
+            } else if (this.onSwipeLeft && typeof this.onSwipeLeft === 'function') {
+                this.onSwipeLeft();
+            }
+        } catch (e) {
+            //
+        }
+
         setTimeout(() => {
-            !this['isDestroyed'] && (this['isTransitioning'] = ![]);
-        }, 0x96);
+            if (!this.isDestroyed) {
+                this.isTransitioning = false;
+            }
+        }, 150);
     }
 }
+
 class ProjectsDataManager {
     constructor() {
-        this['projectsData'] = [], this['validProjectIndices'] = [], this['currentProjectIndex'] = 0x0, this['currentFilteredProjectPos'] = 0x0;
+        this.projectsData = [];
+        this.validProjectIndices = [];
+        this.currentProjectIndex = 0;
+        this.currentFilteredProjectPos = 0;
     }
-    async ['loadProjects'](_0x26b428 = null) {
-        if (_0x26b428) _0x26b428['setProgress'](0xf);
-        const _0x597c46 = await fetch('../../../projects.json');
-        if (_0x26b428) _0x26b428['setProgress'](0x1e);
-        this['projectsData'] = await _0x597c46['json']();
-        if (_0x26b428) _0x26b428['setProgress'](0x28);
+
+    async loadProjects(appLoader = null) {
+        if (appLoader) appLoader.setProgress(15);
+        const response = await fetch('../../../projects.json');
+        if (appLoader) appLoader.setProgress(30);
+        this.projectsData = await response.json();
+        if (appLoader) appLoader.setProgress(40);
+
         try {
-            this['projectsData'] = Array['isArray'](this['projectsData']) ? this['projectsData']['map'](_0x586d6a => {
-                if (!_0x586d6a || typeof _0x586d6a !== 'object') return _0x586d6a;
-                const _0x3160c6 = {
-                        ..._0x586d6a
-                    },
-                    _0x590de0 = _0x3160c6;
-                if (typeof _0x590de0['type'] === 'string') _0x590de0['type'] = _0x590de0['type']['toLowerCase']();
-                if (Array['isArray'](_0x590de0['images']) && _0x590de0['images']['length'] && typeof _0x590de0['defaultSlide'] === 'number') {
-                    if (_0x590de0['defaultSlide'] < 0x0 || _0x590de0['defaultSlide'] >= _0x590de0['images']['length']) _0x590de0['defaultSlide'] = 0x0;
-                }
-                return _0x590de0;
-            }) : this['projectsData'];
-        } catch (_0x4d6fc9) {}
-        const _0x41656c = this['projectsData']['slice'](0x0, 0x6);
-        return this['validProjectIndices'] = _0x41656c['map']((_0x18a170, _0x43975e) => ({
-            'p': _0x18a170,
-            'i': _0x43975e
-        }))['filter'](_0x1ceebd => !_0x1ceebd['p'] || !_0x1ceebd['p']['placeholder'])['map'](_0xd98c85 => _0xd98c85['i']), this['currentFilteredProjectPos'] = 0x0, this['projectsData'];
-    } ['getAllProjects']() {
-        return this['projectsData'];
-    } ['getProject'](_0x5450fe) {
-        return this['projectsData'][_0x5450fe];
-    } ['getCurrentProject']() {
-        return this['projectsData'][this['currentProjectIndex']];
-    } ['getValidIndices']() {
-        return this['validProjectIndices'];
-    } ['getCurrentIndex']() {
-        return this['currentProjectIndex'];
-    } ['setCurrentIndex'](_0xaf4a62) {
-        this['currentProjectIndex'] = _0xaf4a62;
-    } ['getCurrentFilteredPos']() {
-        return this['currentFilteredProjectPos'];
-    } ['setCurrentFilteredPos'](_0x3667b8) {
-        this['currentFilteredProjectPos'] = _0x3667b8;
+            this.projectsData = Array.isArray(this.projectsData) ?
+                this.projectsData.map((project) => {
+                    if (!project || typeof project !== 'object') return project;
+                    const newProject = { ...project
+                    };
+                    const proj = newProject;
+                    if (typeof proj.type === 'string') {
+                        proj.type = proj.type.toLowerCase();
+                    }
+                    if (Array.isArray(proj.images) && proj.images.length && typeof proj.defaultSlide === 'number') {
+                        if (proj.defaultSlide < 0 || proj.defaultSlide >= proj.images.length) {
+                            proj.defaultSlide = 0;
+                        }
+                    }
+                    return proj;
+                }) :
+                this.projectsData;
+        } catch (e) {
+            //
+        }
+
+        const initialProjects = this.projectsData.slice(0, 6);
+        this.validProjectIndices = initialProjects
+            .map((p, i) => ({
+                p,
+                i
+            }))
+            .filter(item => !item.p || !item.p.placeholder)
+            .map(item => item.i);
+        this.currentFilteredProjectPos = 0;
+        return this.projectsData;
+    }
+
+    getAllProjects() {
+        return this.projectsData;
+    }
+
+    getProject(index) {
+        return this.projectsData[index];
+    }
+
+    getCurrentProject() {
+        return this.projectsData[this.currentProjectIndex];
+    }
+
+    getValidIndices() {
+        return this.validProjectIndices;
+    }
+
+    getCurrentIndex() {
+        return this.currentProjectIndex;
+    }
+
+    setCurrentIndex(index) {
+        this.currentProjectIndex = index;
+    }
+
+    getCurrentFilteredPos() {
+        return this.currentFilteredProjectPos;
+    }
+
+    setCurrentFilteredPos(pos) {
+        this.currentFilteredProjectPos = pos;
     }
 }
+
 export const projectsDataManager = new ProjectsDataManager();

@@ -4,161 +4,285 @@ import {
     queryProjectVideos,
     SELECTORS,
     sendMessageToParent,
-    projectsDataManager
+    projectsDataManager,
 } from './projectsInternals.js';
-let desktopOverlayInterval = null,
-    intersectionObserver = null,
-    overlayLabelInterval = null,
-    pausedVideos = new Set();
-export const setupGridIntentPrefetch = _0x160910 => {
-    if (!_0x160910['grid'] || document['documentElement']['classList']['contains']('mobile-device')) return;
-    const _0x34b25c = _0x227700 => {
-        const _0x484682 = _0x227700['target']['closest']('.project');
-        if (!_0x484682 || !_0x160910['grid']['contains'](_0x484682)) return;
-        if (_0x484682['dataset']['prefetched'] === '1') return;
-        const _0x2077fc = parseInt(_0x484682['dataset']['idx'] || '-1', 0xa),
-            _0x43449c = projectsDataManager['getAllProjects'](),
-            _0x23da2c = Number['isFinite'](_0x2077fc) ? _0x43449c[_0x2077fc] : null;
-        if (!_0x23da2c) return;
-        const _0x1aef34 = Array['isArray'](_0x23da2c['images']) ? _0x23da2c['images'] : [],
-            _0x57b39a = _0x1aef34['find'](_0x32f39f => (_0x32f39f?.['type'] || 'image') === 'image' && (_0x32f39f?.['src'] || _0x32f39f)),
-            src = _0x57b39a ? typeof _0x57b39a === 'string' ? _0x57b39a : document['documentElement']['classList']['contains']('mobile-device') && _0x57b39a['srcMobile'] ? _0x57b39a['srcMobile'] : _0x57b39a['src'] : _0x23da2c['src'];
-        if (!src || /\.mp4($|\?)/i ['test'](src)) return;
-        const _0x531d78 = src['startsWith']('../../../') ? src : '../../../' + src,
-            _0x509e56 = document['createElement']('link');
-        _0x509e56['rel'] = 'prefetch', _0x509e56['as'] = 'image', _0x509e56['href'] = _0x531d78, _0x509e56['fetchPriority'] = 'low', document['head']['appendChild'](_0x509e56), _0x484682['dataset']['prefetched'] = '1';
+
+let desktopOverlayInterval = null;
+let intersectionObserver = null;
+let overlayLabelInterval = null;
+const pausedVideos = new Set();
+
+export const setupGridIntentPrefetch = (domCache) => {
+    if (!domCache.grid || document.documentElement.classList.contains('mobile-device')) return;
+
+    const prefetchProjectImage = (event) => {
+        const projectElement = event.target.closest('.project');
+        if (!projectElement || !domCache.grid.contains(projectElement)) return;
+        if (projectElement.dataset.prefetched === '1') return;
+
+        const projectIndex = parseInt(projectElement.dataset.idx || '-1', 10);
+        const allProjects = projectsDataManager.getAllProjects();
+        const projectData = Number.isFinite(projectIndex) ? allProjects[projectIndex] : null;
+
+        if (!projectData) return;
+
+        const images = Array.isArray(projectData.images) ? projectData.images : [];
+        const imageToPrefetch = images.find(img => (img ? .type || 'image') === 'image' && (img ? .src || img));
+        const src = imageToPrefetch ?
+            (typeof imageToPrefetch === 'string' ? imageToPrefetch : (document.documentElement.classList.contains('mobile-device') && imageToPrefetch.srcMobile) ? imageToPrefetch.srcMobile : imageToPrefetch.src) :
+            projectData.src;
+
+        if (!src || /\.mp4($|\?)/i.test(src)) return;
+
+        const prefetchUrl = src.startsWith('../../../') ? src : `../../../${src}`;
+        const link = document.createElement('link');
+        link.rel = 'prefetch';
+        link.as = 'image';
+        link.href = prefetchUrl;
+        link.fetchPriority = 'low';
+        document.head.appendChild(link);
+        projectElement.dataset.prefetched = '1';
     };
-    _0x160910['grid']['addEventListener']('mouseenter', _0x34b25c, !![]), _0x160910['grid']['addEventListener']('focusin', _0x34b25c, !![]);
+
+    domCache.grid.addEventListener('mouseenter', prefetchProjectImage, true);
+    domCache.grid.addEventListener('focusin', prefetchProjectImage, true);
 };
-export const setupDesktopOverlayLabelAnimation = _0x23dfa7 => {
+
+export const setupDesktopOverlayLabelAnimation = (domCache) => {
     try {
-        if (document['documentElement']['classList']['contains']('mobile-device')) return;
-        const _0x1e3f9b = _0x23dfa7['grid'];
-        if (!_0x1e3f9b) return;
-        queryWorkLabels(_0x1e3f9b)['forEach'](_0x113c2e => _0x113c2e['classList']['remove']('alt-active'));
+        if (document.documentElement.classList.contains('mobile-device')) return;
+        const grid = domCache.grid;
+        if (!grid) return;
+
+        queryWorkLabels(grid).forEach(label => label.classList.remove('alt-active'));
+
         if (desktopOverlayInterval) clearInterval(desktopOverlayInterval);
+
         desktopOverlayInterval = setInterval(() => {
-            if (document['hidden']) return;
-            const _0x345da5 = queryActiveHoverWorkLabels(_0x1e3f9b);
-            if (!_0x345da5['length']) return;
-            _0x345da5['forEach'](_0x1a2a33 => _0x1a2a33['classList']['toggle']('alt-active'));
-        }, 0xbb8);
-    } catch (_0x40e660) {}
+            if (document.hidden) return;
+            const activeLabels = queryActiveHoverWorkLabels(grid);
+            if (!activeLabels.length) return;
+            activeLabels.forEach(label => label.classList.toggle('alt-active'));
+        }, 3000);
+    } catch (error) {
+        // console.error('Error in setupDesktopOverlayLabelAnimation:', error);
+    }
 };
-export const setupDesktopHoverOverlays = _0x38ae01 => {
-    if (document['documentElement']['classList']['contains']('mobile-device')) return;
-    const _0x5be735 = _0x38ae01['grid'];
-    if (!_0x5be735) return;
-    const _0x540b20 = _0x5be735['querySelectorAll']('.project'),
-        _0x4e86f8 = () => {
-            const _0xc722c6 = Array['from'](_0x540b20);
-            return _0xc722c6['length'] > 0x0 && _0xc722c6['every'](_0x41a2b9 => _0x41a2b9['classList']['contains']('hover'));
+
+export const setupDesktopHoverOverlays = (domCache) => {
+    if (document.documentElement.classList.contains('mobile-device')) return;
+    const grid = domCache.grid;
+    if (!grid) return;
+
+    const projects = grid.querySelectorAll('.project');
+    const areAllProjectsHovered = () => {
+        const projectArray = Array.from(projects);
+        return projectArray.length > 0 && projectArray.every(p => p.classList.contains('hover'));
+    };
+
+    projects.forEach((project) => {
+        const onMouseEnter = () => {
+            const projectIndex = parseInt(project.dataset.idx, 10);
+            if (!Number.isNaN(projectIndex)) {
+                const allProjects = projectsDataManager.getAllProjects();
+                const projectData = allProjects[projectIndex];
+                if (projectData && projectData.placeholder) return;
+            }
+            if (!areAllProjectsHovered()) {
+                project.classList.add('hover');
+            }
         };
-    _0x540b20['forEach'](_0x2523ff => {
-        const _0x2aac8a = () => {
-                const _0x2565d6 = parseInt(_0x2523ff['dataset']['idx'], 0xa);
-                if (!isNaN(_0x2565d6)) {
-                    const _0x7b4757 = projectsDataManager['getAllProjects'](),
-                        _0x91105c = _0x7b4757[_0x2565d6];
-                    if (_0x91105c && _0x91105c['placeholder']) return;
-                }!_0x4e86f8() && _0x2523ff['classList']['add']('hover');
-            },
-            _0x50a5ff = () => {
-                !_0x4e86f8() && _0x2523ff['classList']['remove']('hover');
-            };
-        _0x2523ff['addEventListener']('mouseenter', _0x2aac8a), _0x2523ff['addEventListener']('mouseleave', _0x50a5ff);
+
+        const onMouseLeave = () => {
+            if (!areAllProjectsHovered()) {
+                project.classList.remove('hover');
+            }
+        };
+
+        project.addEventListener('mouseenter', onMouseEnter);
+        project.addEventListener('mouseleave', onMouseLeave);
     });
 };
-export const initializeGridFeatures = _0x4e02b4 => {
-    setupGridIntentPrefetch(_0x4e02b4), setupDesktopOverlayLabelAnimation(_0x4e02b4), setupDesktopHoverOverlays(_0x4e02b4);
+
+export const initializeGridFeatures = (domCache) => {
+    setupGridIntentPrefetch(domCache);
+    setupDesktopOverlayLabelAnimation(domCache);
+    setupDesktopHoverOverlays(domCache);
 };
+
 export const cleanupGridFeatures = () => {
-    desktopOverlayInterval && (clearInterval(desktopOverlayInterval), desktopOverlayInterval = null), intersectionObserver && (intersectionObserver['disconnect'](), intersectionObserver = null), overlayLabelInterval && (clearInterval(overlayLabelInterval), overlayLabelInterval = null), pausedVideos['clear']();
+    if (desktopOverlayInterval) {
+        clearInterval(desktopOverlayInterval);
+        desktopOverlayInterval = null;
+    }
+    if (intersectionObserver) {
+        intersectionObserver.disconnect();
+        intersectionObserver = null;
+    }
+    if (overlayLabelInterval) {
+        clearInterval(overlayLabelInterval);
+        overlayLabelInterval = null;
+    }
+    pausedVideos.clear();
 };
+
 export const setupVideoObserver = () => {
-    if (intersectionObserver) intersectionObserver['disconnect']();
-    const _0x41439c = queryProjectVideos();
-    if (!_0x41439c['length']) return;
-    intersectionObserver = new IntersectionObserver(_0x1d6c0b => {
-        _0x1d6c0b['forEach'](_0x51838a => {
-            const _0x104f99 = _0x51838a['target'];
-            if (_0x51838a['isIntersecting']) {
-                if (_0x104f99['paused']) _0x104f99['play']()['catch'](() => {});
-            } else {
-                if (!_0x104f99['paused']) _0x104f99['pause']();
+    if (intersectionObserver) {
+        intersectionObserver.disconnect();
+    }
+    const videos = queryProjectVideos();
+    if (!videos.length) return;
+
+    intersectionObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            const video = entry.target;
+            if (entry.isIntersecting) {
+                if (video.paused) {
+                    video.play().catch(() => {});
+                }
+            } else if (!video.paused) {
+                video.pause();
             }
         });
     }, {
-        'root': document['querySelector'](SELECTORS['grid']),
-        'threshold': 0.1
-    }), _0x41439c['forEach'](_0x3bc400 => intersectionObserver['observe'](_0x3bc400));
+        root: document.querySelector(SELECTORS.grid),
+        threshold: 0.1,
+    });
+
+    videos.forEach(video => intersectionObserver.observe(video));
 };
-export const setMaximizedState = _0x239068 => {
-    const _0x5f4a85 = queryProjectVideos();
-    _0x239068 ? _0x5f4a85['forEach'](_0x56c353 => _0x56c353['play']()['catch'](() => {})) : (_0x5f4a85['forEach'](_0x173fa3 => _0x173fa3['pause']()), setupVideoObserver());
+
+export const setMaximizedState = (isMaximized) => {
+    const videos = queryProjectVideos();
+    if (isMaximized) {
+        videos.forEach(video => video.play().catch(() => {}));
+    } else {
+        videos.forEach(video => video.pause());
+        setupVideoObserver();
+    }
 };
+
 export const handleWindowFocus = () => {
-    pausedVideos['forEach'](_0xd42811 => {
-        _0xd42811['paused'] && _0xd42811['play']()['catch'](() => {});
-    }), pausedVideos['clear']();
-};
-export const handleWindowBlur = () => {
-    const _0x601784 = document['querySelectorAll']('.cascade-slider_item.now\x20video');
-    _0x601784['forEach'](_0x5a1d1c => {
-        !_0x5a1d1c['paused'] && (pausedVideos['add'](_0x5a1d1c), _0x5a1d1c['pause']());
-    });
-};
-export const handleProjectClick = (_0x538450, _0x119550) => {
-    if (_0x538450['target']['tagName'] === 'A') return;
-    if (_0x538450['currentTarget']['dataset']['preventClick'] === 'true') {
-        _0x538450['preventDefault'](), _0x538450['stopPropagation']();
-        return;
-    }
-    const _0x5e8a15 = parseInt(_0x538450['currentTarget']['dataset']['idx'], 0xa);
-    if (isNaN(_0x5e8a15)) return;
-    const _0x381de2 = projectsDataManager['getAllProjects'](),
-        _0xe3f7d9 = _0x381de2[_0x5e8a15];
-    if (_0xe3f7d9 && _0xe3f7d9['placeholder']) {
-        _0x538450['preventDefault'](), _0x538450['stopPropagation']();
-        return;
-    }
-    _0x119550(_0x5e8a15);
-};
-export const toggleProjectOverlays = _0x18ab18 => {
-    const _0x304167 = _0x18ab18['grid'];
-    if (!_0x304167) return;
-    const _0x409da9 = _0x304167['querySelectorAll']('.project'),
-        _0x4ec901 = _0x304167['querySelectorAll']('video');
-    let _0xb688f = ![];
-    _0x409da9['forEach'](_0x56eba8 => {
-        _0x56eba8['classList']['contains']('hover') && (_0xb688f = !![]);
-    }), _0x409da9['forEach'](_0x46880b => {
-        const _0x559aed = parseInt(_0x46880b['dataset']['idx'], 0xa);
-        if (!isNaN(_0x559aed)) {
-            const _0x29522a = projectsDataManager['getAllProjects'](),
-                _0x494482 = _0x29522a[_0x559aed];
-            if (_0x494482 && _0x494482['placeholder']) return;
+    pausedVideos.forEach((video) => {
+        if (video.paused) {
+            video.play().catch(() => {});
         }
-        _0xb688f ? _0x46880b['classList']['remove']('hover') : _0x46880b['classList']['add']('hover');
     });
-    !_0xb688f ? _0x4ec901['forEach'](_0x3c5026 => {
-        !_0x3c5026['paused'] && _0x3c5026['pause']();
-    }) : intersectionObserver && _0x4ec901['forEach'](_0x2708a8 => {
-        const _0x3c8aa4 = _0x2708a8['getBoundingClientRect'](),
-            _0x53257c = _0x304167['getBoundingClientRect'](),
-            _0x12c036 = _0x3c8aa4['top'] < _0x53257c['bottom'] && _0x3c8aa4['bottom'] > _0x53257c['top'] && _0x3c8aa4['left'] < _0x53257c['right'] && _0x3c8aa4['right'] > _0x53257c['left'];
-        _0x12c036 && _0x2708a8['paused'] && _0x2708a8['play']()['catch'](() => {});
+    pausedVideos.clear();
+};
+
+export const handleWindowBlur = () => {
+    const currentVideos = document.querySelectorAll('.cascade-slider_item.now video');
+    currentVideos.forEach((video) => {
+        if (!video.paused) {
+            pausedVideos.add(video);
+            video.pause();
+        }
     });
-    const _0x5bd4dd = !_0xb688f,
-        _0x5ee80a = {};
-    _0x5ee80a['type'] = 'update-overlay-button-state', _0x5ee80a['active'] = _0x5bd4dd, sendMessageToParent(_0x5ee80a);
+};
+
+export const handleProjectClick = (event, showProjectDetail) => {
+    if (event.target.tagName === 'A') return;
+
+    if (event.currentTarget.dataset.preventClick === 'true') {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+    }
+
+    const projectIndex = parseInt(event.currentTarget.dataset.idx, 10);
+    if (Number.isNaN(projectIndex)) return;
+
+    const allProjects = projectsDataManager.getAllProjects();
+    const projectData = allProjects[projectIndex];
+
+    if (projectData && projectData.placeholder) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+    }
+    showProjectDetail(projectIndex);
+};
+
+export const toggleProjectOverlays = (domCache) => {
+    const grid = domCache.grid;
+    if (!grid) return;
+
+    const projects = grid.querySelectorAll('.project');
+    const videos = grid.querySelectorAll('video');
+    let isAnyHovered = false;
+
+    projects.forEach((project) => {
+        if (project.classList.contains('hover')) {
+            isAnyHovered = true;
+        }
+    });
+
+    projects.forEach((project) => {
+        const projectIndex = parseInt(project.dataset.idx, 10);
+        if (!Number.isNaN(projectIndex)) {
+            const allProjects = projectsDataManager.getAllProjects();
+            const projectData = allProjects[projectIndex];
+            if (projectData && projectData.placeholder) return;
+        }
+        if (isAnyHovered) {
+            project.classList.remove('hover');
+        } else {
+            project.classList.add('hover');
+        }
+    });
+
+    if (!isAnyHovered) {
+        videos.forEach((video) => {
+            if (!video.paused) {
+                video.pause();
+            }
+        });
+    } else if (intersectionObserver) {
+        videos.forEach((video) => {
+            const videoRect = video.getBoundingClientRect();
+            const gridRect = grid.getBoundingClientRect();
+            const isInView = videoRect.top < gridRect.bottom &&
+                videoRect.bottom > gridRect.top &&
+                videoRect.left < gridRect.right &&
+                videoRect.right > gridRect.left;
+
+            if (isInView && video.paused) {
+                video.play().catch(() => {});
+            }
+        });
+    }
+
+    const overlaysVisible = !isAnyHovered;
+    sendMessageToParent({
+        type: 'update-overlay-button-state',
+        active: overlaysVisible
+    });
+
     try {
-        const _0x102bb4 = document['documentElement']['classList']['contains']('mobile-device');
-        _0x102bb4 ? (_0x304167['querySelectorAll']('.project-text\x20.project-work-label')['forEach'](_0x12780b => _0x12780b['classList']['remove']('alt-active')), overlayLabelInterval && (clearInterval(overlayLabelInterval), overlayLabelInterval = null), _0x5bd4dd && (overlayLabelInterval = setInterval(() => {
-            if (document['hidden']) return;
-            const _0xaa4faa = queryWorkLabels(_0x304167);
-            if (!_0xaa4faa['length']) return;
-            _0xaa4faa['forEach'](_0x4421a7 => _0x4421a7['classList']['toggle']('alt-active'));
-        }, 0xbb8))) : (_0x304167['querySelectorAll']('.project-text\x20.project-work-label')['forEach'](_0x2bd2f1 => _0x2bd2f1['classList']['remove']('alt-active')), overlayLabelInterval && (clearInterval(overlayLabelInterval), overlayLabelInterval = null));
-    } catch (_0x4c7580) {}
+        const isMobile = document.documentElement.classList.contains('mobile-device');
+        if (isMobile) {
+            grid.querySelectorAll('.project-text .project-work-label').forEach(label => label.classList.remove('alt-active'));
+            if (overlayLabelInterval) {
+                clearInterval(overlayLabelInterval);
+                overlayLabelInterval = null;
+            }
+            if (overlaysVisible) {
+                overlayLabelInterval = setInterval(() => {
+                    if (document.hidden) return;
+                    const workLabels = queryWorkLabels(grid);
+                    if (!workLabels.length) return;
+                    workLabels.forEach(label => label.classList.toggle('alt-active'));
+                }, 3000);
+            }
+        } else {
+            grid.querySelectorAll('.project-text .project-work-label').forEach(label => label.classList.remove('alt-active'));
+            if (overlayLabelInterval) {
+                clearInterval(overlayLabelInterval);
+                overlayLabelInterval = null;
+            }
+        }
+    } catch (error) {
+        // console.error('Error in toggleProjectOverlays label animation:', error);
+    }
 };
