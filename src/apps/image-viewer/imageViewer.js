@@ -1,402 +1,422 @@
 (function() {
     'use strict';
-    const _0x8af3dc = 0x19,
-        _0x3c2d9f = 0x64,
-        _0xf8e0a5 = 1.5,
-        _0x43322b = 1.8;
-    class _0x30893b {
+    const SWIPE_THRESHOLD = 0x19,
+        VERTICAL_SWIPE_THRESHOLD = 0x64,
+        ZOOM_SCALE_PORTRAIT = 1.5,
+        ZOOM_SCALE_LANDSCAPE = 1.8;
+    class ImageViewer {
         constructor() {
-            this['currentImageIndex'] = 0x0, this['images'] = [], this['refreshTimer'] = null, this['lastImageSignature'] = '', this['touchStartX'] = 0x0, this['touchStartY'] = 0x0, this['isDragging'] = ![], this['didDrag'] = ![], this['isZoomed'] = ![], this['zoomScale'] = _0xf8e0a5, this['panStart'] = null;
-            const _0x3835f6 = {};
-            _0x3835f6['x'] = 0x0, _0x3835f6['y'] = 0x0, this['imageOffset'] = _0x3835f6;
-            const _0x406591 = {};
-            _0x406591['x'] = 0x0, _0x406591['y'] = 0x0, this['accumulatedOffset'] = _0x406591, this['waitingForInitialIndex'] = ![], this['currentLoadingId'] = 0x0, this['isProjectMode'] = ![], this['currentProjectTitle'] = null, this['init']();
+            this.currentImageIndex = 0x0, this.images = [], this.refreshTimer = null, this.lastImageSignature = '', this.touchStartX = 0x0, this.touchStartY = 0x0, this.isDragging = ![], this.didDrag = ![], this.isZoomed = ![], this.zoomScale = ZOOM_SCALE_PORTRAIT, this.panStart = null;
+            const imageOffset = {};
+            imageOffset.x = 0x0, imageOffset.y = 0x0, this.imageOffset = imageOffset;
+            const accumulatedOffset = {};
+            accumulatedOffset.x = 0x0, accumulatedOffset.y = 0x0, this.accumulatedOffset = accumulatedOffset, this.waitingForInitialIndex = ![], this.currentLoadingId = 0x0, this.isProjectMode = ![], this.currentProjectTitle = null, this.init();
         }
-        async ['init']() {
-            const addressBarElement = window['parent']?.['document']?.['querySelector']('#image-viewer-window\x20.addressbar');
-            let _0x1c1cc7 = null;
+        async init() {
+            const addressBarElement = window.parent?.document?.querySelector('#image-viewer-window .addressbar');
+            let appLoader = null;
             if (addressBarElement) try {
-                const _0x5152e6 = await import('../../scripts/utils/appLoader.js'),
-                    _0x21b102 = _0x5152e6['default'];
-                _0x1c1cc7 = new _0x21b102('image-viewer', addressBarElement, () => {
-                    if (window['parent'] && window['parent'] !== window) {
-                        const _0x1410ce = {};
-                        _0x1410ce['type'] = 'app-fully-loaded', _0x1410ce['appId'] = 'image-viewer-window', window['parent']['postMessage'](_0x1410ce, '*');
+                const appLoaderModule = await import('../../scripts/utils/appLoader.js'),
+                    AppLoader = appLoaderModule.default;
+                appLoader = new AppLoader('image-viewer', addressBarElement, () => {
+                    if (window.parent && window.parent !== window) {
+                        const message = {};
+                        message.type = 'app-fully-loaded', message.appId = 'image-viewer-window', window.parent.postMessage(message, '*');
                     }
-                }), _0x1c1cc7['startLoading'](0x5);
-            } catch (_0x10cb79) {
-                console['warn']('AppLoader\x20not\x20available,\x20continuing\x20without\x20progressive\x20loading');
+                }), appLoader.startLoading(0x5);
+            } catch (error) {
+                console.warn('AppLoader not available, continuing without progressive loading');
             }
-            this['showLoading'](), this['waitingForInitialIndex'] = !![], setTimeout(async () => {
-                if (this['waitingForInitialIndex']) {
-                    this['waitingForInitialIndex'] = ![], await this['loadImagesFromProjectsJson']();
-                    if (this['images']['length'] > 0x0) {
-                        const _0x60e258 = this['images']['slice'](0x0, 0x5)['map'](_0x493766 => _0x493766['src']);
-                        _0x1c1cc7 && await _0x1c1cc7['loadAssets'](_0x60e258, 0x28, 0x5a);
+            this.showLoading(), this.waitingForInitialIndex = !![], setTimeout(async () => {
+                if (this.waitingForInitialIndex) {
+                    this.waitingForInitialIndex = ![], await this.loadImagesFromProjectsJson();
+                    if (this.images.length > 0x0) {
+                        const initialImages = this.images.slice(0x0, 0x5).map(image => image.src);
+                        appLoader && await appLoader.loadAssets(initialImages, 0x28, 0x5a);
                     }
-                    this['loadImage'](0x0);
+                    this.loadImage(0x0);
                 }
-            }, 0x258), _0x1c1cc7 && await _0x1c1cc7['loadAssets'](['../../../projects.json'], 0xa, 0x1e), _0x1c1cc7 && _0x1c1cc7['complete'](), this['setupEventListeners'](), this['startAutoRefresh'](), this['setupResizeMessageListener']();
-        } ['showLoading']() {
-            const _0x1d149a = document['querySelector']('.image-viewer-content');
-            _0x1d149a && (_0x1d149a['innerHTML'] = '<div\x20class=\x22iv-loading\x22>Loading\x20images...</div>');
+            }, 0x258), appLoader && await appLoader.loadAssets(['../../../projects.json'], 0xa, 0x1e), appLoader && appLoader.complete(), this.setupEventListeners(), this.startAutoRefresh(), this.setupResizeMessageListener();
         }
-        async ['loadImagesFromProjectsJson']() {
+        showLoading() {
+            const contentElement = document.querySelector('.image-viewer-content');
+            contentElement && (contentElement.innerHTML = '<div class="iv-loading">Loading images...</div>');
+        }
+        async loadImagesFromProjectsJson() {
             try {
-                const _0x51900a = await fetch('../../../projects.json?ts=' + Date['now']());
-                if (!_0x51900a['ok']) throw new Error('Failed\x20to\x20fetch\x20projects.json');
-                const _0x4ccf67 = await _0x51900a['json'](),
-                    _0x5235c8 = [],
-                    _0x102cec = /\.(webp|png|jpe?g|gif|avif)$/i;
-                _0x4ccf67['forEach'](_0x23cd4b => {
-                    Array['isArray'](_0x23cd4b['images']) && _0x23cd4b['images']['forEach'](_0x323efb => {
-                        if (!_0x323efb || !_0x323efb['src']) return;
-                        if (!_0x102cec['test'](_0x323efb['src'])) return;
-                        const _0x1ddab8 = _0x323efb['src']['startsWith']('assets/') ? '../../../' + _0x323efb['src'] : _0x323efb['src'],
-                            _0x52ed77 = typeof _0x323efb['alt'] === 'string' && _0x323efb['alt']['trim']()['length'] ? _0x323efb['alt']['trim']() : this['deriveAltFromFilename'](_0x323efb['src']),
-                            _0x54b920 = {};
-                        _0x54b920['src'] = _0x1ddab8, _0x54b920['alt'] = _0x52ed77, _0x54b920['orientation'] = _0x23cd4b['orientation'] || 'portrait', _0x5235c8['push'](_0x54b920);
+                const response = await fetch('../../../projects.json?ts=' + Date.now());
+                if (!response.ok) throw new Error('Failed to fetch projects.json');
+                const projects = await response.json(),
+                    allImages = [],
+                    imageExtensionRegex = /\.(webp|png|jpe?g|gif|avif)$/i;
+                projects.forEach(project => {
+                    Array.isArray(project.images) && project.images.forEach(image => {
+                        if (!image || !image.src) return;
+                        if (!imageExtensionRegex.test(image.src)) return;
+                        const src = image.src.startsWith('assets/') ? '../../../' + image.src : image.src,
+                            alt = typeof image.alt === 'string' && image.alt.trim().length ? image.alt.trim() : this.deriveAltFromFilename(image.src),
+                            imageData = {};
+                        imageData.src = src, imageData.alt = alt, imageData.orientation = project.orientation || 'portrait', allImages.push(imageData);
                     });
                 });
-                const _0x13319b = new Set(),
-                    _0x35dc0e = [];
-                for (const _0x3b6a54 of _0x5235c8) {
-                    !_0x13319b['has'](_0x3b6a54['src']) && (_0x13319b['add'](_0x3b6a54['src']), _0x35dc0e['push'](_0x3b6a54));
+                const uniqueSources = new Set(),
+                    uniqueImages = [];
+                for (const image of allImages) {
+                    !uniqueSources.has(image.src) && (uniqueSources.add(image.src), uniqueImages.push(image));
                 }
-                this['images'] = _0x35dc0e, this['updateSignature']();
-                if (!this['images']['length']) this['showEmpty']();
-                this['isProjectMode'] = ![], this['currentProjectTitle'] = null;
-            } catch (_0x105701) {
-                this['showError'](_0x105701['message'] || 'Error\x20loading\x20images');
+                this.images = uniqueImages, this.updateSignature();
+                if (!this.images.length) this.showEmpty();
+                this.isProjectMode = ![], this.currentProjectTitle = null;
+            } catch (error) {
+                this.showError(error.message || 'Error loading images');
             }
         }
-        async ['filterImagesForProject'](_0x292a7e) {
+        async filterImagesForProject(projectTitle) {
             try {
-                const _0x540f74 = await fetch('../../../projects.json?ts=' + Date['now']());
-                if (!_0x540f74['ok']) throw new Error('Failed\x20to\x20fetch\x20projects.json');
-                const _0x51847b = await _0x540f74['json'](),
-                    _0x5d873d = _0x51847b['find'](_0x5ec316 => _0x5ec316['title'] === _0x292a7e);
-                if (!_0x5d873d) throw new Error('Project\x20\x22' + _0x292a7e + '\x22\x20not\x20found');
-                const _0x4314b5 = [],
-                    _0x1e0594 = /\.(webp|png|jpe?g|gif|avif)$/i;
-                Array['isArray'](_0x5d873d['images']) && _0x5d873d['images']['forEach'](_0x5a4b9a => {
-                    if (!_0x5a4b9a || !_0x5a4b9a['src']) return;
-                    if (!_0x1e0594['test'](_0x5a4b9a['src'])) return;
-                    const _0x2bc955 = _0x5a4b9a['src']['startsWith']('assets/') ? '../../../' + _0x5a4b9a['src'] : _0x5a4b9a['src'],
-                        _0x5b6704 = typeof _0x5a4b9a['alt'] === 'string' && _0x5a4b9a['alt']['trim']()['length'] ? _0x5a4b9a['alt']['trim']() : this['deriveAltFromFilename'](_0x5a4b9a['src']),
-                        _0x3c8c1d = {};
-                    _0x3c8c1d['src'] = _0x2bc955, _0x3c8c1d['alt'] = _0x5b6704, _0x3c8c1d['orientation'] = _0x5d873d['orientation'] || 'portrait', _0x4314b5['push'](_0x3c8c1d);
+                const response = await fetch('../../../projects.json?ts=' + Date.now());
+                if (!response.ok) throw new Error('Failed to fetch projects.json');
+                const projects = await response.json(),
+                    project = projects.find(p => p.title === projectTitle);
+                if (!project) throw new Error('Project "' + projectTitle + '" not found');
+                const projectImages = [],
+                    imageExtensionRegex = /\.(webp|png|jpe?g|gif|avif)$/i;
+                Array.isArray(project.images) && project.images.forEach(image => {
+                    if (!image || !image.src) return;
+                    if (!imageExtensionRegex.test(image.src)) return;
+                    const src = image.src.startsWith('assets/') ? '../../../' + image.src : image.src,
+                        alt = typeof image.alt === 'string' && image.alt.trim().length ? image.alt.trim() : this.deriveAltFromFilename(image.src),
+                        imageData = {};
+                    imageData.src = src, imageData.alt = alt, imageData.orientation = project.orientation || 'portrait', projectImages.push(imageData);
                 });
-                const _0x492c2f = new Set(),
-                    _0x18aac6 = [];
-                for (const _0x121538 of _0x4314b5) {
-                    !_0x492c2f['has'](_0x121538['src']) && (_0x492c2f['add'](_0x121538['src']), _0x18aac6['push'](_0x121538));
+                const uniqueSources = new Set(),
+                    uniqueImages = [];
+                for (const image of projectImages) {
+                    !uniqueSources.has(image.src) && (uniqueSources.add(image.src), uniqueImages.push(image));
                 }
-                this['images'] = _0x18aac6, this['updateSignature'](), !this['images']['length'] ? this['showEmpty']() : (this['isProjectMode'] = !![], this['currentProjectTitle'] = _0x292a7e, this['updateAddressBar'](_0x292a7e));
-            } catch (_0x9bc228) {
-                this['showError'](_0x9bc228['message'] || 'Error\x20filtering\x20images\x20for\x20project');
+                this.images = uniqueImages, this.updateSignature(), !this.images.length ? this.showEmpty() : (this.isProjectMode = !![], this.currentProjectTitle = projectTitle, this.updateAddressBar(projectTitle));
+            } catch (error) {
+                this.showError(error.message || 'Error filtering images for project');
             }
-        } ['deriveAltFromFilename'](_0x15c028) {
-            const _0x54957a = _0x15c028['split']('/')['pop']() || _0x15c028;
-            return _0x54957a['replace'](/[-_]/g, '\x20')['replace'](/\.[^.]+$/, '')['trim']();
-        } ['updateSignature']() {
-            this['lastImageSignature'] = this['images']['map'](_0x3f2ac3 => _0x3f2ac3['src'])['join']('|');
         }
-        async ['refreshIfChanged']() {
-            const _0x5798b6 = this['lastImageSignature'];
-            this['isProjectMode'] && this['currentProjectTitle'] ? await this['filterImagesForProject'](this['currentProjectTitle']) : await this['loadImagesFromProjectsJson']();
-            if (this['lastImageSignature'] !== _0x5798b6) {
-                const _0xeeeb9c = this['images'][this['currentImageIndex']]?.['src'];
-                !_0xeeeb9c && (this['currentImageIndex'] = 0x0), this['loadImage'](this['currentImageIndex'] || 0x0);
+        deriveAltFromFilename(filename) {
+            const baseFilename = filename.split('/').pop() || filename;
+            return baseFilename.replace(/[-_]/g, ' ').replace(/\.[^.]+$/, '').trim();
+        }
+        updateSignature() {
+            this.lastImageSignature = this.images.map(image => image.src).join('|');
+        }
+        async refreshIfChanged() {
+            const oldSignature = this.lastImageSignature;
+            this.isProjectMode && this.currentProjectTitle ? await this.filterImagesForProject(this.currentProjectTitle) : await this.loadImagesFromProjectsJson();
+            if (this.lastImageSignature !== oldSignature) {
+                const currentImageSrc = this.images[this.currentImageIndex]?.src;
+                !currentImageSrc && (this.currentImageIndex = 0x0), this.loadImage(this.currentImageIndex || 0x0);
             }
-        } ['startAutoRefresh']() {
-            if (this['refreshTimer']) clearInterval(this['refreshTimer']);
-            this['refreshTimer'] = setInterval(() => {
-                this['refreshIfChanged']();
+        }
+        startAutoRefresh() {
+            if (this.refreshTimer) clearInterval(this.refreshTimer);
+            this.refreshTimer = setInterval(() => {
+                this.refreshIfChanged();
             }, 0x7530);
-        } ['showEmpty']() {
-            const _0x10fad3 = document['querySelector']('.image-viewer-content');
-            _0x10fad3 && (_0x10fad3['innerHTML'] = '<div\x20class=\x22iv-empty\x22>No\x20project\x20images\x20found.</div>', this['updateStatusBar']('No\x20images\x20available'));
-        } ['showError'](_0x16bb13) {
-            const _0xc40174 = document['querySelector']('.image-viewer-content');
-            _0xc40174 && (_0xc40174['innerHTML'] = '<div\x20class=\x22iv-error\x22>' + _0x16bb13 + '</div>', this['updateStatusBar'](_0x16bb13));
-        } ['loadImage'](_0x55e394, _0x5ddf7e = ![]) {
-            if (!(_0x55e394 >= 0x0 && _0x55e394 < this['images']['length'])) return;
-            this['currentImageIndex'] = _0x55e394;
-            const _0x8ef34e = this['images'][_0x55e394],
-                _0x5a5c26 = document['querySelector']('.image-viewer-content');
-            if (_0x5a5c26) {
-                if (_0x5ddf7e) {
-                    const loadingId = ++this['currentLoadingId'];
-                    !_0x5a5c26['querySelector']('.iv-loading') && (_0x5a5c26['innerHTML'] = '<div\x20class=\x22iv-loading\x22>Loading\x20image...</div>');
-                    const _0x56f2d0 = document['createElement']('img');
-                    _0x56f2d0['decoding'] = 'async', _0x56f2d0['loading'] = 'eager', _0x56f2d0['src'] = _0x8ef34e['src'], _0x56f2d0['alt'] = _0x8ef34e['alt'], _0x56f2d0['style']['transform'] = '', _0x56f2d0['style']['transition'] = '', _0x56f2d0['style']['cursor'] = '', _0x56f2d0['draggable'] = ![], _0x56f2d0['addEventListener']('load', () => {
-                        loadingId === this['currentLoadingId'] && _0x5a5c26 && (_0x5a5c26['innerHTML'] = '', _0x5a5c26['appendChild'](_0x56f2d0));
-                    }), _0x56f2d0['addEventListener']('error', () => {
-                        loadingId === this['currentLoadingId'] && _0x5a5c26 && (_0x5a5c26['innerHTML'] = '<div\x20class=\x22iv-error\x22>Failed\x20to\x20load\x20image</div>');
-                    }), _0x56f2d0['addEventListener']('dragstart', _0x582978 => _0x582978['preventDefault']()), _0x56f2d0['style']['userSelect'] = 'none', _0x56f2d0['style']['webkitUserDrag'] = 'none', _0x56f2d0['style']['webkitUserSelect'] = 'none', _0x56f2d0['style']['MozUserSelect'] = 'none', _0x56f2d0['addEventListener']('click', () => {
-                        if (this['didDrag']) {
-                            this['didDrag'] = ![];
+        }
+        showEmpty() {
+            const contentElement = document.querySelector('.image-viewer-content');
+            contentElement && (contentElement.innerHTML = '<div class="iv-empty">No project images found.</div>', this.updateStatusBar('No images available'));
+        }
+        showError(errorMessage) {
+            const contentElement = document.querySelector('.image-viewer-content');
+            contentElement && (contentElement.innerHTML = '<div class="iv-error">' + errorMessage + '</div>', this.updateStatusBar(errorMessage));
+        }
+        loadImage(index, forceReload = ![]) {
+            if (!(index >= 0x0 && index < this.images.length)) return;
+            this.currentImageIndex = index;
+            const image = this.images[index],
+                contentElement = document.querySelector('.image-viewer-content');
+            if (contentElement) {
+                if (forceReload) {
+                    const loadingId = ++this.currentLoadingId;
+                    !contentElement.querySelector('.iv-loading') && (contentElement.innerHTML = '<div class="iv-loading">Loading image...</div>');
+                    const imgElement = document.createElement('img');
+                    imgElement.decoding = 'async', imgElement.loading = 'eager', imgElement.src = image.src, imgElement.alt = image.alt, imgElement.style.transform = '', imgElement.style.transition = '', imgElement.style.cursor = '', imgElement.draggable = ![], imgElement.addEventListener('load', () => {
+                        loadingId === this.currentLoadingId && contentElement && (contentElement.innerHTML = '', contentElement.appendChild(imgElement));
+                    }), imgElement.addEventListener('error', () => {
+                        loadingId === this.currentLoadingId && contentElement && (contentElement.innerHTML = '<div class="iv-error">Failed to load image</div>');
+                    }), imgElement.addEventListener('dragstart', event => event.preventDefault()), imgElement.style.userSelect = 'none', imgElement.style.webkitUserDrag = 'none', imgElement.style.webkitUserSelect = 'none', imgElement.style.MozUserSelect = 'none', imgElement.addEventListener('click', () => {
+                        if (this.didDrag) {
+                            this.didDrag = ![];
                             return;
-                        }!this['isZoomed'] ? this['toggleZoom']() : this['toggleZoom']();
+                        }!this.isZoomed ? this.toggleZoom() : this.toggleZoom();
                     });
                 } else {
-                    _0x5a5c26['innerHTML'] = '<img\x20decoding=\x22async\x22\x20loading=\x22lazy\x22\x20src=\x22' + _0x8ef34e['src'] + '\x22\x20alt=\x22' + _0x8ef34e['alt'] + '\x22\x20/>';
-                    const _0x39b7cf = _0x5a5c26['querySelector']('img');
-                    _0x39b7cf && (_0x39b7cf['style']['transform'] = '', _0x39b7cf['style']['transition'] = '', _0x39b7cf['draggable'] = ![], _0x39b7cf['addEventListener']('dragstart', _0x4e333b => _0x4e333b['preventDefault']()), _0x39b7cf['style']['userSelect'] = 'none', _0x39b7cf['style']['webkitUserDrag'] = 'none', _0x39b7cf['style']['webkitUserSelect'] = 'none', _0x39b7cf['style']['MozUserSelect'] = 'none', _0x39b7cf['addEventListener']('click', () => {
-                        if (this['didDrag']) {
-                            this['didDrag'] = ![];
+                    contentElement.innerHTML = '<img decoding="async" loading="lazy" src="' + image.src + '" alt="' + image.alt + '" />';
+                    const imgElement = contentElement.querySelector('img');
+                    imgElement && (imgElement.style.transform = '', imgElement.style.transition = '', imgElement.draggable = ![], imgElement.addEventListener('dragstart', event => event.preventDefault()), imgElement.style.userSelect = 'none', imgElement.style.webkitUserDrag = 'none', imgElement.style.webkitUserSelect = 'none', imgElement.style.MozUserSelect = 'none', imgElement.addEventListener('click', () => {
+                        if (this.didDrag) {
+                            this.didDrag = ![];
                             return;
-                        }!this['isZoomed'] ? this['toggleZoom']() : this['toggleZoom']();
+                        }!this.isZoomed ? this.toggleZoom() : this.toggleZoom();
                     }));
                 }
             }
-            this['isZoomed'] = ![];
-            const _0x245e11 = {};
-            _0x245e11['x'] = 0x0, _0x245e11['y'] = 0x0, this['imageOffset'] = _0x245e11;
-            const _0x29500a = {};
-            _0x29500a['x'] = 0x0, _0x29500a['y'] = 0x0, this['accumulatedOffset'] = _0x29500a, this['didDrag'] = ![], this['notifyToolbarZoomState'](![]), this['updateStatusBar'](_0x8ef34e['alt']);
-        } ['updateStatusBar'](_0x2a93e5) {
-            if (window['parent'] && window['parent'] !== window) {
-                const _0x5b8af2 = {};
-                _0x5b8af2['type'] = 'update-status-bar', _0x5b8af2['text'] = _0x2a93e5, window['parent']['postMessage'](_0x5b8af2, '*');
+            this.isZoomed = ![];
+            const imageOffset = {};
+            imageOffset.x = 0x0, imageOffset.y = 0x0, this.imageOffset = imageOffset;
+            const accumulatedOffset = {};
+            accumulatedOffset.x = 0x0, accumulatedOffset.y = 0x0, this.accumulatedOffset = accumulatedOffset, this.didDrag = ![], this.notifyToolbarZoomState(![]), this.updateStatusBar(image.alt);
+        }
+        updateStatusBar(statusText) {
+            if (window.parent && window.parent !== window) {
+                const message = {};
+                message.type = 'update-status-bar', message.text = statusText, window.parent.postMessage(message, '*');
             }
-        } ['nextImage']() {
-            const _0xc64851 = (this['currentImageIndex'] + 0x1) % this['images']['length'];
-            this['loadImage'](_0xc64851);
-        } ['previousImage']() {
-            const _0x408062 = this['currentImageIndex'] === 0x0 ? this['images']['length'] - 0x1 : this['currentImageIndex'] - 0x1;
-            this['loadImage'](_0x408062);
-        } ['setupEventListeners']() {
-            window['addEventListener']('message', async _0x48f952 => {
-                if (_0x48f952['data'] && _0x48f952['data']['type'] === 'toolbar:action') switch (_0x48f952['data']['action']) {
+        }
+        nextImage() {
+            const nextIndex = (this.currentImageIndex + 0x1) % this.images.length;
+            this.loadImage(nextIndex);
+        }
+        previousImage() {
+            const prevIndex = this.currentImageIndex === 0x0 ? this.images.length - 0x1 : this.currentImageIndex - 0x1;
+            this.loadImage(prevIndex);
+        }
+        setupEventListeners() {
+            window.addEventListener('message', async event => {
+                if (event.data && event.data.type === 'toolbar:action') switch (event.data.action) {
                     case 'nextImage':
-                        this['nextImage']();
+                        this.nextImage();
                         break;
                     case 'nav:back':
-                        this['previousImage']();
+                        this.previousImage();
                         break;
                     case 'toggleZoom':
-                        this['toggleZoom']();
+                        this.toggleZoom();
                         break;
                 }
-                _0x48f952['data'] && _0x48f952['data']['type'] === 'projects:updated' && this['refreshIfChanged']();
-                if (_0x48f952['data'] && _0x48f952['data']['type'] === 'set-initial-index') {
-                    const initialIndex = parseInt(_0x48f952['data']['initialIndex'], 0xa),
-                        _0x529947 = _0x48f952['data']['projectTitle'];
-                    this['waitingForInitialIndex'] = ![], _0x529947 ? await this['filterImagesForProject'](_0x529947) : await this['loadImagesFromProjectsJson'](), !isNaN(initialIndex) && initialIndex >= 0x0 && initialIndex < this['images']['length'] ? (this['currentImageIndex'] = initialIndex, this['loadImage'](initialIndex, !![])) : this['loadImage'](0x0, !![]);
+                event.data && event.data.type === 'projects:updated' && this.refreshIfChanged();
+                if (event.data && event.data.type === 'set-initial-index') {
+                    const initialIndex = parseInt(event.data.initialIndex, 0xa),
+                        projectTitle = event.data.projectTitle;
+                    this.waitingForInitialIndex = ![], projectTitle ? await this.filterImagesForProject(projectTitle) : await this.loadImagesFromProjectsJson(), !isNaN(initialIndex) && initialIndex >= 0x0 && initialIndex < this.images.length ? (this.currentImageIndex = initialIndex, this.loadImage(initialIndex, !![])) : this.loadImage(0x0, !![]);
                 }
-            }), this['setupTouchHandling']();
-        } ['setupResizeMessageListener']() {
-            window['addEventListener']('message', _0xf9241c => {
-                if (_0xf9241c['data'] && _0xf9241c['data']['type'] === 'window-resized') document['body']['classList']['add']('resizing-window');
+            }), this.setupTouchHandling();
+        }
+        setupResizeMessageListener() {
+            window.addEventListener('message', event => {
+                if (event.data && event.data.type === 'window-resized') document.body.classList.add('resizing-window');
                 else {
-                    if (_0xf9241c['data'] && _0xf9241c['data']['type'] === 'window-resize-end') document['body']['classList']['remove']('resizing-window'), this['handleWindowLayoutChange']();
-                    else _0xf9241c['data'] && (_0xf9241c['data']['type'] === 'window:maximized' || _0xf9241c['data']['type'] === 'window:unmaximized') && requestAnimationFrame(() => this['handleWindowLayoutChange']());
+                    if (event.data && event.data.type === 'window-resize-end') document.body.classList.remove('resizing-window'), this.handleWindowLayoutChange();
+                    else event.data && (event.data.type === 'window:maximized' || event.data.type === 'window:unmaximized') && requestAnimationFrame(() => this.handleWindowLayoutChange());
                 }
             });
-        } ['handleWindowLayoutChange']() {
-            if (!this['isZoomed']) return;
-            const _0x2345a5 = document['querySelector']('.image-viewer-content\x20img');
-            if (!_0x2345a5) return;
-            const _0x3d1f02 = this['computePanBounds'](_0x2345a5),
-                _0x11ebd5 = Math['max'](Math['abs'](_0x3d1f02['minX']), Math['abs'](_0x3d1f02['maxX'])),
-                _0x401cb1 = Math['max'](Math['abs'](_0x3d1f02['minY']), Math['abs'](_0x3d1f02['maxY']));
-            let _0x4c128f = 0x0,
-                _0x5e0243 = 0x0;
-            if (_0x11ebd5 > 0x0) _0x4c128f = this['imageOffset']['x'] / _0x11ebd5;
-            if (_0x401cb1 > 0x0) _0x5e0243 = this['imageOffset']['y'] / _0x401cb1;
-            const _0x554d47 = this['computePanBounds'](_0x2345a5),
-                _0x1118da = Math['max'](Math['abs'](_0x554d47['minX']), Math['abs'](_0x554d47['maxX'])),
-                _0x587edf = Math['max'](Math['abs'](_0x554d47['minY']), Math['abs'](_0x554d47['maxY']));
-            let _0x2e9d97 = _0x4c128f * _0x1118da,
-                _0x3171e3 = _0x5e0243 * _0x587edf;
-            _0x2e9d97 = Math['max'](_0x554d47['minX'], Math['min'](_0x554d47['maxX'], _0x2e9d97)), _0x3171e3 = Math['max'](_0x554d47['minY'], Math['min'](_0x554d47['maxY'], _0x3171e3));
-            const _0x376b95 = {};
-            _0x376b95['x'] = _0x2e9d97, _0x376b95['y'] = _0x3171e3, this['imageOffset'] = _0x376b95, this['accumulatedOffset'] = {
-                ...this['imageOffset']
-            }, _0x2345a5['style']['transform'] = 'scale(' + this['zoomScale'] + ')\x20translate(' + _0x2e9d97 / this['zoomScale'] + 'px,\x20' + _0x3171e3 / this['zoomScale'] + 'px)';
-        } ['setupTouchHandling']() {
-            const _0x1c1c80 = document['querySelector']('.image-viewer-content');
-            if (!_0x1c1c80) return;
-            const _0x1dff35 = _0x2466b7 => {
-                    if (this['isZoomed']) {
-                        this['touchStartX'] = 0x0, this['touchStartY'] = 0x0, this['isDragging'] = ![];
+        }
+        handleWindowLayoutChange() {
+            if (!this.isZoomed) return;
+            const imgElement = document.querySelector('.image-viewer-content img');
+            if (!imgElement) return;
+            const oldBounds = this.computePanBounds(imgElement),
+                oldMaxPanX = Math.max(Math.abs(oldBounds.minX), Math.abs(oldBounds.maxX)),
+                oldMaxPanY = Math.max(Math.abs(oldBounds.minY), Math.abs(oldBounds.maxY));
+            let panRatioX = 0x0,
+                panRatioY = 0x0;
+            if (oldMaxPanX > 0x0) panRatioX = this.imageOffset.x / oldMaxPanX;
+            if (oldMaxPanY > 0x0) panRatioY = this.imageOffset.y / oldMaxPanY;
+            const newBounds = this.computePanBounds(imgElement),
+                newMaxPanX = Math.max(Math.abs(newBounds.minX), Math.abs(newBounds.maxX)),
+                newMaxPanY = Math.max(Math.abs(newBounds.minY), Math.abs(newBounds.maxY));
+            let newPanX = panRatioX * newMaxPanX,
+                newPanY = panRatioY * newMaxPanY;
+            newPanX = Math.max(newBounds.minX, Math.min(newBounds.maxX, newPanX)), newPanY = Math.max(newBounds.minY, Math.min(newBounds.maxY, newPanY));
+            const newImageOffset = {};
+            newImageOffset.x = newPanX, newImageOffset.y = newPanY, this.imageOffset = newImageOffset, this.accumulatedOffset = {
+                ...this.imageOffset
+            }, imgElement.style.transform = 'scale(' + this.zoomScale + ') translate(' + newPanX / this.zoomScale + 'px, ' + newPanY / this.zoomScale + 'px)';
+        }
+        setupTouchHandling() {
+            const contentElement = document.querySelector('.image-viewer-content');
+            if (!contentElement) return;
+            const touchStartHandler = event => {
+                    if (this.isZoomed) {
+                        this.touchStartX = 0x0, this.touchStartY = 0x0, this.isDragging = ![];
                         return;
                     }
-                    this['touchStartX'] = _0x2466b7['touches'][0x0]['clientX'], this['touchStartY'] = _0x2466b7['touches'][0x0]['clientY'], this['isDragging'] = ![];
+                    this.touchStartX = event.touches[0x0].clientX, this.touchStartY = event.touches[0x0].clientY, this.isDragging = ![];
                 },
-                _0x890fc = _0x32da46 => {
-                    if (this['isZoomed']) return;
-                    if (!this['touchStartX']) return;
-                    const _0x15980c = _0x32da46['touches'][0x0]['clientX'],
-                        _0x3c59b3 = _0x32da46['touches'][0x0]['clientY'],
-                        _0x4de669 = _0x15980c - this['touchStartX'],
-                        _0x1996ed = Math['abs'](_0x3c59b3 - this['touchStartY']);
-                    if (Math['abs'](_0x4de669) > 0xa && _0x1996ed < _0x3c2d9f) {
-                        this['isDragging'] = !![], _0x32da46['preventDefault']();
-                        const _0x1a5e68 = _0x1c1c80['querySelector']('img');
-                        _0x1a5e68 && (_0x1a5e68['style']['transform'] = 'translateX(' + _0x4de669 * 0.5 + 'px)', _0x1a5e68['style']['transition'] = 'none');
+                touchMoveHandler = event => {
+                    if (this.isZoomed) return;
+                    if (!this.touchStartX) return;
+                    const currentX = event.touches[0x0].clientX,
+                        currentY = event.touches[0x0].clientY,
+                        diffX = currentX - this.touchStartX,
+                        diffY = Math.abs(currentY - this.touchStartY);
+                    if (Math.abs(diffX) > 0xa && diffY < VERTICAL_SWIPE_THRESHOLD) {
+                        this.isDragging = !![], event.preventDefault();
+                        const imgElement = contentElement.querySelector('img');
+                        imgElement && (imgElement.style.transform = 'translateX(' + diffX * 0.5 + 'px)', imgElement.style.transition = 'none');
                     }
                 },
-                _0x380dfc = _0x287a2f => {
-                    if (this['isZoomed']) return;
-                    if (!this['touchStartX'] || !this['isDragging']) return;
-                    const _0x380673 = _0x287a2f['changedTouches'][0x0]['clientX'] - this['touchStartX'];
-                    if (Math['abs'](_0x380673) > _0x8af3dc) _0x380673 > 0x0 ? this['previousImage']() : this['nextImage']();
+                touchEndHandler = event => {
+                    if (this.isZoomed) return;
+                    if (!this.touchStartX || !this.isDragging) return;
+                    const diffX = event.changedTouches[0x0].clientX - this.touchStartX;
+                    if (Math.abs(diffX) > SWIPE_THRESHOLD) diffX > 0x0 ? this.previousImage() : this.nextImage();
                     else {
-                        const _0x308424 = _0x1c1c80['querySelector']('img');
-                        _0x308424 && (_0x308424['style']['transform'] = '', _0x308424['style']['transition'] = 'transform\x200.3s\x20ease');
+                        const imgElement = contentElement.querySelector('img');
+                        imgElement && (imgElement.style.transform = '', imgElement.style.transition = 'transform 0.3s ease');
                     }
-                    this['touchStartX'] = 0x0, this['touchStartY'] = 0x0, this['isDragging'] = ![];
+                    this.touchStartX = 0x0, this.touchStartY = 0x0, this.isDragging = ![];
                 },
-                _0x3b06d3 = {};
-            _0x3b06d3['passive'] = !![], _0x1c1c80['addEventListener']('touchstart', _0x1dff35, _0x3b06d3);
-            const _0x1a0b32 = {};
-            _0x1a0b32['passive'] = ![], _0x1c1c80['addEventListener']('touchmove', _0x890fc, _0x1a0b32);
-            const _0x474332 = {};
-            _0x474332['passive'] = !![], _0x1c1c80['addEventListener']('touchend', _0x380dfc, _0x474332);
-        } ['toggleZoom']() {
-            const _0x3a75e6 = document['querySelector']('.image-viewer-content\x20img');
-            if (!_0x3a75e6) return;
-            this['isZoomed'] = !this['isZoomed'];
-            const _0x138aa1 = {};
-            _0x138aa1['x'] = 0x0, _0x138aa1['y'] = 0x0, this['imageOffset'] = _0x138aa1;
-            const _0x94aeb1 = {};
-            _0x94aeb1['x'] = 0x0, _0x94aeb1['y'] = 0x0, this['accumulatedOffset'] = _0x94aeb1;
-            if (this['isZoomed']) {
-                const _0x32d7aa = this['images'][this['currentImageIndex']],
-                    _0x355fe0 = _0x32d7aa && _0x32d7aa['orientation'] ? _0x32d7aa['orientation'] : 'portrait';
-                this['zoomScale'] = _0x355fe0 === 'landscape' ? _0x43322b : _0xf8e0a5, _0x3a75e6['style']['transform'] = 'scale(' + this['zoomScale'] + ')', _0x3a75e6['classList']['add']('zoomed'), this['enablePan'](_0x3a75e6), this['notifyToolbarZoomState'](!![]);
-            } else this['zoomScale'] = _0xf8e0a5, _0x3a75e6['style']['transform'] = '', _0x3a75e6['classList']['remove']('zoomed'), this['disablePan'](_0x3a75e6), this['notifyToolbarZoomState'](![]);
-        } ['notifyToolbarZoomState'](_0x91bfb4) {
-            if (window['parent'] && window['parent'] !== window) {
-                const _0x211b2a = {};
-                _0x211b2a['type'] = 'toolbar:zoom-state', _0x211b2a['active'] = _0x91bfb4, window['parent']['postMessage'](_0x211b2a, '*');
+                touchStartOptions = {};
+            touchStartOptions.passive = !![], contentElement.addEventListener('touchstart', touchStartHandler, touchStartOptions);
+            const touchMoveOptions = {};
+            touchMoveOptions.passive = ![], contentElement.addEventListener('touchmove', touchMoveHandler, touchMoveOptions);
+            const touchEndOptions = {};
+            touchEndOptions.passive = !![], contentElement.addEventListener('touchend', touchEndHandler, touchEndOptions);
+        }
+        toggleZoom() {
+            const imgElement = document.querySelector('.image-viewer-content img');
+            if (!imgElement) return;
+            this.isZoomed = !this.isZoomed;
+            const imageOffset = {};
+            imageOffset.x = 0x0, imageOffset.y = 0x0, this.imageOffset = imageOffset;
+            const accumulatedOffset = {};
+            accumulatedOffset.x = 0x0, accumulatedOffset.y = 0x0, this.accumulatedOffset = accumulatedOffset;
+            if (this.isZoomed) {
+                const image = this.images[this.currentImageIndex],
+                    orientation = image && image.orientation ? image.orientation : 'portrait';
+                this.zoomScale = orientation === 'landscape' ? ZOOM_SCALE_LANDSCAPE : ZOOM_SCALE_PORTRAIT, imgElement.style.transform = 'scale(' + this.zoomScale + ')', imgElement.classList.add('zoomed'), this.enablePan(imgElement), this.notifyToolbarZoomState(!![]);
+            } else this.zoomScale = ZOOM_SCALE_PORTRAIT, imgElement.style.transform = '', imgElement.classList.remove('zoomed'), this.disablePan(imgElement), this.notifyToolbarZoomState(![]);
+        }
+        notifyToolbarZoomState(isZoomed) {
+            if (window.parent && window.parent !== window) {
+                const message = {};
+                message.type = 'toolbar:zoom-state', message.active = isZoomed, window.parent.postMessage(message, '*');
             }
-        } ['updateAddressBar'](_0x5c0cf8 = null) {
-            if (window['parent'] && window['parent'] !== window) {
-                const addressBarTitle = _0x5c0cf8 ? 'C:\x5cUsers\x5cMitch\x5cProjects\x5c' + _0x5c0cf8['replace'](/\s+/g, '') : 'C:\x5cUsers\x5cMitch\x5cAssets',
-                    _0x1f7f86 = {};
-                _0x1f7f86['type'] = 'update-address-bar', _0x1f7f86['title'] = addressBarTitle, window['parent']['postMessage'](_0x1f7f86, '*');
+        }
+        updateAddressBar(projectTitle = null) {
+            if (window.parent && window.parent !== window) {
+                const addressBarTitle = projectTitle ? 'C:\\Users\\Mitch\\Projects\\' + projectTitle.replace(/\s+/g, '') : 'C:\\Users\\Mitch\\Assets',
+                    message = {};
+                message.type = 'update-address-bar', message.title = addressBarTitle, window.parent.postMessage(message, '*');
             }
-        } ['enablePan'](_0x482f36) {
-            const _0x21ea19 = _0x2eb820 => {
-                    if (!this['isZoomed'] || _0x2eb820['button'] !== 0x0) return;
-                    const _0x3b2b44 = {};
-                    _0x3b2b44['x'] = _0x2eb820['clientX'], _0x3b2b44['y'] = _0x2eb820['clientY'], this['panStart'] = _0x3b2b44, this['didDrag'] = ![], _0x482f36['classList']['add']('dragging');
+        }
+        enablePan(imgElement) {
+            const onPointerDown = event => {
+                    if (!this.isZoomed || event.button !== 0x0) return;
+                    const panStart = {};
+                    panStart.x = event.clientX, panStart.y = event.clientY, this.panStart = panStart, this.didDrag = ![], imgElement.classList.add('dragging');
                     try {
-                        _0x482f36['setPointerCapture'](_0x2eb820['pointerId']);
-                    } catch (_0x24ed0b) {
-                        void _0x24ed0b;
+                        imgElement.setPointerCapture(event.pointerId);
+                    } catch (error) {
+                        void error;
                     }
                 },
-                _0x1afc99 = _0x7b3fa5 => {
-                    if (!this['isZoomed'] || !this['panStart']) return;
-                    const _0x1ae44f = _0x7b3fa5['clientX'] - this['panStart']['x'],
-                        _0x1c753e = _0x7b3fa5['clientY'] - this['panStart']['y'];
-                    (Math['abs'](_0x1ae44f) > 0x1 || Math['abs'](_0x1c753e) > 0x1) && (this['didDrag'] = !![]);
-                    let _0x88d6f7 = this['accumulatedOffset']['x'] + _0x1ae44f,
-                        _0x5e51f0 = this['accumulatedOffset']['y'] + _0x1c753e;
-                    const _0x278d1c = this['computePanBounds'](_0x482f36);
-                    _0x88d6f7 = Math['max'](_0x278d1c['minX'], Math['min'](_0x278d1c['maxX'], _0x88d6f7)), _0x5e51f0 = Math['max'](_0x278d1c['minY'], Math['min'](_0x278d1c['maxY'], _0x5e51f0));
-                    const _0x435c5a = {};
-                    _0x435c5a['x'] = _0x88d6f7, _0x435c5a['y'] = _0x5e51f0, this['imageOffset'] = _0x435c5a, _0x482f36['style']['transform'] = 'scale(' + this['zoomScale'] + ')\x20translate(' + _0x88d6f7 / this['zoomScale'] + 'px,\x20' + _0x5e51f0 / this['zoomScale'] + 'px)';
+                onPointerMove = event => {
+                    if (!this.isZoomed || !this.panStart) return;
+                    const dx = event.clientX - this.panStart.x,
+                        dy = event.clientY - this.panStart.y;
+                    (Math.abs(dx) > 0x1 || Math.abs(dy) > 0x1) && (this.didDrag = !![]);
+                    let newX = this.accumulatedOffset.x + dx,
+                        newY = this.accumulatedOffset.y + dy;
+                    const bounds = this.computePanBounds(imgElement);
+                    newX = Math.max(bounds.minX, Math.min(bounds.maxX, newX)), newY = Math.max(bounds.minY, Math.min(bounds.maxY, newY));
+                    const imageOffset = {};
+                    imageOffset.x = newX, imageOffset.y = newY, this.imageOffset = imageOffset, imgElement.style.transform = 'scale(' + this.zoomScale + ') translate(' + newX / this.zoomScale + 'px, ' + newY / this.zoomScale + 'px)';
                 },
-                _0x267b63 = _0x14420c => {
-                    this['panStart'] && (this['accumulatedOffset'] = {
-                        ...this['imageOffset']
+                onPointerUp = event => {
+                    this.panStart && (this.accumulatedOffset = {
+                        ...this.imageOffset
                     });
-                    this['panStart'] = null, _0x482f36['classList']['remove']('dragging');
+                    this.panStart = null, imgElement.classList.remove('dragging');
                     try {
-                        _0x482f36['releasePointerCapture'](_0x14420c['pointerId']);
-                    } catch (_0x54f2db) {
-                        void _0x54f2db;
+                        imgElement.releasePointerCapture(event.pointerId);
+                    } catch (error) {
+                        void error;
                     }
                 },
-                _0x373686 = _0x1269dc => {
-                    if (!this['isZoomed'] || _0x1269dc['touches']['length'] !== 0x1) return;
-                    const _0x4be20c = _0x1269dc['touches'][0x0],
-                        _0x3b9f0b = {};
-                    _0x3b9f0b['x'] = _0x4be20c['clientX'], _0x3b9f0b['y'] = _0x4be20c['clientY'], this['panStart'] = _0x3b9f0b, this['didDrag'] = ![], _0x482f36['classList']['add']('dragging');
+                onTouchStart = event => {
+                    if (!this.isZoomed || event.touches.length !== 0x1) return;
+                    const touch = event.touches[0x0],
+                        panStart = {};
+                    panStart.x = touch.clientX, panStart.y = touch.clientY, this.panStart = panStart, this.didDrag = ![], imgElement.classList.add('dragging');
                 },
-                _0x56d149 = _0x3e2dba => {
-                    if (!this['isZoomed'] || !this['panStart'] || _0x3e2dba['touches']['length'] !== 0x1) return;
-                    const _0x580542 = _0x3e2dba['touches'][0x0],
-                        _0x1a1b45 = _0x580542['clientX'] - this['panStart']['x'],
-                        _0x2550e8 = _0x580542['clientY'] - this['panStart']['y'];
-                    (Math['abs'](_0x1a1b45) > 0x1 || Math['abs'](_0x2550e8) > 0x1) && (this['didDrag'] = !![]);
-                    let _0x25b2a4 = this['accumulatedOffset']['x'] + _0x1a1b45,
-                        _0x1473da = this['accumulatedOffset']['y'] + _0x2550e8;
-                    const _0x4ea2c9 = this['computePanBounds'](_0x482f36);
-                    _0x25b2a4 = Math['max'](_0x4ea2c9['minX'], Math['min'](_0x4ea2c9['maxX'], _0x25b2a4)), _0x1473da = Math['max'](_0x4ea2c9['minY'], Math['min'](_0x4ea2c9['maxY'], _0x1473da));
-                    const _0x14b6a6 = {};
-                    _0x14b6a6['x'] = _0x25b2a4, _0x14b6a6['y'] = _0x1473da, this['imageOffset'] = _0x14b6a6, _0x482f36['style']['transform'] = 'scale(' + this['zoomScale'] + ')\x20translate(' + _0x25b2a4 / this['zoomScale'] + 'px,\x20' + _0x1473da / this['zoomScale'] + 'px)', _0x3e2dba['preventDefault']();
+                onTouchMove = event => {
+                    if (!this.isZoomed || !this.panStart || event.touches.length !== 0x1) return;
+                    const touch = event.touches[0x0],
+                        dx = touch.clientX - this.panStart.x,
+                        dy = touch.clientY - this.panStart.y;
+                    (Math.abs(dx) > 0x1 || Math.abs(dy) > 0x1) && (this.didDrag = !![]);
+                    let newX = this.accumulatedOffset.x + dx,
+                        newY = this.accumulatedOffset.y + dy;
+                    const bounds = this.computePanBounds(imgElement);
+                    newX = Math.max(bounds.minX, Math.min(bounds.maxX, newX)), newY = Math.max(bounds.minY, Math.min(bounds.maxY, newY));
+                    const imageOffset = {};
+                    imageOffset.x = newX, imageOffset.y = newY, this.imageOffset = imageOffset, imgElement.style.transform = 'scale(' + this.zoomScale + ') translate(' + newX / this.zoomScale + 'px, ' + newY / this.zoomScale + 'px)', event.preventDefault();
                 },
-                _0x3db73c = () => {
-                    if (!this['isZoomed']) return;
-                    this['accumulatedOffset'] = {
-                        ...this['imageOffset']
-                    }, this['panStart'] = null, _0x482f36['classList']['remove']('dragging');
+                onTouchEnd = () => {
+                    if (!this.isZoomed) return;
+                    this.accumulatedOffset = {
+                        ...this.imageOffset
+                    }, this.panStart = null, imgElement.classList.remove('dragging');
                 },
-                _0x12f055 = () => {
-                    if (!this['isZoomed']) return;
-                    this['panStart'] = null, _0x482f36['classList']['remove']('dragging');
+                onTouchCancel = () => {
+                    if (!this.isZoomed) return;
+                    this.panStart = null, imgElement.classList.remove('dragging');
                 },
-                _0x4be491 = {};
-            _0x4be491['onPointerDown'] = _0x21ea19, _0x4be491['onPointerMove'] = _0x1afc99, _0x4be491['onPointerUp'] = _0x267b63, _0x4be491['onTouchStart'] = _0x373686, _0x4be491['onTouchMove'] = _0x56d149, _0x4be491['onTouchEnd'] = _0x3db73c, _0x4be491['onTouchCancel'] = _0x12f055, this['_zoomHandlers'] = _0x4be491, _0x482f36['addEventListener']('pointerdown', _0x21ea19), _0x482f36['addEventListener']('pointermove', _0x1d8959 => {
-                if (this['isZoomed']) _0x1d8959['preventDefault']();
-                _0x1afc99(_0x1d8959);
-            }), _0x482f36['addEventListener']('pointerup', _0x267b63), _0x482f36['addEventListener']('pointerleave', _0x267b63), _0x482f36['addEventListener']('pointercancel', _0x267b63);
-            const _0xaf5b26 = {};
-            _0xaf5b26['passive'] = !![], _0x482f36['addEventListener']('touchstart', _0x373686, _0xaf5b26);
-            const _0x44699e = {};
-            _0x44699e['passive'] = ![], _0x482f36['addEventListener']('touchmove', _0x56d149, _0x44699e);
-            const _0x4a495b = {};
-            _0x4a495b['passive'] = !![], _0x482f36['addEventListener']('touchend', _0x3db73c, _0x4a495b);
-            const _0x10dd19 = {};
-            _0x10dd19['passive'] = !![], _0x482f36['addEventListener']('touchcancel', _0x12f055, _0x10dd19);
-        } ['disablePan'](_0x198eae) {
-            if (this['_zoomHandlers']) {
+                zoomHandlers = {};
+            zoomHandlers.onPointerDown = onPointerDown, zoomHandlers.onPointerMove = onPointerMove, zoomHandlers.onPointerUp = onPointerUp, zoomHandlers.onTouchStart = onTouchStart, zoomHandlers.onTouchMove = onTouchMove, zoomHandlers.onTouchEnd = onTouchEnd, zoomHandlers.onTouchCancel = onTouchCancel, this._zoomHandlers = zoomHandlers, imgElement.addEventListener('pointerdown', onPointerDown), imgElement.addEventListener('pointermove', event => {
+                if (this.isZoomed) event.preventDefault();
+                onPointerMove(event);
+            }), imgElement.addEventListener('pointerup', onPointerUp), imgElement.addEventListener('pointerleave', onPointerUp), imgElement.addEventListener('pointercancel', onPointerUp);
+            const touchStartOptions = {};
+            touchStartOptions.passive = !![], imgElement.addEventListener('touchstart', onTouchStart, touchStartOptions);
+            const touchMoveOptions = {};
+            touchMoveOptions.passive = ![], imgElement.addEventListener('touchmove', onTouchMove, touchMoveOptions);
+            const touchEndOptions = {};
+            touchEndOptions.passive = !![], imgElement.addEventListener('touchend', onTouchEnd, touchEndOptions);
+            const touchCancelOptions = {};
+            touchCancelOptions.passive = !![], imgElement.addEventListener('touchcancel', onTouchCancel, touchCancelOptions);
+        }
+        disablePan(imgElement) {
+            if (this._zoomHandlers) {
                 const {
-                    onPointerDown: _0x444863,
-                    onPointerMove: _0xdf3a57,
-                    onPointerUp: _0x40dde1,
-                    onTouchStart: _0x1d0f1d,
-                    onTouchMove: _0x56e16a,
-                    onTouchEnd: _0x20250d,
-                    onTouchCancel: _0x533abf
-                } = this['_zoomHandlers'];
-                _0x198eae['removeEventListener']('pointerdown', _0x444863), _0x198eae['removeEventListener']('pointermove', _0xdf3a57), _0x198eae['removeEventListener']('pointerup', _0x40dde1), _0x198eae['removeEventListener']('pointerleave', _0x40dde1), _0x198eae['removeEventListener']('pointercancel', _0x40dde1), _0x198eae['removeEventListener']('touchstart', _0x1d0f1d), _0x198eae['removeEventListener']('touchmove', _0x56e16a), _0x198eae['removeEventListener']('touchend', _0x20250d), _0x198eae['removeEventListener']('touchcancel', _0x533abf);
+                    onPointerDown: onPointerDown,
+                    onPointerMove: onPointerMove,
+                    onPointerUp: onPointerUp,
+                    onTouchStart: onTouchStart,
+                    onTouchMove: onTouchMove,
+                    onTouchEnd: onTouchEnd,
+                    onTouchCancel: onTouchCancel
+                } = this._zoomHandlers;
+                imgElement.removeEventListener('pointerdown', onPointerDown), imgElement.removeEventListener('pointermove', onPointerMove), imgElement.removeEventListener('pointerup', onPointerUp), imgElement.removeEventListener('pointerleave', onPointerUp), imgElement.removeEventListener('pointercancel', onPointerUp), imgElement.removeEventListener('touchstart', onTouchStart), imgElement.removeEventListener('touchmove', onTouchMove), imgElement.removeEventListener('touchend', onTouchEnd), imgElement.removeEventListener('touchcancel', onTouchCancel);
             }
-            this['_zoomHandlers'] = null;
-        } ['computePanBounds'](_0x220cf5) {
-            const _0xdf84f2 = _0x220cf5['parentElement'],
-                _0x36a906 = {};
-            _0x36a906['minX'] = 0x0, _0x36a906['maxX'] = 0x0, _0x36a906['minY'] = 0x0, _0x36a906['maxY'] = 0x0;
-            if (!_0xdf84f2) return _0x36a906;
-            const _0x5e2364 = _0xdf84f2['getBoundingClientRect'](),
-                _0x1d5912 = _0x220cf5['naturalWidth'],
-                _0x276d52 = _0x220cf5['naturalHeight'],
-                _0x5b1fbf = {};
-            _0x5b1fbf['minX'] = 0x0, _0x5b1fbf['maxX'] = 0x0, _0x5b1fbf['minY'] = 0x0, _0x5b1fbf['maxY'] = 0x0;
-            if (!_0x1d5912 || !_0x276d52) return _0x5b1fbf;
-            const _0x2bb58a = _0x5e2364['width'] / _0x5e2364['height'],
-                _0x3c4d6c = _0x1d5912 / _0x276d52;
+            this._zoomHandlers = null;
+        }
+        computePanBounds(imgElement) {
+            const container = imgElement.parentElement,
+                bounds = {};
+            bounds.minX = 0x0, bounds.maxX = 0x0, bounds.minY = 0x0, bounds.maxY = 0x0;
+            if (!container) return bounds;
+            const containerRect = container.getBoundingClientRect(),
+                naturalWidth = imgElement.naturalWidth,
+                naturalHeight = imgElement.naturalHeight,
+                defaultBounds = {};
+            defaultBounds.minX = 0x0, defaultBounds.maxX = 0x0, defaultBounds.minY = 0x0, defaultBounds.maxY = 0x0;
+            if (!naturalWidth || !naturalHeight) return defaultBounds;
+            const containerRatio = containerRect.width / containerRect.height,
+                imageRatio = naturalWidth / naturalHeight;
             let baseDisplayW, baseDisplayH;
-            _0x3c4d6c > _0x2bb58a ? (baseDisplayW = _0x5e2364['width'], baseDisplayH = baseDisplayW / _0x3c4d6c) : (baseDisplayH = _0x5e2364['height'], baseDisplayW = baseDisplayH * _0x3c4d6c);
-            const _0x26115b = baseDisplayW * this['zoomScale'],
-                _0x564d6d = baseDisplayH * this['zoomScale'],
-                _0x12de63 = Math['max'](0x0, _0x26115b - _0x5e2364['width']),
-                _0x3a3e56 = Math['max'](0x0, _0x564d6d - _0x5e2364['height']),
-                _0x114055 = 0x0,
-                _0x43554f = _0x12de63 * _0x114055,
-                _0x530302 = _0x3a3e56 * _0x114055,
-                _0x3d5eac = {};
-            return _0x3d5eac['minX'] = -(_0x12de63 / 0x2) - _0x43554f, _0x3d5eac['maxX'] = _0x12de63 / 0x2 + _0x43554f, _0x3d5eac['minY'] = -(_0x3a3e56 / 0x2) - _0x530302, _0x3d5eac['maxY'] = _0x3a3e56 / 0x2 + _0x530302, _0x3d5eac;
+            imageRatio > containerRatio ? (baseDisplayW = containerRect.width, baseDisplayH = baseDisplayW / imageRatio) : (baseDisplayH = containerRect.height, baseDisplayW = baseDisplayH * imageRatio);
+            const zoomedWidth = baseDisplayW * this.zoomScale,
+                zoomedHeight = baseDisplayH * this.zoomScale,
+                overflowX = Math.max(0x0, zoomedWidth - containerRect.width),
+                overflowY = Math.max(0x0, zoomedHeight - containerRect.height),
+                panBias = 0x0,
+                panOffsetX = overflowX * panBias,
+                panOffsetY = overflowY * panBias,
+                panBounds = {};
+            return panBounds.minX = -(overflowX / 0x2) - panOffsetX, panBounds.maxX = overflowX / 0x2 + panOffsetX, panBounds.minY = -(overflowY / 0x2) - panOffsetY, panBounds.maxY = overflowY / 0x2 + panOffsetY, panBounds;
         }
     }
-    document['readyState'] === 'loading' ? document['addEventListener']('DOMContentLoaded', () => {
-        new _0x30893b();
-    }) : new _0x30893b();
+    document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', () => {
+        new ImageViewer();
+    }) : new ImageViewer();
 }());

@@ -1,156 +1,156 @@
-function transformAssetPath(_0x1d35e2) {
-    if (!_0x1d35e2) return _0x1d35e2;
-    if (_0x1d35e2['startsWith']('http:') || _0x1d35e2['startsWith']('https:') || _0x1d35e2['startsWith']('../../../')) return _0x1d35e2;
-    let _0x2ef45e = _0x1d35e2;
-    _0x2ef45e['startsWith']('/') && (_0x2ef45e = _0x2ef45e['substring'](0x1));
-    if (_0x2ef45e['startsWith']('assets/')) return '../../../' + _0x2ef45e;
-    return _0x2ef45e;
+function transformAssetPath(assetPath) {
+    if (!assetPath) return assetPath;
+    if (assetPath.startsWith('http:') || assetPath.startsWith('https:') || assetPath.startsWith('../../../')) return assetPath;
+    let path = assetPath;
+    path.startsWith('/') && (path = path.substring(0x1));
+    if (path.startsWith('assets/')) return '../../../' + path;
+    return path;
 }
 import {
     sanitizeHTML
 } from '../../scripts/utils/sanitizer.js';
-import _0x251b9a from '../../scripts/utils/appLoader.js';
-document['addEventListener']('DOMContentLoaded', async () => {
-    const _0x1614d3 = document['getElementById']('social-links-card'),
-        _0x3b8b59 = document['getElementById']('skills-card'),
-        _0x17cb07 = document['getElementById']('software-card'),
-        _0x4289b2 = document['querySelector']('.left-panel');
-    if (!_0x4289b2) return;
-    const addressBarElement = window['parent']?.['document']?.['querySelector']('#about-window\x20.addressbar');
-    let _0xb225a6 = null;
-    addressBarElement && (_0xb225a6 = new _0x251b9a('about', addressBarElement, () => {
-        if (window['parent'] && window['parent'] !== window) {
-            const _0x38d1b2 = {};
-            _0x38d1b2['type'] = 'app-fully-loaded', _0x38d1b2['appId'] = 'about-window', window['parent']['postMessage'](_0x38d1b2, '*');
+import AppLoader from '../../scripts/utils/appLoader.js';
+document.addEventListener('DOMContentLoaded', async () => {
+    const socialLinksCard = document.getElementById('social-links-card'),
+        skillsCard = document.getElementById('skills-card'),
+        softwareCard = document.getElementById('software-card'),
+        leftPanel = document.querySelector('.left-panel');
+    if (!leftPanel) return;
+    const addressBarElement = window.parent?.document?.querySelector('#about-window .addressbar');
+    let appLoader = null;
+    addressBarElement && (appLoader = new AppLoader('about', addressBarElement, () => {
+        if (window.parent && window.parent !== window) {
+            const message = {};
+            message.type = 'app-fully-loaded', message.appId = 'about-window', window.parent.postMessage(message, '*');
         }
-    }), _0xb225a6['startLoading'](0x5));
-    let _0x3be9fe = null;
+    }), appLoader.startLoading(0x5));
+    let uiConfig = null;
     try {
-        if (_0xb225a6) _0xb225a6['setProgress'](0xf);
-        const _0x256aa1 = await fetch('../../../ui.json');
-        if (_0xb225a6) _0xb225a6['setProgress'](0x19);
-        _0x3be9fe = await _0x256aa1['json']();
-        if (_0xb225a6) _0xb225a6['setProgress'](0x23);
-    } catch (_0xeaec10) {
-        if (_0xb225a6) _0xb225a6['complete']();
+        if (appLoader) appLoader.setProgress(0xf);
+        const response = await fetch('../../../ui.json');
+        if (appLoader) appLoader.setProgress(0x19);
+        uiConfig = await response.json();
+        if (appLoader) appLoader.setProgress(0x23);
+    } catch (error) {
+        if (appLoader) appLoader.complete();
         return;
     }
-    if (!_0x3be9fe) {
-        if (_0xb225a6) _0xb225a6['complete']();
+    if (!uiConfig) {
+        if (appLoader) appLoader.complete();
         return;
     }
-    if (_0x1614d3 && _0x3be9fe['socials']) {
-        const _0x1c7e91 = _0x3be9fe['socials']['filter'](_0x98f2ea => _0x98f2ea['showInAbout'] && _0x98f2ea['icon'])['map'](_0x19877d => transformAssetPath(_0x19877d['icon']));
-        if (_0xb225a6 && _0x1c7e91['length'] > 0x0) await _0xb225a6['loadAssets'](_0x1c7e91, 0x28, 0x2d);
-        else _0xb225a6 && _0xb225a6['setProgress'](0x2d);
-        const _0x33e3db = _0x1614d3['querySelector']('.left-panel__card__content-inner');
-        _0x33e3db && (_0x33e3db['innerHTML'] = '', _0x3be9fe['socials']['forEach'](_0x2fa715 => {
-            if (!_0x2fa715['showInAbout']) return;
-            const _0xa6f4c4 = document['createElement']('a');
-            _0xa6f4c4['href'] = _0x2fa715['url'], _0xa6f4c4['target'] = '_blank', _0xa6f4c4['rel'] = 'noopener\x20noreferrer', _0xa6f4c4['className'] = 'left-panel__card__row\x20social-link', _0xa6f4c4['dataset']['socialKey'] = _0x2fa715['key'], _0xa6f4c4['dataset']['socialUrl'] = _0x2fa715['url'], _0xa6f4c4['dataset']['socialLabel'] = _0x2fa715['name'];
-            const _0x28791a = document['createElement']('img');
-            _0x28791a['className'] = 'left-panel__card__img', _0x28791a['src'] = transformAssetPath(_0x2fa715['icon']), _0x28791a['alt'] = _0x2fa715['name'];
-            const _0x10c7b9 = document['createElement']('span');
-            _0x10c7b9['className'] = 'left-panel__card__text', _0x10c7b9['textContent'] = _0x2fa715['name'], _0xa6f4c4['appendChild'](_0x28791a), _0xa6f4c4['appendChild'](_0x10c7b9), _0x33e3db['appendChild'](_0xa6f4c4), _0xa6f4c4['addEventListener']('click', _0x38874a => {
-                _0x38874a['preventDefault']();
-                if (window['parent'] && window['parent'] !== window) {
-                    const _0x441d89 = {};
-                    _0x441d89['type'] = 'open-social-from-about', _0x441d89['key'] = _0x2fa715['key'], _0x441d89['url'] = _0x2fa715['url'], _0x441d89['label'] = _0x2fa715['name'], window['parent']['postMessage'](_0x441d89, '*');
+    if (socialLinksCard && uiConfig.socials) {
+        const socialIcons = uiConfig.socials.filter(social => social.showInAbout && social.icon).map(social => transformAssetPath(social.icon));
+        if (appLoader && socialIcons.length > 0x0) await appLoader.loadAssets(socialIcons, 0x28, 0x2d);
+        else appLoader && appLoader.setProgress(0x2d);
+        const socialLinksContent = socialLinksCard.querySelector('.left-panel__card__content-inner');
+        socialLinksContent && (socialLinksContent.innerHTML = '', uiConfig.socials.forEach(social => {
+            if (!social.showInAbout) return;
+            const linkElement = document.createElement('a');
+            linkElement.href = social.url, linkElement.target = '_blank', linkElement.rel = 'noopener noreferrer', linkElement.className = 'left-panel__card__row social-link', linkElement.dataset.socialKey = social.key, linkElement.dataset.socialUrl = social.url, linkElement.dataset.socialLabel = social.name;
+            const imgElement = document.createElement('img');
+            imgElement.className = 'left-panel__card__img', imgElement.src = transformAssetPath(social.icon), imgElement.alt = social.name;
+            const spanElement = document.createElement('span');
+            spanElement.className = 'left-panel__card__text', spanElement.textContent = social.name, linkElement.appendChild(imgElement), linkElement.appendChild(spanElement), socialLinksContent.appendChild(linkElement), linkElement.addEventListener('click', event => {
+                event.preventDefault();
+                if (window.parent && window.parent !== window) {
+                    const message = {};
+                    message.type = 'open-social-from-about', message.key = social.key, message.url = social.url, message.label = social.name, window.parent.postMessage(message, '*');
                 }
             });
         }));
     }
-    if (_0x3be9fe['about']) {
-        const _0x16db4b = [];
-        for (let _0xac811a = 0x1; _0xac811a <= 0x5; _0xac811a++) {
-            const _0x3be8c1 = _0x3be9fe['about']['p' + _0xac811a];
-            if (_0x3be8c1) _0x16db4b['push'](transformAssetPath(_0x3be8c1));
+    if (uiConfig.about) {
+        const paragraphAssets = [];
+        for (let i = 0x1; i <= 0x5; i++) {
+            const asset = uiConfig.about['p' + i];
+            if (asset) paragraphAssets.push(transformAssetPath(asset));
         }
-        if (_0xb225a6 && _0x16db4b['length'] > 0x0) await _0xb225a6['loadAssets'](_0x16db4b, 0x32, 0x37);
-        else _0xb225a6 && _0xb225a6['setProgress'](0x37);
-        const _0x43c636 = document['querySelector']('.section_text');
-        _0x43c636 && (_0x43c636['innerHTML'] = '', _0x3be9fe['about']['paragraphs']['forEach']((_0x750314, _0x51af59) => {
-            const _0x11cfbf = document['createElement']('div');
-            _0x11cfbf['className'] = 'about-paragraph-row';
-            const _0x2557cc = document['createElement']('span');
-            _0x2557cc['className'] = 'about-paragraph-icon-col';
-            const _0x37aaba = document['createElement']('img');
-            _0x37aaba['className'] = 'about-paragraph-icon', _0x37aaba['draggable'] = ![], _0x37aaba['alt'] = 'Paragraph\x20icon\x20' + (_0x51af59 + 0x1), _0x37aaba['src'] = transformAssetPath(_0x3be9fe['about']['p' + (_0x51af59 + 0x1)]), _0x2557cc['appendChild'](_0x37aaba);
-            const _0x13af5a = document['createElement']('span');
-            _0x13af5a['className'] = 'about-paragraph-text', /[<>]/ ['test'](_0x750314) ? _0x13af5a['innerHTML'] = sanitizeHTML(_0x750314) : _0x13af5a['textContent'] = _0x750314, _0x11cfbf['appendChild'](_0x2557cc), _0x11cfbf['appendChild'](_0x13af5a), _0x43c636['appendChild'](_0x11cfbf);
+        if (appLoader && paragraphAssets.length > 0x0) await appLoader.loadAssets(paragraphAssets, 0x32, 0x37);
+        else appLoader && appLoader.setProgress(0x37);
+        const textSection = document.querySelector('.section_text');
+        textSection && (textSection.innerHTML = '', uiConfig.about.paragraphs.forEach((paragraph, index) => {
+            const paragraphRow = document.createElement('div');
+            paragraphRow.className = 'about-paragraph-row';
+            const iconCol = document.createElement('span');
+            iconCol.className = 'about-paragraph-icon-col';
+            const iconImg = document.createElement('img');
+            iconImg.className = 'about-paragraph-icon', iconImg.draggable = ![], iconImg.alt = 'Paragraph icon ' + (index + 0x1), iconImg.src = transformAssetPath(uiConfig.about['p' + (index + 0x1)]), iconCol.appendChild(iconImg);
+            const textSpan = document.createElement('span');
+            textSpan.className = 'about-paragraph-text', /[<>]/.test(paragraph) ? textSpan.innerHTML = sanitizeHTML(paragraph) : textSpan.textContent = paragraph, paragraphRow.appendChild(iconCol), paragraphRow.appendChild(textSpan), textSection.appendChild(paragraphRow);
         }));
-        if (_0x3b8b59 && _0x3be9fe['about']['skills'] && _0x3be9fe['about']['skillsIcons']) {
-            const _0x34723b = _0x3be9fe['about']['skillsIcons']['map'](_0x177087 => transformAssetPath(_0x177087));
-            if (_0xb225a6 && _0x34723b['length'] > 0x0) await _0xb225a6['loadAssets'](_0x34723b, 0x41, 0x46);
-            else _0xb225a6 && _0xb225a6['setProgress'](0x46);
-            const _0x5ced0c = _0x3b8b59['querySelector']('.left-panel__card__content-inner');
-            _0x5ced0c && (_0x5ced0c['innerHTML'] = '', _0x3be9fe['about']['skills']['forEach']((_0x146bc1, _0x24ec65) => {
-                const _0x38c55c = document['createElement']('div');
-                _0x38c55c['className'] = 'left-panel__card__row';
-                const _0x1d6a1f = document['createElement']('img');
-                _0x1d6a1f['className'] = 'left-panel__card__img', _0x1d6a1f['alt'] = _0x146bc1, _0x1d6a1f['src'] = transformAssetPath(_0x3be9fe['about']['skillsIcons'][_0x24ec65] || '');
-                const _0x234e3b = document['createElement']('span');
-                _0x234e3b['className'] = 'left-panel__card__text', _0x234e3b['textContent'] = _0x146bc1, _0x38c55c['appendChild'](_0x1d6a1f), _0x38c55c['appendChild'](_0x234e3b), _0x5ced0c['appendChild'](_0x38c55c);
+        if (skillsCard && uiConfig.about.skills && uiConfig.about.skillsIcons) {
+            const skillIcons = uiConfig.about.skillsIcons.map(icon => transformAssetPath(icon));
+            if (appLoader && skillIcons.length > 0x0) await appLoader.loadAssets(skillIcons, 0x41, 0x46);
+            else appLoader && appLoader.setProgress(0x46);
+            const skillsContent = skillsCard.querySelector('.left-panel__card__content-inner');
+            skillsContent && (skillsContent.innerHTML = '', uiConfig.about.skills.forEach((skill, index) => {
+                const skillRow = document.createElement('div');
+                skillRow.className = 'left-panel__card__row';
+                const skillImg = document.createElement('img');
+                skillImg.className = 'left-panel__card__img', skillImg.alt = skill, skillImg.src = transformAssetPath(uiConfig.about.skillsIcons[index] || '');
+                const skillName = document.createElement('span');
+                skillName.className = 'left-panel__card__text', skillName.textContent = skill, skillRow.appendChild(skillImg), skillRow.appendChild(skillName), skillsContent.appendChild(skillRow);
             }));
         }
-        if (_0x17cb07 && _0x3be9fe['about']['software'] && _0x3be9fe['about']['softwareIcons']) {
-            const _0x3c1000 = _0x3be9fe['about']['softwareIcons']['map'](_0x409054 => transformAssetPath(_0x409054));
-            if (_0xb225a6 && _0x3c1000['length'] > 0x0) await _0xb225a6['loadAssets'](_0x3c1000, 0x50, 0x55);
-            else _0xb225a6 && _0xb225a6['setProgress'](0x55);
-            const _0x1b447e = _0x17cb07['querySelector']('.left-panel__card__content-inner');
-            _0x1b447e && (_0x1b447e['innerHTML'] = '', _0x3be9fe['about']['software']['forEach']((_0x2d264d, _0x316da5) => {
-                const _0x2c72b5 = document['createElement']('div');
-                _0x2c72b5['className'] = 'left-panel__card__row';
-                const _0x180a09 = document['createElement']('img');
-                _0x180a09['className'] = 'left-panel__card__img', _0x180a09['alt'] = _0x2d264d, _0x180a09['src'] = transformAssetPath(_0x3be9fe['about']['softwareIcons'][_0x316da5] || '');
-                const _0x410c70 = document['createElement']('span');
-                _0x410c70['className'] = 'left-panel__card__text', _0x410c70['textContent'] = _0x2d264d, _0x2c72b5['appendChild'](_0x180a09), _0x2c72b5['appendChild'](_0x410c70), _0x1b447e['appendChild'](_0x2c72b5);
+        if (softwareCard && uiConfig.about.software && uiConfig.about.softwareIcons) {
+            const softwareIcons = uiConfig.about.softwareIcons.map(icon => transformAssetPath(icon));
+            if (appLoader && softwareIcons.length > 0x0) await appLoader.loadAssets(softwareIcons, 0x50, 0x55);
+            else appLoader && appLoader.setProgress(0x55);
+            const softwareContent = softwareCard.querySelector('.left-panel__card__content-inner');
+            softwareContent && (softwareContent.innerHTML = '', uiConfig.about.software.forEach((software, index) => {
+                const softwareRow = document.createElement('div');
+                softwareRow.className = 'left-panel__card__row';
+                const softwareImg = document.createElement('img');
+                softwareImg.className = 'left-panel__card__img', softwareImg.alt = software, softwareImg.src = transformAssetPath(uiConfig.about.softwareIcons[index] || '');
+                const softwareName = document.createElement('span');
+                softwareName.className = 'left-panel__card__text', softwareName.textContent = software, softwareRow.appendChild(softwareImg), softwareRow.appendChild(softwareName), softwareContent.appendChild(softwareRow);
             }));
         }
     }
-    _0x1614d3 && expandCard(_0x1614d3);
-    _0x3b8b59 && expandCard(_0x3b8b59);
-    _0x17cb07 && expandCard(_0x17cb07);
-    if (_0x1614d3) {
-        const _0x2cc986 = _0x1614d3['querySelector']('.left-panel__card__header');
-        _0x2cc986 && _0x2cc986['addEventListener']('click', () => toggleCard(_0x1614d3));
+    socialLinksCard && expandCard(socialLinksCard);
+    skillsCard && expandCard(skillsCard);
+    softwareCard && expandCard(softwareCard);
+    if (socialLinksCard) {
+        const socialLinksHeader = socialLinksCard.querySelector('.left-panel__card__header');
+        socialLinksHeader && socialLinksHeader.addEventListener('click', () => toggleCard(socialLinksCard));
     }
-    if (_0x3b8b59) {
-        const _0xf290f7 = _0x3b8b59['querySelector']('.left-panel__card__header');
-        _0xf290f7 && _0xf290f7['addEventListener']('click', () => toggleCard(_0x3b8b59));
+    if (skillsCard) {
+        const skillsHeader = skillsCard.querySelector('.left-panel__card__header');
+        skillsHeader && skillsHeader.addEventListener('click', () => toggleCard(skillsCard));
     }
-    if (_0x17cb07) {
-        const _0x11ae12 = _0x17cb07['querySelector']('.left-panel__card__header');
-        _0x11ae12 && _0x11ae12['addEventListener']('click', () => toggleCard(_0x17cb07));
+    if (softwareCard) {
+        const softwareHeader = softwareCard.querySelector('.left-panel__card__header');
+        softwareHeader && softwareHeader.addEventListener('click', () => toggleCard(softwareCard));
     }
-    _0xb225a6 && (_0xb225a6['setProgress'](0x5f), setTimeout(() => {
-        _0xb225a6['complete']();
+    appLoader && (appLoader.setProgress(0x5f), setTimeout(() => {
+        appLoader.complete();
     }, 0x12c));
 });
 
 function softResetAboutApp() {
-    try {} catch (_0x5d0736) {}
+    try {} catch (error) {}
 }
-window['addEventListener']('message', _0xe53bf => {
-    _0xe53bf?.['data']?.['type'] === 'window:soft-reset' && softResetAboutApp();
-}), document['addEventListener']('click', () => {
-    if (window['parent'] && window['parent'] !== window) {
-        const _0x48e928 = {};
-        _0x48e928['type'] = 'window:iframe-interaction', window['parent']['postMessage'](_0x48e928, '*');
+window.addEventListener('message', event => {
+    event?.data?.type === 'window:soft-reset' && softResetAboutApp();
+}), document.addEventListener('click', () => {
+    if (window.parent && window.parent !== window) {
+        const message = {};
+        message.type = 'window:iframe-interaction', window.parent.postMessage(message, '*');
     }
 });
 
-function expandCard(_0x3d157c) {
-    if (!_0x3d157c) return;
-    _0x3d157c['classList']['remove']('collapsed');
-    const _0xd54c92 = _0x3d157c['querySelector']('.left-panel__card__header__img');
-    _0xd54c92 && (_0x3d157c['classList']['contains']('left-panel__card--social') ? _0xd54c92['src'] = '../../../assets/apps/about/pullup-alt.webp' : _0xd54c92['src'] = '../../../assets/apps/about/pullup.webp');
+function expandCard(card) {
+    if (!card) return;
+    card.classList.remove('collapsed');
+    const headerImg = card.querySelector('.left-panel__card__header__img');
+    headerImg && (card.classList.contains('left-panel__card--social') ? headerImg.src = '../../../assets/apps/about/pullup-alt.webp' : headerImg.src = '../../../assets/apps/about/pullup.webp');
 }
 
-function toggleCard(_0x1f7fb8) {
-    if (!_0x1f7fb8) return;
-    _0x1f7fb8['classList']['toggle']('collapsed');
-    const _0x5d870d = _0x1f7fb8['classList']['contains']('collapsed'),
-        _0xb4b384 = _0x1f7fb8['querySelector']('.left-panel__card__header__img');
-    _0xb4b384 && (_0x1f7fb8['classList']['contains']('left-panel__card--social') ? _0xb4b384['src'] = _0x5d870d ? '../../../assets/apps/about/pulldown-alt.webp' : '../../../assets/apps/about/pullup-alt.webp' : _0xb4b384['src'] = _0x5d870d ? '../../../assets/apps/about/pulldown.webp' : '../../../assets/apps/about/pullup.webp');
+function toggleCard(card) {
+    if (!card) return;
+    card.classList.toggle('collapsed');
+    const isCollapsed = card.classList.contains('collapsed'),
+        headerImg = card.querySelector('.left-panel__card__header__img');
+    headerImg && (card.classList.contains('left-panel__card--social') ? headerImg.src = isCollapsed ? '../../../assets/apps/about/pulldown-alt.webp' : '../../../assets/apps/about/pullup-alt.webp' : headerImg.src = isCollapsed ? '../../../assets/apps/about/pulldown.webp' : '../../../assets/apps/about/pullup.webp');
 }

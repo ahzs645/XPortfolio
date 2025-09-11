@@ -1,84 +1,84 @@
-const fromInput = document['getElementById']('contact-from'),
-    subjectInput = document['getElementById']('contact-subject'),
-    messageTextarea = document['getElementById']('contact-message');
-let moduleContactName = 'Mitch\x20Ivin',
+const fromInput = document.getElementById('contact-from'),
+    subjectInput = document.getElementById('contact-subject'),
+    messageTextarea = document.getElementById('contact-message');
+let moduleContactName = 'Mitch Ivin',
     moduleContactEmail = 'mitchellivin@gmail.com';
-document['addEventListener']('DOMContentLoaded', async () => {
-    let _0x2d22a1 = null;
+document.addEventListener('DOMContentLoaded', async () => {
+    let uiConfig = null;
     try {
-        const _0x277e29 = await fetch('../../../ui.json');
-        _0x2d22a1 = await _0x277e29['json']();
-    } catch (_0x934f8) {}
-    _0x2d22a1 && _0x2d22a1['contact'] && (moduleContactName = _0x2d22a1['contact']['name'] || moduleContactName, moduleContactEmail = _0x2d22a1['contact']['email'] || moduleContactEmail);
-    const _0x5d5f41 = document['getElementById']('contact-to');
-    _0x5d5f41 && (_0x5d5f41['value'] = moduleContactName + '\x20<' + moduleContactEmail + '>');
+        const response = await fetch('../../../ui.json');
+        uiConfig = await response.json();
+    } catch (error) {}
+    uiConfig && uiConfig.contact && (moduleContactName = uiConfig.contact.name || moduleContactName, moduleContactEmail = uiConfig.contact.email || moduleContactEmail);
+    const toInput = document.getElementById('contact-to');
+    toInput && (toInput.value = moduleContactName + ' <' + moduleContactEmail + '>');
 
-    function _0x5c584e() {
-        if (fromInput) fromInput['value'] = '';
-        if (subjectInput) subjectInput['value'] = '';
-        if (messageTextarea) messageTextarea['value'] = '';
+    function clearForm() {
+        if (fromInput) fromInput.value = '';
+        if (subjectInput) subjectInput.value = '';
+        if (messageTextarea) messageTextarea.value = '';
         notifyFormState();
     }
-    window['addEventListener']('message', _0x27157c => {
-        if (_0x27157c['data'] && typeof _0x27157c['data'] === 'object') {
-            if (_0x27157c['data']['command'] === 'getFormData' || _0x27157c['data']['type'] === 'contact:form-data:request') {
-                window['parent'] && window['parent'] !== window && window['parent']['postMessage']({
+    window.addEventListener('message', event => {
+        if (event.data && typeof event.data === 'object') {
+            if (event.data.command === 'getFormData' || event.data.type === 'contact:form-data:request') {
+                window.parent && window.parent !== window && window.parent.postMessage({
                     'type': 'contact:form-data:response',
                     'data': getFormData(),
-                    'sourceWindowId': _0x27157c['data']['sourceWindowId']
+                    'sourceWindowId': event.data.sourceWindowId
                 }, '*');
                 return;
             }
-            switch (_0x27157c['data']['command']) {
+            switch (event.data.command) {
                 case 'newMessage':
-                    _0x5c584e();
+                    clearForm();
                     break;
             }
-            _0x27157c['data']['type'] === 'contact:clear-form' && _0x5c584e();
+            event.data.type === 'contact:clear-form' && clearForm();
         }
-        if (_0x27157c['data'] && _0x27157c['data']['type'] === 'toolbar:action') {
-            if (_0x27157c['data']['action'] === 'newMessage') _0x5c584e();
-            else _0x27157c['data']['action'] === 'sendMessage' && sendMessage();
+        if (event.data && event.data.type === 'toolbar:action') {
+            if (event.data.action === 'newMessage') clearForm();
+            else event.data.action === 'sendMessage' && sendMessage();
         }
     });
 });
 
 function getFormData() {
-    const _0xf6b4e = {};
-    return _0xf6b4e['to'] = '\x22' + moduleContactName + '\x22\x20<' + moduleContactEmail + '>', _0xf6b4e['from'] = fromInput ? fromInput['value'] : '', _0xf6b4e['subject'] = subjectInput ? subjectInput['value'] : '', _0xf6b4e['message'] = messageTextarea ? messageTextarea['value'] : '', _0xf6b4e;
+    const formData = {};
+    return formData.to = '"' + moduleContactName + '" <' + moduleContactEmail + '>', formData.from = fromInput ? fromInput.value : '', formData.subject = subjectInput ? subjectInput.value : '', formData.message = messageTextarea ? messageTextarea.value : '', formData;
 }
 
 function sendMessage() {
-    window['parent'] && window['parent'] !== window && window['parent']['postMessage']({
+    window.parent && window.parent !== window && window.parent.postMessage({
         'type': 'contact:form-data:response',
         'data': getFormData()
     }, '*');
 }
 
 function notifyParentIframeInteraction() {
-    window['parent'] && window['parent'] !== window && window['parent']['postMessage']({
+    window.parent && window.parent !== window && window.parent.postMessage({
         'type': 'window:iframe-interaction',
-        'windowId': window['name']
+        'windowId': window.name
     }, '*');
 }
-document['addEventListener']('click', notifyParentIframeInteraction, !![]);
+document.addEventListener('click', notifyParentIframeInteraction, !![]);
 
 function notifyFormState() {
-    const _0x4c823b = fromInput && fromInput['value']['trim']() || subjectInput && subjectInput['value']['trim']() || messageTextarea && messageTextarea['value']['trim']();
-    window['parent'] && window['parent'] !== window && window['parent']['postMessage']({
+    const hasValue = fromInput && fromInput.value.trim() || subjectInput && subjectInput.value.trim() || messageTextarea && messageTextarea.value.trim();
+    window.parent && window.parent !== window && window.parent.postMessage({
         'type': 'contact:form-state',
-        'hasValue': !!_0x4c823b,
-        'windowId': window['name']
+        'hasValue': !!hasValue,
+        'windowId': window.name
     }, '*');
-} [fromInput, subjectInput, messageTextarea]['forEach'](_0x4e36b7 => {
-    _0x4e36b7 && _0x4e36b7['addEventListener']('input', notifyFormState);
-}), window['addEventListener']('DOMContentLoaded', notifyFormState);
+} [fromInput, subjectInput, messageTextarea].forEach(inputElement => {
+    inputElement && inputElement.addEventListener('input', notifyFormState);
+}), window.addEventListener('DOMContentLoaded', notifyFormState);
 
 function softResetContactApp() {
     try {
-        document['activeElement'] && document['activeElement']['blur'] && document['activeElement']['blur'](), notifyFormState();
-    } catch (_0x4d71fc) {}
+        document.activeElement && document.activeElement.blur && document.activeElement.blur(), notifyFormState();
+    } catch (error) {}
 }
-window['addEventListener']('message', _0x4b3a48 => {
-    _0x4b3a48?.['data']?.['type'] === 'window:soft-reset' && softResetContactApp();
+window.addEventListener('message', event => {
+    event?.data?.type === 'window:soft-reset' && softResetContactApp();
 });
