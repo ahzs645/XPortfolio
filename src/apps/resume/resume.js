@@ -210,10 +210,10 @@ function notifyToolbarZoomState(isZoomed) {
 }
 
 window.addEventListener('message', (event) => {
-    if (event ? .data ? .type === 'window:soft-reset') {
+    if (event && event.data && event.data.type === 'window:soft-reset') {
         softResetResumeApp();
     }
-    if (event ? .data ? .type === 'toolbar:action') {
+    if (event && event.data && event.data.type === 'toolbar:action') {
         if (event.data.action === 'toggleZoom') {
             const resumeImage = document.getElementById('resumeImage');
             if (resumeImage) {

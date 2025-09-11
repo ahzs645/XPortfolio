@@ -80,7 +80,7 @@ const pauseVideos = (videos) => {
 
 const cleanupContentSwitching = () => {
     const detailContainer = domCache.detailContainer;
-    if (detailContainer ? ._contentSwitchingCleanup) {
+    if (detailContainer && detailContainer._contentSwitchingCleanup) {
         detailContainer._contentSwitchingCleanup();
         detailContainer._contentSwitchingCleanup = null;
     }
@@ -105,7 +105,7 @@ const clearIntervals = () => {
 
 const removeMobileBlocker = () => {
     const mobileBlocker = domCache.mobileBlocker;
-    if (mobileBlocker ? .parentNode) {
+    if (mobileBlocker && mobileBlocker.parentNode) {
         mobileBlocker.parentNode.removeChild(mobileBlocker);
     }
 };
@@ -217,7 +217,7 @@ window.addEventListener('message', (event) => {
     }
 });
 
-const getAddressBarElement = () => window.parent ? .document ? .querySelector('#projects-window .addressbar');
+const getAddressBarElement = () => window.parent && window.parent.document && window.parent.document.querySelector('#projects-window .addressbar');
 
 if (window.parent && window.parent.eventBus && window.parent.EVENTS) {
     const {
@@ -256,8 +256,8 @@ const showProjectDetail = async (projectIndex) => {
 
     const gridContainer = document.getElementById('grid-container');
     const detailContainer = document.getElementById(SELECTORS.detailContainer.slice(1));
-    const detailInnerContainer = detailContainer ? .querySelector('.detail-container');
-    const detailContent = detailContainer ? .closest('.detail-content') || document.querySelector('.detail-content');
+    const detailInnerContainer = detailContainer && detailContainer.querySelector('.detail-container');
+    const detailContent = (detailContainer && detailContainer.closest('.detail-content')) || document.querySelector('.detail-content');
 
     if (!gridContainer || !detailContainer || !detailInnerContainer) return;
 

@@ -192,7 +192,7 @@ export const createTextOverlay = (project, {
 
     const mainText = createElement('div', 'project-main-text');
     mainText.appendChild(createElement('div', 'project-title', project.title));
-    if (project.subtitle ? .trim()) {
+    if (project.subtitle && project.subtitle.trim()) {
         mainText.appendChild(createElement('div', 'project-subtitle', project.subtitle));
     }
 

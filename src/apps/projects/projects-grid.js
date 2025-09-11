@@ -27,7 +27,7 @@ export const setupGridIntentPrefetch = (domCache) => {
         if (!projectData) return;
 
         const images = Array.isArray(projectData.images) ? projectData.images : [];
-        const imageToPrefetch = images.find(img => (img ? .type || 'image') === 'image' && (img ? .src || img));
+        const imageToPrefetch = images.find(img => ((img && img.type) || 'image') === 'image' && ((img && img.src) || img));
         const src = imageToPrefetch ?
             (typeof imageToPrefetch === 'string' ? imageToPrefetch : (document.documentElement.classList.contains('mobile-device') && imageToPrefetch.srcMobile) ? imageToPrefetch.srcMobile : imageToPrefetch.src) :
             projectData.src;

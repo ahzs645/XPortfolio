@@ -66,10 +66,10 @@ export function createMenuBar(menuBarConfig, windowId, parentWindowElement) {
             }
         }
         const _0x51e347 = document['createElement']('div');
-        _0x51e347['className'] = 'menu-item' + (!_0x439523['enabled'] ? '\x20disabled' : ''), _0x51e347['textContent'] = _0x439523['text'], _0x51e347['setAttribute']('data-menu', _0x439523['key']), _0x224bd9['appendChild'](_0x51e347);
+        _0x51e347['className'] = 'menu-item' + (!_0x439523['enabled'] ? '\x20disabled' : ''), _0x51e347['textContent'] = _0x439523['text'], _0x51e347['setAttribute']('data-menu', _0x439523['key']), bar['appendChild'](_0x51e347);
         if (_0x439523['dropdown'] && _0x439523['dropdown']['length'] > 0x0 && !['edit', 'tools', 'help']['includes'](_0x439523['key'])) {
             const _0x1e34b4 = document['createElement']('div');
-            _0x1e34b4['id'] = _0x439523['key'] + '-menu-' + _0xbb366, _0x1e34b4['className'] = 'dropdown-menu', _0x1e34b4['style']['position'] = 'absolute', _0x1e34b4['style']['zIndex'] = '99999', _0x439523['dropdown']['forEach'](_0x522199 => {
+            _0x1e34b4['id'] = _0x439523['key'] + '-menu-' + windowId, _0x1e34b4['className'] = 'dropdown-menu', _0x1e34b4['style']['position'] = 'absolute', _0x1e34b4['style']['zIndex'] = '99999', _0x439523['dropdown']['forEach'](_0x522199 => {
                 if (_0x522199['type'] === 'separator') {
                     const _0x598072 = document['createElement']('div');
                     _0x598072['className'] = 'menu-separator', _0x1e34b4['appendChild'](_0x598072);
@@ -78,14 +78,14 @@ export function createMenuBar(menuBarConfig, windowId, parentWindowElement) {
                     let _0x2b2ff7 = _0x522199['enabled'] !== ![];
                     _0x522199['action'] === 'maximizeWindow' && document['documentElement']['classList']['contains']('mobile-device') && (_0x2b2ff7 = ![]), _0x371a2d['className'] = 'menu-option' + (!_0x2b2ff7 ? '\x20disabled' : ''), _0x371a2d['textContent'] = _0x522199['text'], _0x522199['action'] && _0x2b2ff7 && _0x371a2d['setAttribute']('data-action', _0x522199['action']), _0x1e34b4['appendChild'](_0x371a2d);
                 }
-            }), _0x168b39['appendChild'](_0x1e34b4);
+            }), container['appendChild'](_0x1e34b4);
         }
     });
     const _0x238d89 = document['createElement']('img');
-    return _0x238d89['className'] = 'menu-bar-logo-placeholder', _0x238d89['src'] = './assets/gui/toolbar/barlogo.webp', _0x238d89['decoding'] = 'async', _0x238d89['loading'] = 'lazy', _0x238d89['alt'] = 'Logo', _0x224bd9['appendChild'](_0x238d89), _0x168b39['insertBefore'](_0x224bd9, _0x168b39['firstChild']), setTimeout(() => {
+    return _0x238d89['className'] = 'menu-bar-logo-placeholder', _0x238d89['src'] = './assets/gui/toolbar/barlogo.webp', _0x238d89['decoding'] = 'async', _0x238d89['loading'] = 'lazy', _0x238d89['alt'] = 'Logo', bar['appendChild'](_0x238d89), container['insertBefore'](bar, container['firstChild']), setTimeout(() => {
         let _0x14bff1 = null;
         const _0x5b5e8a = {};
-        _0x168b39['querySelectorAll']('.dropdown-menu')['forEach'](_0x75c60a => {
+        container['querySelectorAll']('.dropdown-menu')['forEach'](_0x75c60a => {
             const _0x4f01a9 = _0x75c60a['id']['split']('-')[0x0];
             _0x5b5e8a[_0x4f01a9] = _0x75c60a;
         });
@@ -98,7 +98,7 @@ export function createMenuBar(menuBarConfig, windowId, parentWindowElement) {
                 _0x14bff1['classList']['remove']('active'), _0x14bff1 = null;
             }
         }
-        _0x3c9d40 = _0x17ede2;
+        closeMenus = _0x17ede2;
         if (_parentWindowElement) {
             _parentWindowElement['addEventListener']('window-drag-start', _0x17ede2), _parentWindowElement['addEventListener']('request-close-window', _0x17ede2), _parentWindowElement['addEventListener']('window:iframe-interaction', _0x17ede2);
             const _0x1bd6b9 = _parentWindowElement['querySelector']('iframe');
@@ -110,7 +110,7 @@ export function createMenuBar(menuBarConfig, windowId, parentWindowElement) {
                 });
             }
         }
-        const _0x365965 = _0x168b39['querySelectorAll']('.menu-bar\x20.menu-item:not(.disabled)');
+        const _0x365965 = container['querySelectorAll']('.menu-bar\x20.menu-item:not(.disabled)');
         _0x365965['forEach'](_0x5e1a3d => {
             _0x5e1a3d['addEventListener']('mouseenter', () => {
                 _0x14bff1 && _0x14bff1 !== _0x5e1a3d && _0x5e1a3d['click']();
@@ -142,7 +142,7 @@ export function createMenuBar(menuBarConfig, windowId, parentWindowElement) {
                 _0x47646d['style']['left'] = _0x4681e2 + 'px', _0x47646d['style']['top'] = Math['round'](_0x41279b['bottom'] + window['scrollY']) - 0x2 + 'px', _0x47646d['style']['minWidth'] = '130px', _0x47646d['classList']['add']('show'), _0x14bff1 = _0x5e1a3d;
                 const _0x2b1332 = _0x30d38d => {
                     const _0x4952ab = _0x30d38d['relatedTarget'];
-                    (!_0x4952ab || !_0x47646d['contains'](_0x4952ab) && !_0x168b39['contains'](_0x4952ab)) && (_0x17ede2(), _0x47646d['removeEventListener']('mouseleave', _0x2b1332, !![]));
+                    (!_0x4952ab || !_0x47646d['contains'](_0x4952ab) && !container['contains'](_0x4952ab)) && (_0x17ede2(), _0x47646d['removeEventListener']('mouseleave', _0x2b1332, !![]));
                 };
                 _0x47646d['addEventListener']('mouseleave', _0x2b1332, !![]);
             });
@@ -152,14 +152,14 @@ export function createMenuBar(menuBarConfig, windowId, parentWindowElement) {
             const _0x3e78e8 = _0x14bff1['getAttribute']('data-menu'),
                 _0x265eb6 = _0x5b5e8a[_0x3e78e8];
             if (!_0x265eb6) return _0x17ede2();
-            !_0x265eb6['contains'](_0x55abb2['target']) && !_0x168b39['contains'](_0x55abb2['target']) && _0x17ede2();
+            !_0x265eb6['contains'](_0x55abb2['target']) && !container['contains'](_0x55abb2['target']) && _0x17ede2();
         };
         setTimeout(() => {
             document['addEventListener']('click', _0x2eaabb), document['addEventListener']('pointerdown', _0x2eaabb, !![]), document['addEventListener']('keydown', _0x2f53f3 => {
                 if (_0x2f53f3['key'] === 'Escape') _0x17ede2();
             }), window['addEventListener']('scroll', _0x17ede2, !![]), window['addEventListener']('resize', _0x17ede2);
         }, 0x0);
-        const _0x51a74f = _0x168b39['querySelectorAll']('.dropdown-menu\x20.menu-option:not(.disabled)');
+        const _0x51a74f = container['querySelectorAll']('.dropdown-menu\x20.menu-option:not(.disabled)');
         _0x51a74f['forEach'](_0x34fe91 => {
             const _0x4673a8 = _0x34fe91['cloneNode'](!![]);
             _0x34fe91['replaceWith'](_0x4673a8), _0x4673a8['addEventListener']('click', _0x10a2ab => {
@@ -199,7 +199,7 @@ export function createMenuBar(menuBarConfig, windowId, parentWindowElement) {
                 _0x17ede2();
             });
         });
-    }, 0x0), _0x168b39;
+    }, 0x0), container;
 }
 export function createToolbar(_0x1cdb1b, _0xf64797, _0x16d4cb) {
     if (!_0x1cdb1b || !_0x1cdb1b['buttons']) return null;
