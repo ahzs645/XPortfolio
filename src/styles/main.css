@@ -1,1 +1,287 @@
-@import url("fonts.css");@import url("reset.css");@import url("gui/desktop.css");@import url("gui/taskbar.css");@import url("gui/window.css");@import url("gui/windowBars.css");@import url("gui/startMenu.css");@import url("gui/boot.css");@import url("utils/cursors.css");@import url("utils/utilities.css");@import url("utils/popup.css");@import url("utils/crtEffect.css");#boot-screen,#landscape-block,#login-screen,.boot-fadeout-overlay-style,.desktop,.pre-boot-overlay-style,body,html{height:100%}body,html{background:#000;height:100%;overflow:hidden;overscroll-behavior:none;overscroll-behavior-x:none;touch-action:none}.mobile-device *{-webkit-tap-highlight-color:transparent!important;-webkit-focus-ring-color:transparent!important;outline:none!important;-webkit-user-select:none!important;-moz-user-select:none!important;user-select:none!important}[style*=background-image],canvas,img,video{-webkit-user-select:none!important;-webkit-touch-callout:none!important;pointer-events:auto;-moz-user-select:none!important;user-select:none!important}canvas,img,video{-webkit-user-drag:none!important;touch-action:none!important}.window-body a{color:#0088e4}.window-body{display:flex;flex:1;flex-direction:column;overflow:auto}.iframe-container{display:flex;flex:1;flex-direction:column;overflow:hidden;position:relative}iframe{overflow:hidden}iframe a{scroll-behavior:auto}.desktop{inset:0!important;overflow:hidden!important;position:fixed!important}.mobile-device .desktop-only{display:none!important}.mobile-device .mobile-only{display:initial!important}.sr-only{height:1px!important;margin:-1px!important;overflow:hidden!important;padding:0!important;position:absolute!important;width:1px!important;clip:rect(0,0,0,0)!important;border:0!important;white-space:nowrap!important}.mobile-device .app-window,.mobile-device .window-body.iframe-container{max-height:calc(var(--real-vh, 1vh)*100 - var(--taskbar-height, 30px))}.mobile-device .app-window .window-body{flex:1 1 auto;min-height:0}.menu-items,.recently-used-items,.window-body{scrollbar-color:#316ac5 #ece9d8;scrollbar-width:thin}.menu-items::-webkit-scrollbar,.recently-used-items::-webkit-scrollbar,.window-body::-webkit-scrollbar{background:#ece9d8;width:13px}.menu-items::-webkit-scrollbar-thumb,.recently-used-items::-webkit-scrollbar-thumb,.window-body::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#eaf1fb 0,#316ac5);border:2px solid #ece9d8;border-radius:7px;box-shadow:0 1px 2px rgba(0,0,0,.1);min-height:40px}.menu-items::-webkit-scrollbar-thumb:hover,.recently-used-items::-webkit-scrollbar-thumb:hover,.window-body::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#dbe8fa 0,#184f8b)}.menu-items::-webkit-scrollbar-track,.recently-used-items::-webkit-scrollbar-track,.window-body::-webkit-scrollbar-track{background:#ece9d8;border-radius:7px}.menu-items::-webkit-scrollbar-corner,.recently-used-items::-webkit-scrollbar-corner,.window-body::-webkit-scrollbar-corner{background:#ece9d8}@media (forced-colors:active){.menu-items,.recently-used-items,.scroll-content,.window-body{scrollbar-color:ButtonText ButtonFace}}[disabled]{user-select:none!important;-webkit-user-select:none!important;-moz-user-select:none!important;-ms-user-select:none!important}.app-scroll{overflow-x:hidden;overflow-y:auto}.app-tight{margin:0!important;padding:0!important}.dynamic-tooltip-style{background-color:#ffffe1;border:1px solid #000;border-radius:3px;box-shadow:1px 1px 3px rgba(0,0,0,.2);display:none;font-family:Tahoma,Arial,sans-serif;font-size:8pt;padding:2px 5px;pointer-events:none;position:absolute;white-space:nowrap;z-index:10000}.swipe-feedback-overlay{backface-visibility:hidden;-webkit-backface-visibility:hidden;background:linear-gradient(90deg,transparent,rgba(0,136,228,.1) 50%,transparent);bottom:0;left:0;opacity:0;pointer-events:none;position:absolute;right:0;top:0;transform:translateX(0);transform-style:preserve-3d;-webkit-transform-style:preserve-3d;transition:none;will-change:transform,opacity;z-index:10}.swipe-feedback-overlay.active{transition:opacity .15s ease-out,transform .15s ease-out}.swipe-feedback-overlay.bounce-back{animation:swipe-bounce-back .3s cubic-bezier(.68,-.55,.265,1.55)}.swipe-feedback-overlay[data-direction=left]{background:linear-gradient(90deg,rgba(0,136,228,.15),transparent 30%,transparent)}.swipe-feedback-overlay[data-direction=right]{background:linear-gradient(90deg,transparent,transparent 70%,rgba(0,136,228,.15))}@keyframes swipe-bounce-back{0%{opacity:.3;transform:translateX(0)}50%{opacity:.2;transform:translateX(var(--bounce-direction,10px))}to{opacity:0;transform:translateX(0)}}.firefox-browser *{scrollbar-width:none!important;-ms-overflow-style:none!important}.firefox-browser ::-webkit-scrollbar{display:none!important;height:0!important;width:0!important}.firefox-browser ::-webkit-scrollbar-track{display:none!important}.firefox-browser ::-webkit-scrollbar-thumb{display:none!important}.firefox-browser ::-webkit-scrollbar-corner{display:none!important}.firefox-browser .window{-moz-osx-font-smoothing:grayscale}
+@import url("fonts.css");
+@import url("reset.css");
+@import url("gui/desktop.css");
+@import url("gui/taskbar.css");
+@import url("gui/window.css");
+@import url("gui/windowBars.css");
+@import url("gui/startMenu.css");
+@import url("gui/boot.css");
+@import url("utils/cursors.css");
+@import url("utils/utilities.css");
+@import url("utils/popup.css");
+@import url("utils/crtEffect.css");
+
+#boot-screen,
+#landscape-block,
+#login-screen,
+.boot-fadeout-overlay-style,
+.desktop,
+.pre-boot-overlay-style,
+body,
+html {
+    height: 100%
+}
+
+body,
+html {
+    background: #000;
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+    overscroll-behavior-x: none;
+    touch-action: none
+}
+
+.mobile-device * {
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-focus-ring-color: transparent !important;
+    outline: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    user-select: none !important
+}
+
+[style*=background-image],
+canvas,
+img,
+video {
+    -webkit-user-select: none !important;
+    -webkit-touch-callout: none !important;
+    pointer-events: auto;
+    -moz-user-select: none !important;
+    user-select: none !important
+}
+
+canvas,
+img,
+video {
+    -webkit-user-drag: none !important;
+    touch-action: none !important
+}
+
+.window-body a {
+    color: #0088e4
+}
+
+.window-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    overflow: auto
+}
+
+.iframe-container {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative
+}
+
+iframe {
+    overflow: hidden
+}
+
+iframe a {
+    scroll-behavior: auto
+}
+
+.desktop {
+    inset: 0 !important;
+    overflow: hidden !important;
+    position: fixed !important
+}
+
+.mobile-device .desktop-only {
+    display: none !important
+}
+
+.mobile-device .mobile-only {
+    display: initial !important
+}
+
+.sr-only {
+    height: 1px !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    position: absolute !important;
+    width: 1px !important;
+    clip: rect(0, 0, 0, 0) !important;
+    border: 0 !important;
+    white-space: nowrap !important
+}
+
+.mobile-device .app-window,
+.mobile-device .window-body.iframe-container {
+    max-height: calc(var(--real-vh, 1vh)*100 - var(--taskbar-height, 30px))
+}
+
+.mobile-device .app-window .window-body {
+    flex: 1 1 auto;
+    min-height: 0
+}
+
+.menu-items,
+.recently-used-items,
+.window-body {
+    scrollbar-color: #316ac5 #ece9d8;
+    scrollbar-width: thin
+}
+
+.menu-items::-webkit-scrollbar,
+.recently-used-items::-webkit-scrollbar,
+.window-body::-webkit-scrollbar {
+    background: #ece9d8;
+    width: 13px
+}
+
+.menu-items::-webkit-scrollbar-thumb,
+.recently-used-items::-webkit-scrollbar-thumb,
+.window-body::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #eaf1fb 0, #316ac5);
+    border: 2px solid #ece9d8;
+    border-radius: 7px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
+    min-height: 40px
+}
+
+.menu-items::-webkit-scrollbar-thumb:hover,
+.recently-used-items::-webkit-scrollbar-thumb:hover,
+.window-body::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #dbe8fa 0, #184f8b)
+}
+
+.menu-items::-webkit-scrollbar-track,
+.recently-used-items::-webkit-scrollbar-track,
+.window-body::-webkit-scrollbar-track {
+    background: #ece9d8;
+    border-radius: 7px
+}
+
+.menu-items::-webkit-scrollbar-corner,
+.recently-used-items::-webkit-scrollbar-corner,
+.window-body::-webkit-scrollbar-corner {
+    background: #ece9d8
+}
+
+@media (forced-colors:active) {
+
+    .menu-items,
+    .recently-used-items,
+    .scroll-content,
+    .window-body {
+        scrollbar-color: ButtonText ButtonFace
+    }
+}
+
+[disabled] {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important
+}
+
+.app-scroll {
+    overflow-x: hidden;
+    overflow-y: auto
+}
+
+.app-tight {
+    margin: 0 !important;
+    padding: 0 !important
+}
+
+.dynamic-tooltip-style {
+    background-color: #ffffe1;
+    border: 1px solid #000;
+    border-radius: 3px;
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, .2);
+    display: none;
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 8pt;
+    padding: 2px 5px;
+    pointer-events: none;
+    position: absolute;
+    white-space: nowrap;
+    z-index: 10000
+}
+
+.swipe-feedback-overlay {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    background: linear-gradient(90deg, transparent, rgba(0, 136, 228, .1) 50%, transparent);
+    bottom: 0;
+    left: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transform: translateX(0);
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+    transition: none;
+    will-change: transform, opacity;
+    z-index: 10
+}
+
+.swipe-feedback-overlay.active {
+    transition: opacity .15s ease-out, transform .15s ease-out
+}
+
+.swipe-feedback-overlay.bounce-back {
+    animation: swipe-bounce-back .3s cubic-bezier(.68, -.55, .265, 1.55)
+}
+
+.swipe-feedback-overlay[data-direction=left] {
+    background: linear-gradient(90deg, rgba(0, 136, 228, .15), transparent 30%, transparent)
+}
+
+.swipe-feedback-overlay[data-direction=right] {
+    background: linear-gradient(90deg, transparent, transparent 70%, rgba(0, 136, 228, .15))
+}
+
+@keyframes swipe-bounce-back {
+    0% {
+        opacity: .3;
+        transform: translateX(0)
+    }
+
+    50% {
+        opacity: .2;
+        transform: translateX(var(--bounce-direction, 10px))
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(0)
+    }
+}
+
+.firefox-browser * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important
+}
+
+.firefox-browser ::-webkit-scrollbar {
+    display: none !important;
+    height: 0 !important;
+    width: 0 !important
+}
+
+.firefox-browser ::-webkit-scrollbar-track {
+    display: none !important
+}
+
+.firefox-browser ::-webkit-scrollbar-thumb {
+    display: none !important
+}
+
+.firefox-browser ::-webkit-scrollbar-corner {
+    display: none !important
+}
+
+.firefox-browser .window {
+    -moz-osx-font-smoothing: grayscale
+}

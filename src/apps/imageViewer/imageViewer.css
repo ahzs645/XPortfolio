@@ -1,1 +1,72 @@
-body,html{background-color:#e9e9e9;box-sizing:border-box;height:100%;margin:0;padding:0;touch-action:pan-x pan-y}.image-viewer-container{background-color:#a0a0a0;display:flex;flex-direction:column;height:100%;width:100%}.image-viewer-content{align-items:center;display:flex;flex:1;justify-content:center;min-height:0;overflow:hidden;padding:0}.image-viewer-content img{cursor:zoom-in;display:block;max-height:100%;max-width:100%;-o-object-fit:contain;object-fit:contain;-webkit-user-select:none;-moz-user-select:none;user-select:none}.image-viewer-content img.zoomed{cursor:zoom-out}.image-viewer-content img.dragging{cursor:grabbing}.mobile-device .image-viewer-content{align-items:center;flex:1;padding:0}@-moz-document url-prefix(){*{scrollbar-width:none!important;-ms-overflow-style:none!important}::-webkit-scrollbar{display:none!important;height:0!important;width:0!important}::-webkit-scrollbar-corner,::-webkit-scrollbar-thumb,::-webkit-scrollbar-track{display:none!important}}
+body,
+html {
+    background-color: #e9e9e9;
+    box-sizing: border-box;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    touch-action: pan-x pan-y
+}
+
+.image-viewer-container {
+    background-color: #a0a0a0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%
+}
+
+.image-viewer-content {
+    align-items: center;
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0
+}
+
+.image-viewer-content img {
+    cursor: zoom-in;
+    display: block;
+    max-height: 100%;
+    max-width: 100%;
+    -o-object-fit: contain;
+    object-fit: contain;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none
+}
+
+.image-viewer-content img.zoomed {
+    cursor: zoom-out
+}
+
+.image-viewer-content img.dragging {
+    cursor: grabbing
+}
+
+.mobile-device .image-viewer-content {
+    align-items: center;
+    flex: 1;
+    padding: 0
+}
+
+@-moz-document url-prefix() {
+    * {
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important
+    }
+
+    ::-webkit-scrollbar {
+        display: none !important;
+        height: 0 !important;
+        width: 0 !important
+    }
+
+    ::-webkit-scrollbar-corner,
+    ::-webkit-scrollbar-thumb,
+    ::-webkit-scrollbar-track {
+        display: none !important
+    }
+}
