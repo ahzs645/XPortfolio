@@ -1,1 +1,413 @@
-import _0x2183fc from'./gui/desktop.js';import _0x449f3a from'./gui/taskbar.js';import _0x3f9f0f from'./gui/window.js';import{eventBus,EVENTS}from'./utils/eventBus.js';document['addEventListener']('visibilitychange',()=>{if(document['hidden']){const _0x216d45={};_0x216d45['reason']='page-hidden',eventBus['publish'](EVENTS['MEDIA_GLOBAL_PAUSE'],_0x216d45);}else{const _0x3df4d8={};_0x3df4d8['reason']='page-visible',eventBus['publish'](EVENTS['MEDIA_GLOBAL_VISIBLE'],_0x3df4d8);}});import{batchedPublish as publishBatched,flushEventBusQueue}from'./utils/eventBusBatching.js';import{initBootSequence}from'./gui/boot.js';import{setupTooltips}from'./gui/tooltip.js';import{initRandomScanline}from'./utils/crtEffect.js';import{initializeDeviceDetection}from'./utils/device.js';let IS_MOBILE_DEVICE=![];import{initMessageRouter,registerMessageHandler,handleProgramOpenRequest}from'./utils/messageRouter.js';import{scheduleAfter}from'./utils/frameScheduler.js';import{createHiddenContainer,applyHiddenContainerStyles,createPreloadIframe,applyHiddenIframeStyles}from'./utils/domUtils.js';let globalTaskbarInstance=null;document['addEventListener']('DOMContentLoaded',()=>{try{const _0x573826=IS_MOBILE_DEVICE,_0x1450b4=/iPhone|iPad|iPod/i['test'](navigator['userAgent']),_0x14b569=_0x573826||_0x1450b4;document['documentElement']['classList']['toggle']('mobile-device',_0x14b569),document['body']['classList']['toggle']('mobile-device',_0x14b569);}catch{}window['eventBus']=eventBus,window['EVENTS']=EVENTS,window['batchedPublish']=publishBatched,window['flushEventBusQueue']=flushEventBusQueue,initBootSequence(eventBus,EVENTS,[]);const _0x536018=new Set(['paint-window','mediaPlayer-window','musicPlayer-window','projects-window','about-window','image-viewer-window']);window['__IFRAME_CACHE_EXCLUDE']=_0x536018;const _0x564273={};_0x564273['id']='resume-window',_0x564273['src']='src/apps/resume/resume.html',_0x564273['priority']='high';const _0x1936a4={};_0x1936a4['id']='contact-window',_0x1936a4['src']='src/apps/contact/contact.html',_0x1936a4['priority']='high';const preloadApps=[_0x564273,_0x1936a4];let loadedCount=0x0;fetch('projects.json')['then'](_0x67d3c2=>_0x67d3c2['json']())['then'](_0x583482=>{window['updateBootProjectsData']&&window['updateBootProjectsData'](_0x583482);});const _0x34b031={};_0x34b031['aria-hidden']='true';const _0x282348={};_0x282348['attributes']=_0x34b031;const preloadContainer=createHiddenContainer('preload-apps-container',_0x282348);preloadContainer['className']='hidden-container',document['body']['appendChild'](preloadContainer),window['__IFRAME_CACHE']=new Map(),window['__BOOT_COMPLETE']=![],window['__IS_IFRAME_CACHED']=_0x4f4695=>{try{if(window['__IFRAME_CACHE_EXCLUDE']&&window['__IFRAME_CACHE_EXCLUDE']['has'](_0x4f4695))return![];return window['__IFRAME_CACHE']&&window['__IFRAME_CACHE']['has'](_0x4f4695)&&window['__IFRAME_CACHE']['get'](_0x4f4695)['fullyLoaded'];}catch(_0x361c4c){return![];}},window['__MARK_BOOT_COMPLETE']=()=>{window['__BOOT_COMPLETE']=!![];},window['addEventListener']('message',_0x29f4ec=>{try{if(_0x29f4ec&&_0x29f4ec['data']&&_0x29f4ec['data']['type']==='app-preload-ready'){const _0x38a67a=_0x29f4ec['data']['appId'];if(!_0x38a67a)return;const _0x44843d=window['__IFRAME_CACHE']&&window['__IFRAME_CACHE']['get'](_0x38a67a);_0x44843d&&!_0x44843d['fullyLoaded']&&(_0x44843d['fullyLoaded']=!![],_0x44843d['handshake']=!![],window['__IFRAME_CACHE']['set'](_0x38a67a,_0x44843d));}}catch(_0x1e3a31){}});function initializeUIComponents(){if(window['__UI_INITIALIZED'])return;window['__UI_INITIALIZED']=!![],globalTaskbarInstance=new _0x449f3a(eventBus),new _0x2183fc(eventBus),window['windowManager']=new _0x3f9f0f(eventBus),initializeDeviceDetection(),IS_MOBILE_DEVICE=document['documentElement']['classList']['contains']('mobile-device'),eventBus['subscribe'](EVENTS['SHUTDOWN_REQUESTED'],()=>{sessionStorage['removeItem']('logged_in'),window['location']['assign'](window['location']['pathname']+'?forceBoot=true');}),initRandomScanline(),setupTooltips('[data-tooltip]'),ensureLandscapeBlock(),handleOrientationBlock(),setRealVh();}window['initializeUIComponents']=initializeUIComponents;function onAllPreloaded(){applyHiddenContainerStyles(preloadContainer);const preloadedIframes=preloadContainer['querySelectorAll']('iframe');applyHiddenIframeStyles(preloadedIframes);window['__MARK_BOOT_COMPLETE']&&window['__MARK_BOOT_COMPLETE']();if(!window['__UI_INITIALIZED'])initializeUIComponents();initMessageRouter(),registerMessageHandler('resume-interaction',()=>{if(!globalTaskbarInstance)return;const _0xe90897=globalTaskbarInstance['startMenuComponent'];if(_0xe90897&&_0xe90897['startMenu']?.['classList']['contains']('active'))_0xe90897['closeStartMenu']();}),registerMessageHandler('open-social-from-about',_0x2bc2fa=>{const _0x4b857c=_0x2bc2fa?.['data']?.['key'],_0x5e8e10=_0x2bc2fa?.['data']?.['url'],_0xa6c0c=_0x2bc2fa?.['data']?.['label']||_0x4b857c;if(!_0x4b857c||!_0x5e8e10)return;const _0x300643={};_0x300643['type']='confirm-open-link',_0x300643['label']=_0xa6c0c,_0x300643['url']=_0x5e8e10,window['postMessage'](_0x300643,'*');}),registerMessageHandler('open-projects-from-overlay-studio',()=>{const _0x242802={};_0x242802['programName']='projects',eventBus['publish'](EVENTS['PROGRAM_OPEN'],_0x242802);}),registerMessageHandler('open-program',_0x303301=>{const _0x436bb7=_0x303301?.['data']?.['programName'];if(!_0x436bb7)return;handleProgramOpenRequest({'programName':_0x436bb7,'eventData':_0x303301['data'],'publish':eventBus['publish']['bind'](eventBus),'EVENTS':EVENTS});}),registerMessageHandler('show-youtube-error',_0x2b18df=>{import('./utils/popupManager.js')['then'](({default:_0x576e31})=>{if(!_0x576e31['isInitialized'])_0x576e31['init']();const _0x42b3fa=_0x2b18df['data']['message']||'YouTube\x20playlist\x20error\x20occurred.';_0x576e31['showPopup']({'type':'error','title':'Media\x20Player\x20Error','message':_0x42b3fa,'icon':'/assets/gui/start-menu/mediaPlayer.webp','buttons':[{'text':'Open\x20YouTube','action':'view-playlists','primary':!![],'onClick':()=>{window['open']('https://www.youtube.com/@mitchivin/playlists','_blank');}},{'text':'Close\x20Player','action':'close-player','onClick':()=>{const _0x50a961=document['querySelector']('iframe[src*=\x22mediaPlayer\x22]');if(_0x50a961){const _0x293f04=_0x50a961['closest']('.window,\x20.app-window');_0x293f04&&window['windowManager']?window['windowManager']['closeWindow'](_0x293f04):console['warn']('Could\x20not\x20find\x20windowManager\x20or\x20windowElement\x20for\x20media\x20player');}else console['warn']('Could\x20not\x20find\x20media\x20player\x20iframe');}}]});});}),registerMessageHandler('confirm-open-program',_0x5d56d8=>{if(!IS_MOBILE_DEVICE)return;import('./utils/popupManager.js')['then'](({default:_0x2ac72c})=>{if(!_0x2ac72c['isInitialized'])_0x2ac72c['init']();const _0xd1a840=_0x5d56d8['data']['programName'],_0x1fb940=_0x5d56d8['data']['title']||'Open\x20Program',_0x560ea7=_0x5d56d8['data']['icon']||null,_0x7b6914={};_0x7b6914['text']='Cancel',_0x7b6914['action']='cancel',_0x2ac72c['showPopup']({'type':'mobile-restriction','title':_0x1fb940,'message':'Are\x20you\x20sure\x20you\x20want\x20to\x20open\x20\x22'+_0x1fb940+'\x22?','icon':_0x560ea7,'buttons':[_0x7b6914,{'text':'Open\x20'+_0x1fb940,'action':'confirm','primary':!![],'onClick':()=>{const {programName:_0x3bec80,title:_0x6d13fa,icon:_0x3f8642,...additionalData}=_0x5d56d8['data'],_0x4a3273={'programName':_0x3bec80,...additionalData};eventBus['publish'](EVENTS['PROGRAM_OPEN'],_0x4a3273);}}]});});}),registerMessageHandler('confirm-open-link',_0x5c172a=>{const _0x4bc5fa=_0x5c172a['data']['url']||'',_0x122b69=['keepthescore.com','github.com/mitchivin','instagram.com','linkedin.com']['some'](_0x9f7adc=>_0x4bc5fa['includes'](_0x9f7adc));if(!IS_MOBILE_DEVICE&&!_0x122b69)return;import('./utils/popupManager.js')['then'](({default:_0x28c1b4})=>{if(!_0x28c1b4['isInitialized'])_0x28c1b4['init']();const _0x34db3d=_0x5c172a['data']['url']||'';let _0x338a50=_0x5c172a['data']['label']||'',_0xbea860='Yes,\x20open\x20link',_0x435825=null;if(_0x34db3d['includes']('keepthescore.com'))_0x338a50='Keep\x20The\x20Score',_0xbea860='Visit\x20Keep\x20The\x20Score',_0x435825='./assets/gui/start-menu/keepthescore.webp';else{if(_0x34db3d['includes']('github.com/mitchivin'))_0x338a50='My\x20Github',_0xbea860='Visit\x20My\x20Github',_0x435825='./assets/gui/start-menu/github.webp';else{if(_0x34db3d['includes']('instagram.com'))_0x338a50='Instagram',_0xbea860='Visit\x20Instagram',_0x435825='./assets/gui/start-menu/instagram.webp';else{if(_0x34db3d['includes']('linkedin.com'))_0x338a50='LinkedIn',_0xbea860='Visit\x20LinkedIn',_0x435825='./assets/gui/start-menu/linkedin.webp';else{if(!_0x338a50)try{_0x338a50=new URL(_0x34db3d)['hostname'];}catch{_0x338a50='this\x20link';}}}}}const _0x361963={};_0x361963['text']='Cancel',_0x361963['action']='cancel',_0x28c1b4['showPopup']({'type':'confirm','title':'Open\x20Link','message':'Are\x20you\x20sure\x20you\x20want\x20to\x20open\x20\x22'+_0x338a50+'\x22?','icon':_0x435825,'buttons':[_0x361963,{'text':_0xbea860,'action':'confirm','primary':!![],'onClick':()=>window['open'](_0x34db3d,'_blank')}]});});}),function _0x495d9a(){if(window['__GESTURE_SUPPRESSION_V2'])return;window['__GESTURE_SUPPRESSION_V2']=!![];const _0x125dde={};_0x125dde['lastTouchEnd']=0x0;const _0x443776=_0x125dde,_0x1a7a5a=_0x30ead1=>{switch(_0x30ead1['type']){case'gesturestart':case'gesturechange':case'gestureend':_0x30ead1['preventDefault']();break;case'touchstart':case'touchmove':if(_0x30ead1['touches']&&_0x30ead1['touches']['length']>0x1)_0x30ead1['preventDefault']();break;case'touchend':{const _0x11e43d=Date['now']();if(_0x11e43d-_0x443776['lastTouchEnd']<=0x12c)_0x30ead1['preventDefault']();_0x443776['lastTouchEnd']=_0x11e43d;break;}case'wheel':if(_0x30ead1['ctrlKey'])_0x30ead1['preventDefault']();break;}},_0x1a22e7=['gesturestart','gesturechange','gestureend','touchstart','touchmove','touchend','wheel'],_0x29f8f3={};_0x29f8f3['passive']=![],_0x29f8f3['capture']=!![],_0x1a22e7['forEach'](_0x187a41=>document['addEventListener'](_0x187a41,_0x1a7a5a,_0x29f8f3));try{const style=document['createElement']('style');style['id']='gesture-suppression-style',style['textContent']='html,body{touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-ms-touch-action:none;}',document['head']['appendChild'](style);}catch(_0x332e36){}}(),import('./utils/eventListenerManager.js')['then'](({addManagedResizeListener:addManagedResizeListener,addManagedOrientationListener:addManagedOrientationListener})=>{const _0x2d039b=()=>{handleOrientationBlock(),setRealVh();const _0x5c9dea=window['matchMedia']('(orientation:\x20landscape)')['matches'],_0x3b937e=IS_MOBILE_DEVICE;!(_0x3b937e&&_0x5c9dea)&&scaleDesktopIconsToFitMobile();},_0x314fae=()=>{handleOrientationBlock(),setRealVh();};addManagedResizeListener(_0x2d039b),addManagedOrientationListener(_0x314fae);})['catch'](()=>{let _0x3bef3c;const _0x464f1f=()=>{clearTimeout(_0x3bef3c),_0x3bef3c=setTimeout(()=>{handleOrientationBlock(),setRealVh();const _0x88acae=window['matchMedia']('(orientation:\x20landscape)')['matches'],_0x39dc84=IS_MOBILE_DEVICE;!(_0x39dc84&&_0x88acae)&&scaleDesktopIconsToFitMobile();},0x10);};window['addEventListener']('orientationchange',()=>{handleOrientationBlock(),setRealVh();}),window['addEventListener']('resize',_0x464f1f);});}if(!IS_MOBILE_DEVICE){const _0xba4a04=preloadApps['filter'](_0xf59fcd=>_0xf59fcd['priority']==='high'),_0x26c6fd=preloadApps['filter'](_0x37e931=>_0x37e931['priority']==='medium'),_0x2478e2=preloadApps['filter'](_0x43bc3a=>_0x43bc3a['priority']==='low');_0xba4a04['forEach']((_0x34c948,_0x366599)=>{const _0x20f132=_0x366599*0x12;setTimeout(()=>preloadIframe(_0x34c948),_0x20f132);});const _0x49bf7c=(_0x5b9186,initialDelay=0x50,_0x2b6d92=0x8c)=>{if(!_0x5b9186['length'])return;_0x5b9186['forEach']((_0x5d0449,_0x42f318)=>{const _0x2e031c=initialDelay+_0x42f318*_0x2b6d92,loader=()=>preloadIframe(_0x5d0449);'requestIdleCallback'in window?setTimeout(()=>{try{const _0x1a8a7a={};_0x1a8a7a['timeout']=0xfa,window['requestIdleCallback'](loader,_0x1a8a7a);}catch{loader();}},_0x2e031c):setTimeout(loader,_0x2e031c);});};_0x49bf7c(_0x26c6fd,0x5a,0x78),_0x49bf7c(_0x2478e2,0x190,0xa0),setTimeout(()=>{!globalTaskbarInstance&&onAllPreloaded();},0x898);}else onAllPreloaded();function preloadIframe(_0x3b55c0){const _0x21de84={};_0x21de84['src']=_0x3b55c0['src'],_0x21de84['id']=_0x3b55c0['id'],_0x21de84['withTransform']=!![];const _0x4d3050=createPreloadIframe(_0x21de84);_0x4d3050['onload']=()=>{const _0x328d0a=()=>{try{const _0x26ab1e=_0x4d3050['contentDocument']||_0x4d3050['contentWindow']['document'];if(_0x26ab1e&&_0x26ab1e['readyState']==='complete'){let _0x2bd4af=0x0;const _0xa2c000=()=>{!(_0x536018&&_0x536018['has'](_0x3b55c0['id']))&&window['__IFRAME_CACHE']['set'](_0x3b55c0['id'],{'iframe':_0x4d3050,'src':_0x3b55c0['src'],'fullyLoaded':!![],'loadTime':Date['now']()});loadedCount++;if(loadedCount===preloadApps['length'])onAllPreloaded();},_0x49d6ee=()=>{++_0x2bd4af<0x2?scheduleAfter(_0x49d6ee):_0xa2c000();};scheduleAfter(_0x49d6ee),setTimeout(()=>{if(!(_0x536018&&_0x536018['has'](_0x3b55c0['id']))){if(!window['__IFRAME_CACHE']['get'](_0x3b55c0['id'])?.['fullyLoaded'])_0xa2c000();}else _0xa2c000();},0x4b0);}else setTimeout(_0x328d0a,0x64);}catch(_0x409959){setTimeout(()=>{!(_0x536018&&_0x536018['has'](_0x3b55c0['id']))&&window['__IFRAME_CACHE']['set'](_0x3b55c0['id'],{'iframe':_0x4d3050,'src':_0x3b55c0['src'],'fullyLoaded':!![],'loadTime':Date['now']()}),loadedCount++,loadedCount===preloadApps['length']&&onAllPreloaded();},0x3e8);}};_0x328d0a();},_0x4d3050['onerror']=()=>{loadedCount++,loadedCount===preloadApps['length']&&onAllPreloaded();},preloadContainer['appendChild'](_0x4d3050);}});function ensureLandscapeBlock(){let _0x2c38fb=document['getElementById']('landscape-block');return!_0x2c38fb&&(_0x2c38fb=document['createElement']('div'),_0x2c38fb['id']='landscape-block',_0x2c38fb['innerHTML']='\x0a\x20\x20\x20\x20\x20\x20<div\x20style=\x22display:\x20flex;\x20flex-direction:\x20column;\x20align-items:\x20center;\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<img\x20decoding=\x22async\x22\x20src=\x22assets/gui/boot/loading.webp\x22\x20alt=\x22Loading\x20animation\x22\x20style=\x22max-width:\x20200px;\x20height:\x20auto;\x22\x20/>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22landscape-message\x22>Please\x20rotate\x20your\x20device\x20back\x20to\x20portrait\x20mode.</div>\x0a\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20',document['body']['appendChild'](_0x2c38fb)),_0x2c38fb;}function handleOrientationBlock(){const _0x273ba2=document['getElementById']('landscape-block');if(!_0x273ba2)return;const _0x25cf7f=window['matchMedia']&&window['matchMedia']('(orientation:\x20landscape)')['matches'],_0x313ada=window['visualViewport'],_0x209a8a=_0x313ada?Math['round'](_0x313ada['width']):window['innerWidth'],_0x2ee8ec=_0x313ada?Math['round'](_0x313ada['height']):window['innerHeight'],_0x379136=_0x209a8a>_0x2ee8ec,_0x50253e=_0x25cf7f||_0x379136;if(!IS_MOBILE_DEVICE||!_0x50253e){_0x273ba2['style']['display']='none';return;}const _0x59a852=Math['min'](_0x209a8a,_0x2ee8ec),_0x2ebb40=_0x59a852<0x258;_0x273ba2['style']['display']=_0x2ebb40?'flex':'none';}function setRealVh(){const _0x341bbd=(window['visualViewport']?window['visualViewport']['height']:window['innerHeight'])*0.01;document['documentElement']['style']['setProperty']('--real-vh',_0x341bbd+'px');}function scaleDesktopIconsToFitMobile(){const _0x7d17ae=document['querySelector']('.desktop-icons');if(!_0x7d17ae)return;const _0x22d33d=window['innerWidth'],_0x4739f8=window['innerHeight'],_0x34f147=Math['min'](_0x22d33d/0x320,_0x4739f8/0x258,0x1);_0x7d17ae['style']['setProperty']('--icon-scale',_0x34f147);}
+import Desktop from './gui/desktop.js';
+import Taskbar from './gui/taskbar.js';
+import WindowManager from './gui/window.js';
+import {
+    eventBus,
+    EVENTS
+} from './utils/eventBus.js';
+document['addEventListener']('visibilitychange', () => {
+    if (document['hidden']) {
+        const pauseEventData = {};
+        pauseEventData['reason'] = 'page-hidden', eventBus['publish'](EVENTS['MEDIA_GLOBAL_PAUSE'], pauseEventData);
+    } else {
+        const visibleEventData = {};
+        visibleEventData['reason'] = 'page-visible', eventBus['publish'](EVENTS['MEDIA_GLOBAL_VISIBLE'], visibleEventData);
+    }
+});
+import {
+    batchedPublish as publishBatched,
+    flushEventBusQueue
+} from './utils/eventBusBatching.js';
+import {
+    initBootSequence
+} from './gui/boot.js';
+import {
+    setupTooltips
+} from './gui/tooltip.js';
+import {
+    initRandomScanline
+} from './utils/crtEffect.js';
+import {
+    initializeDeviceDetection
+} from './utils/device.js';
+let IS_MOBILE_DEVICE = ![];
+import {
+    initMessageRouter,
+    registerMessageHandler,
+    handleProgramOpenRequest
+} from './utils/messageRouter.js';
+import {
+    scheduleAfter
+} from './utils/frameScheduler.js';
+import {
+    createHiddenContainer,
+    applyHiddenContainerStyles,
+    createPreloadIframe,
+    applyHiddenIframeStyles
+} from './utils/domUtils.js';
+let globalTaskbarInstance = null;
+document['addEventListener']('DOMContentLoaded', () => {
+    try {
+        const wasMobile = IS_MOBILE_DEVICE,
+            isIos = /iPhone|iPad|iPod/i ['test'](navigator['userAgent']),
+            isMobileOrIos = wasMobile || isIos;
+        document['documentElement']['classList']['toggle']('mobile-device', isMobileOrIos), document['body']['classList']['toggle']('mobile-device', isMobileOrIos);
+    } catch {}
+    window['eventBus'] = eventBus, window['EVENTS'] = EVENTS, window['batchedPublish'] = publishBatched, window['flushEventBusQueue'] = flushEventBusQueue, initBootSequence(eventBus, EVENTS, []);
+    const iframeCacheExclusions = new Set(['paint-window', 'mediaPlayer-window', 'musicPlayer-window', 'projects-window', 'about-window', 'image-viewer-window']);
+    window['__IFRAME_CACHE_EXCLUDE'] = iframeCacheExclusions;
+    const resumeApp = {};
+    resumeApp['id'] = 'resume-window', resumeApp['src'] = 'src/apps/resume/resume.html', resumeApp['priority'] = 'high';
+    const contactApp = {};
+    contactApp['id'] = 'contact-window', contactApp['src'] = 'src/apps/contact/contact.html', contactApp['priority'] = 'high';
+    const preloadApps = [resumeApp, contactApp];
+    let loadedCount = 0x0;
+    fetch('projects.json')['then'](_0x67d3c2 => _0x67d3c2['json']())['then'](_0x583482 => {
+        window['updateBootProjectsData'] && window['updateBootProjectsData'](_0x583482);
+    });
+    const ariaHiddenAttributes = {};
+    ariaHiddenAttributes['aria-hidden'] = 'true';
+    const containerConfig = {};
+    containerConfig['attributes'] = ariaHiddenAttributes;
+    const preloadContainer = createHiddenContainer('preload-apps-container', containerConfig);
+    preloadContainer['className'] = 'hidden-container', document['body']['appendChild'](preloadContainer), window['__IFRAME_CACHE'] = new Map(), window['__BOOT_COMPLETE'] = ![], window['__IS_IFRAME_CACHED'] = iframeId => {
+        try {
+            if (window['__IFRAME_CACHE_EXCLUDE'] && window['__IFRAME_CACHE_EXCLUDE']['has'](iframeId)) return ![];
+            return window['__IFRAME_CACHE'] && window['__IFRAME_CACHE']['has'](iframeId) && window['__IFRAME_CACHE']['get'](iframeId)['fullyLoaded'];
+        } catch (err) {
+            return ![];
+        }
+    }, window['__MARK_BOOT_COMPLETE'] = () => {
+        window['__BOOT_COMPLETE'] = !![];
+    }, window['addEventListener']('message', eventMessage => {
+        try {
+            if (eventMessage && eventMessage['data'] && eventMessage['data']['type'] === 'app-preload-ready') {
+                const messageAppId = eventMessage['data']['appId'];
+                if (!messageAppId) return;
+                const cacheEntry = window['__IFRAME_CACHE'] && window['__IFRAME_CACHE']['get'](messageAppId);
+                cacheEntry && !cacheEntry['fullyLoaded'] && (cacheEntry['fullyLoaded'] = !![], cacheEntry['handshake'] = !![], window['__IFRAME_CACHE']['set'](messageAppId, cacheEntry));
+            }
+        } catch (e) {}
+    });
+
+    function initializeUIComponents() {
+        if (window['__UI_INITIALIZED']) return;
+        window['__UI_INITIALIZED'] = !![], globalTaskbarInstance = new Taskbar(eventBus), new Desktop(eventBus), window['windowManager'] = new WindowManager(eventBus), initializeDeviceDetection(), IS_MOBILE_DEVICE = document['documentElement']['classList']['contains']('mobile-device'), eventBus['subscribe'](EVENTS['SHUTDOWN_REQUESTED'], () => {
+            sessionStorage['removeItem']('logged_in'), window['location']['assign'](window['location']['pathname'] + '?forceBoot=true');
+        }), initRandomScanline(), setupTooltips('[data-tooltip]'), ensureLandscapeBlock(), handleOrientationBlock(), setRealVh();
+    }
+    window['initializeUIComponents'] = initializeUIComponents;
+
+    function onAllPreloaded() {
+        applyHiddenContainerStyles(preloadContainer);
+        const preloadedIframes = preloadContainer['querySelectorAll']('iframe');
+        applyHiddenIframeStyles(preloadedIframes);
+        window['__MARK_BOOT_COMPLETE'] && window['__MARK_BOOT_COMPLETE']();
+        if (!window['__UI_INITIALIZED']) initializeUIComponents();
+        initMessageRouter(), registerMessageHandler('resume-interaction', () => {
+                if (!globalTaskbarInstance) return;
+                const startMenuComponent = globalTaskbarInstance['startMenuComponent'];
+                if (startMenuComponent && startMenuComponent['startMenu']?.['classList']['contains']('active')) startMenuComponent['closeStartMenu']();
+            }), registerMessageHandler('open-social-from-about', eventData => {
+                const socialKey = eventData?.['data']?.['key'],
+                    socialUrl = eventData?.['data']?.['url'],
+                    socialLabel = eventData?.['data']?.['label'] || socialKey;
+                if (!socialKey || !socialUrl) return;
+                const message = {};
+                message['type'] = 'confirm-open-link', message['label'] = socialLabel, message['url'] = socialUrl, window['postMessage'](message, '*');
+            }), registerMessageHandler('open-projects-from-overlay-studio', () => {
+                const eventPayload = {};
+                eventPayload['programName'] = 'projects', eventBus['publish'](EVENTS['PROGRAM_OPEN'], eventPayload);
+            }), registerMessageHandler('open-program', eventData => {
+                const programName = eventData?.['data']?.['programName'];
+                if (!programName) return;
+                handleProgramOpenRequest({
+                    'programName': programName,
+                    'eventData': eventData['data'],
+                    'publish': eventBus['publish']['bind'](eventBus),
+                    'EVENTS': EVENTS
+                });
+            }), registerMessageHandler('show-youtube-error', eventData => {
+                import('./utils/popupManager.js')['then'](({
+                    default: popupManager
+                }) => {
+                    if (!popupManager['isInitialized']) popupManager['init']();
+                    const errorMessage = eventData['data']['message'] || 'YouTube\x20playlist\x20error\x20occurred.';
+                    popupManager['showPopup']({
+                        'type': 'error',
+                        'title': 'Media\x20Player\x20Error',
+                        'message': errorMessage,
+                        'icon': '/assets/gui/start-menu/mediaPlayer.webp',
+                        'buttons': [{
+                            'text': 'Open\x20YouTube',
+                            'action': 'view-playlists',
+                            'primary': !![],
+                            'onClick': () => {
+                                window['open']('https://www.youtube.com/@mitchivin/playlists', '_blank');
+                            }
+                        }, {
+                            'text': 'Close\x20Player',
+                            'action': 'close-player',
+                            'onClick': () => {
+                                const playerIframe = document['querySelector']('iframe[src*=\x22mediaPlayer\x22]');
+                                if (playerIframe) {
+                                    const windowElement = playerIframe['closest']('.window,\x20.app-window');
+                                    windowElement && window['windowManager'] ? window['windowManager']['closeWindow'](windowElement) : console['warn']('Could\x20not\x20find\x20windowManager\x20or\x20windowElement\x20for\x20media\x20player');
+                                } else console['warn']('Could\x20not\x20find\x20media\x20player\x20iframe');
+                            }
+                        }]
+                    });
+                });
+            }), registerMessageHandler('confirm-open-program', eventData => {
+                if (!IS_MOBILE_DEVICE) return;
+                import('./utils/popupManager.js')['then'](({
+                    default: popupManager
+                }) => {
+                    if (!popupManager['isInitialized']) popupManager['init']();
+                    const programName = eventData['data']['programName'],
+                        title = eventData['data']['title'] || 'Open\x20Program',
+                        icon = eventData['data']['icon'] || null,
+                        cancelButton = {};
+                    cancelButton['text'] = 'Cancel', cancelButton['action'] = 'cancel', popupManager['showPopup']({
+                        'type': 'mobile-restriction',
+                        'title': title,
+                        'message': 'Are\x20you\x20sure\x20you\x20want\x20to\x20open\x20\x22' + title + '\x22?',
+                        'icon': icon,
+                        'buttons': [cancelButton, {
+                            'text': 'Open\x20' + title,
+                            'action': 'confirm',
+                            'primary': !![],
+                            'onClick': () => {
+                                const {
+                                    programName: programNameInner,
+                                    title: titleInner,
+                                    icon: iconInner,
+                                    ...additionalData
+                                } = eventData['data'], openEvent = {
+                                    'programName': programNameInner,
+                                    ...additionalData
+                                };
+                                eventBus['publish'](EVENTS['PROGRAM_OPEN'], openEvent);
+                            }
+                        }]
+                    });
+                });
+            }), registerMessageHandler('confirm-open-link', eventData => {
+                const url = eventData['data']['url'] || '',
+                    allowedOnDesktop = ['keepthescore.com', 'github.com/mitchivin', 'instagram.com', 'linkedin.com']['some'](domain => url['includes'](domain));
+                if (!IS_MOBILE_DEVICE && !allowedOnDesktop) return;
+                import('./utils/popupManager.js')['then'](({
+                    default: popupManager
+                }) => {
+                    if (!popupManager['isInitialized']) popupManager['init']();
+                    const linkUrl = eventData['data']['url'] || '';
+                    let label = eventData['data']['label'] || '',
+                        confirmText = 'Yes,\x20open\x20link',
+                        icon = null;
+                    if (linkUrl['includes']('keepthescore.com')) label = 'Keep\x20The\x20Score', confirmText = 'Visit\x20Keep\x20The\x20Score', icon = './assets/gui/start-menu/keepthescore.webp';
+                    else {
+                        if (linkUrl['includes']('github.com/mitchivin')) label = 'My\x20Github', confirmText = 'Visit\x20My\x20Github', icon = './assets/gui/start-menu/github.webp';
+                        else {
+                            if (linkUrl['includes']('instagram.com')) label = 'Instagram', confirmText = 'Visit\x20Instagram', icon = './assets/gui/start-menu/instagram.webp';
+                            else {
+                                if (linkUrl['includes']('linkedin.com')) label = 'LinkedIn', confirmText = 'Visit\x20LinkedIn', icon = './assets/gui/start-menu/linkedin.webp';
+                                else {
+                                    if (!label) try {
+                                        label = new URL(linkUrl)['hostname'];
+                                    } catch {
+                                        label = 'this\x20link';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    const cancelButton = {};
+                    cancelButton['text'] = 'Cancel', cancelButton['action'] = 'cancel', popupManager['showPopup']({
+                        'type': 'confirm',
+                        'title': 'Open\x20Link',
+                        'message': 'Are\x20you\x20sure\x20you\x20want\x20to\x20open\x20\x22' + label + '\x22?',
+                        'icon': icon,
+                        'buttons': [cancelButton, {
+                            'text': confirmText,
+                            'action': 'confirm',
+                            'primary': !![],
+                            'onClick': () => window['open'](linkUrl, '_blank')
+                        }]
+                    });
+                });
+            }),
+            function suppressGestures() {
+                if (window['__GESTURE_SUPPRESSION_V2']) return;
+                window['__GESTURE_SUPPRESSION_V2'] = !![];
+                const touchState = {};
+                touchState['lastTouchEnd'] = 0x0;
+                const touchData = touchState,
+                    handler = _0x30ead1 => {
+                        switch (_0x30ead1['type']) {
+                            case 'gesturestart':
+                            case 'gesturechange':
+                            case 'gestureend':
+                                _0x30ead1['preventDefault']();
+                                break;
+                            case 'touchstart':
+                            case 'touchmove':
+                                if (_0x30ead1['touches'] && _0x30ead1['touches']['length'] > 0x1) _0x30ead1['preventDefault']();
+                                break;
+                            case 'touchend': {
+                                const now = Date['now']();
+                                if (now - touchData['lastTouchEnd'] <= 0x12c) _0x30ead1['preventDefault']();
+                                touchData['lastTouchEnd'] = now;
+                                break;
+                            }
+                            case 'wheel':
+                                if (_0x30ead1['ctrlKey']) _0x30ead1['preventDefault']();
+                                break;
+                        }
+                    },
+                    events = ['gesturestart', 'gesturechange', 'gestureend', 'touchstart', 'touchmove', 'touchend', 'wheel'],
+                    options = {};
+                options['passive'] = ![], options['capture'] = !![], events['forEach'](_0x187a41 => document['addEventListener'](_0x187a41, handler, options));
+                try {
+                    const style = document['createElement']('style');
+                    style['id'] = 'gesture-suppression-style', style['textContent'] = 'html,body{touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-ms-touch-action:none;}', document['head']['appendChild'](style);
+                } catch (_0x332e36) {}
+            }(), import('./utils/eventListenerManager.js')['then'](({
+                addManagedResizeListener: addManagedResizeListener,
+                addManagedOrientationListener: addManagedOrientationListener
+            }) => {
+                const onResize = () => {
+                        handleOrientationBlock(), setRealVh();
+                        const isLandscape = window['matchMedia']('(orientation:\x20landscape)')['matches'],
+                            isMobile = IS_MOBILE_DEVICE;
+                        !(isMobile && isLandscape) && scaleDesktopIconsToFitMobile();
+                    },
+                    onOrientation = () => {
+                        handleOrientationBlock(), setRealVh();
+                    };
+                addManagedResizeListener(onResize), addManagedOrientationListener(onOrientation);
+            })['catch'](() => {
+                let timeoutId;
+                const debouncedResize = () => {
+                    clearTimeout(timeoutId), timeoutId = setTimeout(() => {
+                        handleOrientationBlock(), setRealVh();
+                        const isLandscape = window['matchMedia']('(orientation:\x20landscape)')['matches'],
+                            isMobile = IS_MOBILE_DEVICE;
+                        !(isMobile && isLandscape) && scaleDesktopIconsToFitMobile();
+                    }, 0x10);
+                };
+                window['addEventListener']('orientationchange', () => {
+                    handleOrientationBlock(), setRealVh();
+                }), window['addEventListener']('resize', debouncedResize);
+            });
+    }
+    if (!IS_MOBILE_DEVICE) {
+        const highPriorityApps = preloadApps['filter'](_0xf59fcd => _0xf59fcd['priority'] === 'high'),
+            mediumPriorityApps = preloadApps['filter'](_0x37e931 => _0x37e931['priority'] === 'medium'),
+            lowPriorityApps = preloadApps['filter'](_0x43bc3a => _0x43bc3a['priority'] === 'low');
+        highPriorityApps['forEach']((app, index) => {
+            const delay = index * 0x12;
+            setTimeout(() => preloadIframe(app), delay);
+        });
+        const loadAppsWithDelay = (apps, initialDelay = 0x50, stepDelay = 0x8c) => {
+            if (!apps['length']) return;
+            apps['forEach']((app, idx) => {
+                const delay = initialDelay + idx * stepDelay,
+                    loader = () => preloadIframe(app);
+                'requestIdleCallback' in window ? setTimeout(() => {
+                    try {
+                        const opts = {};
+                        opts['timeout'] = 0xfa, window['requestIdleCallback'](loader, opts);
+                    } catch {
+                        loader();
+                    }
+                }, delay) : setTimeout(loader, delay);
+            });
+        };
+        loadAppsWithDelay(mediumPriorityApps, 0x5a, 0x78), loadAppsWithDelay(lowPriorityApps, 0x190, 0xa0), setTimeout(() => {
+            !globalTaskbarInstance && onAllPreloaded();
+        }, 0x898);
+    } else onAllPreloaded();
+
+    function preloadIframe(appConfig) {
+        const iframeOptions = {};
+        iframeOptions['src'] = appConfig['src'], iframeOptions['id'] = appConfig['id'], iframeOptions['withTransform'] = !![];
+        const iframe = createPreloadIframe(iframeOptions);
+        iframe['onload'] = () => {
+            const checkReadyState = () => {
+                try {
+                    const doc = iframe['contentDocument'] || iframe['contentWindow']['document'];
+                    if (doc && doc['readyState'] === 'complete') {
+                        let retries = 0x0;
+                        const markLoaded = () => {
+                                !(iframeCacheExclusions && iframeCacheExclusions['has'](appConfig['id'])) && window['__IFRAME_CACHE']['set'](appConfig['id'], {
+                                    'iframe': iframe,
+                                    'src': appConfig['src'],
+                                    'fullyLoaded': !![],
+                                    'loadTime': Date['now']()
+                                });
+                                loadedCount++;
+                                if (loadedCount === preloadApps['length']) onAllPreloaded();
+                            },
+                            tick = () => {
+                                ++retries < 0x2 ? scheduleAfter(tick) : markLoaded();
+                            };
+                        scheduleAfter(tick), setTimeout(() => {
+                            if (!(iframeCacheExclusions && iframeCacheExclusions['has'](appConfig['id']))) {
+                                if (!window['__IFRAME_CACHE']['get'](appConfig['id'])?.['fullyLoaded']) markLoaded();
+                            } else markLoaded();
+                        }, 0x4b0);
+                    } else setTimeout(checkReadyState, 0x64);
+                } catch (_0x409959) {
+                    setTimeout(() => {
+                        !(iframeCacheExclusions && iframeCacheExclusions['has'](appConfig['id'])) && window['__IFRAME_CACHE']['set'](appConfig['id'], {
+                            'iframe': iframe,
+                            'src': appConfig['src'],
+                            'fullyLoaded': !![],
+                            'loadTime': Date['now']()
+                        }), loadedCount++, loadedCount === preloadApps['length'] && onAllPreloaded();
+                    }, 0x3e8);
+                }
+            };
+            checkReadyState();
+        }, iframe['onerror'] = () => {
+            loadedCount++, loadedCount === preloadApps['length'] && onAllPreloaded();
+        }, preloadContainer['appendChild'](iframe);
+    }
+});
+
+function ensureLandscapeBlock() {
+    let landscapeBlock = document['getElementById']('landscape-block');
+    return !landscapeBlock && (landscapeBlock = document['createElement']('div'), landscapeBlock['id'] = 'landscape-block', landscapeBlock['innerHTML'] = '\x0a\x20\x20\x20\x20\x20\x20<div\x20style=\x22display:\x20flex;\x20flex-direction:\x20column;\x20align-items:\x20center;\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<img\x20decoding=\x22async\x22\x20src=\x22assets/gui/boot/loading.webp\x22\x20alt=\x22Loading\x20animation\x22\x20style=\x22max-width:\x20200px;\x20height:\x20auto;\x22\x20/>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22landscape-message\x22>Please\x20rotate\x20your\x20device\x20back\x20to\x20portrait\x20mode.</div>\x0a\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20', document['body']['appendChild'](landscapeBlock)), landscapeBlock;
+}
+
+function handleOrientationBlock() {
+    const landscapeBlock = document['getElementById']('landscape-block');
+    if (!landscapeBlock) return;
+    const matchLandscape = window['matchMedia'] && window['matchMedia']('(orientation:\x20landscape)')['matches'],
+        viewport = window['visualViewport'],
+        width = viewport ? Math['round'](viewport['width']) : window['innerWidth'],
+        height = viewport ? Math['round'](viewport['height']) : window['innerHeight'],
+        isLandscape = width > height,
+        showBlock = matchLandscape || isLandscape;
+    if (!IS_MOBILE_DEVICE || !showBlock) {
+        landscapeBlock['style']['display'] = 'none';
+        return;
+    }
+    const minSide = Math['min'](width, height),
+        isTooSmall = minSide < 0x258;
+    landscapeBlock['style']['display'] = isTooSmall ? 'flex' : 'none';
+}
+
+function setRealVh() {
+    const vhValue = (window['visualViewport'] ? window['visualViewport']['height'] : window['innerHeight']) * 0.01;
+    document['documentElement']['style']['setProperty']('--real-vh', vhValue + 'px');
+}
+
+function scaleDesktopIconsToFitMobile() {
+    const desktopIcons = document['querySelector']('.desktop-icons');
+    if (!desktopIcons) return;
+    const width = window['innerWidth'],
+        height = window['innerHeight'],
+        scale = Math['min'](width / 0x320, height / 0x258, 0x1);
+    desktopIcons['style']['setProperty']('--icon-scale', scale);
+}
