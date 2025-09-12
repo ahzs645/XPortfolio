@@ -175,6 +175,48 @@ export default class WindowManager {
                 sourceWindow.dispatchEvent(new CustomEvent('window:iframe-interaction', customEventOptions));
                 return;
             }
+            // Window sizing and drag messages from apps (Winamp/Minesweeper)
+            if (messageEvent.data?.type === 'resize-window-to') {
+                const { width, height } = messageEvent.data;
+                if (typeof width === 'number' && typeof height === 'number') {
+                    sourceWindow.style.width = Math.max(160, Math.ceil(width)) + 'px';
+                    sourceWindow.style.height = Math.max(160, Math.ceil(height)) + 'px';
+                }
+                return;
+            }
+            if (messageEvent.data?.type === 'fit-content-size') {
+                const iframe = sourceWindow.querySelector('iframe');
+                if (iframe && typeof messageEvent.data.width === 'number' && typeof messageEvent.data.height === 'number') {
+                    const winRect = sourceWindow.getBoundingClientRect();
+                    const iframeRect = iframe.getBoundingClientRect();
+                    const chromeW = winRect.width - iframeRect.width;
+                    const chromeH = winRect.height - iframeRect.height;
+                    const w = Math.max(160, Math.ceil(messageEvent.data.width + chromeW));
+                    const h = Math.max(160, Math.ceil(messageEvent.data.height + chromeH));
+                    sourceWindow.style.width = w + 'px';
+                    sourceWindow.style.height = h + 'px';
+                }
+                return;
+            }
+            if (messageEvent.data?.type === 'winamp-drag-start' || messageEvent.data?.type === 'winamp-drag-move' || messageEvent.data?.type === 'winamp-drag-end') {
+                const iframe = sourceWindow.querySelector('iframe');
+                if (!iframe) return;
+                const r = iframe.getBoundingClientRect();
+                if (messageEvent.data.type === 'winamp-drag-start') {
+                    const x = r.left + (messageEvent.data.clientX || 0);
+                    const y = r.top + (messageEvent.data.clientY || 0);
+                    const winRect = sourceWindow.getBoundingClientRect();
+                    this._extDrag = { targetWindow: sourceWindow, offsetX: x - winRect.left, offsetY: y - winRect.top };
+                } else if (messageEvent.data.type === 'winamp-drag-move' && this._extDrag && this._extDrag.targetWindow === sourceWindow) {
+                    const x = r.left + (messageEvent.data.clientX || 0);
+                    const y = r.top + (messageEvent.data.clientY || 0);
+                    sourceWindow.style.left = Math.round(x - this._extDrag.offsetX) + 'px';
+                    sourceWindow.style.top = Math.round(y - this._extDrag.offsetY) + 'px';
+                } else if (messageEvent.data.type === 'winamp-drag-end') {
+                    this._extDrag = null;
+                }
+                return;
+            }
             if (messageEvent.data?.type === 'minimize-window') {
                 this.minimizeWindow(sourceWindow);
             } else if (messageEvent.data?.type === 'close-window') {
@@ -455,7 +497,7 @@ export default class WindowManager {
         const _0x5e73db = _0x22aed0['querySelector']('.menu-bar-container');
         _0x5e73db && typeof _0x5e73db['setParentWindowElement'] === 'function' && _0x5e73db['setParentWindowElement'](_0x4836f);
         const _0x2415e8 = _0x4052e3['id']['replace']('-window', '');
-        if (_0x2415e8 !== 'cmd' && _0x2415e8 !== 'musicPlayer' && _0x2415e8 !== 'mediaPlayer') {
+        if (_0x2415e8 !== 'cmd' && _0x2415e8 !== 'musicPlayer' && _0x2415e8 !== 'mediaPlayer' && _0x2415e8 !== 'minesweeper') {
             const _0x175910 = this['_createElement']('div', 'status-bar'),
                 _0x2055e3 = this['_createElement']('p', 'status-bar-field');
             _0x2055e3['textContent'] = _0x4052e3['statusBarText'] || 'Ready', _0x175910['appendChild'](_0x2055e3), _0x4836f['appendChild'](_0x175910), _0x4836f['statusBarField'] = _0x2055e3;

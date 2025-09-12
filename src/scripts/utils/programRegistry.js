@@ -133,6 +133,26 @@ const programData = {
         resizable: false,
         canMaximize: true,
     }),
+
+    // --- Minesweeper ---
+    minesweeper: createProgram('minesweeper', 'Minesweeper', 'start-menu/minesweeper.svg', {
+        appPath: 'src/apps/minesweeper/minesweeper.html?v=1',
+        icon: './assets/apps/minesweeper/mine-icon.png',
+        dimensions: { width: 280, height: 360 },
+        minDimensions: { width: 160, height: 200 },
+        resizable: false,
+        canMaximize: true,
+    }),
+
+    // --- Winamp ---
+    winamp: createProgram('winamp', 'Winamp', 'start-menu/winamp.svg', {
+        appPath: 'src/apps/winamp/winamp.html?v=1',
+        icon: './assets/apps/winamp/winamp.png',
+        dimensions: { width: 360, height: 260 },
+        minDimensions: { width: 300, height: 200 },
+        resizable: false,
+        canMaximize: false,
+    }),
     musicPlayer: createProgram('musicPlayer', 'Music Player', 'start-menu/music.webp', {
         appPath: 'src/apps/musicPlayer/musicplayer.html',
         dimensions: {

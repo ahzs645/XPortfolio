@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Minesweeper</title>
+    <link rel="stylesheet" href="./minesweeper.css" />
+  </head>
+  <body>
+    <div class="mine-window">
+      <div class="mine-options">
+        <div class="menu">Game
+          <div class="dropdown">
+            <div class="item" data-action="new">New</div>
+            <div class="sep"></div>
+            <div class="item" data-action="Beginner">Beginner</div>
+            <div class="item" data-action="Intermediate">Intermediate</div>
+            <div class="item" data-action="Expert">Expert</div>
+            <div class="sep"></div>
+            <div class="item" data-action="exit">Exit</div>
+          </div>
+        </div>
+        <div class="menu disabled">Help</div>
+        <label class="mobile-only"><input type="checkbox" id="flagMode"/> Flag</label>
+      </div>
+      <div class="mine-content">
+        <div class="scorebar">
+          <div id="digits-mines" class="digits" aria-label="Mines Remaining"></div>
+          <button id="face" class="face" aria-label="New Game"></button>
+          <div id="digits-timer" class="digits" aria-label="Time"></div>
+        </div>
+        <div id="board" class="board"></div>
+      </div>
+      <div class="difficulty" style="display:none">
+        <label>Difficulty
+          <select id="difficulty">
+            <option value="Beginner">Beginner (9x9, 10)</option>
+            <option value="Intermediate">Intermediate (16x16, 40)</option>
+            <option value="Expert">Expert (16x30, 99)</option>
+          </select>
+        </label>
+        <button id="reset">New</button>
+      </div>
+    </div>
+    <script src="./minesweeper.js"></script>
+  </body>
+  </html>

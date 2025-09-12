@@ -32,6 +32,20 @@ const MEDIA_PLAYER_ITEM = {
     label: 'Media Player',
     disabled: false
 };
+const MINESWEEPER_ITEM = {
+    type: 'program',
+    programName: 'minesweeper',
+    icon: './assets/apps/minesweeper/mine-icon.png',
+    label: 'Minesweeper',
+    disabled: false
+};
+const WINAMP_ITEM = {
+    type: 'program',
+    programName: 'winamp',
+    icon: './assets/apps/winamp/winamp.png',
+    label: 'Winamp',
+    disabled: false
+};
 const MUSIC_PLAYER_ITEM = {
     type: 'program',
     programName: 'musicPlayer',
@@ -69,6 +83,8 @@ const ALL_PROGRAMS_ITEMS_BASE = [
     CONTACT_ITEM,
     MENU_SEPARATOR,
     MEDIA_PLAYER_ITEM,
+    WINAMP_ITEM,
+    MINESWEEPER_ITEM,
     MUSIC_PLAYER_ITEM,
     IMAGE_VIEWER_ITEM,
     PAINT_ITEM,

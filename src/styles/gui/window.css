@@ -209,6 +209,25 @@
     width: 100%
 }
 
+/* Frameless Winamp window so the skin stands alone */
+#winamp-window,
+.app-window[data-program="winamp"] {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+.app-window[data-program="winamp"] .title-bar,
+.app-window[data-program="winamp"] .status-bar,
+.app-window[data-program="winamp"] .resizer,
+.app-window[data-program="winamp"] .window-inactive-mask {
+    display: none !important;
+}
+.app-window[data-program="winamp"] .window-body { padding: 0 !important; background: transparent !important; }
+
+/* Minesweeper compact window */
+.app-window[data-program="minesweeper"] { min-width: 160px !important; }
+.app-window[data-program="minesweeper"] .title-bar-text { flex: 0 1 70px; padding: 2px 3px; }
+
 @keyframes windowOpenFadeSlide {
     0% {
         opacity: 0;
