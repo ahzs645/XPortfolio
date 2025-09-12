@@ -210,7 +210,7 @@ async function getSystemAssets() {
         // Load dynamic data from CV instead of ui.json
         systemAssets = await loadSocials();
         
-        // Add resume data
+        // Add resume data and user icon
         const portfolio = new PortfolioManager();
         await portfolio.initialize();
         
@@ -218,6 +218,9 @@ async function getSystemAssets() {
             webp: "./assets/apps/resume/resume.webp", // Keep original screenshot
             pdf: portfolio.getCVPDFPath()
         };
+        
+        // Add user icon for start menu
+        systemAssets.userIcon = portfolio.getUserStartMenuIconUrl();
         
         return systemAssets;
     } catch (error) {
@@ -266,14 +269,14 @@ async function loadSocials() {
 
 function getSocialIcon(network) {
     const iconMap = {
-        'LinkedIn': './assets/gui/start-menu/linkedin.webp',
-        'GitHub': './assets/gui/start-menu/github.webp',
-        'Instagram': './assets/gui/start-menu/instagram.webp',
-        'Twitter': './assets/gui/start-menu/twitter.webp',
-        'Facebook': './assets/gui/start-menu/facebook.webp',
-        'YouTube': './assets/gui/start-menu/youtube.webp'
+        'linkedin': './assets/gui/start-menu/linkedin.webp',
+        'github': './assets/gui/start-menu/github.webp',
+        'instagram': './assets/gui/start-menu/instagram.webp',
+        'twitter': './assets/gui/start-menu/github.webp', // Fallback to github icon
+        'facebook': './assets/gui/start-menu/instagram.webp', // Fallback to instagram icon
+        'youtube': './assets/gui/start-menu/mediaPlayer.webp' // Fallback to media player icon
     };
-    return iconMap[network] || './assets/gui/start-menu/link.webp';
+    return iconMap[network.toLowerCase()] || './assets/gui/start-menu/cmd.webp'; // Default fallback
 }
 
 async function generateAboutData(portfolio) {
@@ -666,11 +669,13 @@ export default class StartMenu {
 }
 
 function getAllProgramsItems() {
-    const _0x2aa6d7 = [...ALL_PROGRAMS_ITEMS_BASE, ...SOCIALS['map'](_0x3e23ee => ({
+    // Use dynamic social links from SOCIALS array (loaded by loadSocials())
+    const socialItems = SOCIALS.map(social => ({
         'type': 'url',
-        'url': _0x3e23ee['url'],
-        'icon': _0x3e23ee['icon'] ? './' + _0x3e23ee['icon']['replace'](/^\.\//, '')['replace'](/^\//, '') : '',
-        'label': _0x3e23ee['name']
-    }))];
-    return _0x2aa6d7;
+        'url': social.url,
+        'icon': social.icon ? './' + social.icon.replace(/^\.\//, '').replace(/^\//, '') : '',
+        'label': social.name
+    }));
+    
+    return [...ALL_PROGRAMS_ITEMS_BASE, ...socialItems];
 }

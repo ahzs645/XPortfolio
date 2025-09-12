@@ -2,6 +2,7 @@ import programRegistry from '../utils/programRegistry.js';
 import { EVENTS } from '../utils/eventBus.js';
 import { isFirefox } from '../utils/device.js';
 import systemLoadingManager from '../utils/systemLoadingManager.js';
+import { PortfolioManager } from '../../libs/portfolio/portfolioManager.js';
 import {
     WindowTemplates,
     positionWindow,
@@ -23,6 +24,7 @@ export default class WindowManager {
         this.baseZIndex = parseInt(
             getComputedStyle(document.documentElement).getPropertyValue('--z-window')
         ) || 100;
+        this.portfolioManager = null;
         this.windowsContainer = document.getElementById('windows-container');
         this.taskbarPrograms = document.querySelector('.taskbar-programs');
         this.zIndexStack = [];
@@ -614,13 +616,8 @@ export default class WindowManager {
                 this['openProgram']('contact');
                 break;
             case 'saveResume':
-                if (document['documentElement']['classList']['contains']('mobile-device')) window['open']('./assets/apps/resume/resumeMitchIvin.pdf', '_blank');
-                else {
-                    const _0x409858 = {};
-                    _0x409858['href'] = './assets/apps/resume/resumeMitchIvin.pdf', _0x409858['download'] = 'resumeMitchIvin.pdf';
-                    const _0x17b0b3 = this['_createElement']('a', '', _0x409858);
-                    document['body']['appendChild'](_0x17b0b3), _0x17b0b3['click'](), document['body']['removeChild'](_0x17b0b3);
-                }
+                this._handleSaveResume();
+            
                 break;
             case 'nav:prev':
             case 'nav:next': {
@@ -826,5 +823,48 @@ export default class WindowManager {
         viewportInternals['clearCachedValues'](this);
     } ['_handleViewportChange']() {
         viewportInternals['handleViewportChange'](this);
+    }
+
+    async _getPortfolioManager() {
+        if (!this.portfolioManager) {
+            this.portfolioManager = new PortfolioManager();
+            await this.portfolioManager.initialize();
+        }
+        return this.portfolioManager;
+    }
+
+    async _handleSaveResume() {
+        try {
+            const portfolio = await this._getPortfolioManager();
+            const cvPdfUrl = portfolio.getCVPDFUrl();
+            const fullName = portfolio.getFullName();
+            const fileName = fullName ? `${fullName.replace(/\s+/g, '')}-CV.pdf` : 'resume.pdf';
+            
+            if (document['documentElement']['classList']['contains']('mobile-device')) {
+                window['open'](cvPdfUrl, '_blank');
+            } else {
+                const linkElement = this['_createElement']('a', '', {
+                    href: cvPdfUrl,
+                    download: fileName
+                });
+                document['body']['appendChild'](linkElement);
+                linkElement['click']();
+                document['body']['removeChild'](linkElement);
+            }
+        } catch (error) {
+            console.error('Failed to download resume:', error);
+            // Fallback to hardcoded path
+            if (document['documentElement']['classList']['contains']('mobile-device')) {
+                window['open']('./assets/apps/resume/resumeMitchIvin.pdf', '_blank');
+            } else {
+                const linkElement = this['_createElement']('a', '', {
+                    href: './assets/apps/resume/resumeMitchIvin.pdf',
+                    download: 'resumeMitchIvin.pdf'
+                });
+                document['body']['appendChild'](linkElement);
+                linkElement['click']();
+                document['body']['removeChild'](linkElement);
+            }
+        }
     }
 }

@@ -1,3 +1,5 @@
+import { PortfolioManager } from '../../libs/portfolio/portfolioManager.js';
+
 window.addEventListener('message', (event) => {
     const appRoot = document.getElementById('appRoot');
     if (!appRoot || !event.data) return;
@@ -43,21 +45,42 @@ function transformAssetPath(path) {
 document.addEventListener('DOMContentLoaded', async () => {
     const resumeImage = document.getElementById('resumeImage');
     const appRoot = document.getElementById('appRoot');
-    let uiConfig = null;
-
+    
     try {
-        const response = await fetch('../../../ui.json');
-        uiConfig = await response.json();
+        const portfolio = new PortfolioManager();
+        await portfolio.initialize();
+        
+        // Get CV PDF URL for resume display
+        const cvPdfUrl = portfolio.getCVPDFUrl();
+        const displayMode = portfolio.getPDFDisplayMode();
+        
+        if (displayMode === 'image' && resumeImage) {
+            // If we have a resume image asset, use it
+            resumeImage.src = '../../../assets/apps/resume/resume.webp';
+        } else if (displayMode === 'embed') {
+            // Replace image with PDF embed
+            const pdfEmbed = document.createElement('iframe');
+            pdfEmbed.src = cvPdfUrl;
+            pdfEmbed.style.width = '100%';
+            pdfEmbed.style.height = '100%';
+            pdfEmbed.style.border = 'none';
+            if (resumeImage && resumeImage.parentNode) {
+                resumeImage.parentNode.replaceChild(pdfEmbed, resumeImage);
+            }
+            return; // Skip zoom/pan functionality for PDF
+        } else if (resumeImage) {
+            // Default to existing resume image
+            resumeImage.src = '../../../assets/apps/resume/resume.webp';
+        }
     } catch (error) {
-        console.error('Failed to load ui.json', error);
-        return;
+        console.error('Failed to load portfolio data for resume:', error);
+        // Fallback to default resume image
+        if (resumeImage) {
+            resumeImage.src = '../../../assets/apps/resume/resume.webp';
+        }
     }
-
-    if (!uiConfig || !uiConfig.resume) return;
-
-    if (resumeImage) {
-        resumeImage.src = transformAssetPath(uiConfig.resume.webp);
-    }
+    
+    if (!resumeImage) return;
 
     function initializeZoomPan() {
         let isDragging = false;

@@ -718,19 +718,73 @@ export class SwipeGestureHandler {
     }
 }
 
+import { PortfolioManager } from '../../libs/portfolio/portfolioManager.js';
+
 class ProjectsDataManager {
     constructor() {
         this.projectsData = [];
         this.validProjectIndices = [];
         this.currentProjectIndex = 0;
         this.currentFilteredProjectPos = 0;
+        this.portfolioManager = null;
     }
 
     async loadProjects(appLoader = null) {
         if (appLoader) appLoader.setProgress(15);
-        const response = await fetch('../../../projects.json');
-        if (appLoader) appLoader.setProgress(30);
-        this.projectsData = await response.json();
+        
+        try {
+            // Initialize PortfolioManager if not already done
+            if (!this.portfolioManager) {
+                this.portfolioManager = new PortfolioManager();
+                await this.portfolioManager.initialize();
+            }
+            
+            if (appLoader) appLoader.setProgress(25);
+            
+            // Get projects from CV.yaml via PortfolioManager
+            const cvProjects = await this.portfolioManager.getProjects();
+            if (appLoader) appLoader.setProgress(35);
+            
+            // Transform CV projects to match existing projects.json format
+            this.projectsData = cvProjects.map(project => ({
+                type: "mixed", // Default type for CV projects
+                category: "Personal", // Default category
+                title: project.name,
+                role: "Developer",
+                subtitle: project.summary || "",
+                brief: project.summary || "",
+                description: project.hasMarkdown ? project.markdown.html : (project.summary || ""),
+                workType: "personal",
+                orientation: "landscape",
+                alt: project.name,
+                defaultSlide: 0,
+                headerButton: project.url ? {
+                    enabled: true,
+                    label: "View Project",
+                    url: project.url
+                } : {
+                    enabled: false
+                },
+                // Use placeholder images for now - could be extended to use project-specific assets
+                src: "assets/apps/projects/mitchivinxp/image1.webp",
+                images: [{
+                    src: "assets/apps/projects/mitchivinxp/image1.webp",
+                    alt: project.name
+                }]
+            }));
+            
+        } catch (error) {
+            console.error('Failed to load projects from CV, falling back to projects.json:', error);
+            // Fallback to original behavior
+            try {
+                const response = await fetch('../../../projects.json');
+                this.projectsData = await response.json();
+            } catch (fallbackError) {
+                console.error('Failed to load projects.json as well:', fallbackError);
+                this.projectsData = [];
+            }
+        }
+        
         if (appLoader) appLoader.setProgress(40);
 
         try {

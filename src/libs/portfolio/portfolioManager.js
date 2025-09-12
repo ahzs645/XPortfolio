@@ -41,6 +41,51 @@ export class PortfolioManager {
         return this.configLoader.getProfilePhotoPath();
     }
 
+    // === UI ASSET METHODS ===
+
+    getLoadingImageUrl() {
+        return this.configLoader.getConfigValue('LOADING_IMAGE_PATH', './assets/gui/boot/loading.webp');
+    }
+
+    getUserIconUrl() {
+        return this.configLoader.getConfigValue('USER_LOGIN_ICON', './assets/gui/boot/userlogin.webp');
+    }
+
+    getUserStartMenuIconUrl() {
+        return this.configLoader.getConfigValue('USER_START_MENU_ICON', './assets/gui/boot/userlogin.webp');
+    }
+
+    getWallpaperDesktopUrl() {
+        return this.configLoader.getConfigValue('WALLPAPER_DESKTOP_PATH', './assets/gui/bgs/bliss.webp');
+    }
+
+    getWallpaperMobileUrl() {
+        return this.configLoader.getConfigValue('WALLPAPER_MOBILE_PATH', './assets/gui/bgs/blissMobile.webp');
+    }
+
+    getBalloonTitle() {
+        const osName = this.getOSName();
+        return `Welcome to ${osName}`;
+    }
+
+    getBalloonBody() {
+        return 'A faithful XP-inspired interface, custom-built<br>to showcase my work and attention to detail.';
+    }
+
+    getWindowsUserPath() {
+        const firstName = this.getDisplayName();
+        return `C:\\Users\\${firstName}`;
+    }
+
+    getAssetsPath() {
+        return `${this.getWindowsUserPath()}\\Assets`;
+    }
+
+    getProjectsPath(projectName = '') {
+        const basePath = `${this.getWindowsUserPath()}\\Projects`;
+        return projectName ? `${basePath}\\${projectName.replace(/\s+/g, '')}` : basePath;
+    }
+
     // === CONTACT & SOCIAL ===
     
     getEmail() {
@@ -172,6 +217,10 @@ export class PortfolioManager {
         return this.configLoader.getCVPDFPath();
     }
 
+    getCVPDFPath() {
+        return this.configLoader.getCVPDFPath();
+    }
+
     getPDFDisplayMode() {
         return this.configLoader.getConfigValue('PDF_DISPLAY_MODE', 'embed');
     }
@@ -204,6 +253,14 @@ export class PortfolioManager {
 
     getProfessionalDevelopment() {
         return this.configLoader.cvData?.cv?.sections?.professional_development || [];
+    }
+
+    getSkills() {
+        return this.configLoader.cvData?.cv?.sections?.skills || [];
+    }
+
+    getSoftware() {
+        return this.configLoader.cvData?.cv?.sections?.software || [];
     }
 
     // === UI CUSTOMIZATION ===

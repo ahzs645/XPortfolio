@@ -1,15 +1,20 @@
+import { PortfolioManager } from '../../libs/portfolio/portfolioManager.js';
+
 const fromInput = document.getElementById('contact-from'),
     subjectInput = document.getElementById('contact-subject'),
     messageTextarea = document.getElementById('contact-message');
-let moduleContactName = 'Mitch Ivin',
-    moduleContactEmail = 'mitchellivin@gmail.com';
+let moduleContactName = 'User Name',
+    moduleContactEmail = 'user@example.com';
 document.addEventListener('DOMContentLoaded', async () => {
-    let uiConfig = null;
     try {
-        const response = await fetch('../../../ui.json');
-        uiConfig = await response.json();
-    } catch (error) {}
-    uiConfig && uiConfig.contact && (moduleContactName = uiConfig.contact.name || moduleContactName, moduleContactEmail = uiConfig.contact.email || moduleContactEmail);
+        const portfolio = new PortfolioManager();
+        await portfolio.initialize();
+        
+        moduleContactName = portfolio.getFullName() || moduleContactName;
+        moduleContactEmail = portfolio.getEmail() || moduleContactEmail;
+    } catch (error) {
+        console.error('Failed to load portfolio data for contact form:', error);
+    }
     const toInput = document.getElementById('contact-to');
     toInput && (toInput.value = moduleContactName + ' <' + moduleContactEmail + '>');
 

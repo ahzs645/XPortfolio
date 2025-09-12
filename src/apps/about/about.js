@@ -10,6 +10,7 @@ import {
     sanitizeHTML
 } from '../../scripts/utils/sanitizer.js';
 import AppLoader from '../../scripts/utils/appLoader.js';
+import { PortfolioManager } from '../../libs/portfolio/portfolioManager.js';
 document.addEventListener('DOMContentLoaded', async () => {
     const socialLinksCard = document.getElementById('social-links-card'),
         skillsCard = document.getElementById('skills-card'),
@@ -24,89 +25,137 @@ document.addEventListener('DOMContentLoaded', async () => {
             message.type = 'app-fully-loaded', message.appId = 'about-window', window.parent.postMessage(message, '*');
         }
     }), appLoader.startLoading(0x5));
-    let uiConfig = null;
+    let portfolio = null;
     try {
         if (appLoader) appLoader.setProgress(0xf);
-        const response = await fetch('../../../ui.json');
-        if (appLoader) appLoader.setProgress(0x19);
-        uiConfig = await response.json();
+        portfolio = new PortfolioManager();
+        await portfolio.initialize();
         if (appLoader) appLoader.setProgress(0x23);
     } catch (error) {
+        console.error('Failed to load portfolio data:', error);
         if (appLoader) appLoader.complete();
         return;
     }
-    if (!uiConfig) {
+    if (!portfolio) {
         if (appLoader) appLoader.complete();
         return;
     }
-    if (socialLinksCard && uiConfig.socials) {
-        const socialIcons = uiConfig.socials.filter(social => social.showInAbout && social.icon).map(social => transformAssetPath(social.icon));
+    const socialLinks = portfolio.getSocialLinks();
+    if (socialLinksCard && socialLinks.length > 0) {
+        const socialIcons = socialLinks.filter(social => social.showInAbout !== false).map(() => '../../../assets/gui/start-menu/instagram.webp'); // Default icons
         if (appLoader && socialIcons.length > 0x0) await appLoader.loadAssets(socialIcons, 0x28, 0x2d);
         else appLoader && appLoader.setProgress(0x2d);
         const socialLinksContent = socialLinksCard.querySelector('.left-panel__card__content-inner');
-        socialLinksContent && (socialLinksContent.innerHTML = '', uiConfig.socials.forEach(social => {
-            if (!social.showInAbout) return;
+        socialLinksContent && (socialLinksContent.innerHTML = '', socialLinks.forEach(social => {
+            if (social.showInAbout === false) return;
             const linkElement = document.createElement('a');
-            linkElement.href = social.url, linkElement.target = '_blank', linkElement.rel = 'noopener noreferrer', linkElement.className = 'left-panel__card__row social-link', linkElement.dataset.socialKey = social.key, linkElement.dataset.socialUrl = social.url, linkElement.dataset.socialLabel = social.name;
+            linkElement.href = social.url, linkElement.target = '_blank', linkElement.rel = 'noopener noreferrer', linkElement.className = 'left-panel__card__row social-link', linkElement.dataset.socialKey = social.network.toLowerCase(), linkElement.dataset.socialUrl = social.url, linkElement.dataset.socialLabel = social.network;
             const imgElement = document.createElement('img');
-            imgElement.className = 'left-panel__card__img', imgElement.src = transformAssetPath(social.icon), imgElement.alt = social.name;
+            imgElement.className = 'left-panel__card__img';
+            // Map social networks to their icons
+            const iconMap = {
+                'instagram': '../../../assets/gui/start-menu/instagram.webp',
+                'github': '../../../assets/gui/start-menu/github.webp',
+                'linkedin': '../../../assets/gui/start-menu/linkedin.webp'
+            };
+            imgElement.src = iconMap[social.network.toLowerCase()] || '../../../assets/gui/start-menu/instagram.webp';
+            imgElement.alt = social.network;
             const spanElement = document.createElement('span');
-            spanElement.className = 'left-panel__card__text', spanElement.textContent = social.name, linkElement.appendChild(imgElement), linkElement.appendChild(spanElement), socialLinksContent.appendChild(linkElement), linkElement.addEventListener('click', event => {
+            spanElement.className = 'left-panel__card__text', spanElement.textContent = social.network, linkElement.appendChild(imgElement), linkElement.appendChild(spanElement), socialLinksContent.appendChild(linkElement), linkElement.addEventListener('click', event => {
                 event.preventDefault();
                 if (window.parent && window.parent !== window) {
                     const message = {};
-                    message.type = 'open-social-from-about', message.key = social.key, message.url = social.url, message.label = social.name, window.parent.postMessage(message, '*');
+                    message.type = 'open-social-from-about', message.key = social.network.toLowerCase(), message.url = social.url, message.label = social.network, window.parent.postMessage(message, '*');
                 }
             });
         }));
+    } else {
+        if (appLoader) appLoader.setProgress(0x2d);
     }
-    if (uiConfig.about) {
-        const paragraphAssets = [];
-        for (let i = 0x1; i <= 0x5; i++) {
-            const asset = uiConfig.about['p' + i];
-            if (asset) paragraphAssets.push(transformAssetPath(asset));
-        }
+    // Load about content from markdown
+    try {
+        const aboutContent = await portfolio.getAboutContent();
+        const paragraphAssets = [
+            '../../../assets/apps/about/p1.webp',
+            '../../../assets/apps/about/p2.webp', 
+            '../../../assets/apps/about/p3.webp',
+            '../../../assets/apps/about/p4.webp'
+        ];
         if (appLoader && paragraphAssets.length > 0x0) await appLoader.loadAssets(paragraphAssets, 0x32, 0x37);
         else appLoader && appLoader.setProgress(0x37);
         const textSection = document.querySelector('.section_text');
-        textSection && (textSection.innerHTML = '', uiConfig.about.paragraphs.forEach((paragraph, index) => {
-            const paragraphRow = document.createElement('div');
-            paragraphRow.className = 'about-paragraph-row';
-            const iconCol = document.createElement('span');
-            iconCol.className = 'about-paragraph-icon-col';
-            const iconImg = document.createElement('img');
-            iconImg.className = 'about-paragraph-icon', iconImg.draggable = ![], iconImg.alt = 'Paragraph icon ' + (index + 0x1), iconImg.src = transformAssetPath(uiConfig.about['p' + (index + 0x1)]), iconCol.appendChild(iconImg);
-            const textSpan = document.createElement('span');
-            textSpan.className = 'about-paragraph-text', /[<>]/.test(paragraph) ? textSpan.innerHTML = sanitizeHTML(paragraph) : textSpan.textContent = paragraph, paragraphRow.appendChild(iconCol), paragraphRow.appendChild(textSpan), textSection.appendChild(paragraphRow);
+        
+        if (textSection && aboutContent.paragraphs) {
+            textSection.innerHTML = '';
+            aboutContent.paragraphs.forEach((paragraph, index) => {
+                const paragraphRow = document.createElement('div');
+                paragraphRow.className = 'about-paragraph-row';
+                const iconCol = document.createElement('span');
+                iconCol.className = 'about-paragraph-icon-col';
+                const iconImg = document.createElement('img');
+                iconImg.className = 'about-paragraph-icon';
+                iconImg.draggable = false;
+                iconImg.alt = 'Paragraph icon ' + (index + 1);
+                iconImg.src = paragraphAssets[index] || '../../../assets/apps/about/p1.webp';
+                iconCol.appendChild(iconImg);
+                const textSpan = document.createElement('span');
+                textSpan.className = 'about-paragraph-text';
+                /[<>]/.test(paragraph) ? textSpan.innerHTML = sanitizeHTML(paragraph) : textSpan.textContent = paragraph;
+                paragraphRow.appendChild(iconCol);
+                paragraphRow.appendChild(textSpan);
+                textSection.appendChild(paragraphRow);
+            });
+        }
+    } catch (error) {
+        console.error('Failed to load about content:', error);
+        if (appLoader) appLoader.setProgress(0x37);
+    }
+    const skills = portfolio.getSkills();
+    if (skillsCard && skills.length > 0) {
+        const skillIcons = [
+            '../../../assets/apps/about/skill1.webp',
+            '../../../assets/apps/about/skill2.webp',
+            '../../../assets/apps/about/skill3.webp',
+            '../../../assets/apps/about/skill4.webp',
+            '../../../assets/apps/about/skill5.webp'
+        ];
+        if (appLoader && skillIcons.length > 0x0) await appLoader.loadAssets(skillIcons, 0x41, 0x46);
+        else appLoader && appLoader.setProgress(0x46);
+        const skillsContent = skillsCard.querySelector('.left-panel__card__content-inner');
+        skillsContent && (skillsContent.innerHTML = '', skills.forEach((skill, index) => {
+            const skillRow = document.createElement('div');
+            skillRow.className = 'left-panel__card__row';
+            const skillImg = document.createElement('img');
+            skillImg.className = 'left-panel__card__img', skillImg.alt = skill, skillImg.src = skillIcons[index] || skillIcons[0];
+            const skillName = document.createElement('span');
+            skillName.className = 'left-panel__card__text', skillName.textContent = skill, skillRow.appendChild(skillImg), skillRow.appendChild(skillName), skillsContent.appendChild(skillRow);
         }));
-        if (skillsCard && uiConfig.about.skills && uiConfig.about.skillsIcons) {
-            const skillIcons = uiConfig.about.skillsIcons.map(icon => transformAssetPath(icon));
-            if (appLoader && skillIcons.length > 0x0) await appLoader.loadAssets(skillIcons, 0x41, 0x46);
-            else appLoader && appLoader.setProgress(0x46);
-            const skillsContent = skillsCard.querySelector('.left-panel__card__content-inner');
-            skillsContent && (skillsContent.innerHTML = '', uiConfig.about.skills.forEach((skill, index) => {
-                const skillRow = document.createElement('div');
-                skillRow.className = 'left-panel__card__row';
-                const skillImg = document.createElement('img');
-                skillImg.className = 'left-panel__card__img', skillImg.alt = skill, skillImg.src = transformAssetPath(uiConfig.about.skillsIcons[index] || '');
-                const skillName = document.createElement('span');
-                skillName.className = 'left-panel__card__text', skillName.textContent = skill, skillRow.appendChild(skillImg), skillRow.appendChild(skillName), skillsContent.appendChild(skillRow);
-            }));
-        }
-        if (softwareCard && uiConfig.about.software && uiConfig.about.softwareIcons) {
-            const softwareIcons = uiConfig.about.softwareIcons.map(icon => transformAssetPath(icon));
-            if (appLoader && softwareIcons.length > 0x0) await appLoader.loadAssets(softwareIcons, 0x50, 0x55);
-            else appLoader && appLoader.setProgress(0x55);
-            const softwareContent = softwareCard.querySelector('.left-panel__card__content-inner');
-            softwareContent && (softwareContent.innerHTML = '', uiConfig.about.software.forEach((software, index) => {
-                const softwareRow = document.createElement('div');
-                softwareRow.className = 'left-panel__card__row';
-                const softwareImg = document.createElement('img');
-                softwareImg.className = 'left-panel__card__img', softwareImg.alt = software, softwareImg.src = transformAssetPath(uiConfig.about.softwareIcons[index] || '');
-                const softwareName = document.createElement('span');
-                softwareName.className = 'left-panel__card__text', softwareName.textContent = software, softwareRow.appendChild(softwareImg), softwareRow.appendChild(softwareName), softwareContent.appendChild(softwareRow);
-            }));
-        }
+    } else {
+        if (appLoader) appLoader.setProgress(0x46);
+    }
+    const softwareList = portfolio.getSoftware();
+    if (softwareCard && softwareList.length > 0) {
+        const softwareIcons = [
+            '../../../assets/gui/start-menu/vanity-apps/creative-cloud.webp',
+            '../../../assets/gui/start-menu/vanity-apps/vscode.webp',
+            '../../../assets/gui/start-menu/vanity-apps/copilot.webp',
+            '../../../assets/gui/start-menu/github.webp',
+            '../../../assets/gui/start-menu/vanity-apps/figma.webp',
+            '../../../assets/gui/start-menu/vanity-apps/wordpress.webp'
+        ];
+        if (appLoader && softwareIcons.length > 0x0) await appLoader.loadAssets(softwareIcons, 0x50, 0x55);
+        else appLoader && appLoader.setProgress(0x55);
+        const softwareContent = softwareCard.querySelector('.left-panel__card__content-inner');
+        softwareContent && (softwareContent.innerHTML = '', softwareList.forEach((software, index) => {
+            const softwareRow = document.createElement('div');
+            softwareRow.className = 'left-panel__card__row';
+            const softwareImg = document.createElement('img');
+            softwareImg.className = 'left-panel__card__img', softwareImg.alt = software, softwareImg.src = softwareIcons[index] || softwareIcons[0];
+            const softwareName = document.createElement('span');
+            softwareName.className = 'left-panel__card__text', softwareName.textContent = software, softwareRow.appendChild(softwareImg), softwareRow.appendChild(softwareName), softwareContent.appendChild(softwareRow);
+        }));
+    } else {
+        if (appLoader) appLoader.setProgress(0x55);
     }
     socialLinksCard && expandCard(socialLinksCard);
     skillsCard && expandCard(skillsCard);

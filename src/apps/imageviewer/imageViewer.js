@@ -1,5 +1,13 @@
 (function() {
     'use strict';
+    
+    // Dynamic portfolio manager helper
+    async function getPortfolioManager() {
+        const { PortfolioManager } = await import('../../libs/portfolio/portfolioManager.js');
+        const portfolio = new PortfolioManager();
+        await portfolio.initialize();
+        return portfolio;
+    }
     const SWIPE_THRESHOLD = 0x19,
         VERTICAL_SWIPE_THRESHOLD = 0x64,
         ZOOM_SCALE_PORTRAIT = 1.5,
@@ -34,6 +42,8 @@
                         const initialImages = this.images.slice(0x0, 0x5).map(image => image.src);
                         appLoader && await appLoader.loadAssets(initialImages, 0x28, 0x5a);
                     }
+                    // Update address bar with dynamic user path
+                    await this.updateAddressBar();
                     this.loadImage(0x0);
                 }
             }, 0x258), appLoader && await appLoader.loadAssets(['../../../projects.json'], 0xa, 0x1e), appLoader && appLoader.complete(), this.setupEventListeners(), this.startAutoRefresh(), this.setupResizeMessageListener();
@@ -93,7 +103,14 @@
                 for (const image of projectImages) {
                     !uniqueSources.has(image.src) && (uniqueSources.add(image.src), uniqueImages.push(image));
                 }
-                this.images = uniqueImages, this.updateSignature(), !this.images.length ? this.showEmpty() : (this.isProjectMode = !![], this.currentProjectTitle = projectTitle, this.updateAddressBar(projectTitle));
+                this.images = uniqueImages, this.updateSignature();
+                if (!this.images.length) {
+                    this.showEmpty();
+                } else {
+                    this.isProjectMode = true;
+                    this.currentProjectTitle = projectTitle;
+                    await this.updateAddressBar(projectTitle);
+                }
             } catch (error) {
                 this.showError(error.message || 'Error filtering images for project');
             }
@@ -291,11 +308,20 @@
                 message.type = 'toolbar:zoom-state', message.active = isZoomed, window.parent.postMessage(message, '*');
             }
         }
-        updateAddressBar(projectTitle = null) {
+        async updateAddressBar(projectTitle = null) {
             if (window.parent && window.parent !== window) {
-                const addressBarTitle = projectTitle ? 'C:\\Users\\Mitch\\Projects\\' + projectTitle.replace(/\s+/g, '') : 'C:\\Users\\Mitch\\Assets',
-                    message = {};
-                message.type = 'update-address-bar', message.title = addressBarTitle, window.parent.postMessage(message, '*');
+                try {
+                    const portfolio = await getPortfolioManager();
+                    const addressBarTitle = projectTitle ? portfolio.getProjectsPath(projectTitle) : portfolio.getAssetsPath();
+                    const message = {};
+                    message.type = 'update-address-bar', message.title = addressBarTitle, window.parent.postMessage(message, '*');
+                } catch (error) {
+                    console.error('Failed to update address bar with dynamic path:', error);
+                    // Fallback to default path
+                    const addressBarTitle = projectTitle ? 'C:\\Users\\User\\Projects\\' + projectTitle.replace(/\s+/g, '') : 'C:\\Users\\User\\Assets';
+                    const message = {};
+                    message.type = 'update-address-bar', message.title = addressBarTitle, window.parent.postMessage(message, '*');
+                }
             }
         }
         enablePan(imgElement) {

@@ -205,7 +205,7 @@ export function initBootSequence(eventBus, EVENTS, projectsData) {
         logoffMode = data?.['dialogType'] || 'logOff', openLogoffDialog();
     });
 
-    function openLogoffDialog() {
+    async function openLogoffDialog() {
         if (!logoffDialog) return;
         const headerText = logoffDialog['querySelector']('.logoff-dialog-header-text'),
             logoffConfirmButton = logoffDialog['querySelector']('#logoff-log-off-btn'),
@@ -213,16 +213,24 @@ export function initBootSequence(eventBus, EVENTS, projectsData) {
             logoffButtonLabel = logoffConfirmButton?.['querySelector']('span');
         if (logoffMode === 'shutDown') {
             if (headerText) {
-                const portfolio = await getPortfolioManager();
-                headerText['textContent'] = `Turn off ${portfolio.getOSName()}`;
+                try {
+                    const portfolio = await getPortfolioManager();
+                    headerText['textContent'] = `Turn off ${portfolio.getOSName()}`;
+                } catch (error) {
+                    headerText['textContent'] = 'Turn off MitchIvin XP';
+                }
             }
             if (logoffButtonLabel) logoffButtonLabel['textContent'] = 'Shut\x20Down';
             if (logoffButtonImage) logoffButtonImage['src'] = 'assets/gui/start-menu/shutdown.webp';
             logoffConfirmButton && (logoffConfirmButton['style']['opacity'] = '0.6', logoffConfirmButton['style']['pointerEvents'] = 'none');
         } else {
             if (headerText) {
-                const portfolio = await getPortfolioManager();
-                headerText['textContent'] = `Log Off ${portfolio.getOSName()}`;
+                try {
+                    const portfolio = await getPortfolioManager();
+                    headerText['textContent'] = `Log Off ${portfolio.getOSName()}`;
+                } catch (error) {
+                    headerText['textContent'] = 'Log Off MitchIvin XP';
+                }
             }
             if (logoffButtonLabel) logoffButtonLabel['textContent'] = 'Log\x20Off';
             if (logoffButtonImage) logoffButtonImage['src'] = 'assets/gui/start-menu/logoff.webp';

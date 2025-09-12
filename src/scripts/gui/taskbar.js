@@ -11,6 +11,7 @@ import {
 import {
     updateTaskbarPlayingIndicator
 } from '../utils/domUtils.js';
+import { PortfolioManager } from '../../libs/portfolio/portfolioManager.js';
 let taskbarSharedEventBus = null;
 class Clock {
     constructor(selector) {
@@ -176,13 +177,16 @@ export async function showWelcomeBalloon() {
     let title = '',
         body = '';
     try {
-        const resp = await fetch('./ui.json'),
-            data = await resp['json']();
-        if (data['balloon']) {
-            if (data['balloon']['title']) title = data['balloon']['title'];
-            if (data['balloon']['body']) body = data['balloon']['body'];
-        }
-    } catch (fetchError) {}
+        const portfolio = new PortfolioManager();
+        await portfolio.initialize();
+        title = portfolio.getBalloonTitle();
+        body = portfolio.getBalloonBody();
+    } catch (error) {
+        console.error('Failed to load portfolio data for balloon:', error);
+        // Fallback to default values
+        title = 'Welcome to XP Portfolio';
+        body = 'A faithful XP-inspired interface, custom-built<br>to showcase my work and attention to detail.';
+    }
     balloonContainer['innerHTML'] = '\x0a\x20\x20\x20\x20<div\x20class=\x22balloon\x22>\x0a\x20\x20\x20\x20\x20\x20<button\x20class=\x22balloon__close\x22\x20aria-label=\x22Close\x22></button>\x0a\x20\x20\x20\x20\x20\x20<div\x20class=\x22balloon__header\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<img\x20decoding=\x22async\x22\x20loading=\x22lazy\x22\x20class=\x22balloon__header__img\x22\x20src=\x22assets/gui/taskbar/welcome.webp\x22\x20alt=\x22welcome\x22\x20/>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<span\x20class=\x22balloon__header__text\x22\x20style=\x22font-weight:\x20bold;\x22>' + title + '</span>\x0a\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20<p\x20class=\x22balloon__text__first\x22\x20style=\x22padding:\x200\x208px\x200\x202px;\x22>' + body + '</p>\x0a\x20\x20\x20\x20\x20\x20<p\x20class=\x22balloon__text__second\x22\x20style=\x22padding:\x200\x208px\x200\x202px;\x20margin-top:\x208px;\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20Get\x20Started:\x20<a\x20href=\x22#\x22\x20id=\x22balloon-about-link\x22\x20style=\x22color:\x20blue;\x20text-decoration:\x20underline;\x22>About\x20Me</a>\x20|\x20<a\x20href=\x22#\x22\x20id=\x22balloon-projects-link\x22\x20style=\x22color:\x20blue;\x20text-decoration:\x20underline;\x22>My\x20Projects</a>\x0a\x20\x20\x20\x20\x20\x20</p>\x0a\x20\x20\x20\x20\x20\x20<div\x20class=\x22balloon-pointer-anchor\x22\x20style=\x22position:absolute;bottom:-19px;right:24px;width:0;height:0;\x22></div>\x0a\x20\x20\x20\x20</div>\x0a\x20\x20';
     const projectsLink = balloonContainer['querySelector']('#balloon-projects-link');
     projectsLink && projectsLink['addEventListener']('click', e => {
