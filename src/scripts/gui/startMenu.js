@@ -1,4 +1,5 @@
 import { EVENTS } from '../utils/eventBus.js';
+import { PortfolioManager } from '../../libs/portfolio/portfolioManager.js';
 
 const ABOUT_ITEM = {
     type: 'program',
@@ -204,25 +205,133 @@ const CMD_CONFIG = {
 
 async function getSystemAssets() {
     if (systemAssets) return systemAssets;
+    
     try {
-        const response = await fetch('./ui.json');
-        systemAssets = await response.json();
+        // Load dynamic data from CV instead of ui.json
+        systemAssets = await loadSocials();
+        
+        // Add resume data
+        const portfolio = new PortfolioManager();
+        await portfolio.initialize();
+        
+        systemAssets.resume = {
+            webp: "./assets/apps/resume/resume.webp", // Keep original screenshot
+            pdf: portfolio.getCVPDFPath()
+        };
+        
         return systemAssets;
     } catch (error) {
-        systemAssets = {};
+        console.error('Failed to load system assets:', error);
+        systemAssets = {
+            socials: [],
+            contact: { name: 'User', email: '' },
+            about: { paragraphs: [], skills: [], skillsIcons: [], software: [], softwareIcons: [] },
+            resume: { webp: "./assets/apps/resume/resume.webp", pdf: "/public/CV.pdf" }
+        };
         return systemAssets;
     }
 }
 
 async function loadSocials() {
     try {
-        const response = await fetch('./ui.json');
-        const data = await response.json();
-        SOCIALS = Array.isArray(data.socials) ? data.socials : [];
-        return data;
+        const portfolio = new PortfolioManager();
+        await portfolio.initialize();
+        
+        // Get social links from CV.yaml
+        const socialLinks = portfolio.getSocialLinks();
+        
+        // Convert to ui.json format for compatibility with existing code
+        SOCIALS = socialLinks.map(social => ({
+            key: social.network.toLowerCase(),
+            name: social.network,
+            icon: getSocialIcon(social.network),
+            url: social.url
+        }));
+        
+        // Return data in expected format
+        return {
+            socials: SOCIALS,
+            contact: {
+                name: portfolio.getFullName(),
+                email: portfolio.getEmail()
+            },
+            about: await generateAboutData(portfolio)
+        };
     } catch (error) {
+        console.error('Failed to load CV data for start menu:', error);
         SOCIALS = [];
         return {};
+    }
+}
+
+function getSocialIcon(network) {
+    const iconMap = {
+        'LinkedIn': './assets/gui/start-menu/linkedin.webp',
+        'GitHub': './assets/gui/start-menu/github.webp',
+        'Instagram': './assets/gui/start-menu/instagram.webp',
+        'Twitter': './assets/gui/start-menu/twitter.webp',
+        'Facebook': './assets/gui/start-menu/facebook.webp',
+        'YouTube': './assets/gui/start-menu/youtube.webp'
+    };
+    return iconMap[network] || './assets/gui/start-menu/link.webp';
+}
+
+async function generateAboutData(portfolio) {
+    try {
+        const aboutContent = await portfolio.getAboutContent();
+        const experience = portfolio.getExperience();
+        
+        // Extract paragraphs from markdown content
+        const paragraphs = aboutContent.content
+            .split('\n\n')
+            .filter(p => p.trim() && !p.startsWith('#'))
+            .slice(0, 4); // Limit to 4 paragraphs like original
+        
+        // Generate skills from experience
+        const skills = [];
+        const skillsSet = new Set();
+        
+        experience.forEach(exp => {
+            if (exp.positions) {
+                exp.positions.forEach(pos => {
+                    skillsSet.add(pos.title);
+                });
+            } else if (exp.position) {
+                skillsSet.add(exp.position);
+            }
+        });
+        
+        // Add profession as primary skill
+        const profession = portfolio.getProfession();
+        if (profession) {
+            skills.push(profession);
+        }
+        
+        // Add experience-based skills
+        Array.from(skillsSet).slice(0, 4).forEach(skill => skills.push(skill));
+        
+        return {
+            paragraphs,
+            skills,
+            // Placeholder icons - in a full implementation, these would be configurable
+            skillsIcons: skills.map(() => './assets/apps/about/skill1.webp'),
+            software: ["VS Code", "Git + GitHub", "Node.js", "Modern Web Stack"],
+            softwareIcons: [
+                "./assets/gui/start-menu/vanity-apps/vscode.webp",
+                "./assets/gui/start-menu/github.webp",
+                "./assets/gui/start-menu/vanity-apps/nodejs.webp",
+                "./assets/gui/start-menu/vanity-apps/html.webp"
+            ]
+        };
+    } catch (error) {
+        console.error('Failed to generate about data:', error);
+        return {
+            paragraphs: [`Welcome! I'm ${portfolio.getFullName()}.`],
+            skills: [portfolio.getProfession()],
+            skillsIcons: ['./assets/apps/about/skill1.webp'],
+            software: ["Modern Tools"],
+            softwareIcons: ['./assets/gui/start-menu/vanity-apps/vscode.webp']
+        };
     }
 }
 

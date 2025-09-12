@@ -185,6 +185,20 @@
         </div>
     </div>
     <script type=module src=./src/scripts/main.js></script>
+    <!-- Dynamic Content Initialization -->
+    <script type="module">
+        import { initializePage } from './src/libs/ui/pageInitializer.js';
+        
+        // Initialize page with dynamic data
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await initializePage();
+                console.log('Page initialized with dynamic CV data');
+            } catch (error) {
+                console.error('Failed to initialize page with dynamic data:', error);
+            }
+        });
+    </script>
     <div class=crt-effect></div>
     <div class=crt-scanline></div>
     <div class=crt-vignette></div>

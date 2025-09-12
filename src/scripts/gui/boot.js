@@ -4,12 +4,33 @@ import {
     getLogoffSound,
     getBalloonSound
 } from '../utils/audioManager.js';
+import { PortfolioManager } from '../../libs/portfolio/portfolioManager.js';
 let SYSTEM_ASSETS = null;
+let portfolioManager = null;
+
+async function getPortfolioManager() {
+    if (!portfolioManager) {
+        portfolioManager = new PortfolioManager();
+        await portfolioManager.initialize();
+    }
+    return portfolioManager;
+}
+
 async function getSystemAssets() {
     if (SYSTEM_ASSETS) return SYSTEM_ASSETS;
     try {
-        const response = await fetch('./ui.json');
-        return SYSTEM_ASSETS = await response['json'](), SYSTEM_ASSETS;
+        const portfolio = await getPortfolioManager();
+        SYSTEM_ASSETS = {
+            loading: portfolio.getLoadingImageUrl(),
+            userIcon: portfolio.getUserIconUrl(),
+            wallpaperDesktop: portfolio.getWallpaperDesktopUrl(),
+            wallpaperMobile: portfolio.getWallpaperMobileUrl(),
+            balloon: {
+                title: portfolio.getBalloonTitle(),
+                body: portfolio.getBalloonBody()
+            }
+        };
+        return SYSTEM_ASSETS;
     } catch (error) {
         return SYSTEM_ASSETS = {}, SYSTEM_ASSETS;
     }
@@ -191,12 +212,18 @@ export function initBootSequence(eventBus, EVENTS, projectsData) {
             logoffButtonImage = logoffConfirmButton?.['querySelector']('img'),
             logoffButtonLabel = logoffConfirmButton?.['querySelector']('span');
         if (logoffMode === 'shutDown') {
-            if (headerText) headerText['textContent'] = 'Turn\x20off\x20MitchIvin\x20XP';
+            if (headerText) {
+                const portfolio = await getPortfolioManager();
+                headerText['textContent'] = `Turn off ${portfolio.getOSName()}`;
+            }
             if (logoffButtonLabel) logoffButtonLabel['textContent'] = 'Shut\x20Down';
             if (logoffButtonImage) logoffButtonImage['src'] = 'assets/gui/start-menu/shutdown.webp';
             logoffConfirmButton && (logoffConfirmButton['style']['opacity'] = '0.6', logoffConfirmButton['style']['pointerEvents'] = 'none');
         } else {
-            if (headerText) headerText['textContent'] = 'Log\x20Off\x20MitchIvin\x20XP';
+            if (headerText) {
+                const portfolio = await getPortfolioManager();
+                headerText['textContent'] = `Log Off ${portfolio.getOSName()}`;
+            }
             if (logoffButtonLabel) logoffButtonLabel['textContent'] = 'Log\x20Off';
             if (logoffButtonImage) logoffButtonImage['src'] = 'assets/gui/start-menu/logoff.webp';
             logoffConfirmButton && (logoffConfirmButton['style']['opacity'] = '', logoffConfirmButton['style']['pointerEvents'] = '');
@@ -319,15 +346,22 @@ document['addEventListener']('DOMContentLoaded', async () => {
         if (assets['userIcon']) userImage['src'] = assets['userIcon'];
     });
     try {
-        const response = await fetch('./ui.json'),
-            data = await response['json'](),
-            contactName = data?.['contact']?.['name'] || 'Mitch\x20Ivin';
+        const portfolio = await getPortfolioManager();
+        const fullName = portfolio.getFullName();
+        const profession = portfolio.getProfession();
+        
         document['querySelectorAll']('.login-screen\x20.name')['forEach'](element => {
-            element['textContent'] = contactName;
-        }), document['querySelectorAll']('.login-instruction-name')['forEach'](element2 => {
-            element2['textContent'] = contactName;
+            element['textContent'] = fullName;
         });
-    } catch (uiError) {}
+        document['querySelectorAll']('.login-instruction-name')['forEach'](element2 => {
+            element2['textContent'] = fullName;
+        });
+        document['querySelectorAll']('.user-title')['forEach'](element => {
+            element['textContent'] = profession;
+        });
+    } catch (portfolioError) {
+        console.error('Failed to load portfolio data for login screen:', portfolioError);
+    }
     const preBootOverlay = document['getElementById']('pre-boot-overlay'),
         bootScreenElem = document['getElementById']('boot-screen');
     preBootOverlay && bootScreenElem && setTimeout(() => {
