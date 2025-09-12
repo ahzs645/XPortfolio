@@ -143,8 +143,41 @@
   // Change face while interacting with the board
   boardEl.addEventListener('mousedown', (e)=>{ if(e.button===0 && (status==='new'||status==='started')) setFace(FACE.OHH); });
   document.addEventListener('mouseup', ()=>{ if(status==='new'||status==='started') setFace(FACE.SMILE); });
+  // Menu bar event handling
+  const gameMenu = document.getElementById('game-menu');
+  const menuItems = document.querySelectorAll('.menu-item[data-menu]');
+  
+  // Handle menu clicks
+  menuItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      if (item.classList.contains('disabled')) return;
+      const menu = item.dataset.menu;
+      if (menu === 'game') {
+        const isOpen = gameMenu.style.display !== 'none';
+        gameMenu.style.display = isOpen ? 'none' : 'block';
+        item.classList.toggle('active', !isOpen);
+      }
+    });
+  });
+  
+  // Close menu when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.menu-bar-container')) {
+      gameMenu.style.display = 'none';
+      menuItems.forEach(item => item.classList.remove('active'));
+    }
+  });
+  
+  // Handle menu item actions
   document.addEventListener('click', (e)=>{
-    const a = e.target?.dataset?.action; if(!a) return;
+    const target = e.target;
+    const a = target?.dataset?.action || target?.closest('.menu-dropdown-item')?.dataset?.action;
+    if(!a) return;
+    
+    // Close menu after action
+    gameMenu.style.display = 'none';
+    menuItems.forEach(item => item.classList.remove('active'));
+    
     if (a==='new') init();
     else if (Config[a]){ difficultyEl.value = a; init(); }
     else if (a==='exit') { try{ window.parent?.postMessage({ type:'close-window' }, '*'); }catch(_){}}
@@ -155,11 +188,17 @@
 
   function sendResize(){
     try {
-      const outer = document.querySelector('.mine-window');
-      if (!outer) return;
-      const rect = outer.getBoundingClientRect();
-      const w = Math.ceil(rect.width);
-      const h = Math.ceil(rect.height);
+      const content = document.querySelector('.mine-content');
+      const menuBar = document.querySelector('.menu-bar-container');
+      if (!content || !menuBar) return;
+      
+      const contentRect = content.getBoundingClientRect();
+      const menuRect = menuBar.getBoundingClientRect();
+      
+      // Calculate exact size needed
+      const w = Math.ceil(contentRect.width) + 10;
+      const h = Math.ceil(contentRect.height) + Math.ceil(menuRect.height) + 6;
+      
       // Ask parent to fit the window exactly around our content
       window.parent?.postMessage({ type: 'fit-content-size', width: w, height: h }, '*');
     } catch(_){}
@@ -174,10 +213,10 @@
 
   function setupResizeObserver(){
     try {
-      const outer = document.querySelector('.mine-window');
-      if (!outer) return;
+      const content = document.querySelector('.mine-content');
+      if (!content) return;
       const ro = new ResizeObserver(() => sendResize());
-      ro.observe(outer);
+      ro.observe(content);
     } catch(_){}
   }
 

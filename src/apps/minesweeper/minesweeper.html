@@ -1,26 +1,47 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8" />
+    <meta content="width=device-width,initial-scale=1" name="viewport">
     <title>Minesweeper</title>
+    <link href="https://unpkg.com/xp.css@0.2.6/dist/XP.css" rel="stylesheet" crossorigin="anonymous">
+    <link href="../../../assets/fonts/tahoma.woff2" rel="preload" crossorigin as="font" type="font/woff2">
+    <link href="../../../assets/fonts/tahomabd.woff2" rel="preload" crossorigin as="font" type="font/woff2">
+    <style>
+      body,
+      html {
+        font-family: Tahoma, Arial, sans-serif
+      }
+    </style>
     <link rel="stylesheet" href="./minesweeper.css" />
   </head>
   <body>
+    <script>
+      ! function() {
+        try {
+          window.parent && window.parent !== window && window.parent.postMessage({
+            type: "app-preload-ready",
+            appId: "minesweeper-window"
+          }, "*")
+        } catch (e) {}
+      }()
+    </script>
     <div class="mine-window">
-      <div class="mine-options">
-        <div class="menu">Game
-          <div class="dropdown">
-            <div class="item" data-action="new">New</div>
-            <div class="sep"></div>
-            <div class="item" data-action="Beginner">Beginner</div>
-            <div class="item" data-action="Intermediate">Intermediate</div>
-            <div class="item" data-action="Expert">Expert</div>
-            <div class="sep"></div>
-            <div class="item" data-action="exit">Exit</div>
-          </div>
+      <div class="menu-bar-container">
+        <div class="menu-bar">
+          <div class="menu-item" data-menu="game">Game</div>
+          <div class="menu-item disabled" data-menu="help">Help</div>
+          <label class="mobile-only"><input type="checkbox" id="flagMode"/> Flag</label>
         </div>
-        <div class="menu disabled">Help</div>
-        <label class="mobile-only"><input type="checkbox" id="flagMode"/> Flag</label>
+        <div class="menu-dropdown" id="game-menu" style="display:none">
+          <div class="menu-dropdown-item" data-action="new">New</div>
+          <div class="menu-dropdown-divider"></div>
+          <div class="menu-dropdown-item" data-action="Beginner">Beginner</div>
+          <div class="menu-dropdown-item" data-action="Intermediate">Intermediate</div>
+          <div class="menu-dropdown-item" data-action="Expert">Expert</div>
+          <div class="menu-dropdown-divider"></div>
+          <div class="menu-dropdown-item" data-action="exit">Exit</div>
+        </div>
       </div>
       <div class="mine-content">
         <div class="scorebar">
