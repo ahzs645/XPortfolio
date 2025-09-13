@@ -372,8 +372,8 @@ const programData = {
             height: 350
         },
         statusBarText: document.documentElement.classList.contains('mobile-device') ?
-            'Tap to zoom, then drag to view other areas' :
-            'Click to zoom, then drag to view other areas',
+            'Scroll to view pages. Tap Zoom to toggle.' :
+            'Scroll to view pages. Click Zoom to toggle.',
         appPath: 'src/apps/resume/resume.html',
         menuBarConfig: {
             items: [{

@@ -4,7 +4,6 @@ html {
     height: 100%;
     margin: 0;
     padding: 0;
-    touch-action: none
 }
 
 body {
@@ -12,139 +11,15 @@ body {
     color: #000;
     font-family: Tahoma, Arial, sans-serif;
     font-size: 11px;
-    overflow: hidden
+    overflow: hidden;
 }
 
 .app-root {
     box-sizing: border-box;
     height: 100%;
-    overflow: auto;
-    padding: 8px;
-    width: 100%
-}
-
-.mobile-device .app-root {
-    padding: 8px
-}
-
-.mobile-device .resume-image.zoomed {
-    width: 190%
-}
-
-@media (min-width:768px) {
-    .maximized-mode.app-root {
-        padding: 16px 0
-    }
-}
-
-.resume-image {
-    box-sizing: content-box;
-    cursor: zoom-in;
-    display: block;
-    height: auto;
-    margin: 0 auto;
-    max-height: 100%;
-    max-width: 100%;
-    -o-object-fit: contain;
-    object-fit: contain;
-    transition: max-width .2s, max-height .2s, width .2s, height .2s;
-    width: auto
-}
-
-.resume-image.zoomed {
-    cursor: zoom-out;
-    height: auto;
-    max-height: none;
-    max-width: none;
-    width: 175%
-}
-
-@media (min-width:700px) {
-    .resume-image.zoomed {
-        max-width: 90vw;
-        width: 850px
-    }
-}
-
-.resume-image.dragging {
-    cursor: grabbing
-}
-
-.maximized-mode .resume-image:not(.zoomed) {
-    display: block;
-    height: 100%;
-    margin-bottom: 0;
-    max-width: 100%;
-    -o-object-fit: contain;
-    object-fit: contain;
-    width: auto
-}
-
-.app-root,
-.resume-image,
-body {
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none
-}
-
-input,
-textarea {
-    user-select: text;
-    -webkit-user-select: text;
-    -moz-user-select: text;
-    -ms-user-select: text
-}
-
-.resizing-window .app-root,
-.resizing-window .resume-image {
-    pointer-events: none !important
-}
-
-/* Hide scrollbars by default for clean look (except in PDF mode) */
-.app-root:not(.pdf-mode) * {
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-}
-
-.app-root:not(.pdf-mode) *::-webkit-scrollbar {
-    display: none !important;
-    height: 0 !important;
-    width: 0 !important;
-}
-
-.app-root:not(.pdf-mode) *::-webkit-scrollbar-corner,
-.app-root:not(.pdf-mode) *::-webkit-scrollbar-thumb,
-.app-root:not(.pdf-mode) *::-webkit-scrollbar-track {
-    display: none !important;
-}
-
-/* PDF iframe specific styles */
-iframe[src*=".pdf"] {
-    overflow: hidden !important;
-    scrolling: no !important;
-}
-
-/* Hide Chrome PDF viewer controls */
-iframe[src*=".pdf"]::-webkit-scrollbar {
-    display: none !important;
-}
-
-/* Ensure proper PDF display */
-.app-root.pdf-mode {
-    /* Prevent outer container from scrolling; only the inner PDF viewer scrolls */
-    overflow: hidden !important;
-    padding: 0 !important;
-    height: 100% !important;
-}
-
-.app-root.pdf-mode iframe {
-    width: 100% !important;
-    height: 100% !important;
-    border: none !important;
-    overflow: hidden !important;
-    position: relative !important;
+    padding: 0;
+    width: 100%;
+    overflow: hidden; /* inner viewer handles scroll */
 }
 
 /* PDF.js viewer container */
@@ -152,12 +27,12 @@ iframe[src*=".pdf"]::-webkit-scrollbar {
     box-sizing: border-box;
     width: 100%;
     height: 100%;
-    overflow-y: auto;
-    overflow-x: hidden; /* no horizontal bar in fit mode */
+    overflow-y: auto;  /* show normal vertical scrollbar */
+    overflow-x: hidden; /* hidden in fit mode */
     background: #c0c0c0; /* XP gray */
     display: flex;
     flex-direction: column;
-    align-items: stretch;
+    align-items: center; /* center pages horizontally */
     gap: 12px;
     padding: 12px;
 }
@@ -173,23 +48,36 @@ iframe[src*=".pdf"]::-webkit-scrollbar {
     margin: 0 auto;
 }
 
-/* Scrollbar visuals now inherited from main.css via 'window-body' class */
+/* Use XP scrollbars from main.css by leveraging .window-body.
+   Keep margin/padding neutral to avoid off-center content from xp.css defaults. */
+.window-body {
+    margin: 0 !important;
+    padding: 0 !important;
+}
 
-/* Remove toolbar-offset hacks to prevent content being pushed behind UI */
-
-@-moz-document url-prefix() {
-    .app-root:not(.pdf-mode) * {
-        scrollbar-width: none !important;
-        -ms-overflow-style: none !important;
-    }
-    .app-root:not(.pdf-mode) *::-webkit-scrollbar {
-        display: none !important;
-        height: 0 !important;
-        width: 0 !important;
-    }
-    .app-root:not(.pdf-mode) *::-webkit-scrollbar-corner,
-    .app-root:not(.pdf-mode) *::-webkit-scrollbar-thumb,
-    .app-root:not(.pdf-mode) *::-webkit-scrollbar-track {
-        display: none !important;
-    }
+/* XP-style scrollbars scoped to this iframe's viewer */
+#resumePdfViewer {
+    scrollbar-color: #316ac5 #ece9d8; /* Firefox */
+    scrollbar-width: thin;
+}
+#resumePdfViewer::-webkit-scrollbar {
+    background: #ece9d8;
+    width: 13px;
+}
+#resumePdfViewer::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #eaf1fb 0, #316ac5);
+    border: 2px solid #ece9d8;
+    border-radius: 7px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
+    min-height: 40px;
+}
+#resumePdfViewer::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #dbe8fa 0, #184f8b);
+}
+#resumePdfViewer::-webkit-scrollbar-track {
+    background: #ece9d8;
+    border-radius: 7px;
+}
+#resumePdfViewer::-webkit-scrollbar-corner {
+    background: #ece9d8;
 }

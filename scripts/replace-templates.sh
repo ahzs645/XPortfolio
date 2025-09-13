@@ -4,6 +4,7 @@
 
 RESUME_FILE_PATH='public/CV.yaml'
 INDEX_FILE='index.html'
+CONFIG_FILE='config.env'
 
 echo "🔄 Starting template replacement..."
 
@@ -40,11 +41,22 @@ else
     TITLE="Professional"
 fi
 
+# Read HTML preview image from config.env
+if [ -f "$CONFIG_FILE" ]; then
+    HTML_PREVIEW_IMAGE=$(grep "^HTML_PREVIEW_IMAGE=" "$CONFIG_FILE" | cut -d'=' -f2 | xargs)
+    if [ -z "$HTML_PREVIEW_IMAGE" ]; then
+        HTML_PREVIEW_IMAGE="link.webp"
+    fi
+else
+    HTML_PREVIEW_IMAGE="link.webp"
+fi
+
 echo "📝 Name: $NAME"
 echo "📝 First Name: $FIRSTNAME"
 echo "📍 Location: $LOCATION"
 echo "📧 Email: $EMAIL"
 echo "💼 Title: $TITLE"
+echo "🖼️  Preview Image: $HTML_PREVIEW_IMAGE"
 
 # Create backup of index.html
 if [ -f "$INDEX_FILE" ]; then
@@ -63,6 +75,7 @@ if grep -q "{{DEVELOPER_NAME}}" "$INDEX_FILE"; then
     sed -i.tmp "s|{{DEVELOPER_LOCATION}}|$LOCATION|g" "$INDEX_FILE"
     sed -i.tmp "s|{{DEVELOPER_EMAIL}}|$EMAIL|g" "$INDEX_FILE"
     sed -i.tmp "s|{{DEVELOPER_TITLE}}|$TITLE|g" "$INDEX_FILE"
+    sed -i.tmp "s|{{HTML_PREVIEW_IMAGE}}|$HTML_PREVIEW_IMAGE|g" "$INDEX_FILE"
 
     # Clean up temp file
     rm -f "${INDEX_FILE}.tmp"
