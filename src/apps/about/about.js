@@ -41,6 +41,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
     const socialLinks = portfolio.getSocialLinks();
+    const showSkills = portfolio.shouldShowSkillsInAbout();
+    const showSoftware = portfolio.shouldShowSoftwareInAbout();
     if (socialLinksCard && socialLinks.length > 0) {
         const socialIcons = socialLinks.filter(social => social.showInAbout !== false).map(() => '../../../assets/gui/start-menu/instagram.webp'); // Default icons
         if (appLoader && socialIcons.length > 0x0) await appLoader.loadAssets(socialIcons, 0x28, 0x2d);
@@ -76,14 +78,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Load about content from markdown
     try {
         const aboutContent = await portfolio.getAboutContent();
-        const paragraphAssets = [
-            '../../../assets/apps/about/p1.webp',
-            '../../../assets/apps/about/p2.webp', 
-            '../../../assets/apps/about/p3.webp',
-            '../../../assets/apps/about/p4.webp'
-        ];
-        if (appLoader && paragraphAssets.length > 0x0) await appLoader.loadAssets(paragraphAssets, 0x32, 0x37);
-        else appLoader && appLoader.setProgress(0x37);
+        // Previously we loaded per-paragraph icons. We no longer use them.
+        if (appLoader) appLoader.setProgress(0x37);
         const textSection = document.querySelector('.section_text');
         
         if (textSection && aboutContent.paragraphs) {
@@ -91,18 +87,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             aboutContent.paragraphs.forEach((paragraph, index) => {
                 const paragraphRow = document.createElement('div');
                 paragraphRow.className = 'about-paragraph-row';
-                const iconCol = document.createElement('span');
-                iconCol.className = 'about-paragraph-icon-col';
-                const iconImg = document.createElement('img');
-                iconImg.className = 'about-paragraph-icon';
-                iconImg.draggable = false;
-                iconImg.alt = 'Paragraph icon ' + (index + 1);
-                iconImg.src = paragraphAssets[index] || '../../../assets/apps/about/p1.webp';
-                iconCol.appendChild(iconImg);
                 const textSpan = document.createElement('span');
                 textSpan.className = 'about-paragraph-text';
                 /[<>]/.test(paragraph) ? textSpan.innerHTML = sanitizeHTML(paragraph) : textSpan.textContent = paragraph;
-                paragraphRow.appendChild(iconCol);
                 paragraphRow.appendChild(textSpan);
                 textSection.appendChild(paragraphRow);
             });
@@ -112,7 +99,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (appLoader) appLoader.setProgress(0x37);
     }
     const skills = portfolio.getSkills();
-    if (skillsCard && skills.length > 0) {
+    if (!showSkills && skillsCard) {
+        skillsCard.style.display = 'none';
+    } else if (skillsCard && skills.length > 0) {
         const skillIcons = [
             '../../../assets/apps/about/skill1.webp',
             '../../../assets/apps/about/skill2.webp',
@@ -135,7 +124,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (appLoader) appLoader.setProgress(0x46);
     }
     const softwareList = portfolio.getSoftware();
-    if (softwareCard && softwareList.length > 0) {
+    if (!showSoftware && softwareCard) {
+        softwareCard.style.display = 'none';
+    } else if (softwareCard && softwareList.length > 0) {
         const softwareIcons = [
             '../../../assets/gui/start-menu/vanity-apps/creative-cloud.webp',
             '../../../assets/gui/start-menu/vanity-apps/vscode.webp',
@@ -159,17 +150,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (appLoader) appLoader.setProgress(0x55);
     }
     socialLinksCard && expandCard(socialLinksCard);
-    skillsCard && expandCard(skillsCard);
-    softwareCard && expandCard(softwareCard);
+    if (showSkills) skillsCard && expandCard(skillsCard);
+    if (showSoftware) softwareCard && expandCard(softwareCard);
     if (socialLinksCard) {
         const socialLinksHeader = socialLinksCard.querySelector('.left-panel__card__header');
         socialLinksHeader && socialLinksHeader.addEventListener('click', () => toggleCard(socialLinksCard));
     }
-    if (skillsCard) {
+    if (skillsCard && showSkills) {
         const skillsHeader = skillsCard.querySelector('.left-panel__card__header');
         skillsHeader && skillsHeader.addEventListener('click', () => toggleCard(skillsCard));
     }
-    if (softwareCard) {
+    if (softwareCard && showSoftware) {
         const softwareHeader = softwareCard.querySelector('.left-panel__card__header');
         softwareHeader && softwareHeader.addEventListener('click', () => toggleCard(softwareCard));
     }

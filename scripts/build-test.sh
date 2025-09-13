@@ -17,6 +17,5 @@ cd dist
 echo "✅ Test build complete in dist/ folder"
 echo "🌐 Starting BrowserSync server..."
 
-# Start BrowserSync server
-cd dist
+# Start BrowserSync server (we are already in dist)
 npx browser-sync start --server --files "**/*" --port 3000 --no-open

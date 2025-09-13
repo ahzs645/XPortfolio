@@ -68,6 +68,8 @@ export class ConfigLoader {
             CV_PDF_PATH: 'public/CV.pdf',
             SHOW_SOCIAL_IN_START_MENU: true,
             SHOW_SOCIAL_IN_ABOUT: true,
+            SHOW_SKILLS_IN_ABOUT: true,
+            SHOW_SOFTWARE_IN_ABOUT: true,
             ENABLE_PROJECT_MARKDOWN: true,
             SHOW_PROJECTS_WITHOUT_MARKDOWN: true,
             CONTENT_DIR: 'content',

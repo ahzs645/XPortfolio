@@ -284,6 +284,14 @@ export class PortfolioManager {
         return this.configLoader.isFeatureEnabled('SHOW_SOCIAL_IN_ABOUT');
     }
 
+    shouldShowSkillsInAbout() {
+        return this.configLoader.isFeatureEnabled('SHOW_SKILLS_IN_ABOUT');
+    }
+
+    shouldShowSoftwareInAbout() {
+        return this.configLoader.isFeatureEnabled('SHOW_SOFTWARE_IN_ABOUT');
+    }
+
     shouldShowProfession() {
         return this.configLoader.isFeatureEnabled('SHOW_PROFESSION');
     }

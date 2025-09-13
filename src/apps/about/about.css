@@ -307,7 +307,7 @@ a.left-panel__card__row:hover .left-panel__card__text {
     display: block;
     flex: 1;
     font-size: 15.5px;
-    padding-left: 48px;
+    padding-left: 0;
     transition: padding-left .18s ease
 }
 
