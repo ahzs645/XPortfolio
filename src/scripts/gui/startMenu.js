@@ -222,6 +222,10 @@ async function getSystemAssets() {
         // Add user icon for start menu
         systemAssets.userIcon = portfolio.getUserStartMenuIconUrl();
         
+        // Add wallpaper assets for consistency
+        systemAssets.wallpaperDesktop = portfolio.getWallpaperDesktopUrl();
+        systemAssets.wallpaperMobile = portfolio.getWallpaperMobileUrl();
+        
         return systemAssets;
     } catch (error) {
         console.error('Failed to load system assets:', error);

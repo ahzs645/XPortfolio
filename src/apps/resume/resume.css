@@ -102,6 +102,61 @@ textarea {
     pointer-events: none !important
 }
 
+/* Hide all scrollbars for clean XP look */
+* {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+::-webkit-scrollbar {
+    display: none !important;
+    height: 0 !important;
+    width: 0 !important;
+}
+
+::-webkit-scrollbar-corner,
+::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-track {
+    display: none !important;
+}
+
+/* PDF iframe specific styles */
+iframe[src*=".pdf"] {
+    overflow: hidden !important;
+    scrolling: no !important;
+}
+
+/* Hide Chrome PDF viewer controls */
+iframe[src*=".pdf"]::-webkit-scrollbar {
+    display: none !important;
+}
+
+/* Ensure proper PDF display */
+.app-root.pdf-mode {
+    overflow: auto !important;
+    padding: 0 !important;
+    height: 100% !important;
+}
+
+.app-root.pdf-mode iframe {
+    width: 100% !important;
+    height: 100vh !important;
+    border: none !important;
+    overflow: hidden !important;
+    position: relative !important;
+}
+
+/* Chrome PDF viewer specific styles (fallback when PDF.js is disabled) */
+.app-root.pdf-mode iframe[src*="#toolbar"] {
+    height: calc(100% + 50px) !important; /* Extend height to crop toolbar */
+    margin-top: -50px !important; /* Move up to hide Chrome's toolbar */
+}
+
+/* Alternative approach - try to hide Chrome PDF controls */
+iframe[src*=".pdf"] {
+    clip-path: inset(50px 0 0 0) !important; /* Crop top 50px where toolbar usually is */
+}
+
 @-moz-document url-prefix() {
     * {
         scrollbar-width: none !important;

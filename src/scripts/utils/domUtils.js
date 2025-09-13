@@ -77,7 +77,7 @@ export function createPreloadIframe({ src, id, withTransform = true }) {
     iframe.style.cssText = normalizeCSSText(styles);
     iframe.setAttribute('frameborder', '0');
     iframe.setAttribute('scrolling', 'no');
-    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads');
+    // iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads'); // Disabled for Chrome compatibility
     iframe.setAttribute('aria-hidden', 'true');
     return iframe;
 }

@@ -3,6 +3,13 @@ import { EVENTS } from '../utils/eventBus.js';
 let SOCIALS_CACHE = null;
 let SYSTEM_ASSETS = null;
 
+// Function to clear cache for development/testing
+window.clearSystemAssetsCache = () => {
+    SYSTEM_ASSETS = null;
+    SOCIALS_CACHE = null;
+    console.log('System assets cache cleared');
+};
+
 async function getSocials() {
     if (SOCIALS_CACHE) return SOCIALS_CACHE;
     try {
@@ -19,10 +26,23 @@ async function getSocials() {
 async function getSystemAssets() {
     if (SYSTEM_ASSETS) return SYSTEM_ASSETS;
     try {
-        const response = await fetch('./ui.json');
-        SYSTEM_ASSETS = await response.json();
+        const { PortfolioManager } = await import('../../libs/portfolio/portfolioManager.js');
+        const portfolio = new PortfolioManager();
+        await portfolio.initialize();
+        
+        SYSTEM_ASSETS = {
+            loading: portfolio.getLoadingImageUrl(),
+            userIcon: portfolio.getUserIconUrl(),
+            wallpaperDesktop: portfolio.getWallpaperDesktopUrl(),
+            wallpaperMobile: portfolio.getWallpaperMobileUrl(),
+            balloon: {
+                title: portfolio.getBalloonTitle(),
+                body: portfolio.getBalloonBody()
+            }
+        };
         return SYSTEM_ASSETS;
     } catch (error) {
+        console.error('Failed to load system assets:', error);
         SYSTEM_ASSETS = {};
         return SYSTEM_ASSETS;
     }
@@ -60,21 +80,15 @@ export default class Desktop {
         this.eventBus.subscribe(EVENTS.WINDOW_FOCUSED, () => this.clearSelection());
         this.eventBus.subscribe(EVENTS.PROGRAM_OPEN, () => this.resetDragSelectionState());
         this.eventBus.subscribe(EVENTS.STARTMENU_OPENED, () => this.resetDragSelectionState());
-        const preloadPicture = document.getElementById('preload-wallpaper');
-        if (preloadPicture) {
-            const img = preloadPicture.querySelector('img');
-            if (img && img.currentSrc) {
-                this.desktop.style.backgroundImage = `url('${img.currentSrc}')`;
-            } else {
-                getSystemAssets().then(assets => {
-                    if (document.documentElement.classList.contains('mobile-device') && assets.wallpaperMobile) {
-                        this.desktop.style.backgroundImage = `url('${assets.wallpaperMobile}')`;
-                    } else if (assets.wallpaperDesktop) {
-                        this.desktop.style.backgroundImage = `url('${assets.wallpaperDesktop}')`;
-                    }
-                });
+        
+        // Always use dynamic assets instead of hardcoded preload
+        getSystemAssets().then(assets => {
+            if (document.documentElement.classList.contains('mobile-device') && assets.wallpaperMobile) {
+                this.desktop.style.backgroundImage = `url('${assets.wallpaperMobile}')`;
+            } else if (assets.wallpaperDesktop) {
+                this.desktop.style.backgroundImage = `url('${assets.wallpaperDesktop}')`;
             }
-        }
+        });
     }
 
     getIcons() {

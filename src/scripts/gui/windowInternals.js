@@ -96,7 +96,7 @@ export class WindowTemplates {
                     width: '100%',
                     height: '100%',
                     scrolling: document.documentElement.classList.contains('mobile-device') ? 'auto' : 'no',
-                    sandbox: 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-modals allow-downloads',
+                    // sandbox: 'allow-scripts allow-same-origin allow-forms allow-popups allow-downloads allow-modals', // Disabled for Chrome compatibility
                 };
                 for (const [attr, value] of Object.entries(attrs)) iframe.setAttribute(attr, value);
                 iframe.src = appPath;
@@ -114,7 +114,7 @@ export class WindowTemplates {
                     width: '100%',
                     height: '100%',
                     scrolling: document.documentElement.classList.contains('mobile-device') ? 'auto' : 'no',
-                    sandbox: 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-modals allow-downloads',
+                    // sandbox: 'allow-scripts allow-same-origin allow-forms allow-popups allow-downloads allow-modals', // Disabled for Chrome compatibility
                 };
                 for (const [attr, value] of Object.entries(attrs)) iframe.setAttribute(attr, value);
             }

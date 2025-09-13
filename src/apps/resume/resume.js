@@ -58,16 +58,59 @@ document.addEventListener('DOMContentLoaded', async () => {
             // If we have a resume image asset, use it
             resumeImage.src = '../../../assets/apps/resume/resume.webp';
         } else if (displayMode === 'embed') {
-            // Replace image with PDF embed
-            const pdfEmbed = document.createElement('iframe');
-            pdfEmbed.src = cvPdfUrl;
-            pdfEmbed.style.width = '100%';
-            pdfEmbed.style.height = '100%';
-            pdfEmbed.style.border = 'none';
-            if (resumeImage && resumeImage.parentNode) {
-                resumeImage.parentNode.replaceChild(pdfEmbed, resumeImage);
+            // Check if PDF.js should be used for better control
+            const shouldUsePDFJS = portfolio.shouldUsePDFJS();
+            
+            if (shouldUsePDFJS) {
+                // Use Google Docs viewer as it handles CORS better for local files
+                const pdfEmbed = document.createElement('iframe');
+                const encodedUrl = encodeURIComponent(window.location.origin + '/' + cvPdfUrl);
+                const pdfUrl = `https://docs.google.com/gview?url=${encodedUrl}&embedded=true`;
+                
+                pdfEmbed.src = pdfUrl;
+                pdfEmbed.style.width = '100%';
+                pdfEmbed.style.height = '100%';
+                pdfEmbed.style.border = 'none';
+                pdfEmbed.style.overflow = 'hidden';
+                
+                pdfEmbed.setAttribute('scrolling', 'no');
+                pdfEmbed.setAttribute('allowfullscreen', 'false');
+                
+                if (resumeImage && resumeImage.parentNode) {
+                    resumeImage.parentNode.replaceChild(pdfEmbed, resumeImage);
+                }
+                
+                if (appRoot) {
+                    appRoot.style.overflow = 'hidden';
+                    appRoot.classList.add('pdf-mode');
+                }
+                
+                return; // Skip zoom/pan functionality for PDF
+            } else {
+                // Fallback to direct PDF embed with Chrome control hiding attempts
+                const pdfEmbed = document.createElement('iframe');
+                const pdfUrl = cvPdfUrl + '#toolbar=0&navpanes=0&scrollbar=0&statusbar=0&messages=0&view=FitH&zoom=page-width';
+                
+                pdfEmbed.src = pdfUrl;
+                pdfEmbed.style.width = '100%';
+                pdfEmbed.style.height = '100%';
+                pdfEmbed.style.border = 'none';
+                pdfEmbed.style.overflow = 'hidden';
+                
+                pdfEmbed.setAttribute('scrolling', 'no');
+                pdfEmbed.setAttribute('allowfullscreen', 'false');
+                
+                if (resumeImage && resumeImage.parentNode) {
+                    resumeImage.parentNode.replaceChild(pdfEmbed, resumeImage);
+                }
+                
+                if (appRoot) {
+                    appRoot.style.overflow = 'hidden';
+                    appRoot.classList.add('pdf-mode');
+                }
+                
+                return; // Skip zoom/pan functionality for PDF
             }
-            return; // Skip zoom/pan functionality for PDF
         } else if (resumeImage) {
             // Default to existing resume image
             resumeImage.src = '../../../assets/apps/resume/resume.webp';
