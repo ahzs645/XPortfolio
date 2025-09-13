@@ -288,7 +288,19 @@ const programData = {
             width: 430,
             height: 400
         },
-        statusBarText: 'Learn more about Mitch',
+        statusBarText: null,
+        getStatusBarText: async () => {
+            try {
+                const portfolio = new PortfolioManager();
+                await portfolio.initialize();
+                const fullName = portfolio.getFullName();
+                const firstName = fullName ? fullName.split(' ')[0] : 'firstname';
+                return `Learn more about ${firstName}`;
+            } catch (error) {
+                console.error('Failed to load portfolio data for status bar:', error);
+                return 'Learn more about firstname';
+            }
+        },
         appPath: 'src/apps/about/about.html',
         toolbarConfig: {
             buttons: [{
@@ -706,11 +718,11 @@ const programData = {
                 const portfolio = new PortfolioManager();
                 await portfolio.initialize();
                 const fullName = portfolio.getFullName();
-                const firstName = fullName ? fullName.split(' ')[0] : 'Mitch';
+                const firstName = fullName ? fullName.split(' ')[0] : 'firstname';
                 return `Compose a message to ${firstName}`;
             } catch (error) {
                 console.error('Failed to load portfolio data for status bar:', error);
-                return 'Compose a message to Mitch';
+                return 'Compose a message to firstname';
             }
         },
         appPath: 'src/apps/contact/contact.html',
