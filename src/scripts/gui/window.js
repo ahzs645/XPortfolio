@@ -502,7 +502,17 @@ export default class WindowManager {
         if (_0x2415e8 !== 'cmd' && _0x2415e8 !== 'musicPlayer' && _0x2415e8 !== 'mediaPlayer' && _0x2415e8 !== 'minesweeper') {
             const _0x175910 = this['_createElement']('div', 'status-bar'),
                 _0x2055e3 = this['_createElement']('p', 'status-bar-field');
-            _0x2055e3['textContent'] = _0x4052e3['statusBarText'] || 'Ready', _0x175910['appendChild'](_0x2055e3), _0x4836f['appendChild'](_0x175910), _0x4836f['statusBarField'] = _0x2055e3;
+            // Handle async status bar text
+            if (_0x4052e3['getStatusBarText'] && typeof _0x4052e3['getStatusBarText'] === 'function') {
+                _0x4052e3['getStatusBarText']().then(text => {
+                    _0x2055e3['textContent'] = text || 'Ready';
+                }).catch(() => {
+                    _0x2055e3['textContent'] = _0x4052e3['statusBarText'] || 'Ready';
+                });
+            } else {
+                _0x2055e3['textContent'] = _0x4052e3['statusBarText'] || 'Ready';
+            }
+            _0x175910['appendChild'](_0x2055e3), _0x4836f['appendChild'](_0x175910), _0x4836f['statusBarField'] = _0x2055e3;
         }
         const _0x3b5247 = 0x258,
             _0x150909 = 0x190;

@@ -105,7 +105,7 @@ export function initBootSequence(eventBus, EVENTS, projectsData) {
                 checkResources = async () => {
                     try {
                         if (!assets || Object['keys'](assets)['length'] === 0x0) return ![];
-                        const preloadImages = ['./assets/gui/bgs/bliss.webp', './assets/gui/desktop/about.webp', './assets/gui/desktop/projects.webp', './assets/gui/desktop/contact.webp', './assets/gui/desktop/resume.webp', './assets/gui/taskbar/start-button.webp', './assets/gui/taskbar/taskbar-bg.webp', './assets/gui/taskbar/system-tray.webp'],
+                        const preloadImages = ['./assets/gui/bgs/bliss.webp', './assets/gui/desktop/about.webp', './assets/gui/desktop/projects.webp', './assets/gui/desktop/contact.webp', './assets/gui/desktop/resume.svg', './assets/gui/taskbar/start-button.webp', './assets/gui/taskbar/taskbar-bg.webp', './assets/gui/taskbar/system-tray.webp'],
                             imagePromises = preloadImages['map'](src => {
                                 return new Promise(resolveFn => {
                                     const img = new Image();

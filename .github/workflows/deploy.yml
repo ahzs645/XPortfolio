@@ -24,6 +24,57 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Replace template placeholders
+        run: |
+          # Read the CV YAML file and extract information
+          RESUME_FILE_PATH='public/CV.yaml'
+
+          if [ -f "$RESUME_FILE_PATH" ]; then
+            echo "Using CV file: $RESUME_FILE_PATH"
+
+            # Extract full name
+            NAME=$(grep -m 1 "name:" "$RESUME_FILE_PATH" | sed 's/.*name: //' | sed 's/["'\'']//' | xargs)
+
+            # Extract first name only
+            FIRSTNAME=$(echo "$NAME" | awk '{print $1}')
+
+            # Extract location
+            LOCATION=$(grep -m 1 "location:" "$RESUME_FILE_PATH" | sed 's/.*location: //' | sed 's/["'\'']//' | xargs)
+
+            # Extract email
+            EMAIL=$(grep -m 1 "email:" "$RESUME_FILE_PATH" | sed 's/.*email: //' | sed 's/["'\'']//' | xargs)
+
+            # Try to extract title/position from the most recent job
+            TITLE=$(grep -A 5 "experience:" "$RESUME_FILE_PATH" | grep -m 1 "position:" | sed 's/.*position: //' | sed 's/["'\'']//' | xargs)
+
+            # If no title found, use a default
+            if [ -z "$TITLE" ]; then
+              TITLE="Professional"
+            fi
+          else
+            echo "CV file not found, using fallback values"
+            NAME="Ahmad Jalil"
+            FIRSTNAME="Ahmad"
+            LOCATION="Prince George, BC"
+            EMAIL="me@ahmadjalil.com"
+            TITLE="Professional"
+          fi
+
+          echo "Name: $NAME"
+          echo "First Name: $FIRSTNAME"
+          echo "Location: $LOCATION"
+          echo "Email: $EMAIL"
+          echo "Title: $TITLE"
+
+          # Replace placeholders in index.html
+          sed -i "s|{{DEVELOPER_NAME}}|$NAME|g" index.html
+          sed -i "s|{{DEVELOPER_FIRSTNAME}}|$FIRSTNAME|g" index.html
+          sed -i "s|{{DEVELOPER_LOCATION}}|$LOCATION|g" index.html
+          sed -i "s|{{DEVELOPER_EMAIL}}|$EMAIL|g" index.html
+          sed -i "s|{{DEVELOPER_TITLE}}|$TITLE|g" index.html
+
+          echo "Template placeholders replaced successfully"
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 

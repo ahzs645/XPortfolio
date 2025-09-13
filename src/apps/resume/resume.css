@@ -102,21 +102,21 @@ textarea {
     pointer-events: none !important
 }
 
-/* Hide all scrollbars for clean XP look */
-* {
+/* Hide scrollbars by default for clean look (except in PDF mode) */
+.app-root:not(.pdf-mode) * {
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
 }
 
-::-webkit-scrollbar {
+.app-root:not(.pdf-mode) *::-webkit-scrollbar {
     display: none !important;
     height: 0 !important;
     width: 0 !important;
 }
 
-::-webkit-scrollbar-corner,
-::-webkit-scrollbar-thumb,
-::-webkit-scrollbar-track {
+.app-root:not(.pdf-mode) *::-webkit-scrollbar-corner,
+.app-root:not(.pdf-mode) *::-webkit-scrollbar-thumb,
+.app-root:not(.pdf-mode) *::-webkit-scrollbar-track {
     display: none !important;
 }
 
@@ -133,45 +133,63 @@ iframe[src*=".pdf"]::-webkit-scrollbar {
 
 /* Ensure proper PDF display */
 .app-root.pdf-mode {
-    overflow: auto !important;
+    /* Prevent outer container from scrolling; only the inner PDF viewer scrolls */
+    overflow: hidden !important;
     padding: 0 !important;
     height: 100% !important;
 }
 
 .app-root.pdf-mode iframe {
     width: 100% !important;
-    height: 100vh !important;
+    height: 100% !important;
     border: none !important;
     overflow: hidden !important;
     position: relative !important;
 }
 
-/* Chrome PDF viewer specific styles (fallback when PDF.js is disabled) */
-.app-root.pdf-mode iframe[src*="#toolbar"] {
-    height: calc(100% + 50px) !important; /* Extend height to crop toolbar */
-    margin-top: -50px !important; /* Move up to hide Chrome's toolbar */
+/* PDF.js viewer container */
+.pdf-viewer {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden; /* no horizontal bar in fit mode */
+    background: #c0c0c0; /* XP gray */
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px;
 }
 
-/* Alternative approach - try to hide Chrome PDF controls */
-iframe[src*=".pdf"] {
-    clip-path: inset(50px 0 0 0) !important; /* Crop top 50px where toolbar usually is */
+.pdf-viewer.zoomed {
+    overflow-x: auto; /* allow horizontal scroll when zoomed */
 }
+
+.pdf-page-canvas {
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,.35);
+    display: block;
+    margin: 0 auto;
+}
+
+/* Scrollbar visuals now inherited from main.css via 'window-body' class */
+
+/* Remove toolbar-offset hacks to prevent content being pushed behind UI */
 
 @-moz-document url-prefix() {
-    * {
+    .app-root:not(.pdf-mode) * {
         scrollbar-width: none !important;
-        -ms-overflow-style: none !important
+        -ms-overflow-style: none !important;
     }
-
-    ::-webkit-scrollbar {
+    .app-root:not(.pdf-mode) *::-webkit-scrollbar {
         display: none !important;
         height: 0 !important;
-        width: 0 !important
+        width: 0 !important;
     }
-
-    ::-webkit-scrollbar-corner,
-    ::-webkit-scrollbar-thumb,
-    ::-webkit-scrollbar-track {
-        display: none !important
+    .app-root:not(.pdf-mode) *::-webkit-scrollbar-corner,
+    .app-root:not(.pdf-mode) *::-webkit-scrollbar-thumb,
+    .app-root:not(.pdf-mode) *::-webkit-scrollbar-track {
+        display: none !important;
     }
 }

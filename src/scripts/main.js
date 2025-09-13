@@ -1,6 +1,7 @@
 import Desktop from './gui/desktop.js';
 import Taskbar from './gui/taskbar.js';
 import WindowManager from './gui/window.js';
+import { PortfolioManager } from '../libs/portfolio/portfolioManager.js';
 import {
     eventBus,
     EVENTS
@@ -94,7 +95,7 @@ document['addEventListener']('DOMContentLoaded', () => {
         if (window['__UI_INITIALIZED']) return;
         window['__UI_INITIALIZED'] = !![], globalTaskbarInstance = new Taskbar(eventBus), new Desktop(eventBus), window['windowManager'] = new WindowManager(eventBus), initializeDeviceDetection(), IS_MOBILE_DEVICE = document['documentElement']['classList']['contains']('mobile-device'), eventBus['subscribe'](EVENTS['SHUTDOWN_REQUESTED'], () => {
             sessionStorage['removeItem']('logged_in'), window['location']['assign'](window['location']['pathname'] + '?forceBoot=true');
-        }), initRandomScanline(), setupTooltips('[data-tooltip]'), ensureLandscapeBlock(), handleOrientationBlock(), setRealVh();
+        }), initRandomScanline(), setupTooltips('[data-tooltip]'), ensureLandscapeBlock().then(() => handleOrientationBlock()), setRealVh();
     }
     window['initializeUIComponents'] = initializeUIComponents;
 
@@ -375,9 +376,32 @@ document['addEventListener']('DOMContentLoaded', () => {
     }
 });
 
-function ensureLandscapeBlock() {
+async function ensureLandscapeBlock() {
     let landscapeBlock = document['getElementById']('landscape-block');
-    return !landscapeBlock && (landscapeBlock = document['createElement']('div'), landscapeBlock['id'] = 'landscape-block', landscapeBlock['innerHTML'] = '\x0a\x20\x20\x20\x20\x20\x20<div\x20style=\x22display:\x20flex;\x20flex-direction:\x20column;\x20align-items:\x20center;\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<img\x20decoding=\x22async\x22\x20src=\x22assets/gui/boot/loading.webp\x22\x20alt=\x22Loading\x20animation\x22\x20style=\x22max-width:\x20200px;\x20height:\x20auto;\x22\x20/>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22landscape-message\x22>Please\x20rotate\x20your\x20device\x20back\x20to\x20portrait\x20mode.</div>\x0a\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20', document['body']['appendChild'](landscapeBlock)), landscapeBlock;
+    if (!landscapeBlock) {
+        landscapeBlock = document['createElement']('div');
+        landscapeBlock['id'] = 'landscape-block';
+
+        // Get the loading image URL from portfolio manager
+        let loadingImageSrc = 'assets/gui/boot/loading.webp'; // default fallback
+        try {
+            const portfolio = new PortfolioManager();
+            await portfolio.initialize();
+            loadingImageSrc = portfolio.getLoadingImageUrl();
+        } catch (error) {
+            console.warn('Could not get loading image from portfolio manager:', error);
+        }
+
+        // Deobfuscated HTML string
+        landscapeBlock['innerHTML'] = `
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <img decoding="async" src="${loadingImageSrc}" alt="Loading animation" style="max-width: 200px; height: auto;" />
+        <div class="landscape-message">Please rotate your device back to portrait mode.</div>
+      </div>
+    `;
+        document['body']['appendChild'](landscapeBlock);
+    }
+    return landscapeBlock;
 }
 
 function handleOrientationBlock() {

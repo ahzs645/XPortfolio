@@ -4,6 +4,8 @@
  * Includes window properties, icons, menu bars, toolbars, and helper functions for consistent program definitions.
  */
 
+import { PortfolioManager } from '../../libs/portfolio/portfolioManager.js';
+
 
 /* ===== Default Configuration Templates ===== */
 
@@ -317,7 +319,7 @@ const programData = {
                 {
                     key: 'resume',
                     enabled: true,
-                    icon: './assets/gui/desktop/resume.webp',
+                    icon: './assets/gui/desktop/resume.svg',
                     text: 'My Resume',
                     action: 'openResume',
                 },
@@ -360,7 +362,7 @@ const programData = {
             ],
         },
     }),
-    resume: createProgram('resume', 'My Resume', 'desktop/resume.webp', {
+    resume: createProgram('resume', 'My Resume', 'desktop/resume.svg', {
         dimensions: {
             width: 465,
             height: 768
@@ -698,7 +700,19 @@ const programData = {
             width: 470,
             height: 300
         }, // Custom minimum dimensions for Contact Me
-        statusBarText: 'Compose a message to Mitch',
+        statusBarText: null, // Will be set dynamically
+        getStatusBarText: async () => {
+            try {
+                const portfolio = new PortfolioManager();
+                await portfolio.initialize();
+                const fullName = portfolio.getFullName();
+                const firstName = fullName ? fullName.split(' ')[0] : 'Mitch';
+                return `Compose a message to ${firstName}`;
+            } catch (error) {
+                console.error('Failed to load portfolio data for status bar:', error);
+                return 'Compose a message to Mitch';
+            }
+        },
         appPath: 'src/apps/contact/contact.html',
         toolbarConfig: {
             buttons: [{

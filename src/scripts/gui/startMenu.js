@@ -16,7 +16,7 @@ const PROJECTS_ITEM = {
 const RESUME_ITEM = {
     type: 'program',
     programName: 'resume',
-    icon: './assets/gui/desktop/resume.webp',
+    icon: './assets/gui/desktop/resume.svg',
     label: 'My Resume'
 };
 const CONTACT_ITEM = {
@@ -460,7 +460,7 @@ export default class StartMenu {
         _0x4d7759 = _0x594de4, _0x46fe6b = _0x2a6897[0x0], _0x25b734 = _0x2a6897[0x2], _0x9e81c9 = _0x13c29b[0x0], _0x525822 = _0x13c29b[0x1], _0x30db17 = _0x13c29b[0x2];
         const _0x4ea489 = '\x0a\x20\x20\x20\x20\x20\x20<li\x20class=\x22menu-item\x22\x20id=\x22menu-program4\x22\x20data-action=\x22toggle-recently-used\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<img\x20decoding=\x22async\x22\x20loading=\x22lazy\x22\x20src=\x22./assets/gui/start-menu/recently-used.webp\x22\x20alt=\x22Recently\x20Used\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22item-content\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<span\x20class=\x22item-title\x22>Recently\x20Used</span>\x0a\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20</li>',
             _0x16da20 = {};
-        _0x16da20['id'] = 'resume', _0x16da20['icon'] = './assets/gui/desktop/resume.webp', _0x16da20['title'] = 'My\x20Resume', _0x16da20['programName'] = 'resume', _0x16da20['action'] = 'open-program';
+        _0x16da20['id'] = 'resume', _0x16da20['icon'] = './assets/gui/desktop/resume.svg', _0x16da20['title'] = 'My\x20Resume', _0x16da20['programName'] = 'resume', _0x16da20['action'] = 'open-program';
         const _0x114915 = '\x0a\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(_0x9e81c9) + '\x0a\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(_0x525822) + '\x0a\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(_0x30db17) + '\x0a\x20\x20\x20\x20\x20\x20<li\x20class=\x22menu-divider\x20divider-darkblue\x22><hr\x20class=\x22divider\x22></li>\x0a\x20\x20\x20\x20\x20\x20' + _0x4ea489 + '\x0a\x20\x20\x20\x20\x20\x20<li\x20class=\x22menu-divider\x20divider-darkblue\x22><hr\x20class=\x22divider\x22></li>\x0a\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(CMD_CONFIG) + '\x0a\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(_0x16da20) + '\x0a\x20\x20\x20\x20',
             _0x3f9233 = {};
         _0x3f9233['id'] = 'projects', _0x3f9233['icon'] = './assets/gui/desktop/projects.webp', _0x3f9233['title'] = 'My\x20Projects', _0x3f9233['description'] = 'View\x20my\x20work', _0x3f9233['programName'] = 'projects', _0x3f9233['action'] = 'open-program';

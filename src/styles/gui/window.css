@@ -240,6 +240,17 @@
     }
 }
 
+/* ==== App-specific: Resume window (avoid double scrollbars) ==== */
+#resume-window .window-body {
+    overflow: hidden; /* let inner viewer manage scroll */
+}
+
+/* Ensure iframe uses remaining space (not 100% + toolbar) */
+#resume-window .window-body > .iframe-container > iframe {
+    height: auto !important;
+    flex: 1 1 auto;
+}
+
 .window-opening {
     animation: windowOpenFadeSlide .2s ease-out
 }

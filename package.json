@@ -1,0 +1,12 @@
+{
+  "name": "xportfolio",
+  "version": "1.0.0",
+  "description": "Windows XP-style interactive portfolio",
+  "scripts": {
+    "replace-templates": "./scripts/replace-templates.sh",
+    "build": "npm run replace-templates",
+    "build:local": "npm run replace-templates"
+  },
+  "author": "",
+  "license": "MIT"
+}

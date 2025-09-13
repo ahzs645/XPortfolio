@@ -5,20 +5,20 @@
 <meta content=nosniff http-equiv=X-Content-Type-Options>
 <meta content="public, max-age=31536000" http-equiv=Cache-Control>
 <meta content="light only" name=color-scheme>
-<meta content="Mitch Ivin - Graphic Designer. View my design work through an interactive Windows XP desktop experience. Complete with working applications and authentic retro interface." name=description>
-<meta content="Windows XP, Desktop, HTML, CSS, JavaScript, Web, UI, Portfolio, Mitch Ivin, Web Development, Frontend, Operating System, Simulation" name=keywords>
-<meta content="Mitch Ivin (mitchellivin@gmail.com)" name=author>
+<meta content="{{DEVELOPER_NAME}} - {{DEVELOPER_TITLE}}. View my work through an interactive Windows XP desktop experience. Complete with working applications and authentic retro interface." name=description>
+<meta content="Windows XP, Desktop, HTML, CSS, JavaScript, Web, UI, Portfolio, {{DEVELOPER_NAME}}, Web Development, Frontend, Operating System, Simulation" name=keywords>
+<meta content="{{DEVELOPER_NAME}} ({{DEVELOPER_EMAIL}})" name=author>
 <link href=./assets/gui/boot/favicon.png rel=icon type=image/png>
-<title>MitchIvin XP</title>
-<meta content="Mitch Ivin — Windows XP Portfolio" property=og:title>
-<meta content="A Windows XP–style interactive portfolio showcasing design, video, and UI work by Mitch Ivin." property=og:description>
+<title>{{DEVELOPER_FIRSTNAME}} XP</title>
+<meta content="{{DEVELOPER_NAME}} — Windows XP Portfolio" property=og:title>
+<meta content="A Windows XP–style interactive portfolio showcasing work by {{DEVELOPER_NAME}}." property=og:description>
 <meta content=website property=og:type>
-<meta content="MitchIvin XP" property=og:site_name>
+<meta content="{{DEVELOPER_FIRSTNAME}} XP" property=og:site_name>
 <meta content=./assets/gui/boot/link.webp property=og:image>
-<meta content="MitchIvin XP" property=og:image:alt>
+<meta content="{{DEVELOPER_FIRSTNAME}} XP" property=og:image:alt>
 <meta content=summary_large_image name=twitter:card>
-<meta content="Mitch Ivin — Windows XP Portfolio" name=twitter:title>
-<meta content="A Windows XP–style interactive portfolio showcasing design, video, and UI work by Mitch Ivin." name=twitter:description>
+<meta content="{{DEVELOPER_NAME}} — Windows XP Portfolio" name=twitter:title>
+<meta content="A Windows XP–style interactive portfolio showcasing work by {{DEVELOPER_NAME}}." name=twitter:description>
 <meta content=./assets/gui/boot/link.webp name=twitter:image>
 <meta content=index,follow name=robots>
 <script>
@@ -62,7 +62,7 @@
 <link href=./assets/gui/desktop/about.webp rel=preload as=image fetchpriority=high type=image/webp>
 <link href=./assets/gui/desktop/projects.webp rel=preload as=image fetchpriority=high type=image/webp>
 <link href=./assets/gui/desktop/contact.webp rel=preload as=image fetchpriority=high type=image/webp>
-<link href=./assets/gui/desktop/resume.webp rel=preload as=image fetchpriority=high type=image/webp>
+<link href=./assets/gui/desktop/resume.svg rel=preload as=image fetchpriority=high type=image/svg+xml>
 <link href=./assets/gui/taskbar/start-button.webp rel=preload as=image fetchpriority=high type=image/webp>
 <link href=./assets/gui/taskbar/taskbar-bg.webp rel=preload as=image fetchpriority=high type=image/webp>
 <link href=./assets/gui/taskbar/system-tray.webp rel=preload as=image fetchpriority=high type=image/webp>
@@ -166,7 +166,7 @@
         <h2 class=sr-only>Desktop Applications</h2>
         <div class=desktop-icons id=desktop-icons>
             <div class=desktop-icon aria-label="Open About Me" role=button tabindex=0 data-program-name=about><img alt="About Me" src=./assets/gui/desktop/about.webp loading=eager> <span>About Me</span></div>
-            <div class=desktop-icon aria-label="Open My Resume" role=button tabindex=0 data-program-name=resume><img alt=Resume src=./assets/gui/desktop/resume.webp loading=eager> <span>My Resume</span></div>
+            <div class=desktop-icon aria-label="Open My Resume" role=button tabindex=0 data-program-name=resume><img alt=Resume src=./assets/gui/desktop/resume.svg loading=eager> <span>My Resume</span></div>
             <div class=desktop-icon aria-label="Open My Projects" role=button tabindex=0 data-program-name=projects><img alt="My Projects" src=./assets/gui/desktop/projects.webp loading=eager> <span>My Projects</span></div>
             <div class=desktop-icon aria-label="Open Contact Me" role=button tabindex=0 data-program-name=contact><img alt="Contact Me" src=./assets/gui/desktop/contact.webp loading=eager> <span>Contact Me</span></div>
         </div>

@@ -45,6 +45,9 @@ function transformAssetPath(path) {
 document.addEventListener('DOMContentLoaded', async () => {
     const resumeImage = document.getElementById('resumeImage');
     const appRoot = document.getElementById('appRoot');
+    if (appRoot && appRoot.classList.contains('app-scroll')) {
+        appRoot.classList.remove('app-scroll');
+    }
     
     try {
         const portfolio = new PortfolioManager();
@@ -62,34 +65,27 @@ document.addEventListener('DOMContentLoaded', async () => {
             const shouldUsePDFJS = portfolio.shouldUsePDFJS();
             
             if (shouldUsePDFJS) {
-                // Use Google Docs viewer as it handles CORS better for local files
-                const pdfEmbed = document.createElement('iframe');
-                const encodedUrl = encodeURIComponent(window.location.origin + '/' + cvPdfUrl);
-                const pdfUrl = `https://docs.google.com/gview?url=${encodedUrl}&embedded=true`;
-                
-                pdfEmbed.src = pdfUrl;
-                pdfEmbed.style.width = '100%';
-                pdfEmbed.style.height = '100%';
-                pdfEmbed.style.border = 'none';
-                pdfEmbed.style.overflow = 'hidden';
-                
-                pdfEmbed.setAttribute('scrolling', 'no');
-                pdfEmbed.setAttribute('allowfullscreen', 'false');
-                
+                // Render with PDF.js for crisp zoom
+                const viewer = document.createElement('div');
+                viewer.className = 'pdf-viewer window-body';
+                viewer.id = 'resumePdfViewer';
                 if (resumeImage && resumeImage.parentNode) {
-                    resumeImage.parentNode.replaceChild(pdfEmbed, resumeImage);
+                    resumeImage.parentNode.replaceChild(viewer, resumeImage);
                 }
-                
+
                 if (appRoot) {
                     appRoot.style.overflow = 'hidden';
                     appRoot.classList.add('pdf-mode');
                 }
-                
-                return; // Skip zoom/pan functionality for PDF
+
+                await initPDFJSViewer(cvPdfUrl, viewer);
+                return; // Skip image zoom/pan functionality
             } else {
                 // Fallback to direct PDF embed with Chrome control hiding attempts
                 const pdfEmbed = document.createElement('iframe');
-                const pdfUrl = cvPdfUrl + '#toolbar=0&navpanes=0&scrollbar=0&statusbar=0&messages=0&view=FitH&zoom=page-width';
+                const baseSrc = cvPdfUrl;
+                const buildPdfSrc = (zoom) => `${baseSrc}#toolbar=0&navpanes=0&scrollbar=0&statusbar=0&messages=0&view=FitH&zoom=${zoom}`;
+                const pdfUrl = buildPdfSrc('page-width');
                 
                 pdfEmbed.src = pdfUrl;
                 pdfEmbed.style.width = '100%';
@@ -97,8 +93,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 pdfEmbed.style.border = 'none';
                 pdfEmbed.style.overflow = 'hidden';
                 
-                pdfEmbed.setAttribute('scrolling', 'no');
+                pdfEmbed.setAttribute('scrolling', 'auto');
                 pdfEmbed.setAttribute('allowfullscreen', 'false');
+                pdfEmbed.id = 'resumePdf';
+                pdfEmbed.dataset.viewer = 'native';
+                pdfEmbed.dataset.baseSrc = baseSrc;
+                pdfEmbed.dataset.zoomed = 'false';
                 
                 if (resumeImage && resumeImage.parentNode) {
                     resumeImage.parentNode.replaceChild(pdfEmbed, resumeImage);
@@ -282,9 +282,129 @@ window.addEventListener('message', (event) => {
     if (event && event.data && event.data.type === 'toolbar:action') {
         if (event.data.action === 'toggleZoom') {
             const resumeImage = document.getElementById('resumeImage');
+            const pdfIframe = document.getElementById('resumePdf');
+            const pdfViewer = document.getElementById('resumePdfViewer');
             if (resumeImage) {
+                // Image mode zoom toggle
                 resumeImage.click();
+            } else if (pdfViewer && window.__RESUME_PDF_VIEWER__) {
+                // PDF.js viewer: toggle between fit width and 150%
+                window.__RESUME_PDF_VIEWER__.toggleZoom();
+            } else if (pdfViewer && !window.__RESUME_PDF_VIEWER__) {
+                // Viewer exists but not ready yet — queue the action
+                window.__RESUME_PDF_PENDING_TOGGLE__ = true;
+            } else if (pdfIframe && pdfIframe.dataset.viewer === 'native') {
+                // Native PDF viewer: use built-in zoom (crisp text)
+                const baseSrc = pdfIframe.dataset.baseSrc || '';
+                const zoomed = pdfIframe.dataset.zoomed === 'true';
+                const nextZoom = zoomed ? 'page-width' : '150';
+                const nextSrc = `${baseSrc}#toolbar=0&navpanes=0&scrollbar=0&statusbar=0&messages=0&view=FitH&zoom=${nextZoom}`;
+                try {
+                    pdfIframe.src = nextSrc;
+                    pdfIframe.dataset.zoomed = (!zoomed).toString();
+                    notifyToolbarZoomState(!zoomed);
+                } catch (_) {
+                    // ignore
+                }
             }
         }
     }
 });
+
+// ===== PDF.js minimal viewer =====
+async function loadScript(src) {
+    return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+    });
+}
+
+async function initPDFJSViewer(pdfUrl, container) {
+    try {
+        const base = 'https://unpkg.com/pdfjs-dist@3.11.174/build';
+        await loadScript(base + '/pdf.min.js');
+        if (window['pdfjsLib']) {
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc = base + '/pdf.worker.min.js';
+        }
+        const pdfjs = window['pdfjsLib'];
+        const doc = await pdfjs.getDocument(pdfUrl).promise;
+
+        const state = {
+            doc,
+            scaleMode: 'fit', // 'fit' or 'zoomed'
+            baseScale: 1.0,
+            currentScale: 1.0,
+            container,
+        };
+
+        async function renderPages() {
+            container.innerHTML = '';
+            const probe = await doc.getPage(1);
+            const probeViewport = probe.getViewport({ scale: 1.0 });
+            const fitScale = Math.min((container.clientWidth - 24) / probeViewport.width, 3);
+            state.baseScale = fitScale > 0 ? fitScale : 1.0;
+            state.currentScale = state.scaleMode === 'fit' ? state.baseScale : state.baseScale * 1.5;
+
+            for (let i = 1; i <= doc.numPages; i++) {
+                const page = await doc.getPage(i);
+                const viewport = page.getViewport({ scale: state.currentScale });
+                const canvas = document.createElement('canvas');
+                canvas.className = 'pdf-page-canvas';
+                const ctx = canvas.getContext('2d');
+                canvas.width = Math.ceil(viewport.width);
+                canvas.height = Math.ceil(viewport.height);
+                container.appendChild(canvas);
+                await page.render({ canvasContext: ctx, viewport }).promise;
+            }
+
+            notifyToolbarZoomState(state.scaleMode !== 'fit');
+            // Toggle container class to control scrollbars
+            container.classList.toggle('zoomed', state.scaleMode !== 'fit');
+        }
+
+        state.toggleZoom = async () => {
+            state.scaleMode = state.scaleMode === 'fit' ? 'zoomed' : 'fit';
+            await renderPages();
+        };
+
+        window.__RESUME_PDF_VIEWER__ = state;
+        window.__RESUME_PDF_VIEWER_READY__ = true;
+
+        await renderPages();
+        // Apply any queued zoom toggle
+        if (window.__RESUME_PDF_PENDING_TOGGLE__) {
+            window.__RESUME_PDF_PENDING_TOGGLE__ = false;
+            await state.toggleZoom();
+        }
+        window.addEventListener('resize', () => {
+            if (state.scaleMode === 'fit') renderPages();
+        });
+    } catch (err) {
+        console.error('Failed to initialize PDF.js viewer:', err);
+        try {
+            // Fallback to native iframe embed if PDF.js fails (e.g., offline CDN)
+            const iframe = document.createElement('iframe');
+            const baseSrc = pdfUrl;
+            const buildPdfSrc = (zoom) => `${baseSrc}#toolbar=0&navpanes=0&scrollbar=0&statusbar=0&messages=0&view=FitH&zoom=${zoom}`;
+            iframe.src = buildPdfSrc('page-width');
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            iframe.style.border = 'none';
+            iframe.style.overflow = 'hidden';
+            iframe.setAttribute('scrolling', 'no');
+            iframe.setAttribute('allowfullscreen', 'false');
+            iframe.id = 'resumePdf';
+            iframe.dataset.viewer = 'native';
+            iframe.dataset.baseSrc = baseSrc;
+            iframe.dataset.zoomed = 'false';
+            container.innerHTML = '';
+            container.appendChild(iframe);
+            notifyToolbarZoomState(false);
+        } catch (_) {
+            // give up silently
+        }
+    }
+}
