@@ -130,16 +130,27 @@ export class PortfolioManager {
     // === CONTENT MANAGEMENT ===
 
     async getAboutContent() {
-        if (this.configLoader.isFeatureEnabled('ENABLE_MARKDOWN_CONTENT')) {
-            try {
-                return await this.markdownLoader.loadAboutMarkdown();
-            } catch (error) {
-                console.error('Failed to load about markdown:', error);
-            }
+        // Prefer loading from markdown path in config; fallback to CV data
+        try {
+            const aboutPath = this.configLoader.getAboutMarkdownPath();
+            const content = await this.markdownLoader.loadMarkdown(aboutPath);
+
+            // Ensure compatibility: provide paragraphs array for consumers
+            const paragraphs = (content.content || '')
+                .split('\n\n')
+                .filter(p => p.trim() && !p.trim().startsWith('#'))
+                .slice(0, 4);
+
+            return { ...content, paragraphs };
+        } catch (error) {
+            console.error('Failed to load about markdown, using CV fallback:', error);
+            const fallback = this.generateAboutFromCV();
+            const paragraphs = (fallback.content || '')
+                .split('\n\n')
+                .filter(p => p.trim() && !p.trim().startsWith('#'))
+                .slice(0, 4);
+            return { ...fallback, paragraphs };
         }
-        
-        // Fallback to generating from CV data
-        return this.generateAboutFromCV();
     }
 
     generateAboutFromCV() {

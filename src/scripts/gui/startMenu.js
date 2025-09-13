@@ -246,7 +246,7 @@ async function loadSocials() {
         
         // Get social links from CV.yaml
         const socialLinks = portfolio.getSocialLinks();
-        
+
         // Convert to ui.json format for compatibility with existing code
         SOCIALS = socialLinks.map(social => ({
             key: social.network.toLowerCase(),
@@ -276,8 +276,8 @@ function getSocialIcon(network) {
         'linkedin': './assets/gui/start-menu/linkedin.webp',
         'github': './assets/gui/start-menu/github.webp',
         'instagram': './assets/gui/start-menu/instagram.webp',
+        'facebook': './assets/gui/start-menu/facebook.webp',
         'twitter': './assets/gui/start-menu/github.webp', // Fallback to github icon
-        'facebook': './assets/gui/start-menu/instagram.webp', // Fallback to instagram icon
         'youtube': './assets/gui/start-menu/mediaPlayer.webp' // Fallback to media player icon
     };
     return iconMap[network.toLowerCase()] || './assets/gui/start-menu/cmd.webp'; // Default fallback
@@ -453,15 +453,15 @@ export default class StartMenu {
         const _0x1e856d = {};
         _0x1e856d['id'] = 'musicPlayer', _0x1e856d['icon'] = './assets/gui/start-menu/music.webp', _0x1e856d['title'] = 'Music\x20Player', _0x1e856d['programName'] = 'musicPlayer', _0x1e856d['action'] = 'open-program', _0x1e856d['disabledOverride'] = ![];
         const _0x2a6897 = [_0x28d41a, _0x5278a0, _0x1e856d];
-        let _0x4d7759, _0x46fe6b, _0x25b734, _0x9e81c9, _0x525822, _0x30db17;
+        let _0x4d7759, _0x46fe6b, _0x25b734, _0x9e81c9, _0x525822, _0x30db17, _0x4th_social;
         const _0x280274 = {};
         _0x280274['id'] = 'image-viewer', _0x280274['icon'] = './assets/gui/start-menu/photos.webp', _0x280274['title'] = 'Image\x20Viewer', _0x280274['programName'] = 'image-viewer', _0x280274['action'] = 'open-program', _0x280274['disabledOverride'] = ![];
         const _0x594de4 = _0x280274;
-        _0x4d7759 = _0x594de4, _0x46fe6b = _0x2a6897[0x0], _0x25b734 = _0x2a6897[0x2], _0x9e81c9 = _0x13c29b[0x0], _0x525822 = _0x13c29b[0x1], _0x30db17 = _0x13c29b[0x2];
+        _0x4d7759 = _0x594de4, _0x46fe6b = _0x2a6897[0x0], _0x25b734 = _0x2a6897[0x2], _0x9e81c9 = _0x13c29b[0x0], _0x525822 = _0x13c29b[0x1], _0x30db17 = _0x13c29b[0x2], _0x4th_social = _0x13c29b[0x3];
         const _0x4ea489 = '\x0a\x20\x20\x20\x20\x20\x20<li\x20class=\x22menu-item\x22\x20id=\x22menu-program4\x22\x20data-action=\x22toggle-recently-used\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<img\x20decoding=\x22async\x22\x20loading=\x22lazy\x22\x20src=\x22./assets/gui/start-menu/recently-used.webp\x22\x20alt=\x22Recently\x20Used\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22item-content\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<span\x20class=\x22item-title\x22>Recently\x20Used</span>\x0a\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20</li>',
             _0x16da20 = {};
         _0x16da20['id'] = 'resume', _0x16da20['icon'] = './assets/gui/desktop/resume.svg', _0x16da20['title'] = 'My\x20Resume', _0x16da20['programName'] = 'resume', _0x16da20['action'] = 'open-program';
-        const _0x114915 = '\x0a\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(_0x9e81c9) + '\x0a\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(_0x525822) + '\x0a\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(_0x30db17) + '\x0a\x20\x20\x20\x20\x20\x20<li\x20class=\x22menu-divider\x20divider-darkblue\x22><hr\x20class=\x22divider\x22></li>\x0a\x20\x20\x20\x20\x20\x20' + _0x4ea489 + '\x0a\x20\x20\x20\x20\x20\x20<li\x20class=\x22menu-divider\x20divider-darkblue\x22><hr\x20class=\x22divider\x22></li>\x0a\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(CMD_CONFIG) + '\x0a\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(_0x16da20) + '\x0a\x20\x20\x20\x20',
+        const _0x114915 = '\x0a\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(_0x9e81c9) + '\x0a\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(_0x525822) + '\x0a\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(_0x30db17) + '\x0a\x20\x20\x20\x20\x20\x20' + (_0x4th_social ? _0xcd1ed4(_0x4th_social) : '') + '\x0a\x20\x20\x20\x20\x20\x20<li\x20class=\x22menu-divider\x20divider-darkblue\x22><hr\x20class=\x22divider\x22></li>\x0a\x20\x20\x20\x20\x20\x20' + _0x4ea489 + '\x0a\x20\x20\x20\x20\x20\x20<li\x20class=\x22menu-divider\x20divider-darkblue\x22><hr\x20class=\x22divider\x22></li>\x0a\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(CMD_CONFIG) + '\x0a\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(_0x16da20) + '\x0a\x20\x20\x20\x20',
             _0x3f9233 = {};
         _0x3f9233['id'] = 'projects', _0x3f9233['icon'] = './assets/gui/desktop/projects.webp', _0x3f9233['title'] = 'My\x20Projects', _0x3f9233['description'] = 'View\x20my\x20work', _0x3f9233['programName'] = 'projects', _0x3f9233['action'] = 'open-program';
         const _0x565139 = {};
@@ -680,6 +680,7 @@ function getAllProgramsItems() {
         'icon': social.icon ? './' + social.icon.replace(/^\.\//, '').replace(/^\//, '') : '',
         'label': social.name
     }));
-    
+
+
     return [...ALL_PROGRAMS_ITEMS_BASE, ...socialItems];
 }

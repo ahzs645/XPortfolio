@@ -195,7 +195,7 @@ document['addEventListener']('DOMContentLoaded', () => {
                 });
             }), registerMessageHandler('confirm-open-link', eventData => {
                 const url = eventData['data']['url'] || '',
-                    allowedOnDesktop = ['keepthescore.com', 'github.com/mitchivin', 'instagram.com', 'linkedin.com']['some'](domain => url['includes'](domain));
+                    allowedOnDesktop = ['keepthescore.com', 'github.com', 'instagram.com', 'linkedin.com', 'facebook.com']['some'](domain => url['includes'](domain));
                 if (!IS_MOBILE_DEVICE && !allowedOnDesktop) return;
                 import('./utils/popupManager.js')['then'](({
                     default: popupManager
@@ -207,16 +207,19 @@ document['addEventListener']('DOMContentLoaded', () => {
                         icon = null;
                     if (linkUrl['includes']('keepthescore.com')) label = 'Keep\x20The\x20Score', confirmText = 'Visit\x20Keep\x20The\x20Score', icon = './assets/gui/start-menu/keepthescore.webp';
                     else {
-                        if (linkUrl['includes']('github.com/mitchivin')) label = 'My\x20Github', confirmText = 'Visit\x20My\x20Github', icon = './assets/gui/start-menu/github.webp';
+                        if (linkUrl['includes']('github.com')) label = 'GitHub', confirmText = 'Visit\x20GitHub', icon = './assets/gui/start-menu/github.webp';
                         else {
                             if (linkUrl['includes']('instagram.com')) label = 'Instagram', confirmText = 'Visit\x20Instagram', icon = './assets/gui/start-menu/instagram.webp';
                             else {
                                 if (linkUrl['includes']('linkedin.com')) label = 'LinkedIn', confirmText = 'Visit\x20LinkedIn', icon = './assets/gui/start-menu/linkedin.webp';
                                 else {
-                                    if (!label) try {
-                                        label = new URL(linkUrl)['hostname'];
-                                    } catch {
-                                        label = 'this\x20link';
+                                    if (linkUrl['includes']('facebook.com')) label = 'Facebook', confirmText = 'Visit\x20Facebook', icon = './assets/gui/start-menu/facebook.webp';
+                                    else {
+                                        if (!label) try {
+                                            label = new URL(linkUrl)['hostname'];
+                                        } catch {
+                                            label = 'this\x20link';
+                                        }
                                     }
                                 }
                             }

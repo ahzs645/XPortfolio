@@ -1,5 +1,3 @@
-# About Me
-
 Hi! I'm a passionate developer and researcher with a strong background in health informatics, data analysis, and software development.
 
 ## What I Do

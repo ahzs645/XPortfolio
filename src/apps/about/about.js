@@ -56,9 +56,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const iconMap = {
                 'instagram': '../../../assets/gui/start-menu/instagram.webp',
                 'github': '../../../assets/gui/start-menu/github.webp',
-                'linkedin': '../../../assets/gui/start-menu/linkedin.webp'
+                'linkedin': '../../../assets/gui/start-menu/linkedin.webp',
+                'facebook': '../../../assets/gui/start-menu/facebook.webp'
             };
-            imgElement.src = iconMap[social.network.toLowerCase()] || '../../../assets/gui/start-menu/instagram.webp';
+            imgElement.src = iconMap[social.network.toLowerCase()] || '../../../assets/gui/start-menu/cmd.webp';
             imgElement.alt = social.network;
             const spanElement = document.createElement('span');
             spanElement.className = 'left-panel__card__text', spanElement.textContent = social.network, linkElement.appendChild(imgElement), linkElement.appendChild(spanElement), socialLinksContent.appendChild(linkElement), linkElement.addEventListener('click', event => {

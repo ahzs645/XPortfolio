@@ -39,29 +39,29 @@
     ]
   },
   "contact": {
-    "name": "Mitch Ivin",
-    "email": "mitchellivin@gmail.com"
+    "name": "{{DEVELOPER_NAME}}",
+    "email": "{{DEVELOPER_EMAIL}}"
   },
   "socials": [
     {
       "key": "instagram",
       "name": "Instagram",
       "icon": "assets/gui/start-menu/instagram.webp",
-      "url": "https://www.instagram.com/mitchivin",
+      "url": "{{SOCIAL_INSTAGRAM_URL}}",
       "showInAbout": true
     },
     {
       "key": "github",
       "name": "Github",
       "icon": "assets/gui/start-menu/github.webp",
-      "url": "https://github.com/mitchivin",
+      "url": "{{SOCIAL_GITHUB_URL}}",
       "showInAbout": true
     },
     {
       "key": "linkedin",
       "name": "LinkedIn",
       "icon": "assets/gui/start-menu/linkedin.webp",
-      "url": "https://www.linkedin.com/in/mitchivin/",
+      "url": "{{SOCIAL_LINKEDIN_URL}}",
       "showInAbout": true
     }
   ],
@@ -70,7 +70,7 @@
   "wallpaperDesktop": "assets/gui/bgs/bliss.webp",
   "wallpaperMobile": "assets/gui/bgs/blissMobile.webp",
   "balloon": {
-    "title": "Welcome to MitchIvin XP",
+    "title": "Welcome to {{DEVELOPER_FIRSTNAME}} XP",
     "body": "A faithful XP-inspired interface, custom-built<br>to showcase my work and attention to detail."
   }
 }

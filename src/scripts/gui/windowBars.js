@@ -1,3 +1,5 @@
+import { PortfolioManager } from '../../libs/portfolio/portfolioManager.js';
+
 export function createAddressBar({
     icon: iconPath,
     title: title = 'About Me',
@@ -27,14 +29,44 @@ export function createAddressBar({
     </div>`;
     return container;
 }
+
 let SOCIALS_CACHE = null;
 async function getSocials() {
     if (SOCIALS_CACHE) return SOCIALS_CACHE;
     try {
-        const _0x5802d7 = await fetch('ui.json'),
-            _0x1b1bed = await _0x5802d7['json']();
-        return SOCIALS_CACHE = Array['isArray'](_0x1b1bed['socials']) ? _0x1b1bed['socials'] : [], SOCIALS_CACHE;
-    } catch (_0x69d638) {
+        const portfolio = new PortfolioManager();
+        await portfolio.initialize();
+        const socialLinks = portfolio.getSocialLinks();
+
+        // Convert PortfolioManager format to expected format with proper icon mapping
+        SOCIALS_CACHE = socialLinks.map(social => {
+            const networkKey = social.network.toLowerCase();
+            let iconPath = `assets/gui/start-menu/${networkKey}.webp`;
+
+            // Map network names to correct icon files
+            const iconMapping = {
+                'linkedin': 'linkedin.webp',
+                'github': 'github.webp',
+                'facebook': 'facebook.webp',
+                'instagram': 'instagram.webp'
+            };
+
+            if (iconMapping[networkKey]) {
+                iconPath = `assets/gui/start-menu/${iconMapping[networkKey]}`;
+            }
+
+            return {
+                key: networkKey,
+                name: social.network,
+                icon: iconPath,
+                url: social.url,
+                showInAbout: true
+            };
+        });
+
+        return SOCIALS_CACHE;
+    } catch (error) {
+        console.error('Failed to load social links from portfolio:', error);
         return SOCIALS_CACHE = [], SOCIALS_CACHE;
     }
 }
