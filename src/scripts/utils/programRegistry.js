@@ -460,7 +460,7 @@ const programData = {
             height: 440
         },
         statusBarText: 'Ready',
-        appPath: 'src/apps/imageViewer/imageViewer.html',
+        appPath: 'src/apps/imageviewer/imageViewer.html',
         toolbarConfig: {
             buttons: [{
                     key: 'previous',
