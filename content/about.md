@@ -6,10 +6,10 @@ I work at the intersection of technology and healthcare, helping organizations m
 
 ## My Expertise
 
-- **Health Informatics**: Integrating and optimizing health information technologies
-- **Data Analysis**: Processing and analyzing complex datasets using statistical software
-- **Software Development**: Building applications and tools that solve real-world problems
-- **Research**: Contributing to scientific publications and advancing knowledge in my field
+- Health Informatics: Integrating and optimizing health information technologies
+- Data Analysis: Processing and analyzing complex datasets using statistical software
+- Software Development: Building applications and tools that solve real-world problems
+- Research: Contributing to scientific publications and advancing knowledge in my field
 
 ## Current Focus
 
