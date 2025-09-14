@@ -255,8 +255,7 @@ export class PortfolioManager {
             // Ensure compatibility: provide paragraphs array for consumers
             const paragraphs = (content.content || '')
                 .split('\n\n')
-                .filter(p => p.trim() && !p.trim().startsWith('#'))
-                .slice(0, 4);
+                .filter(p => p.trim());
 
             return { ...content, paragraphs };
         } catch (error) {
@@ -264,8 +263,7 @@ export class PortfolioManager {
             const fallback = this.generateAboutFromCV();
             const paragraphs = (fallback.content || '')
                 .split('\n\n')
-                .filter(p => p.trim() && !p.trim().startsWith('#'))
-                .slice(0, 4);
+                .filter(p => p.trim());
             return { ...fallback, paragraphs };
         }
     }

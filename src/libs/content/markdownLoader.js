@@ -4,10 +4,10 @@ export class MarkdownLoader {
     }
 
     async loadMarkdown(path) {
-        // Check cache first
-        if (this.cache.has(path)) {
-            return this.cache.get(path);
-        }
+        // Skip cache for now to ensure we get fresh content
+        // if (this.cache.has(path)) {
+        //     return this.cache.get(path);
+        // }
 
         try {
             const response = await fetch(path);
@@ -60,42 +60,81 @@ export class MarkdownLoader {
 
     // Simple markdown to HTML converter
     markdownToHtml(markdown) {
-        let html = markdown
-            // Headers
-            .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-            .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-            .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-            
-            // Bold and italic
-            .replace(/\*\*\*(.*)\*\*\*/g, '<strong><em>$1</em></strong>')
-            .replace(/\*\*(.*)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*)\*/g, '<em>$1</em>')
-            
-            // Links
-            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-            
-            // Code blocks
-            .replace(/```([^`]+)```/g, '<pre><code>$1</code></pre>')
-            .replace(/`([^`]+)`/g, '<code>$1</code>')
-            
-            // Lists
-            .replace(/^\- (.*$)/gm, '<li>$1</li>')
-            .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-            
-            // Horizontal rules
-            .replace(/^---$/gm, '<hr>')
-            
-            // Line breaks (double newline becomes paragraph)
-            .replace(/\n\n/g, '</p><p>')
-            .replace(/^(.+)/, '<p>$1')
-            .replace(/(.+)$/, '$1</p>')
-            
-            // Clean up empty paragraphs
-            .replace(/<p><\/p>/g, '')
-            .replace(/<p>(<h[1-6]>)/g, '$1')
-            .replace(/(<\/h[1-6]>)<\/p>/g, '$1');
+        // Split into lines for better processing
+        const lines = markdown.split('\n');
+        const htmlLines = [];
+        let inList = false;
 
-        return html;
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const trimmedLine = line.trim();
+
+            // Skip empty lines in lists but close list if double empty line
+            if (!trimmedLine) {
+                if (inList && i > 0 && !lines[i - 1].trim()) {
+                    htmlLines.push('</ul>');
+                    inList = false;
+                }
+                htmlLines.push('');
+                continue;
+            }
+
+            // Headers
+            if (trimmedLine.startsWith('### ')) {
+                if (inList) { htmlLines.push('</ul>'); inList = false; }
+                htmlLines.push(`<h3>${trimmedLine.substring(4)}</h3>`);
+            } else if (trimmedLine.startsWith('## ')) {
+                if (inList) { htmlLines.push('</ul>'); inList = false; }
+                htmlLines.push(`<h2>${trimmedLine.substring(3)}</h2>`);
+            } else if (trimmedLine.startsWith('# ')) {
+                if (inList) { htmlLines.push('</ul>'); inList = false; }
+                htmlLines.push(`<h1>${trimmedLine.substring(2)}</h1>`);
+            }
+            // Horizontal rules
+            else if (trimmedLine === '---') {
+                if (inList) { htmlLines.push('</ul>'); inList = false; }
+                htmlLines.push('<hr>');
+            }
+            // Lists
+            else if (trimmedLine.startsWith('- ')) {
+                if (!inList) {
+                    htmlLines.push('<ul>');
+                    inList = true;
+                }
+                const listContent = trimmedLine.substring(2)
+                    // Bold and italic
+                    .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    // Links
+                    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+                    // Code
+                    .replace(/`([^`]+)`/g, '<code>$1</code>');
+                htmlLines.push(`<li>${listContent}</li>`);
+            }
+            // Regular paragraphs
+            else {
+                if (inList) { htmlLines.push('</ul>'); inList = false; }
+                const paragraphContent = trimmedLine
+                    // Bold and italic
+                    .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    // Links
+                    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+                    // Code blocks
+                    .replace(/```([^`]+)```/g, '<pre><code>$1</code></pre>')
+                    .replace(/`([^`]+)`/g, '<code>$1</code>');
+                htmlLines.push(`<p>${paragraphContent}</p>`);
+            }
+        }
+
+        // Close any remaining list
+        if (inList) {
+            htmlLines.push('</ul>');
+        }
+
+        return htmlLines.join('');
     }
 
     async loadProjectMarkdown(projectName) {

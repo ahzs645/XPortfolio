@@ -232,6 +232,45 @@ a.left-panel__card__row:hover .left-panel__card__text {
     text-decoration: underline
 }
 
+.section_text h1,
+.section_text h2,
+.section_text h3 {
+    color: #fff;
+    font-family: inherit;
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 24px 0 16px 0;
+    text-shadow: 1px 1px 0 #000, 0 0 1px #000;
+}
+
+.section_text h1 {
+    font-size: 28px;
+}
+
+.section_text h2 {
+    font-size: 22px;
+}
+
+.section_text h3 {
+    font-size: 18px;
+}
+
+.section_text ul {
+    margin: 16px 0;
+    padding-left: 24px;
+}
+
+.section_text li {
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.section_text hr {
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    margin: 24px 0;
+}
+
 .left-panel__card__row+.left-panel__card__row {
     margin-top: 1px
 }

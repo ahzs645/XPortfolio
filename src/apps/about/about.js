@@ -82,17 +82,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (appLoader) appLoader.setProgress(0x37);
         const textSection = document.querySelector('.section_text');
         
-        if (textSection && aboutContent.paragraphs) {
-            textSection.innerHTML = '';
-            aboutContent.paragraphs.forEach((paragraph, index) => {
-                const paragraphRow = document.createElement('div');
-                paragraphRow.className = 'about-paragraph-row';
-                const textSpan = document.createElement('span');
-                textSpan.className = 'about-paragraph-text';
-                /[<>]/.test(paragraph) ? textSpan.innerHTML = sanitizeHTML(paragraph) : textSpan.textContent = paragraph;
-                paragraphRow.appendChild(textSpan);
-                textSection.appendChild(paragraphRow);
-            });
+        if (textSection && aboutContent.html) {
+            textSection.innerHTML = sanitizeHTML(aboutContent.html);
         }
     } catch (error) {
         console.error('Failed to load about content:', error);

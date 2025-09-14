@@ -1,4 +1,4 @@
-const ALLOWED_TAGS = new Set(['br', 'strong', 'em', 'b', 'i', 'u', 'p', 'span', 'ul', 'ol', 'li', 'a']),
+const ALLOWED_TAGS = new Set(['br', 'strong', 'em', 'b', 'i', 'u', 'p', 'span', 'ul', 'ol', 'li', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'code', 'pre']),
     URL_ATTRS = new Set(['href']),
     ALLOWED_ATTRS = new Set(['class', 'data-*', 'role', 'aria-*', 'target', 'rel', 'title', 'href']);
 
