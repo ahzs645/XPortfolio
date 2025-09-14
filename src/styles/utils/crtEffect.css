@@ -340,6 +340,20 @@ body.crt-brightness {
     filter: brightness(1.06) contrast(1.08) saturate(1.12)
 }
 
+/* Hard kill switch for CRT effects */
+body.crt-disabled {
+    filter: none !important;
+}
+body.crt-disabled .crt-effect,
+body.crt-disabled .crt-scanline,
+body.crt-disabled .crt-vignette,
+body.crt-disabled .crt-noise,
+body.crt-disabled .crt-flicker,
+body.crt-disabled .crt-aberration,
+body.crt-disabled .crt-persistence {
+    display: none !important;
+}
+
 @keyframes crt-glitch {
 
     0%,

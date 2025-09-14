@@ -261,9 +261,16 @@ window['addEventListener']('DOMContentLoaded', () => {
                 crtElement && (crtElement['style']['display'] = crtEnabled ? 'block' : 'none', selector === '.crt-scanline' && crtEnabled && (crtElement['style']['transition'] = 'none', crtElement['style']['transform'] = 'translateY(-20px)', void crtElement['offsetHeight'], setTimeout(() => {
                     document['dispatchEvent'](new CustomEvent('reinitScanline'));
                 }, 0x64)));
-            }), crtEnabled ? document['body']['classList']['add']('crt-brightness') : document['body']['classList']['remove']('crt-brightness'), crtToggle['src'] = crtEnabled ? './assets/gui/taskbar/crt.webp' : './assets/gui/taskbar/crt-off.webp', crtToggle['setAttribute']('data-tooltip', crtEnabled ? 'CRT\x20Effects:\x20ON' : 'CRT\x20Effects:\x20OFF');
+            }),
+            // Toggle global kill-switch class for robustness
+            document['body']['classList'][crtEnabled ? 'remove' : 'add']('crt-disabled'),
+            crtEnabled ? document['body']['classList']['add']('crt-brightness') : document['body']['classList']['remove']('crt-brightness'),
+            crtToggle['src'] = crtEnabled ? './assets/gui/taskbar/crt.webp' : './assets/gui/taskbar/crt-off.webp', crtToggle['setAttribute']('data-tooltip', crtEnabled ? 'CRT\x20Effects:\x20ON' : 'CRT\x20Effects:\x20OFF');
         };
-        document['body']['classList']['add']('crt-brightness'), crtToggle['setAttribute']('data-tooltip', 'CRT\x20Effects:\x20ON'), crtToggle['addEventListener']('click', toggleCRT);
+        document['body']['classList']['remove']('crt-disabled');
+        document['body']['classList']['add']('crt-brightness');
+        crtToggle['setAttribute']('data-tooltip', 'CRT\x20Effects:\x20ON');
+        crtToggle['addEventListener']('click', toggleCRT);
     }
     const fullscreenIcon = document['querySelector']('.tray-fullscreen-icon');
     if (fullscreenIcon) {
