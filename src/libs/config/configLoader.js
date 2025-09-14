@@ -68,6 +68,7 @@ export class ConfigLoader {
             CV_PDF_PATH: 'public/CV.pdf',
             SHOW_SOCIAL_IN_START_MENU: true,
             SHOW_SOCIAL_IN_ABOUT: true,
+            SOCIALS_EXCLUDE: '',
             SHOW_SKILLS_IN_ABOUT: true,
             SHOW_SOFTWARE_IN_ABOUT: true,
             ENABLE_PROJECT_MARKDOWN: true,
@@ -141,7 +142,28 @@ export class ConfigLoader {
     // Get filtered social media links
     getSocialLinks() {
         const socials = this.cvData?.cv?.social || [];
-        return socials.filter(social => social.network && social.url);
+        const rawExcludes = (this.config.SOCIALS_EXCLUDE || '').trim();
+        const excludeSet = new Set(
+            rawExcludes
+                ? rawExcludes.split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
+                : []
+        );
+
+        const shouldExclude = (network) => {
+            if (!excludeSet.size) return false;
+            const name = (network || '').toString().trim().toLowerCase();
+            if (!name) return false;
+            // allow matching by common aliases (e.g., x -> twitter)
+            const aliases = {
+                'x': 'twitter',
+            };
+            const normalized = aliases[name] || name;
+            return excludeSet.has(normalized);
+        };
+
+        return socials
+            .filter(social => social.network && social.url)
+            .filter(social => !shouldExclude(social.network));
     }
 
     // Get profile photo path
