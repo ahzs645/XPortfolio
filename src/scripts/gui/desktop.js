@@ -29,9 +29,16 @@ async function getSystemAssets() {
         const { PortfolioManager } = await import('../../libs/portfolio/portfolioManager.js');
         const portfolio = new PortfolioManager();
         await portfolio.initialize();
-        
+
+        let loadingImage = portfolio.getLoadingImageUrl();
+
+        // Handle dynamic SVG generation
+        if (loadingImage === 'dynamic:xp.svg') {
+            loadingImage = await portfolio.getDynamicXPSvgContent();
+        }
+
         SYSTEM_ASSETS = {
-            loading: portfolio.getLoadingImageUrl(),
+            loading: loadingImage,
             userIcon: portfolio.getUserIconUrl(),
             wallpaperDesktop: portfolio.getWallpaperDesktopUrl(),
             wallpaperMobile: portfolio.getWallpaperMobileUrl(),

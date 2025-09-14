@@ -13,3 +13,19 @@
     font-weight: 700;
     src: url(../../assets/fonts/tahomabd.woff2) format("woff2"), url(../../assets/fonts/tahomabd.woff) format("woff")
 }
+
+@font-face {
+    font-display: swap;
+    font-family: "FranklinGothicURW-Med";
+    font-style: normal;
+    font-weight: 500;
+    src: url("../../assets/fonts/Franklin Gothic Medium.woff2") format("woff2")
+}
+
+@font-face {
+    font-display: swap;
+    font-family: "FranklinGothic URW";
+    font-style: normal;
+    font-weight: 500;
+    src: url("../../assets/fonts/Franklin Gothic Medium.woff2") format("woff2")
+}

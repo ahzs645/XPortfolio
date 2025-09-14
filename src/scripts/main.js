@@ -390,7 +390,14 @@ async function ensureLandscapeBlock() {
         try {
             const portfolio = new PortfolioManager();
             await portfolio.initialize();
-            loadingImageSrc = portfolio.getLoadingImageUrl();
+            const imagePath = portfolio.getLoadingImageUrl();
+
+            // Handle dynamic SVG generation
+            if (imagePath === 'dynamic:xp.svg') {
+                loadingImageSrc = await portfolio.getDynamicXPSvgContent();
+            } else {
+                loadingImageSrc = imagePath;
+            }
         } catch (error) {
             console.warn('Could not get loading image from portfolio manager:', error);
         }
