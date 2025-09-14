@@ -865,11 +865,11 @@ export default class WindowManager {
             console.error('Failed to download resume:', error);
             // Fallback to hardcoded path
             if (document['documentElement']['classList']['contains']('mobile-device')) {
-                window['open']('./assets/apps/resume/resumeMitchIvin.pdf', '_blank');
+                window['open']('/public/CV.pdf', '_blank');
             } else {
                 const linkElement = this['_createElement']('a', '', {
-                    href: './assets/apps/resume/resumeMitchIvin.pdf',
-                    download: 'resumeMitchIvin.pdf'
+                    href: '/public/CV.pdf',
+                    download: 'CV.pdf'
                 });
                 document['body']['appendChild'](linkElement);
                 linkElement['click']();

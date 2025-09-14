@@ -34,6 +34,16 @@
     DEAD: ASSET_BASE + 'dead.png',
     WIN: ASSET_BASE + 'win.png',
   };
+  const OPEN_NUM = {
+    1: ASSET_BASE + 'open1.png',
+    2: ASSET_BASE + 'open2.png',
+    3: ASSET_BASE + 'open3.png',
+    4: ASSET_BASE + 'open4.png',
+    5: ASSET_BASE + 'open5.png',
+    6: ASSET_BASE + 'open6.png',
+    7: ASSET_BASE + 'open7.png',
+    8: ASSET_BASE + 'open8.png'
+  };
 
   let rows, cols, mines, grid, started, timer, seconds, flags, status;
 
@@ -89,7 +99,13 @@
   function reveal(i){
     const cell = grid[i]; if (cell.state!=='cover') return; cell.state='open';
     const el = boardEl.children[i]; el.className = 'cell open';
-    if (cell.mines>0){ el.textContent = cell.mines; el.classList.add('n'+cell.mines); }
+    el.innerHTML = '';
+    if (cell.mines>0){
+      const img = document.createElement('img');
+      img.src = OPEN_NUM[cell.mines] || '';
+      img.alt = String(cell.mines);
+      el.appendChild(img);
+    }
     if (cell.mines===0){ for (const n of neighbors(i)) reveal(n); }
     queueResize();
   }

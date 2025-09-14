@@ -217,7 +217,7 @@ export function initBootSequence(eventBus, EVENTS, projectsData) {
                     const portfolio = await getPortfolioManager();
                     headerText['textContent'] = `Turn off ${portfolio.getOSName()}`;
                 } catch (error) {
-                    headerText['textContent'] = 'Turn off MitchIvin XP';
+                    headerText['textContent'] = 'Turn off XP';
                 }
             }
             if (logoffButtonLabel) logoffButtonLabel['textContent'] = 'Shut\x20Down';
@@ -229,7 +229,7 @@ export function initBootSequence(eventBus, EVENTS, projectsData) {
                     const portfolio = await getPortfolioManager();
                     headerText['textContent'] = `Log Off ${portfolio.getOSName()}`;
                 } catch (error) {
-                    headerText['textContent'] = 'Log Off MitchIvin XP';
+                    headerText['textContent'] = 'Log Off XP';
                 }
             }
             if (logoffButtonLabel) logoffButtonLabel['textContent'] = 'Log\x20Off';

@@ -3,7 +3,7 @@
     let currentPath = 'C:\\';
     const commandHistory = [];
     let historyIndex = -0x1;
-    const welcomeMessage = ['MitchIvin XP v2.0 (Aug 2025)', 'Inspired by Windows XP', '', 'Type \'help\' to see available commands', '', ''].join('\x0d\x0a');
+    const welcomeMessage = ['MitchIvin XP v2.0 (Aug 2025)', 'Inspired by classic desktop UIs', '', 'Type \'help\' to see available commands', '', ''].join('\x0d\x0a');
     let promptPosition = 0x0,
         hasOutput = ![];
 

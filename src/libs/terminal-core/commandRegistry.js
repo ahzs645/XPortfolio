@@ -2,7 +2,15 @@ export class CommandRegistry {
     constructor(cvLoader) {
         this.cvLoader = cvLoader;
         this.commands = new Map();
+        this.wrapWidth = 70; // default columns
         this.registerDefaultCommands();
+    }
+
+    setWrapWidth(width) {
+        const n = Number(width);
+        if (Number.isFinite(n) && n >= 30) {
+            this.wrapWidth = Math.floor(n);
+        }
     }
 
     registerDefaultCommands() {
@@ -223,7 +231,7 @@ export class CommandRegistry {
                         
                         if (award.highlights && Array.isArray(award.highlights)) {
                             award.highlights.forEach(h => {
-                                const wrapped = this.wrapText(h, 70, '    • ');
+                                const wrapped = this.wrapText(h, this.wrapWidth, '    • ');
                                 output.push(wrapped);
                             });
                         }
@@ -292,7 +300,7 @@ export class CommandRegistry {
                         
                         if (vol.highlights && Array.isArray(vol.highlights)) {
                             vol.highlights.forEach(h => {
-                                const wrapped = this.wrapText(h, 70, '    • ');
+                                const wrapped = this.wrapText(h, this.wrapWidth, '    • ');
                                 output.push(wrapped);
                             });
                         }
@@ -375,7 +383,7 @@ export class CommandRegistry {
                                 if (pos.highlights && Array.isArray(pos.highlights)) {
                                     pos.highlights.forEach(h => {
                                         // Wrap long text with proper indentation
-                                        const wrapped = this.wrapText(h, 70, '    • ');
+                                        const wrapped = this.wrapText(h, this.wrapWidth, '    • ');
                                         output.push(wrapped);
                                     });
                                 }
@@ -384,7 +392,7 @@ export class CommandRegistry {
                             output.push(`  ${exp.position} (${exp.start_date || ''} - ${exp.end_date || ''})`);
                             if (exp.highlights && Array.isArray(exp.highlights)) {
                                 exp.highlights.forEach(h => {
-                                    const wrapped = this.wrapText(h, 70, '    • ');
+                                    const wrapped = this.wrapText(h, this.wrapWidth, '    • ');
                                     output.push(wrapped);
                                 });
                             }
@@ -468,7 +476,7 @@ export class CommandRegistry {
                         if (proj.date) output.push(`  Date: ${proj.date}`);
                         if (proj.url) output.push(`  URL: ${proj.url}`);
                         if (proj.summary) {
-                            const wrappedSummary = this.wrapText(proj.summary, 70, '  ');
+                            const wrappedSummary = this.wrapText(proj.summary, this.wrapWidth, '  ');
                             output.push(wrappedSummary);
                         }
                         
@@ -542,17 +550,30 @@ export class CommandRegistry {
 
     getHelpText() {
         const firstName = this.cvLoader.getFirstName();
+        const data = this.cvLoader.getData();
+        const sections = data?.cv?.sections || {};
+        const hasContent = (val) => Array.isArray(val) ? val.length > 0 : (val && typeof val === 'object' ? Object.keys(val).length > 0 : !!val);
+
         let output = ['Available Commands:', '=' .repeat(40)];
-        
+
         const categories = {
             'System': ['help', 'clear', 'ver', 'date', 'time', 'exit', 'debug', 'echo', 'pwd', 'history'],
             'Navigation': ['gui', 'welcome'],
-            'Personal': ['whoami', 'about', 'contact', 'email', 'socials'],
-            'Professional': ['experience', 'education', 'projects', 'volunteer', 'professional', 'awards', 'publications'],
-            'Download': ['cv', 'download', 'download-cv']
+            'Personal': ['whoami', 'about', 'contact', ...(this.cvLoader.getEmail() ? ['email'] : []), ...(Array.isArray(this.cvLoader.getSocials()) && this.cvLoader.getSocials().length ? ['socials'] : [])],
+            'Professional': [
+                ...(hasContent(sections.experience) ? ['experience'] : []),
+                ...(hasContent(sections.education) ? ['education'] : []),
+                ...(hasContent(sections.projects) ? ['projects'] : []),
+                ...(hasContent(sections.volunteer) ? ['volunteer'] : []),
+                ...(hasContent(sections.professional_development) ? ['professional'] : []),
+                ...(hasContent(sections.awards) ? ['awards'] : []),
+                ...(hasContent(sections.publications) ? ['publications'] : []),
+            ],
+            'Download': ['cv', 'download']
         };
 
         Object.entries(categories).forEach(([category, cmds]) => {
+            if (!cmds.length) return;
             output.push('', `${category}:`);
             cmds.forEach(cmd => {
                 const handler = this.commands.get(cmd);
@@ -591,8 +612,13 @@ export class CommandRegistry {
                     lines.push(currentLine);
                     currentLine = word;
                 } else {
-                    // Word is longer than available width, just use it
-                    lines.push(word);
+                    // Word is longer than available width, hard-break it
+                    let w = word;
+                    while (w.length > availableWidth) {
+                        lines.push(w.slice(0, availableWidth));
+                        w = w.slice(availableWidth);
+                    }
+                    currentLine = w;
                 }
             }
         }

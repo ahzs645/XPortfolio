@@ -504,7 +504,7 @@ const programData = {
         addressBarConfig: {
             enabled: true,
             icon: './assets/gui/start-menu/photos.webp',
-            title: 'C:\\Users\\Mitch\\Assets',
+            title: 'C:\\Users\\firstname\\Assets',
             canNavigate: false,
         },
         menuBarConfig: {

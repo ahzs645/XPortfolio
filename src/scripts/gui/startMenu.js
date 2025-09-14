@@ -386,7 +386,7 @@ export default class StartMenu {
         _0x3db683 && _0x3db683 !== this['startMenu'] && _0x3db683['parentNode']['removeChild'](_0x3db683);
         const _0x286b04 = document['createElement']('div');
         _0x286b04['className'] = 'startmenu', _0x286b04['innerHTML'] = this['getMenuTemplate'](), _0x286b04['style']['visibility'] = 'hidden', _0x286b04['style']['opacity'] = '0', document['body']['appendChild'](_0x286b04), this['startMenu'] = _0x286b04;
-        const _0x1bb69b = this['infoData']?.['contact']?.['name'] || 'Mitch\x20Ivin';
+        const _0x1bb69b = this['infoData']?.['contact']?.['name'] || 'firstname lastname';
         _0x286b04['querySelectorAll']('.menutopbar\x20.username')['forEach'](_0x3c4880 => {
             _0x3c4880['textContent'] = _0x1bb69b;
         }), this['createAllProgramsMenu'](), this['createRecentlyUsedMenu'](), this['setupMenuItems'](), this['_setupDelegatedEventHandlers']();
@@ -437,7 +437,7 @@ export default class StartMenu {
             return '<li\x20class=\x22menu-item' + _0x55c456 + '\x22\x20id=\x22menu-' + (_0x466db6 || _0x56e24f) + '\x22\x20' + _0x596ccd + '\x20' + _0x3ea4f5 + '\x20' + _0x3e6c1f + '\x20tabindex=\x22' + (_0x22dd01 ? '-1' : '0') + '\x22\x20aria-disabled=\x22' + (_0x22dd01 ? 'true' : 'false') + '\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<img\x20decoding=\x22async\x22\x20src=\x22' + _0x2487fe + '\x22\x20alt=\x22' + _0x40871e + '\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22item-content\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20' + _0x5d97eb + '\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20' + (_0x2346e8 ? '<span\x20class=\x22item-description\x22>' + _0x2346e8 + '</span>' : '') + '\x0a\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20</li>';
         }
         const _0x191e01 = this['systemAssets']?.['userIcon'] || './assets/gui/boot/userlogin.webp',
-            _0x28bdb6 = this['infoData']?.['contact']?.['name'] || 'Mitch\x20Ivin',
+            _0x28bdb6 = this['infoData']?.['contact']?.['name'] || 'firstname lastname',
             _0x13c29b = SOCIALS['map'](_0xb9c849 => ({
                 'id': _0xb9c849['key'],
                 'icon': _0xb9c849['icon'] ? './' + _0xb9c849['icon']['replace'](/^\.\//, '')['replace'](/^\//, '') : '',

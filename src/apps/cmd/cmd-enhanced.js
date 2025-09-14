@@ -209,14 +209,49 @@
 
     async function start() {
         const initialized = await initializeTerminal();
-        
+
         if (initialized && terminalCore) {
-            const welcomeMessage = terminalCore.getWelcomeMessage();
-            consoleElement.value = welcomeMessage + '\n' + getPrompt();
+            const cv = terminalCore.getCVData();
+            const fullName = cv?.cv?.name || '';
+            const firstName = (fullName || '').split(' ')[0] || 'User';
+
+            const header = [
+                `${firstName} DOS`,
+                `❮C❯ Copyright ${firstName}`,
+                `Type 'help' to see available commands`,
+                ''
+            ].join('\r\n');
+            consoleElement.value = header + getPrompt();
+
+            // Compute wrap width in columns based on textarea width and font metrics
+            const computeWrapColumns = () => {
+                const cw = (() => {
+                    const probe = document.createElement('span');
+                    probe.textContent = 'MMMMMMMMMM';
+                    probe.style.visibility = 'hidden';
+                    probe.style.position = 'absolute';
+                    probe.style.whiteSpace = 'pre';
+                    probe.style.fontFamily = getComputedStyle(consoleElement).fontFamily;
+                    probe.style.fontSize = getComputedStyle(consoleElement).fontSize;
+                    document.body.appendChild(probe);
+                    const width = probe.getBoundingClientRect().width / 10;
+                    document.body.removeChild(probe);
+                    return width || 8;
+                })();
+                const cols = Math.floor(consoleElement.clientWidth / cw) - 4;
+                return Math.max(30, cols);
+            };
+
+            try {
+                terminalCore.commandRegistry.setWrapWidth(computeWrapColumns());
+                window.addEventListener('resize', () => {
+                    terminalCore.commandRegistry.setWrapWidth(computeWrapColumns());
+                });
+            } catch(_) {}
         } else {
             const fallbackMessage = [
                 'MitchIvin XP v2.0 (Aug 2025)',
-                'Inspired by Windows XP',
+                'Inspired by classic desktop UIs',
                 '',
                 'Type \'help\' to see available commands',
                 '',
@@ -231,6 +266,11 @@
             consoleElement.value.length, 
             consoleElement.value.length
         );
+
+        // Hide intro on first user interaction
+        const intro = document.getElementById('intro');
+        const hideIntro = () => { if (intro) intro.hidden = true; };
+        // no intro overlay — console is immediate
     }
 
     start();

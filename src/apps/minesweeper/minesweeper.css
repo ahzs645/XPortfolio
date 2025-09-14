@@ -74,27 +74,29 @@ html,body { margin:0; font-family:Tahoma,Segoe UI,Arial,sans-serif; background: 
 .mine-content{ 
   background:#c0c0c0; 
   padding:5px; 
-  width: max-content;
-  margin: 0 auto;
+  width:max-content;
+  margin:0 auto;
+  border-left:3px solid #f5f5f5;
+  border-top:3px solid #f5f5f5;
 }
 .scorebar{ 
   display:grid; 
   grid-template-columns: 40px 1fr 40px;
   align-items:center; 
-  gap: 5px;
+  gap:5px;
   height:34px; 
-  padding:4px 6px; 
+  padding:3px 7px 3px 4px; 
   border-top:2px solid #808080; 
   border-left:2px solid #808080; 
   border-right:2px solid #f5f5f5; 
   border-bottom:2px solid #f5f5f5; 
   margin-bottom:5px;
-  width: 100%;
-  box-sizing: border-box;
+  width:100%;
+  box-sizing:border-box;
 }
 .digits{ display:flex; gap:0; width:40px; height:24px; border-right:1px solid #fff; border-bottom:1px solid #fff; align-items:flex-end; justify-content:flex-end }
 .digits img{ image-rendering:pixelated; height:23px }
-.face{ width:26px; height:26px; background:#c0c0c0; border:2px solid; border-color:#f5f5f5 #808080 #808080 #f5f5f5; display:flex; align-items:center; justify-content:center; padding:0; cursor:pointer; justify-self:center }
+.face{ width:24px; height:24px; background:#c0c0c0; border:2px solid; border-color:#f5f5f5 #808080 #808080 #f5f5f5; display:flex; align-items:center; justify-content:center; padding:0; cursor:pointer; justify-self:center; border-radius:2px }
 .face:active{ border-width:1px; border-color:#808080 }
 .face img{ width:20px; height:20px; image-rendering:pixelated; pointer-events:none }
 
@@ -105,6 +107,7 @@ html,body { margin:0; font-family:Tahoma,Segoe UI,Arial,sans-serif; background: 
 .cell.cover::before { border-left:2px solid #f5f5f5; border-top:2px solid #f5f5f5; border-right:2px solid #808080; border-bottom:2px solid #808080; }
 .cell.open{ background:#bdbdbd; }
 .cell.open::before { border-left:1px solid #808080; border-top:1px solid #808080; }
+.cell img { position:absolute; width:16px; height:16px; image-rendering:pixelated; pointer-events:none }
 .cell.flag::after { content:""; width:16px; height:16px; background:url('../../../assets/apps/minesweeper/flag.png') no-repeat center/16px 16px }
 .cell.mine::after { content:""; width:16px; height:16px; background:url('../../../assets/apps/minesweeper/mine-ceil.png') no-repeat center/16px 16px }
 .cell.misflagged::after { content:""; width:16px; height:16px; background:url('../../../assets/apps/minesweeper/misflagged.png') no-repeat center/16px 16px }
