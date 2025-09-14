@@ -78,7 +78,9 @@ export class ConfigLoader {
             TERMINAL_WELCOME_CUSTOM: false,
             TERMINAL_WELCOME_MESSAGE: null,
             PDF_DISPLAY_MODE: 'embed',
-            USE_PDF_JS: true
+            USE_PDF_JS: true,
+            MEDIA_PLAYER_PRIMARY_PLAYLIST: 'PLWoiCrWR5QfNd1s2WwJwjqBfWewzIszLb',
+            MEDIA_PLAYER_ALT_PLAYLIST: 'PLgwcgfCVaMC1z5AqphnubDfIu_pp0Ok9O'
         };
     }
 

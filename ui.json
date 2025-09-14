@@ -39,29 +39,29 @@
     ]
   },
   "contact": {
-    "name": "{{DEVELOPER_NAME}}",
-    "email": "{{DEVELOPER_EMAIL}}"
+    "name": "Ahmad Jalil",
+    "email": "me@ahmadjalil.com"
   },
   "socials": [
     {
       "key": "instagram",
       "name": "Instagram",
       "icon": "assets/gui/start-menu/instagram.webp",
-      "url": "{{SOCIAL_INSTAGRAM_URL}}",
+      "url": "https://instagram.com/ahzs645",
       "showInAbout": true
     },
     {
       "key": "github",
       "name": "Github",
       "icon": "assets/gui/start-menu/github.webp",
-      "url": "{{SOCIAL_GITHUB_URL}}",
+      "url": "https://github.com/ahzs645 https://www.facebook.com/ahzs645",
       "showInAbout": true
     },
     {
       "key": "linkedin",
       "name": "LinkedIn",
       "icon": "assets/gui/start-menu/linkedin.webp",
-      "url": "{{SOCIAL_LINKEDIN_URL}}",
+      "url": "https://www.linkedin.com/in/ahmad-jalil-b00669197/ https://github.com/ahzs645",
       "showInAbout": true
     }
   ],
@@ -70,7 +70,7 @@
   "wallpaperDesktop": "assets/gui/bgs/bliss.webp",
   "wallpaperMobile": "assets/gui/bgs/blissMobile.webp",
   "balloon": {
-    "title": "Welcome to {{DEVELOPER_FIRSTNAME}} XP",
+    "title": "Welcome to Ahmad XP",
     "body": "A faithful XP-inspired interface, custom-built<br>to showcase my work and attention to detail."
   }
 }
