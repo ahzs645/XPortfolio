@@ -123,22 +123,19 @@ iframe a {
 }
 
 .menu-items,
-.recently-used-items,
-.window-body {
+.recently-used-items {
     scrollbar-color: #316ac5 #ece9d8;
     scrollbar-width: thin
 }
 
 .menu-items::-webkit-scrollbar,
-.recently-used-items::-webkit-scrollbar,
-.window-body::-webkit-scrollbar {
+.recently-used-items::-webkit-scrollbar {
     background: #ece9d8;
     width: 13px
 }
 
 .menu-items::-webkit-scrollbar-thumb,
-.recently-used-items::-webkit-scrollbar-thumb,
-.window-body::-webkit-scrollbar-thumb {
+.recently-used-items::-webkit-scrollbar-thumb {
     background: linear-gradient(180deg, #eaf1fb 0, #316ac5);
     border: 2px solid #ece9d8;
     border-radius: 7px;
@@ -147,21 +144,18 @@ iframe a {
 }
 
 .menu-items::-webkit-scrollbar-thumb:hover,
-.recently-used-items::-webkit-scrollbar-thumb:hover,
-.window-body::-webkit-scrollbar-thumb:hover {
+.recently-used-items::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, #dbe8fa 0, #184f8b)
 }
 
 .menu-items::-webkit-scrollbar-track,
-.recently-used-items::-webkit-scrollbar-track,
-.window-body::-webkit-scrollbar-track {
+.recently-used-items::-webkit-scrollbar-track {
     background: #ece9d8;
     border-radius: 7px
 }
 
 .menu-items::-webkit-scrollbar-corner,
-.recently-used-items::-webkit-scrollbar-corner,
-.window-body::-webkit-scrollbar-corner {
+.recently-used-items::-webkit-scrollbar-corner {
     background: #ece9d8
 }
 
@@ -169,8 +163,7 @@ iframe a {
 
     .menu-items,
     .recently-used-items,
-    .scroll-content,
-    .window-body {
+    .scroll-content {
         scrollbar-color: ButtonText ButtonFace
     }
 }

@@ -55,29 +55,45 @@ body {
     padding: 0 !important;
 }
 
-/* XP-style scrollbars scoped to this iframe's viewer */
-#resumePdfViewer {
-    scrollbar-color: #316ac5 #ece9d8; /* Firefox */
-    scrollbar-width: thin;
+/* Match About app: hide native Firefox scrollbars; let XP.css style others */
+@-moz-document url-prefix() {
+    * {
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+
+    ::-webkit-scrollbar {
+        display: none !important;
+        height: 0 !important;
+        width: 0 !important;
+    }
+
+    ::-webkit-scrollbar-corner,
+    ::-webkit-scrollbar-thumb,
+    ::-webkit-scrollbar-track {
+        display: none !important;
+    }
 }
-#resumePdfViewer::-webkit-scrollbar {
-    background: #ece9d8;
-    width: 13px;
+
+/* Avoid duplicate XP arrow buttons (WebKit):
+   Some engines may render both single and double-button variants.
+   Hide the double-button style so only one pair shows. */
+#resumePdfViewer::-webkit-scrollbar-button:double-button {
+    display: none !important;
 }
-#resumePdfViewer::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #eaf1fb 0, #316ac5);
-    border: 2px solid #ece9d8;
-    border-radius: 7px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
-    min-height: 40px;
+
+/* Keep only one arrow per end on vertical scrollbars */
+#resumePdfViewer::-webkit-scrollbar-button:vertical:start:increment {
+    display: none !important;
 }
-#resumePdfViewer::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, #dbe8fa 0, #184f8b);
+#resumePdfViewer::-webkit-scrollbar-button:vertical:end:decrement {
+    display: none !important;
 }
-#resumePdfViewer::-webkit-scrollbar-track {
-    background: #ece9d8;
-    border-radius: 7px;
+
+/* Horizontal fallback (when zoomed) */
+#resumePdfViewer::-webkit-scrollbar-button:horizontal:start:increment {
+    display: none !important;
 }
-#resumePdfViewer::-webkit-scrollbar-corner {
-    background: #ece9d8;
+#resumePdfViewer::-webkit-scrollbar-button:horizontal:end:decrement {
+    display: none !important;
 }
