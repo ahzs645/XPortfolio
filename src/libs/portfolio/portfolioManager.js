@@ -44,7 +44,7 @@ export class PortfolioManager {
     // === UI ASSET METHODS ===
 
     getLoadingImageUrl() {
-        const path = this.configLoader.getConfigValue('LOADING_IMAGE_PATH', './assets/gui/boot/loading.webp');
+        const path = this.configLoader.getConfigValue('LOADING_IMAGE_PATH', './assets/gui/boot/Ahmadxp.png');
 
         // For SVG files, we'll handle them specially to inject dynamic content
         if (path.includes('xp.svg')) {

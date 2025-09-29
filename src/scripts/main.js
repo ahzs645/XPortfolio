@@ -386,7 +386,7 @@ async function ensureLandscapeBlock() {
         landscapeBlock['id'] = 'landscape-block';
 
         // Get the loading image URL from portfolio manager
-        let loadingImageSrc = 'assets/gui/boot/loading.webp'; // default fallback
+        let loadingImageSrc = 'assets/gui/boot/Ahmadxp.png'; // default fallback
         try {
             const portfolio = new PortfolioManager();
             await portfolio.initialize();
