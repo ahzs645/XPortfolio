@@ -39,7 +39,16 @@ async function getSystemAssets() {
         };
         return SYSTEM_ASSETS;
     } catch (error) {
-        return SYSTEM_ASSETS = {}, SYSTEM_ASSETS;
+        return SYSTEM_ASSETS = {
+            loading: './assets/gui/boot/xp.svg',
+            userIcon: './assets/gui/boot/xp.svg',
+            wallpaperDesktop: './assets/gui/bgs/blissorg.jpeg',
+            wallpaperMobile: './assets/gui/bgs/blissorg.jpeg',
+            balloon: {
+                title: 'Welcome',
+                body: 'Dynamic assets unavailable.'
+            }
+        }, SYSTEM_ASSETS;
     }
 }
 export function initBootSequence(eventBus, EVENTS, projectsData) {
@@ -369,7 +378,7 @@ document['addEventListener']('DOMContentLoaded', async () => {
     document['querySelectorAll']('.xp-logo-image')['forEach'](xpLogoImg => {
         if (assets['loading']) xpLogoImg['src'] = assets['loading'];
     }), document['querySelectorAll']('.login-screen\x20.user')['forEach'](userContainer => {
-        const iconSrc = assets['userIcon'];
+        const iconSrc = assets['userIcon'] || './assets/gui/boot/xp.svg';
         if (iconSrc) {
             let img = userContainer['querySelector']('img');
             if (!img) {

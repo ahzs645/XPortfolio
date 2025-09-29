@@ -386,6 +386,30 @@ export default class StartMenu {
         _0x3db683 && _0x3db683 !== this['startMenu'] && _0x3db683['parentNode']['removeChild'](_0x3db683);
         const _0x286b04 = document['createElement']('div');
         _0x286b04['className'] = 'startmenu', _0x286b04['innerHTML'] = this['getMenuTemplate'](), _0x286b04['style']['visibility'] = 'hidden', _0x286b04['style']['opacity'] = '0', document['body']['appendChild'](_0x286b04), this['startMenu'] = _0x286b04;
+
+        const _0x41658f = _0x286b04['querySelector']('.menutopbar');
+        if (_0x41658f) {
+            const _0x543978 = this['systemAssets']?.['userIcon'] || './assets/gui/boot/xp.svg';
+            const _0x3a6deb = typeof _0x543978 === 'string'
+                ? (_0x543978.includes('%') ? _0x543978 : _0x543978.replace(/\s/g, '%20'))
+                : null;
+
+            _0x41658f['innerHTML'] = '';
+
+            if (_0x3a6deb) {
+                const _0x1c52d5 = document['createElement']('img');
+                _0x1c52d5['className'] = 'userpicture';
+                _0x1c52d5['decoding'] = 'async';
+                _0x1c52d5['draggable'] = ![];
+                _0x1c52d5['alt'] = 'User';
+                _0x1c52d5['src'] = _0x3a6deb;
+                _0x41658f['appendChild'](_0x1c52d5);
+            }
+
+            const _0x295cac = document['createElement']('span');
+            _0x295cac['className'] = 'username';
+            _0x41658f['appendChild'](_0x295cac);
+        }
         const _0x1bb69b = this['infoData']?.['contact']?.['name'] || 'firstname lastname';
         _0x286b04['querySelectorAll']('.menutopbar\x20.username')['forEach'](_0x3c4880 => {
             _0x3c4880['textContent'] = _0x1bb69b;
@@ -436,7 +460,7 @@ export default class StartMenu {
             } = _0x1b1888, _0x26c29c = [], _0x22dd01 = typeof _0x87396b === 'boolean' ? _0x87396b : _0x26c29c['includes'](_0x466db6), _0x55c456 = _0x22dd01 ? '\x20disabled' : '', _0x596ccd = _0x22dd01 ? '' : _0x55d175 ? 'data-action=\x22' + _0x55d175 + '\x22' : '', _0x3ea4f5 = _0x22dd01 ? '' : _0x466db6 ? 'data-program-name=\x22' + _0x466db6 + '\x22' : '', _0x3e6c1f = _0x395dde ? 'data-url=\x22' + _0x395dde + '\x22' : '', _0x43854a = (_0x466db6 || _0x56e24f) === 'projects', _0x5d97eb = '<span\x20class=\x22item-title' + (_0x43854a ? '\x20projects-bold' : '') + '\x22>' + _0x40871e + '</span>';
             return '<li\x20class=\x22menu-item' + _0x55c456 + '\x22\x20id=\x22menu-' + (_0x466db6 || _0x56e24f) + '\x22\x20' + _0x596ccd + '\x20' + _0x3ea4f5 + '\x20' + _0x3e6c1f + '\x20tabindex=\x22' + (_0x22dd01 ? '-1' : '0') + '\x22\x20aria-disabled=\x22' + (_0x22dd01 ? 'true' : 'false') + '\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<img\x20decoding=\x22async\x22\x20src=\x22' + _0x2487fe + '\x22\x20alt=\x22' + _0x40871e + '\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22item-content\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20' + _0x5d97eb + '\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20' + (_0x2346e8 ? '<span\x20class=\x22item-description\x22>' + _0x2346e8 + '</span>' : '') + '\x0a\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20</li>';
         }
-        const _0x191e01 = this['systemAssets']?.['userIcon'] || null,
+        const _0x191e01 = this['systemAssets']?.['userIcon'] || './assets/gui/boot/xp.svg',
             _0x1602d1 = _0x191e01 ? '\\x0a\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20<img\\x20decoding=\\x22async\\x22\\x20src=\\x22' + _0x191e01 + '\\x22\\x20alt=\\x22User\\x22\\x20class=\\x22userpicture\\x22>' : '',
             _0x28bdb6 = this['infoData']?.['contact']?.['name'] || 'firstname lastname',
             _0x13c29b = SOCIALS['map'](_0xb9c849 => ({

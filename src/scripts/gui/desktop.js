@@ -1,5 +1,13 @@
 import { EVENTS } from '../utils/eventBus.js';
 
+const SOCIAL_ICON_MAP = {
+    linkedin: './assets/gui/start-menu/linkedin.webp',
+    github: './assets/gui/start-menu/github.webp',
+    instagram: './assets/gui/start-menu/instagram.webp',
+    facebook: './assets/gui/start-menu/facebook.webp',
+    twitter: './assets/gui/start-menu/github.webp'
+};
+
 let SOCIALS_CACHE = null;
 let SYSTEM_ASSETS = null;
 
@@ -13,11 +21,28 @@ window.clearSystemAssetsCache = () => {
 async function getSocials() {
     if (SOCIALS_CACHE) return SOCIALS_CACHE;
     try {
-        const response = await fetch('./ui.json');
-        const json = await response.json();
-        SOCIALS_CACHE = Array.isArray(json.socials) ? json.socials : [];
+        const { PortfolioManager } = await import('../../libs/portfolio/portfolioManager.js');
+        const portfolio = new PortfolioManager();
+        await portfolio.initialize();
+
+        const socialLinks = portfolio.getSocialLinks();
+        SOCIALS_CACHE = Array.isArray(socialLinks)
+            ? socialLinks.map(link => {
+                const rawKey = (link.network || '').toLowerCase();
+                const normalizedKey = rawKey === 'x' ? 'twitter' : rawKey;
+                const icon = SOCIAL_ICON_MAP[normalizedKey] || SOCIAL_ICON_MAP.github;
+                return {
+                    key: normalizedKey,
+                    // keep compatibility with legacy structure used by desktop icons
+                    name: link.network,
+                    icon,
+                    url: link.url
+                };
+            })
+            : [];
         return SOCIALS_CACHE;
     } catch (error) {
+        console.error('Failed to load social links for desktop icons:', error);
         SOCIALS_CACHE = [];
         return SOCIALS_CACHE;
     }

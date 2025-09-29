@@ -8,6 +8,19 @@ export class PortfolioManager {
         this.isInitialized = false;
     }
 
+    normalizeAssetPath(path) {
+        if (path === undefined || path === null) return null;
+        const raw = `${path}`.trim();
+        if (!raw) return null;
+        if (raw.startsWith('dynamic:')) return raw;
+        if (/^(?:https?|data|blob):/i.test(raw)) return encodeURI(raw);
+
+        const prefix = raw.startsWith('./') ? './' : raw.startsWith('/') ? '/' : '';
+        const rest = raw.slice(prefix.length);
+        const encodedRest = encodeURI(rest);
+        return `${prefix}${encodedRest}`;
+    }
+
     async initialize() {
         if (this.isInitialized) return;
         
@@ -38,15 +51,17 @@ export class PortfolioManager {
     }
 
     getProfilePhotoUrl() {
-        return this.configLoader.getProfilePhotoPath();
+        return this.normalizeAssetPath(this.configLoader.getProfilePhotoPath())
+            || this.configLoader.getProfilePhotoPath();
     }
 
     // === UI ASSET METHODS ===
 
     getLoadingImageUrl() {
-        const path = this.configLoader.getConfigValue('LOADING_IMAGE_PATH', './assets/gui/boot/Ahmadxp.png');
+        const rawPath = this.configLoader.getConfigValue('LOADING_IMAGE_PATH', './assets/gui/boot/xp.svg');
+        const path = this.normalizeAssetPath(rawPath) || './assets/gui/boot/xp.svg';
 
-        // For SVG files, we'll handle them specially to inject dynamic content
+        if (path === 'dynamic:xp.svg') return path;
         if (path.includes('xp.svg')) {
             return 'dynamic:xp.svg';
         }
@@ -165,19 +180,23 @@ export class PortfolioManager {
     }
 
     getUserIconUrl() {
-        return this.configLoader.getConfigValue('USER_LOGIN_ICON', null);
+        const rawPath = this.configLoader.getConfigValue('USER_LOGIN_ICON', null);
+        return this.normalizeAssetPath(rawPath) || './assets/gui/boot/xp.svg';
     }
 
     getUserStartMenuIconUrl() {
-        return this.configLoader.getConfigValue('USER_START_MENU_ICON', null);
+        const rawPath = this.configLoader.getConfigValue('USER_START_MENU_ICON', null);
+        return this.normalizeAssetPath(rawPath) || './assets/gui/boot/xp.svg';
     }
 
     getWallpaperDesktopUrl() {
-        return this.configLoader.getConfigValue('WALLPAPER_DESKTOP_PATH', './assets/gui/bgs/blissorg.jpeg');
+        const rawPath = this.configLoader.getConfigValue('WALLPAPER_DESKTOP_PATH', './assets/gui/bgs/blissorg.jpeg');
+        return this.normalizeAssetPath(rawPath) || './assets/gui/bgs/blissorg.jpeg';
     }
 
     getWallpaperMobileUrl() {
-        return this.configLoader.getConfigValue('WALLPAPER_MOBILE_PATH', './assets/gui/bgs/blissorg.jpeg');
+        const rawPath = this.configLoader.getConfigValue('WALLPAPER_MOBILE_PATH', './assets/gui/bgs/blissorg.jpeg');
+        return this.normalizeAssetPath(rawPath) || './assets/gui/bgs/blissorg.jpeg';
     }
 
     getBalloonTitle() {
