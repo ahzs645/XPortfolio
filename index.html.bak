@@ -58,7 +58,7 @@
 <link href=https://unpkg.com rel=preconnect crossorigin>
 <link href=https://unpkg.com/xp.css@0.2.6/dist/XP.css rel=preload as=style crossorigin>
 <link href=https://jspaint.app rel=preconnect crossorigin>
-<link href=./assets/gui/bgs/bliss.webp rel=preload as=image fetchpriority=high type=image/webp>
+<link href=./assets/gui/bgs/blissorg.jpeg rel=preload as=image fetchpriority=high type=image/jpeg>
 <link href=./assets/gui/desktop/about.webp rel=preload as=image fetchpriority=high type=image/webp>
 <link href=./assets/gui/desktop/projects.webp rel=preload as=image fetchpriority=high type=image/webp>
 <link href=./assets/gui/desktop/contact.webp rel=preload as=image fetchpriority=high type=image/webp>
@@ -146,7 +146,7 @@
                     <div class=login-divider aria-hidden=true></div>
                     <div class=right>
                         <div class="interactive back-gradient">
-                            <div class=user><img alt="User Profile" src=./assets/gui/boot/userlogin.webp draggable=false decoding=async></div>
+                            <div class=user></div>
                             <div class=text-wrap>
                                 <div class=name>Mitch Ivin</div>
                                 <div class=user-title>Graphic Designer</div>

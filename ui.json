@@ -66,9 +66,8 @@
     }
   ],
   "loading": "assets/gui/boot/loading.webp",
-  "userIcon": "assets/gui/boot/userlogin.webp",
-  "wallpaperDesktop": "assets/gui/bgs/bliss.webp",
-  "wallpaperMobile": "assets/gui/bgs/blissMobile.webp",
+  "wallpaperDesktop": "assets/gui/bgs/blissorg.jpeg",
+  "wallpaperMobile": "assets/gui/bgs/blissorg.jpeg",
   "balloon": {
     "title": "Welcome to Ahmad XP",
     "body": "A faithful XP-inspired interface, custom-built<br>to showcase my work and attention to detail."

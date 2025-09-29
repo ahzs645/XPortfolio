@@ -112,7 +112,18 @@ export function initBootSequence(eventBus, EVENTS, projectsData) {
                 checkResources = async () => {
                     try {
                         if (!assets || Object['keys'](assets)['length'] === 0x0) return ![];
-                        const preloadImages = ['./assets/gui/bgs/bliss.webp', './assets/gui/desktop/about.webp', './assets/gui/desktop/projects.webp', './assets/gui/desktop/contact.webp', './assets/gui/desktop/resume.svg', './assets/gui/taskbar/start-button.webp', './assets/gui/taskbar/taskbar-bg.webp', './assets/gui/taskbar/system-tray.webp'],
+                        const preloadImages = [
+                                assets['wallpaperDesktop'] || null,
+                                assets['wallpaperMobile'] || null,
+                                './assets/gui/desktop/about.webp',
+                                './assets/gui/desktop/projects.webp',
+                                './assets/gui/desktop/contact.webp',
+                                './assets/gui/desktop/resume.svg',
+                                './assets/gui/taskbar/start-button.webp',
+                                './assets/gui/taskbar/taskbar-bg.webp',
+                                './assets/gui/taskbar/system-tray.webp'
+                            ]
+                            ['filter'](_0x1cbdc2 => !!_0x1cbdc2),
                             imagePromises = preloadImages['map'](src => {
                                 return new Promise(resolveFn => {
                                     const img = new Image();
@@ -357,8 +368,23 @@ document['addEventListener']('DOMContentLoaded', async () => {
     if (logoImg && assets['loading']) logoImg['src'] = assets['loading'];
     document['querySelectorAll']('.xp-logo-image')['forEach'](xpLogoImg => {
         if (assets['loading']) xpLogoImg['src'] = assets['loading'];
-    }), document['querySelectorAll']('.login-screen\x20.user\x20img')['forEach'](userImage => {
-        if (assets['userIcon']) userImage['src'] = assets['userIcon'];
+    }), document['querySelectorAll']('.login-screen\x20.user')['forEach'](userContainer => {
+        const iconSrc = assets['userIcon'];
+        if (iconSrc) {
+            let img = userContainer['querySelector']('img');
+            if (!img) {
+                img = document['createElement']('img');
+                img['alt'] = 'User Profile';
+                img['draggable'] = ![];
+                img['decoding'] = 'async';
+                userContainer['appendChild'](img);
+            }
+            img['src'] = iconSrc;
+            userContainer['style']['display'] = '';
+        } else {
+            userContainer['innerHTML'] = '';
+            userContainer['style']['display'] = 'none';
+        }
     });
     try {
         const portfolio = await getPortfolioManager();

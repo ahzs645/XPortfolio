@@ -165,19 +165,19 @@ export class PortfolioManager {
     }
 
     getUserIconUrl() {
-        return this.configLoader.getConfigValue('USER_LOGIN_ICON', './assets/gui/boot/userlogin.webp');
+        return this.configLoader.getConfigValue('USER_LOGIN_ICON', null);
     }
 
     getUserStartMenuIconUrl() {
-        return this.configLoader.getConfigValue('USER_START_MENU_ICON', './assets/gui/boot/userlogin.webp');
+        return this.configLoader.getConfigValue('USER_START_MENU_ICON', null);
     }
 
     getWallpaperDesktopUrl() {
-        return this.configLoader.getConfigValue('WALLPAPER_DESKTOP_PATH', './assets/gui/bgs/bliss.webp');
+        return this.configLoader.getConfigValue('WALLPAPER_DESKTOP_PATH', './assets/gui/bgs/blissorg.jpeg');
     }
 
     getWallpaperMobileUrl() {
-        return this.configLoader.getConfigValue('WALLPAPER_MOBILE_PATH', './assets/gui/bgs/blissMobile.webp');
+        return this.configLoader.getConfigValue('WALLPAPER_MOBILE_PATH', './assets/gui/bgs/blissorg.jpeg');
     }
 
     getBalloonTitle() {
