@@ -45,14 +45,25 @@
     8: ASSET_BASE + 'open8.png'
   };
 
-  let rows, cols, mines, grid, started, timer, seconds, flags, status;
+  let rows, cols, mines, grid, started, timer, seconds, flags, status, mouseDownOnBoard, currentDifficulty = 'Beginner';
 
   function pad3(n){ n = Math.min(999, n|0); return String(n).padStart(3,'0'); }
 
-  function init() {
-    const d = Config[difficultyEl.value];
+  function updateDifficultyChecks() {
+    document.getElementById('check-beginner').textContent = currentDifficulty === 'Beginner' ? '✓' : '';
+    document.getElementById('check-intermediate').textContent = currentDifficulty === 'Intermediate' ? '✓' : '';
+    document.getElementById('check-expert').textContent = currentDifficulty === 'Expert' ? '✓' : '';
+  }
+
+  function init(difficulty) {
+    if (difficulty) {
+      currentDifficulty = difficulty;
+      if (difficultyEl) difficultyEl.value = difficulty;
+    }
+    const d = Config[currentDifficulty];
     rows = d.rows; cols = d.cols; mines = d.mines;
-    started = false; status = 'new'; seconds = 0; flags = 0; timer && clearInterval(timer);
+    started = false; status = 'new'; seconds = 0; flags = 0; mouseDownOnBoard = false;
+    timer && clearInterval(timer);
     renderDigits(digitsTimer, 0);
     renderDigits(digitsMines, mines);
     setFace(FACE.SMILE);
@@ -60,20 +71,30 @@
     boardEl.style.gridTemplateColumns = `repeat(${cols}, var(--cell))`;
     boardEl.innerHTML = '';
     for (let i=0;i<rows*cols;i++) boardEl.appendChild(cellEl(i));
+
+    // Set scorebar width to match board width
+    const scorebarEl = document.querySelector('.scorebar');
+    if (scorebarEl && boardEl) {
+      requestAnimationFrame(() => {
+        const boardWidth = boardEl.offsetWidth;
+        scorebarEl.style.width = boardWidth + 'px';
+      });
+    }
+
+    updateDifficultyChecks();
     queueResize();
   }
 
   function cellEl(i){
     const el = document.createElement('div');
     el.className = 'cell cover';
-    el.oncontextmenu = e => { e.preventDefault(); toggleFlag(i); };
-    el.onmousedown = e => { if (e.button===0) clickCell(i); };
-    el.ontouchstart = e => { if (flagModeEl.checked) toggleFlag(i); else clickCell(i); };
+    el.dataset.index = i;
     return el;
   }
 
   function placeMines(firstIndex){
     const idxs = Array.from({length: rows*cols}, (_,i)=>i).filter(i=>i!==firstIndex);
+    // Shuffle and pick mines
     for (let m=0; m<mines; m++){
       const r = Math.floor(Math.random()*idxs.length);
       const idx = idxs.splice(r,1)[0];
@@ -97,8 +118,11 @@
   }
 
   function reveal(i){
-    const cell = grid[i]; if (cell.state!=='cover') return; cell.state='open';
-    const el = boardEl.children[i]; el.className = 'cell open';
+    const cell = grid[i];
+    if (cell.state!=='cover') return;
+    cell.state='open';
+    const el = boardEl.children[i];
+    el.className = 'cell open';
     el.innerHTML = '';
     if (cell.mines>0){
       const img = document.createElement('img');
@@ -106,7 +130,9 @@
       img.alt = String(cell.mines);
       el.appendChild(img);
     }
-    if (cell.mines===0){ for (const n of neighbors(i)) reveal(n); }
+    if (cell.mines===0){
+      for (const n of neighbors(i)) reveal(n);
+    }
     queueResize();
   }
 
@@ -114,8 +140,9 @@
     const unopened = grid.filter(c=>c.state!=='open').length;
     if (unopened===mines){
       clearInterval(timer); started=false; status='won'; setFace(FACE.WIN);
-      for (let i=0;i<grid.length;i++) if (grid[i].state==='cover') setFlag(i,true);
-      // optional toast could be shown here
+      for (let i=0;i<grid.length;i++) {
+        if (grid[i].state==='cover' || grid[i].state==='unknown') setFlag(i,true);
+      }
     }
   }
 
@@ -123,8 +150,12 @@
     clearInterval(timer); started=false; status='dead'; setFace(FACE.DEAD);
     for (let i=0;i<grid.length;i++){
       const c=grid[i], el=boardEl.children[i];
-      if (c.mines<0 && c.state!=='flag') { el.className='cell open mine'; }
-      else if (c.mines>=0 && c.state==='flag') { el.className='cell open misflagged'; }
+      if (c.mines<0 && c.state!=='flag') {
+        el.className='cell open mine';
+      }
+      else if (c.mines>=0 && c.state==='flag') {
+        el.className='cell open misflagged';
+      }
     }
     boardEl.children[blowIndex].classList.add('die');
     queueResize();
@@ -141,28 +172,114 @@
 
   function setFlag(i, on){
     if (status==='dead' || status==='won') return;
-    const cell=grid[i]; if (cell.state==='open') return;
+    const cell=grid[i];
+    if (cell.state==='open') return;
     const el=boardEl.children[i];
-    if (on){ if (cell.state!=='flag'){ cell.state='flag'; el.classList.add('flag'); flags++; renderDigits(digitsMines, Math.max(0, mines-flags)); } }
-    else { if (cell.state==='flag'){ cell.state='cover'; el.classList.remove('flag'); flags--; renderDigits(digitsMines, Math.max(0, mines-flags)); } }
+    if (on){
+      if (cell.state!=='flag'){
+        cell.state='flag';
+        el.classList.remove('unknown');
+        el.classList.add('flag');
+        flags++;
+        renderDigits(digitsMines, Math.max(0, mines-flags));
+      }
+    }
+    else {
+      if (cell.state==='flag'){
+        cell.state='cover';
+        el.classList.remove('flag');
+        flags--;
+        renderDigits(digitsMines, Math.max(0, mines-flags));
+      }
+    }
   }
 
-  function toggleFlag(i){
-    const cell=grid[i]; setFlag(i, cell.state!=='flag');
+  function cycleFlag(i){
+    if (status==='dead' || status==='won') return;
+    const cell=grid[i];
+    if (cell.state==='open') return;
+    const el=boardEl.children[i];
+
+    // Cycle: cover -> flag -> unknown -> cover
+    if (cell.state === 'cover') {
+      cell.state = 'flag';
+      el.classList.remove('unknown');
+      el.classList.add('flag');
+      flags++;
+      renderDigits(digitsMines, Math.max(0, mines-flags));
+    } else if (cell.state === 'flag') {
+      cell.state = 'unknown';
+      el.classList.remove('flag');
+      el.classList.add('unknown');
+      flags--;
+      renderDigits(digitsMines, Math.max(0, mines-flags));
+    } else if (cell.state === 'unknown') {
+      cell.state = 'cover';
+      el.classList.remove('unknown');
+    }
   }
 
-  difficultyEl.addEventListener('change', init);
-  resetBtn.addEventListener('click', init);
+  // Handle mouse events on board
+  boardEl.addEventListener('mousedown', (e)=>{
+    if (e.button===0 && (status==='new'||status==='started')) {
+      setFace(FACE.OHH);
+      mouseDownOnBoard = true;
+    }
+  });
+
+  document.addEventListener('mouseup', ()=>{
+    if (mouseDownOnBoard && (status==='new'||status==='started')) {
+      setFace(FACE.SMILE);
+    }
+    mouseDownOnBoard = false;
+  });
+
+  // Handle clicks on cells
+  boardEl.addEventListener('click', (e) => {
+    const cell = e.target.closest('.cell');
+    if (!cell) return;
+    const i = parseInt(cell.dataset.index);
+    clickCell(i);
+  });
+
+  // Handle right-click on cells
+  boardEl.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    const cell = e.target.closest('.cell');
+    if (!cell) return;
+    const i = parseInt(cell.dataset.index);
+    cycleFlag(i);
+  });
+
+  // Handle touch events for mobile
+  boardEl.addEventListener('touchstart', (e) => {
+    const cell = e.target.closest('.cell');
+    if (!cell) return;
+    const i = parseInt(cell.dataset.index);
+    if (flagModeEl?.checked) {
+      cycleFlag(i);
+    } else {
+      clickCell(i);
+    }
+  });
+
+  if (difficultyEl) {
+    difficultyEl.addEventListener('change', init);
+  }
+  if (resetBtn) {
+    resetBtn.addEventListener('click', init);
+  }
+
   faceBtn.addEventListener('mousedown', ()=> setFace(FACE.OHH));
-  faceBtn.addEventListener('mouseup', ()=> { if(status==='new'||status==='started') setFace(FACE.SMILE); });
-  faceBtn.addEventListener('click', init);
-  // Change face while interacting with the board
-  boardEl.addEventListener('mousedown', (e)=>{ if(e.button===0 && (status==='new'||status==='started')) setFace(FACE.OHH); });
-  document.addEventListener('mouseup', ()=>{ if(status==='new'||status==='started') setFace(FACE.SMILE); });
+  faceBtn.addEventListener('mouseup', ()=> {
+    if(status==='new'||status==='started') setFace(FACE.SMILE);
+  });
+  faceBtn.addEventListener('click', () => init());
+
   // Menu bar event handling
   const gameMenu = document.getElementById('game-menu');
   const menuItems = document.querySelectorAll('.menu-item[data-menu]');
-  
+
   // Handle menu clicks
   menuItems.forEach(item => {
     item.addEventListener('click', (e) => {
@@ -175,7 +292,7 @@
       }
     });
   });
-  
+
   // Close menu when clicking outside
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.menu-bar-container')) {
@@ -183,39 +300,67 @@
       menuItems.forEach(item => item.classList.remove('active'));
     }
   });
-  
+
   // Handle menu item actions
-  document.addEventListener('click', (e)=>{
+  document.addEventListener('click', (e) => {
     const target = e.target;
-    const a = target?.dataset?.action || target?.closest('.menu-dropdown-item')?.dataset?.action;
-    if(!a) return;
-    
+    const menuItem = target?.closest('.menu-dropdown-item');
+    if (!menuItem) return;
+
+    const action = menuItem.dataset.action;
+    if (!action) return;
+
     // Close menu after action
     gameMenu.style.display = 'none';
     menuItems.forEach(item => item.classList.remove('active'));
-    
-    if (a==='new') init();
-    else if (Config[a]){ difficultyEl.value = a; init(); }
-    else if (a==='exit') { try{ window.parent?.postMessage({ type:'close-window' }, '*'); }catch(_){}}
+
+    if (action === 'new') {
+      init();
+    } else if (action === 'exit') {
+      try {
+        window.parent?.postMessage({ type: 'close-window' }, '*');
+      } catch(_) {}
+    } else if (Config[action]) {
+      init(action);
+    }
   });
+
+  // Listen for window messages (for menu actions)
+  window.addEventListener('message', (e) => {
+    try {
+      const data = e.data;
+      if (data.type === 'menu-action') {
+        const action = data.action;
+        if (action === 'new') {
+          init();
+        } else if (action === 'exit') {
+          window.parent?.postMessage({ type: 'close-window' }, '*');
+        } else if (Config[action]) {
+          init(action);
+        }
+      }
+    } catch(err) {}
+  });
+
   init();
-  setupResizeObserver();
-  queueResize();
 
   function sendResize(){
     try {
       const content = document.querySelector('.mine-content');
       const menuBar = document.querySelector('.menu-bar-container');
       if (!content || !menuBar) return;
-      
-      const contentRect = content.getBoundingClientRect();
-      const menuRect = menuBar.getBoundingClientRect();
-      
-      // Calculate exact size needed
-      const w = Math.ceil(contentRect.width) + 10;
-      const h = Math.ceil(contentRect.height) + Math.ceil(menuRect.height) + 6;
-      
-      // Ask parent to fit the window exactly around our content
+
+      const boardWidth = boardEl.offsetWidth;
+      const menuHeight = menuBar.offsetHeight;
+      const contentHeight = content.offsetHeight;
+
+      // Calculate based on actual board size plus borders and padding
+      // Board: cols * 16px + 6px borders
+      // Content padding: 3px * 2 = 6px
+      // Menu height
+      const w = boardWidth + 12;
+      const h = contentHeight + menuHeight + 6;
+
       window.parent?.postMessage({ type: 'fit-content-size', width: w, height: h }, '*');
     } catch(_){}
   }
@@ -223,17 +368,7 @@
   function queueResize(){
     requestAnimationFrame(() => requestAnimationFrame(() => {
       sendResize();
-      setTimeout(sendResize, 50);
     }));
-  }
-
-  function setupResizeObserver(){
-    try {
-      const content = document.querySelector('.mine-content');
-      if (!content) return;
-      const ro = new ResizeObserver(() => sendResize());
-      ro.observe(content);
-    } catch(_){}
   }
 
   function renderDigits(container, n){
@@ -246,6 +381,7 @@
       container.appendChild(img);
     }
   }
+
   function setFace(src){
     faceBtn.innerHTML = '';
     const img = document.createElement('img');

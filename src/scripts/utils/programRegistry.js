@@ -140,10 +140,10 @@ const programData = {
     minesweeper: createProgram('minesweeper', 'Minesweeper', 'start-menu/minesweeper.svg', {
         appPath: 'src/apps/minesweeper/minesweeper.html?v=1',
         icon: './assets/apps/minesweeper/mine-icon.png',
-        dimensions: { width: 280, height: 360 },
-        minDimensions: { width: 160, height: 200 },
+        dimensions: { width: 200, height: 280 },
+        minDimensions: { width: 100, height: 200 },
         resizable: false,
-        canMaximize: true,
+        canMaximize: false,
     }),
 
     // --- Winamp ---

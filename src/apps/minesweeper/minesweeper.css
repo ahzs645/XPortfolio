@@ -1,6 +1,24 @@
-:root { --cell: 16px; }
-html,body { margin:0; font-family:Tahoma,Segoe UI,Arial,sans-serif; background: #c0c0c0; }
-.mine-window{ width:100%; height:100%; display:flex; flex-direction:column; }
+:root {
+  --cell: 16px;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: Tahoma, 'Segoe UI', Arial, sans-serif;
+  background: #c0c0c0;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+.mine-window {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #c0c0c0;
+}
 
 /* Windows XP style menu bar */
 .menu-bar-container {
@@ -14,7 +32,6 @@ html,body { margin:0; font-family:Tahoma,Segoe UI,Arial,sans-serif; background: 
   display: flex;
   align-items: center;
   height: 20px;
-  padding: 2px 0;
   font-size: 11px;
   font-family: Tahoma, Arial, sans-serif;
 }
@@ -23,7 +40,6 @@ html,body { margin:0; font-family:Tahoma,Segoe UI,Arial,sans-serif; background: 
   padding: 4px 8px;
   cursor: pointer;
   border: 1px solid transparent;
-  margin: 0 2px;
 }
 
 .menu-item:hover:not(.disabled),
@@ -47,21 +63,29 @@ html,body { margin:0; font-family:Tahoma,Segoe UI,Arial,sans-serif; background: 
   border-color: #fff #808080 #808080 #fff;
   box-shadow: 2px 2px 1px rgba(0,0,0,0.2);
   padding: 2px;
-  min-width: 120px;
+  min-width: 140px;
   z-index: 1000;
   font-size: 11px;
   font-family: Tahoma, Arial, sans-serif;
 }
 
 .menu-dropdown-item {
-  padding: 4px 20px 4px 16px;
+  padding: 4px 20px 4px 24px;
   cursor: pointer;
   white-space: nowrap;
+  position: relative;
 }
 
 .menu-dropdown-item:hover {
   background: #316ac5;
   color: white;
+}
+
+.menu-dropdown-item .check {
+  position: absolute;
+  left: 4px;
+  width: 16px;
+  text-align: center;
 }
 
 .menu-dropdown-divider {
@@ -71,50 +95,200 @@ html,body { margin:0; font-family:Tahoma,Segoe UI,Arial,sans-serif; background: 
   height: 0;
 }
 
-.mine-content{ 
-  background:#c0c0c0; 
-  padding:5px; 
-  width:max-content;
-  margin:0 auto;
-  border-left:3px solid #f5f5f5;
-  border-top:3px solid #f5f5f5;
+.mine-content {
+  background: #c0c0c0;
+  padding: 3px;
+  width: max-content;
+  margin: 0 auto;
 }
-.scorebar{ 
-  display:grid; 
-  grid-template-columns: 40px 1fr 40px;
-  align-items:center; 
-  gap:5px;
-  height:34px; 
-  padding:3px 7px 3px 4px; 
-  border-top:2px solid #808080; 
-  border-left:2px solid #808080; 
-  border-right:2px solid #f5f5f5; 
-  border-bottom:2px solid #f5f5f5; 
-  margin-bottom:5px;
-  width:100%;
-  box-sizing:border-box;
-}
-.digits{ display:flex; gap:0; width:40px; height:24px; border-right:1px solid #fff; border-bottom:1px solid #fff; align-items:flex-end; justify-content:flex-end }
-.digits img{ image-rendering:pixelated; height:23px }
-.face{ width:24px; height:24px; background:#c0c0c0; border:2px solid; border-color:#f5f5f5 #808080 #808080 #f5f5f5; display:flex; align-items:center; justify-content:center; padding:0; cursor:pointer; justify-self:center; border-radius:2px }
-.face:active{ border-width:1px; border-color:#808080 }
-.face img{ width:20px; height:20px; image-rendering:pixelated; pointer-events:none }
 
-.board { display:grid; width:max-content; margin-top:5px; border-top:3px solid #808080; border-left:3px solid #808080; border-right:3px solid #f5f5f5; border-bottom:3px solid #f5f5f5; background:#c0c0c0; }
-.cell { width:var(--cell); height:var(--cell); display:inline-grid; place-items:center; font:bold 12px/1 'Lucida Console', monospace; user-select:none; cursor:pointer; position:relative }
-/* draw bevels using ::before so adjacent cells don't double-draw */
-.cell::before{ content:""; position:absolute; inset:0; }
-.cell.cover::before { border-left:2px solid #f5f5f5; border-top:2px solid #f5f5f5; border-right:2px solid #808080; border-bottom:2px solid #808080; }
-.cell.open{ background:#bdbdbd; }
-.cell.open::before { border-left:1px solid #808080; border-top:1px solid #808080; }
-.cell img { position:absolute; width:16px; height:16px; image-rendering:pixelated; pointer-events:none }
-.cell.flag::after { content:""; width:16px; height:16px; background:url('../../../assets/apps/minesweeper/flag.png') no-repeat center/16px 16px }
-.cell.mine::after { content:""; width:16px; height:16px; background:url('../../../assets/apps/minesweeper/mine-ceil.png') no-repeat center/16px 16px }
-.cell.misflagged::after { content:""; width:16px; height:16px; background:url('../../../assets/apps/minesweeper/misflagged.png') no-repeat center/16px 16px }
-.cell.question::after { content:""; width:16px; height:16px; background:url('../../../assets/apps/minesweeper/question.png') no-repeat center/16px 16px }
-.cell.die { background:#ffbaba; }
-.cell.die::after { content:""; width:16px; height:16px; background:url('../../../assets/apps/minesweeper/mine-death.png') no-repeat center/16px 16px }
-.n1{color:#0000fe}.n2{color:#017f01}.n3{color:#fe0000}.n4{color:#000080}.n5{color:#800000}.n6{color:#008080}.n7{color:#000}.n8{color:#7f7f7f}
-.difficulty{ margin-top:8px; display:flex; gap:8px; align-items:center }
-.mobile-only{margin-left:auto; display:none}
-@media (pointer:coarse){ .mobile-only{display:flex; align-items:center; gap:6px}}
+.scorebar {
+  display: grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-items: center;
+  gap: 5px;
+  height: 34px;
+  padding: 3px 7px 3px 4px;
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #f5f5f5;
+  border-bottom: 2px solid #f5f5f5;
+  margin-bottom: 5px;
+  box-sizing: border-box;
+  background: #c0c0c0;
+}
+
+.digits {
+  display: flex;
+  gap: 0;
+  width: 40px;
+  height: 24px;
+  border-right: 1px solid #fff;
+  border-bottom: 1px solid #fff;
+  align-items: flex-end;
+  justify-content: flex-end;
+  background: #000;
+}
+
+.digits img {
+  image-rendering: pixelated;
+  height: 23px;
+  pointer-events: none;
+}
+
+.face {
+  width: 24px;
+  height: 24px;
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #f5f5f5 #808080 #808080 #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  justify-self: center;
+  border-radius: 2px;
+  outline: none;
+}
+
+.face:active {
+  border-width: 1px;
+  border-color: #808080;
+}
+
+.face img {
+  width: 20px;
+  height: 20px;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.board {
+  display: grid;
+  width: max-content;
+  border-top: 3px solid #808080;
+  border-left: 3px solid #808080;
+  border-right: 3px solid #f5f5f5;
+  border-bottom: 3px solid #f5f5f5;
+  background: #c0c0c0;
+}
+
+.cell {
+  width: var(--cell);
+  height: var(--cell);
+  display: inline-grid;
+  place-items: center;
+  font: bold 12px/1 'Lucida Console', monospace;
+  user-select: none;
+  cursor: pointer;
+  position: relative;
+  background: #c0c0c0;
+}
+
+/* Draw bevels using ::before so adjacent cells don't double-draw */
+.cell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.cell.cover::before {
+  border-left: 2px solid #f5f5f5;
+  border-top: 2px solid #f5f5f5;
+  border-right: 2px solid #808080;
+  border-bottom: 2px solid #808080;
+}
+
+.cell.open {
+  background: #bdbdbd;
+}
+
+.cell.open::before {
+  border-left: 1px solid #808080;
+  border-top: 1px solid #808080;
+}
+
+.cell img {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.cell.flag::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: url('../../../assets/apps/minesweeper/flag.png') no-repeat center/16px 16px;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.cell.unknown::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: url('../../../assets/apps/minesweeper/question.png') no-repeat center/16px 16px;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.cell.mine::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: url('../../../assets/apps/minesweeper/mine-ceil.png') no-repeat center/16px 16px;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.cell.misflagged::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: url('../../../assets/apps/minesweeper/misflagged.png') no-repeat center/16px 16px;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.cell.die {
+  background: #ffbaba;
+}
+
+.cell.die::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: url('../../../assets/apps/minesweeper/mine-death.png') no-repeat center/16px 16px;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.controls {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 0 8px;
+}
+
+.mobile-only {
+  margin-left: auto;
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .mobile-only {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+}

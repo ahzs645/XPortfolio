@@ -225,8 +225,16 @@
 .app-window[data-program="winamp"] .window-body { padding: 0 !important; background: transparent !important; }
 
 /* Minesweeper compact window */
-.app-window[data-program="minesweeper"] { min-width: 160px !important; }
-.app-window[data-program="minesweeper"] .title-bar-text { flex: 0 1 70px; padding: 2px 3px; }
+.app-window[data-program="minesweeper"] { min-width: auto !important; }
+.app-window[data-program="minesweeper"] .title-bar-text {
+    flex: 0 1 auto;
+    padding: 2px 3px;
+    margin-right: 0 !important;
+    max-width: 70px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.app-window[data-program="minesweeper"] .window-body { padding: 0 !important; overflow: hidden !important; }
 
 @keyframes windowOpenFadeSlide {
     0% {
