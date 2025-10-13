@@ -155,6 +155,16 @@ const programData = {
         resizable: false,
         canMaximize: false,
     }),
+
+    // --- Spider Solitaire ---
+    'spider-solitaire': createProgram('spider-solitaire', 'Spider Solitaire', 'start-menu/solitaire.svg', {
+        appPath: 'src/apps/spider-solitaire/spider-solitaire.html',
+        icon: './assets/apps/spider-solitaire/spider-solitaire-icon.webp',
+        dimensions: { width: 800, height: 600 },
+        minDimensions: { width: 600, height: 400 },
+        resizable: true,
+        canMaximize: true,
+    }),
     musicPlayer: createProgram('musicPlayer', 'Music Player', 'start-menu/music.webp', {
         appPath: 'src/apps/musicPlayer/musicplayer.html',
         dimensions: {

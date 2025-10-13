@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta content="width=device-width,initial-scale=1" name="viewport">
+    <title>Spider Solitaire</title>
+    <link href="../../../assets/fonts/tahoma.woff2" rel="preload" crossorigin as="font" type="font/woff2">
+    <link href="../../../assets/fonts/tahomabd.woff2" rel="preload" crossorigin as="font" type="font/woff2">
+    <style>
+        body,
+        html {
+            font-family: Tahoma, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+        }
+
+        iframe {
+            border: none;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        !function() {
+            try {
+                window.parent && window.parent !== window && window.parent.postMessage({
+                    type: "app-preload-ready",
+                    appId: "spider-solitaire-window"
+                }, "*")
+            } catch (e) {}
+        }()
+    </script>
+    <iframe src="build/index.html" title="Spider Solitaire Game"></iframe>
+</body>
+</html>

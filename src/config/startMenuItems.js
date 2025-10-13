@@ -48,6 +48,14 @@ export const START_MENU_CATALOG = {
         description: null,
         disabled: false
     },
+    'spider-solitaire': {
+        type: 'program',
+        programName: 'spider-solitaire',
+        icon: './assets/apps/spider-solitaire/spider-solitaire-icon.webp',
+        title: 'Spider Solitaire',
+        description: null,
+        disabled: false
+    },
     winamp: {
         type: 'program',
         programName: 'winamp',
@@ -121,6 +129,7 @@ export const ALL_PROGRAMS_ORDER = [
     'mediaPlayer',
     'winamp',
     'minesweeper',
+    'spider-solitaire',
     'musicPlayer',
     'image-viewer',
     'paint',
