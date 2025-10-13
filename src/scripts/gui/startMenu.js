@@ -1,97 +1,117 @@
 import { EVENTS } from '../utils/eventBus.js';
 import { PortfolioManager } from '../../libs/portfolio/portfolioManager.js';
+import {
+    ALL_PROGRAMS_ORDER,
+    PINNED_LEFT_ORDER,
+    PINNED_RIGHT_ORDER,
+    START_MENU_CATALOG
+} from '../../config/startMenuItems.js';
 
-const ABOUT_ITEM = {
-    type: 'program',
-    programName: 'about',
-    icon: './assets/gui/desktop/about.webp',
-    label: 'About Me'
-};
-const PROJECTS_ITEM = {
-    type: 'program',
-    programName: 'projects',
-    icon: './assets/gui/desktop/projects.webp',
-    label: 'My Projects'
-};
-const RESUME_ITEM = {
-    type: 'program',
-    programName: 'resume',
-    icon: './assets/gui/desktop/resume.svg',
-    label: 'My Resume'
-};
-const CONTACT_ITEM = {
-    type: 'program',
-    programName: 'contact',
-    icon: './assets/gui/desktop/contact.webp',
-    label: 'Contact Me'
-};
-const MENU_SEPARATOR = { type: 'separator' };
-const MEDIA_PLAYER_ITEM = {
-    type: 'program',
-    programName: 'mediaPlayer',
-    icon: './assets/gui/start-menu/mediaPlayer.webp',
-    label: 'Media Player',
-    disabled: false
-};
-const MINESWEEPER_ITEM = {
-    type: 'program',
-    programName: 'minesweeper',
-    icon: './assets/apps/minesweeper/mine-icon.png',
-    label: 'Minesweeper',
-    disabled: false
-};
-const WINAMP_ITEM = {
-    type: 'program',
-    programName: 'winamp',
-    icon: './assets/apps/winamp/winamp.png',
-    label: 'Winamp',
-    disabled: false
-};
-const MUSIC_PLAYER_ITEM = {
-    type: 'program',
-    programName: 'musicPlayer',
-    icon: './assets/gui/start-menu/music.webp',
-    label: 'Music Player',
-    disabled: false
-};
-const IMAGE_VIEWER_ITEM = {
-    type: 'program',
-    programName: 'image-viewer',
-    icon: './assets/gui/start-menu/photos.webp',
-    label: 'Image Viewer',
-    disabled: false
-};
-const PAINT_ITEM = {
-    type: 'program',
-    programName: 'paint',
-    icon: './assets/gui/start-menu/paint.webp',
-    label: 'Paint',
-    disabled: false
-};
-const CMD_ITEM = {
-    type: 'program',
-    programName: 'cmd',
-    icon: './assets/gui/start-menu/cmd.webp',
-    label: 'Command Prompt',
-    disabled: false
-};
-const TRAILING_SEPARATOR = { type: 'separator' };
+function getCatalogEntry(id) {
+    const entry = START_MENU_CATALOG[id];
+    if (!entry) {
+        console.warn(`Missing start menu catalog entry for id: ${id}`);
+        return null;
+    }
+    return { id, ...entry };
+}
 
-const ALL_PROGRAMS_ITEMS_BASE = [
-    ABOUT_ITEM,
-    PROJECTS_ITEM,
-    RESUME_ITEM,
-    CONTACT_ITEM,
-    MENU_SEPARATOR,
-    MEDIA_PLAYER_ITEM,
-    WINAMP_ITEM,
-    MINESWEEPER_ITEM,
-    MUSIC_PLAYER_ITEM,
-    IMAGE_VIEWER_ITEM,
-    PAINT_ITEM,
-    CMD_ITEM,
-    TRAILING_SEPARATOR
-],
+function toProgramItem(entry) {
+    return {
+        type: 'program',
+        programName: entry.programName,
+        icon: entry.icon,
+        label: entry.title,
+        disabled: entry.disabled ?? false
+    };
+}
+
+function toDetailedMenuItem(entry) {
+    if (entry.type === 'separator') {
+        return { type: 'separator' };
+    }
+
+    return {
+        type: 'program',
+        id: entry.id,
+        icon: entry.icon,
+        title: entry.title,
+        description: entry.description,
+        programName: entry.programName,
+        action: 'open-program',
+        disabled: entry.disabled ?? false,
+        emphasize: entry.emphasize ?? false
+    };
+}
+
+function buildPinnedMenuItems(order) {
+    return order
+        .map(id => getCatalogEntry(id))
+        .filter(Boolean)
+        .map(toDetailedMenuItem);
+}
+
+function renderMenuDivider(extraClass = '') {
+    const className = extraClass ? `menu-divider ${extraClass}` : 'menu-divider';
+    return `<li class="${className}"><hr class="divider"></li>`;
+}
+
+function renderDetailedMenuItem(item) {
+    if (item.type === 'separator') {
+        return renderMenuDivider();
+    }
+
+    const disabled = item.disabled ?? false;
+    const menuId = item.programName || item.id;
+    const itemClasses = ['menu-item'];
+    if (disabled) {
+        itemClasses.push('disabled');
+    }
+
+    const attributes = [`id="menu-${menuId}"`, `tabindex="${disabled ? '-1' : '0'}"`, `aria-disabled="${disabled ? 'true' : 'false'}"`];
+
+    if (!disabled) {
+        if (item.action) {
+            attributes.push(`data-action="${item.action}"`);
+        }
+        if (item.programName) {
+            attributes.push(`data-program-name="${item.programName}"`);
+        }
+        if (item.url) {
+            attributes.push(`data-url="${item.url}"`);
+        }
+    }
+
+    const titleClasses = ['item-title'];
+    if (item.emphasize) {
+        titleClasses.push('projects-bold');
+    }
+
+    const descriptionHtml = item.description ? `<span class="item-description">${item.description}</span>` : '';
+
+    const iconHtml = item.icon
+        ? `<img decoding="async" src="${item.icon}" alt="${item.title}">`
+        : '';
+
+    return `<li class="${itemClasses.join(' ')}" ${attributes.join(' ')}>
+        ${iconHtml}
+        <div class="item-content">
+            <span class="${titleClasses.join(' ')}">${item.title}</span>
+            ${descriptionHtml}
+        </div>
+    </li>`;
+}
+
+const ALL_PROGRAMS_ITEMS_BASE = ALL_PROGRAMS_ORDER
+    .map(id => {
+        const entry = getCatalogEntry(id);
+        if (!entry) return null;
+        if (entry.type === 'separator') {
+            return { type: 'separator' };
+        }
+        return toProgramItem(entry);
+    })
+    .filter(Boolean),
     AFTER_EFFECTS_ITEM = {
         type: 'program',
         programName: 'program3',
@@ -194,14 +214,6 @@ const RECENTLY_USED_ITEMS = [
 
 let SOCIALS = [];
 let systemAssets = null;
-
-const CMD_CONFIG = {
-    id: 'cmd',
-    icon: './assets/gui/start-menu/cmd.webp',
-    title: 'Command Prompt',
-    programName: 'cmd',
-    action: 'open-program'
-};
 
 async function getSystemAssets() {
     if (systemAssets) return systemAssets;
@@ -446,61 +458,91 @@ export default class StartMenu {
         const _0x758e95 = {};
         _0x758e95['items'] = RECENTLY_USED_ITEMS, _0x758e95['itemClass'] = 'recently-used', _0x758e95['ulClass'] = 'recently-used-items', _0x758e95['menuClass'] = 'recently-used-menu', _0x758e95['propertyName'] = 'recentlyUsedMenu', _0x758e95['itemSelector'] = '.recently-used-item', _0x758e95['attachClickHandler'] = !![], this['_createMenuWithEffects'](_0x758e95);
     } ['getMenuTemplate']() {
-        function _0xcd1ed4(_0x1b1888) {
-            if (!_0x1b1888) return '';
-            const {
-                id: _0x56e24f,
-                icon: _0x2487fe,
-                title: _0x40871e,
-                description: _0x2346e8,
-                programName: _0x466db6,
-                action: _0x55d175,
-                url: _0x395dde,
-                disabledOverride: _0x87396b
-            } = _0x1b1888, _0x26c29c = [], _0x22dd01 = typeof _0x87396b === 'boolean' ? _0x87396b : _0x26c29c['includes'](_0x466db6), _0x55c456 = _0x22dd01 ? '\x20disabled' : '', _0x596ccd = _0x22dd01 ? '' : _0x55d175 ? 'data-action=\x22' + _0x55d175 + '\x22' : '', _0x3ea4f5 = _0x22dd01 ? '' : _0x466db6 ? 'data-program-name=\x22' + _0x466db6 + '\x22' : '', _0x3e6c1f = _0x395dde ? 'data-url=\x22' + _0x395dde + '\x22' : '', _0x43854a = (_0x466db6 || _0x56e24f) === 'projects', _0x5d97eb = '<span\x20class=\x22item-title' + (_0x43854a ? '\x20projects-bold' : '') + '\x22>' + _0x40871e + '</span>';
-            return '<li\x20class=\x22menu-item' + _0x55c456 + '\x22\x20id=\x22menu-' + (_0x466db6 || _0x56e24f) + '\x22\x20' + _0x596ccd + '\x20' + _0x3ea4f5 + '\x20' + _0x3e6c1f + '\x20tabindex=\x22' + (_0x22dd01 ? '-1' : '0') + '\x22\x20aria-disabled=\x22' + (_0x22dd01 ? 'true' : 'false') + '\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<img\x20decoding=\x22async\x22\x20src=\x22' + _0x2487fe + '\x22\x20alt=\x22' + _0x40871e + '\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22item-content\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20' + _0x5d97eb + '\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20' + (_0x2346e8 ? '<span\x20class=\x22item-description\x22>' + _0x2346e8 + '</span>' : '') + '\x0a\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20</li>';
-        }
-        const _0x191e01 = this['systemAssets']?.['userIcon'] || './assets/gui/boot/xp.svg',
-            _0x1602d1 = _0x191e01 ? '\\x0a\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20<img\\x20decoding=\\x22async\\x22\\x20src=\\x22' + _0x191e01 + '\\x22\\x20alt=\\x22User\\x22\\x20class=\\x22userpicture\\x22>' : '',
-            _0x28bdb6 = this['infoData']?.['contact']?.['name'] || 'firstname lastname',
-            _0x13c29b = SOCIALS['map'](_0xb9c849 => ({
-                'id': _0xb9c849['key'],
-                'icon': _0xb9c849['icon'] ? './' + _0xb9c849['icon']['replace'](/^\.\//, '')['replace'](/^\//, '') : '',
-                'title': _0xb9c849['name'],
-                'url': _0xb9c849['url'],
-                'action': 'open-url',
-                'disabledOverride': ![]
-            })),
-            _0x28d41a = {};
-        _0x28d41a['id'] = 'mediaPlayer', _0x28d41a['icon'] = './assets/gui/start-menu/mediaPlayer.webp', _0x28d41a['title'] = 'Media\x20Player', _0x28d41a['programName'] = 'mediaPlayer', _0x28d41a['action'] = 'open-program', _0x28d41a['disabledOverride'] = ![];
-        const _0x5278a0 = {};
-        _0x5278a0['id'] = 'image-viewer', _0x5278a0['icon'] = './assets/gui/start-menu/photos.webp', _0x5278a0['title'] = 'Image\x20Viewer', _0x5278a0['programName'] = 'image-viewer', _0x5278a0['action'] = 'open-program', _0x5278a0['disabledOverride'] = ![];
-        const _0x1e856d = {};
-        _0x1e856d['id'] = 'musicPlayer', _0x1e856d['icon'] = './assets/gui/start-menu/music.webp', _0x1e856d['title'] = 'Music\x20Player', _0x1e856d['programName'] = 'musicPlayer', _0x1e856d['action'] = 'open-program', _0x1e856d['disabledOverride'] = ![];
-        const _0x2a6897 = [_0x28d41a, _0x5278a0, _0x1e856d];
-        let _0x4d7759, _0x46fe6b, _0x25b734, _0x9e81c9, _0x525822, _0x30db17, _0x4th_social;
-        const _0x280274 = {};
-        _0x280274['id'] = 'image-viewer', _0x280274['icon'] = './assets/gui/start-menu/photos.webp', _0x280274['title'] = 'Image\x20Viewer', _0x280274['programName'] = 'image-viewer', _0x280274['action'] = 'open-program', _0x280274['disabledOverride'] = ![];
-        const _0x594de4 = _0x280274;
-        _0x4d7759 = _0x594de4, _0x46fe6b = _0x2a6897[0x0], _0x25b734 = _0x2a6897[0x2], _0x9e81c9 = _0x13c29b[0x0], _0x525822 = _0x13c29b[0x1], _0x30db17 = _0x13c29b[0x2], _0x4th_social = _0x13c29b[0x3];
-        const _0x4ea489 = '\x0a\x20\x20\x20\x20\x20\x20<li\x20class=\x22menu-item\x22\x20id=\x22menu-program4\x22\x20data-action=\x22toggle-recently-used\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<img\x20decoding=\x22async\x22\x20loading=\x22lazy\x22\x20src=\x22./assets/gui/start-menu/recently-used.webp\x22\x20alt=\x22Recently\x20Used\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22item-content\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<span\x20class=\x22item-title\x22>Recently\x20Used</span>\x0a\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20</li>',
-            _0x16da20 = {};
-        _0x16da20['id'] = 'resume', _0x16da20['icon'] = './assets/gui/desktop/resume.svg', _0x16da20['title'] = 'My\x20Resume', _0x16da20['programName'] = 'resume', _0x16da20['action'] = 'open-program';
-        const _0x114915 = '\x0a\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(_0x9e81c9) + '\x0a\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(_0x525822) + '\x0a\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(_0x30db17) + '\x0a\x20\x20\x20\x20\x20\x20' + (_0x4th_social ? _0xcd1ed4(_0x4th_social) : '') + '\x0a\x20\x20\x20\x20\x20\x20<li\x20class=\x22menu-divider\x20divider-darkblue\x22><hr\x20class=\x22divider\x22></li>\x0a\x20\x20\x20\x20\x20\x20' + _0x4ea489 + '\x0a\x20\x20\x20\x20\x20\x20<li\x20class=\x22menu-divider\x20divider-darkblue\x22><hr\x20class=\x22divider\x22></li>\x0a\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(CMD_CONFIG) + '\x0a\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(_0x16da20) + '\x0a\x20\x20\x20\x20',
-            _0x3f9233 = {};
-        _0x3f9233['id'] = 'projects', _0x3f9233['icon'] = './assets/gui/desktop/projects.webp', _0x3f9233['title'] = 'My\x20Projects', _0x3f9233['description'] = 'View\x20my\x20work', _0x3f9233['programName'] = 'projects', _0x3f9233['action'] = 'open-program';
-        const _0x565139 = {};
-        _0x565139['id'] = 'contact', _0x565139['icon'] = './assets/gui/desktop/contact.webp', _0x565139['title'] = 'Contact\x20Me', _0x565139['description'] = 'Send\x20me\x20a\x20message', _0x565139['programName'] = 'contact', _0x565139['action'] = 'open-program';
-        const _0x527055 = {};
-        _0x527055['id'] = 'about', _0x527055['icon'] = './assets/gui/desktop/about.webp', _0x527055['title'] = 'About\x20Me', _0x527055['programName'] = 'about', _0x527055['action'] = 'open-program';
-        const _0x519fb6 = {};
-        _0x519fb6['id'] = _0x4d7759['id'], _0x519fb6['icon'] = _0x4d7759['icon'], _0x519fb6['title'] = _0x4d7759['title'], _0x519fb6['programName'] = _0x4d7759['programName'], _0x519fb6['action'] = _0x4d7759['action'], _0x519fb6['url'] = _0x4d7759['url'], _0x519fb6['disabledOverride'] = _0x4d7759['disabledOverride'];
-        const _0x28ca72 = {};
-        _0x28ca72['id'] = _0x46fe6b['id'], _0x28ca72['icon'] = _0x46fe6b['icon'], _0x28ca72['title'] = _0x46fe6b['title'], _0x28ca72['programName'] = _0x46fe6b['programName'], _0x28ca72['action'] = _0x46fe6b['action'], _0x28ca72['url'] = _0x46fe6b['url'], _0x28ca72['disabledOverride'] = _0x46fe6b['disabledOverride'];
-        const _0x10d09d = {};
-        _0x10d09d['id'] = 'paint', _0x10d09d['icon'] = './assets/gui/start-menu/paint.webp', _0x10d09d['title'] = 'Paint', _0x10d09d['programName'] = 'paint', _0x10d09d['action'] = 'open-program';
-        const _0x34755f = {};
-        return _0x34755f['id'] = _0x25b734['id'], _0x34755f['icon'] = _0x25b734['icon'], _0x34755f['title'] = _0x25b734['title'], _0x34755f['programName'] = _0x25b734['programName'], _0x34755f['action'] = _0x25b734['action'], _0x34755f['url'] = _0x25b734['url'], _0x34755f['disabledOverride'] = _0x25b734['disabledOverride'], '\x0a\x20\x20\x20\x20\x20\x20<div\x20class=\x22menutopbar\x22>' + _0x1602d1 + '\x0a\x20\x20\x20\x20\x20\x20\x20\x20<span\x20class=\x22username\x22>' + _0x28bdb6 + '</span>\x0a\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20<div\x20class=\x22start-menu-middle\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22middle-section\x20middle-left\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<ul\x20class=\x22menu-items\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(_0x3f9233) + '\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(_0x565139) + '\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<li\x20class=\x22menu-divider\x22><hr\x20class=\x22divider\x22></li>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(_0x527055) + '\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(_0x519fb6) + '\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(_0x28ca72) + '\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(_0x10d09d) + '\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20' + _0xcd1ed4(_0x34755f) + '\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<li\x20class=\x22menu-divider\x22><hr\x20class=\x22divider\x22></li>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</ul>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22all-programs-container\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22all-programs-button\x22\x20id=\x22menu-all-programs\x22\x20data-action=\x22toggle-all-programs\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<span>All\x20Programs</span>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<img\x20decoding=\x22async\x22\x20loading=\x22lazy\x22\x20src=\x22./assets/gui/start-menu/arrow.webp\x22\x20alt=\x22All\x20Programs\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22middle-section\x20middle-right\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<ul\x20class=\x22menu-items\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20' + _0x114915 + '\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</ul>\x0a\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20<div\x20class=\x22start-menu-footer\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22footer-buttons\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22footer-button\x22\x20id=\x22btn-log-off\x22\x20data-action=\x22log-off\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<img\x20decoding=\x22async\x22\x20loading=\x22lazy\x22\x20src=\x22./assets/gui/start-menu/logoff.webp\x22\x20alt=\x22Log\x20Off\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<span>Log\x20Off</span>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22footer-button\x22\x20id=\x22btn-shut-down\x22\x20data-action=\x22shut-down\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<img\x20decoding=\x22async\x22\x20loading=\x22lazy\x22\x20src=\x22./assets/gui/start-menu/shutdown.webp\x22\x20alt=\x22Shut\x20Down\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<span>Shut\x20Down</span>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20';
+        const userIcon = this['systemAssets']?.['userIcon'] || './assets/gui/boot/xp.svg';
+        const normalizedIcon = typeof userIcon === 'string'
+            ? (userIcon.includes('%') ? userIcon : userIcon.replace(/\s/g, '%20'))
+            : null;
+        const userIconHtml = normalizedIcon
+            ? `<img decoding="async" src="${normalizedIcon}" alt="User" class="userpicture">`
+            : '';
+
+        const username = this['infoData']?.['contact']?.['name'] || 'firstname lastname';
+
+        const pinnedLeftItems = buildPinnedMenuItems(PINNED_LEFT_ORDER);
+        const pinnedRightItems = buildPinnedMenuItems(PINNED_RIGHT_ORDER);
+
+        const socialMenuItems = SOCIALS.map(social => ({
+            'type': 'program',
+            'id': social.key,
+            'icon': social.icon ? './' + social.icon.replace(/^\.\//, '').replace(/^\//, '') : '',
+            'title': social.name,
+            'description': null,
+            'action': 'open-url',
+            'url': social.url,
+            'disabled': false
+        }));
+
+        const leftColumnHtml = [
+            ...pinnedLeftItems.map(renderDetailedMenuItem),
+            renderMenuDivider()
+        ].join('\n                    ');
+
+        const socialHtml = socialMenuItems.map(renderDetailedMenuItem).join('\n                    ');
+
+        const recentlyUsedTriggerHtml = `<li class="menu-item" id="menu-program4" data-action="toggle-recently-used">
+                        <img decoding="async" loading="lazy" src="./assets/gui/start-menu/recently-used.webp" alt="Recently Used">
+                        <div class="item-content">
+                            <span class="item-title">Recently Used</span>
+                        </div>
+                    </li>`;
+
+        const rightPinnedHtml = pinnedRightItems.map(renderDetailedMenuItem).join('\n                    ');
+
+        const rightColumnPieces = [];
+        if (socialHtml) rightColumnPieces.push(socialHtml);
+        rightColumnPieces.push(renderMenuDivider('divider-darkblue'));
+        rightColumnPieces.push(recentlyUsedTriggerHtml);
+        rightColumnPieces.push(renderMenuDivider('divider-darkblue'));
+        if (rightPinnedHtml) rightColumnPieces.push(rightPinnedHtml);
+
+        const rightColumnHtml = rightColumnPieces.join('\n                    ');
+
+        return `
+            <div class="menutopbar">
+                ${userIconHtml}
+                <span class="username">${username}</span>
+            </div>
+            <div class="start-menu-middle">
+                <div class="middle-section middle-left">
+                    <ul class="menu-items">
+                        ${leftColumnHtml}
+                    </ul>
+                    <div class="all-programs-container">
+                        <div class="all-programs-button" id="menu-all-programs" data-action="toggle-all-programs">
+                            <span>All Programs</span>
+                            <img decoding="async" loading="lazy" src="./assets/gui/start-menu/arrow.webp" alt="All Programs">
+                        </div>
+                    </div>
+                </div>
+                <div class="middle-section middle-right">
+                    <ul class="menu-items">
+                        ${rightColumnHtml}
+                    </ul>
+                </div>
+            </div>
+            <div class="start-menu-footer">
+                <div class="footer-buttons">
+                    <div class="footer-button" id="btn-log-off" data-action="log-off">
+                        <img decoding="async" loading="lazy" src="./assets/gui/start-menu/logoff.webp" alt="Log Off">
+                        <span>Log Off</span>
+                    </div>
+                    <div class="footer-button" id="btn-shut-down" data-action="shut-down">
+                        <img decoding="async" loading="lazy" src="./assets/gui/start-menu/shutdown.webp" alt="Shut Down">
+                        <span>Shut Down</span>
+                    </div>
+                </div>
+            </div>
+        `;
     } ['setupEventListeners']() {
         this['_onWindowMouseDown'] = _0x39ff8e => {
             if (!this['startMenu']?.['classList']['contains']('active')) return;

@@ -128,11 +128,15 @@ yourapp: createProgram('yourapp', 'Your App', 'icon.svg', {
 }),
 ```
 
-4. Add to start menu in `src/scripts/gui/startMenu.js`
+4. Add to the start menu by updating `src/config/startMenuItems.js`
 
 ### Desktop Icons
 
 Desktop icons are configured in `src/scripts/gui/desktop.js`. Add new icons by defining them in the `DESKTOP_ICONS` array.
+
+### Start Menu
+
+Start menu items are centralized in `src/config/startMenuItems.js`. Update the catalog to add, remove, or reorder entries and they will stay in sync across the pinned menu and the "All Programs" list.
 
 ### Styling
 
