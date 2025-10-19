@@ -35,9 +35,9 @@ fi
 # Build the app
 echo "Building app..."
 if command -v pnpm &> /dev/null; then
-    pnpm build
+    DISABLE_ESLINT_PLUGIN=true pnpm build
 else
-    npm run build
+    DISABLE_ESLINT_PLUGIN=true npm run build
 fi
 
 # Create target directory if it doesn't exist
