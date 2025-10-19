@@ -499,7 +499,7 @@ export default class WindowManager {
         const _0x5e73db = _0x22aed0['querySelector']('.menu-bar-container');
         _0x5e73db && typeof _0x5e73db['setParentWindowElement'] === 'function' && _0x5e73db['setParentWindowElement'](_0x4836f);
         const _0x2415e8 = _0x4052e3['id']['replace']('-window', '');
-        if (_0x2415e8 !== 'cmd' && _0x2415e8 !== 'musicPlayer' && _0x2415e8 !== 'mediaPlayer' && _0x2415e8 !== 'minesweeper') {
+        if (_0x2415e8 !== 'cmd' && _0x2415e8 !== 'musicPlayer' && _0x2415e8 !== 'mediaPlayer' && _0x2415e8 !== 'minesweeper' && _0x2415e8 !== 'spider-solitaire') {
             const _0x175910 = this['_createElement']('div', 'status-bar'),
                 _0x2055e3 = this['_createElement']('p', 'status-bar-field');
             // Handle async status bar text
