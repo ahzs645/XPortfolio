@@ -1,0 +1,3 @@
+[submodule "external/spider-solitaire"]
+	path = external/spider-solitaire
+	url = https://github.com/ahzs645/spider-solitaire.git
