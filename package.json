@@ -4,7 +4,8 @@
   "description": "Windows XP-style interactive portfolio",
   "scripts": {
     "replace-templates": "./scripts/replace-templates.sh",
-    "build": "npm run replace-templates",
+    "build:spider": "./scripts/build-spider-solitaire.sh",
+    "build": "npm run build:spider && npm run replace-templates",
     "build:local": "npm run replace-templates"
   },
   "author": "",

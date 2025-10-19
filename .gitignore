@@ -1,3 +1,6 @@
 .DS_Store
 src/libs/.DS_Store
 /dist
+
+# Auto-generated spider-solitaire build files
+src/apps/spider-solitaire/build/
