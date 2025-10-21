@@ -1,0 +1,66 @@
+/* Clippy Container */
+.clippy-container {
+  position: fixed;
+  bottom: 60px; /* Above taskbar */
+  right: 20px;
+  width: 124px;
+  height: 93px;
+  z-index: 1300;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.clippy-sprite {
+  width: 124px;
+  height: 93px;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  background-repeat: no-repeat;
+}
+
+/* Clippy Balloon */
+#clippy-balloon {
+  position: fixed;
+  z-index: 1400;
+  pointer-events: all;
+}
+
+/* Use the shared balloon styles from taskbar.css, no overrides needed */
+
+/* Animation effects */
+.clippy-container {
+  transition: transform 0.1s ease;
+}
+
+.clippy-container:hover {
+  transform: scale(1.05);
+}
+
+.clippy-container:active {
+  transform: scale(0.98);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .clippy-container {
+    bottom: 70px;
+    right: 10px;
+    width: 100px;
+    height: 75px;
+  }
+
+  .clippy-sprite {
+    width: 100px;
+    height: 75px;
+  }
+}
+
+/* Hidden state */
+.clippy-hidden {
+  display: none;
+}

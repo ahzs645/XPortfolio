@@ -6,6 +6,7 @@ import {
     eventBus,
     EVENTS
 } from './utils/eventBus.js';
+import clippy from '../libs/clippy/clippy.js';
 
 document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
@@ -471,6 +472,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             window.addEventListener('resize', debouncedResize);
         });
+
+        // Initialize Clippy after UI is ready
+        setTimeout(async () => {
+            await clippy.init();
+            window.clippy = clippy; // Expose globally for debugging
+            setTimeout(() => {
+                clippy.show();
+            }, 1000); // Show Clippy 1 second after desktop appears
+        }, 500);
     }
 
     if (!IS_MOBILE_DEVICE) {
