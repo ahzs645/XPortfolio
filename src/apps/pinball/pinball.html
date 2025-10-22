@@ -1,48 +1,178 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en-us">
+
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>3D Pinball for Windows - Space Cadet</title>
-    <style>
-        body,
-        html {
-            font-family: Tahoma, Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            width: 100%;
-            height: 100%;
-            background-color: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+	<meta charset="utf-8">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>3D Pinball for Windows - Space Cadet</title>
+	<link href="https://unpkg.com/xp.css@0.2.6/dist/XP.css" rel="stylesheet" crossorigin="anonymous">
+	<link rel="icon" href="../../../assets/apps/pinball/pinball-icon.png" sizes="16x16" type="image/png">
+	<meta name="viewport" content="width=device-width, user-scalable=no">
+	<style>
+		/* Windows XP Menu Bar Styles */
+		.menu-bar-container {
+			position: relative;
+			background: #ece9d8;
+			border-bottom: 1px solid #fff;
+			user-select: none;
+			z-index: 1000;
+		}
 
-        canvas.emscripten {
-            border: 0 none;
-            background-color: #000;
-            display: block;
-        }
+		.menu-bar {
+			display: flex;
+			align-items: center;
+			height: 20px;
+			font-size: 11px;
+			font-family: Tahoma, Arial, sans-serif;
+		}
 
-        #status {
-            margin: 40px 32px;
-            color: #fff;
-            font-size: 14px;
-        }
+		.menu-item {
+			padding: 4px 8px;
+			cursor: pointer;
+			border: 1px solid transparent;
+			color: #000000;
+		}
 
-        #progress {
-            margin: 0 auto;
-            display: block;
-        }
+		.menu-item:hover:not(.disabled),
+		.menu-item.active {
+			background: #316ac5;
+			color: white;
+			border: 1px solid #316ac5;
+		}
 
-        .emscripten {
-            text-align: center;
-        }
-    </style>
+		.menu-item.disabled {
+			color: #808080;
+			cursor: default;
+		}
+
+		.menu-dropdown {
+			position: absolute;
+			top: 100%;
+			left: 0;
+			background: white;
+			border: 2px solid;
+			border-color: #fff #808080 #808080 #fff;
+			box-shadow: 2px 2px 1px rgba(0,0,0,0.2);
+			padding: 2px;
+			min-width: 180px;
+			z-index: 1001;
+			font-size: 11px;
+			font-family: Tahoma, Arial, sans-serif;
+			display: none;
+		}
+
+		.menu-dropdown-item {
+			padding: 4px 20px 4px 24px;
+			cursor: pointer;
+			white-space: nowrap;
+			position: relative;
+			color: #000000;
+		}
+
+		.menu-dropdown-item:hover:not(.disabled) {
+			background: #316ac5;
+			color: white;
+		}
+
+		.menu-dropdown-item.disabled {
+			color: #808080;
+			cursor: default;
+		}
+
+		.menu-dropdown-item .check {
+			position: absolute;
+			left: 4px;
+			width: 16px;
+			text-align: center;
+		}
+
+		.menu-dropdown-divider {
+			margin: 3px 2px;
+			border: none;
+			border-top: 1px solid #d4d0c8;
+			height: 0;
+		}
+	</style>
+	<style>
+		html,
+		body {
+			margin: 0;
+			padding: 0;
+			overflow: hidden;
+			height: 100%;
+			display: flex;
+			flex-direction: column;
+			flex: 1;
+			background-color: black;
+			color: white;
+		}
+
+		canvas.emscripten {
+			border: 0 none;
+			background-color: #000;
+			z-index: 1;
+		}
+
+		canvas.emscripten,
+		#overlay-canvas {
+			position: absolute;
+			top: -12px;
+			left: 0;
+		}
+
+		#overlay-canvas {
+			z-index: 2;
+			pointer-events: none;
+		}
+
+		#overlay-img {
+			/* should not have pointer-events: none;
+			as it is serving the purpose not just of covering up the ImGui menus,
+			but blocking them from being clicked */
+			position: absolute;
+			top: 0;
+			left: 0;
+			z-index: 3;
+		}
+
+		.menus {
+			position: relative;
+			z-index: 4;
+		}
+
+		#canvas-container {
+			position: relative;
+			margin: auto;
+			width: 600px;
+			height: 416px;
+			contain: strict;
+			clip-path: inset(0 0 0 0);
+			background: url(../../../assets/apps/pinball/pinball-splash.png) no-repeat center center;
+			background-color: #000;
+		}
+
+		#status {
+			margin: 40px 32px;
+			color: #fff;
+		}
+
+		#progress {
+			margin: 0 auto;
+		}
+
+		.emscripten {
+			text-align: center;
+		}
+
+		/* Hide splash once game loads */
+		#canvas-container.loaded {
+			background-image: none;
+		}
+	</style>
 </head>
+
 <body>
-    <script>
+	<script>
         !function() {
             try {
                 window.parent && window.parent !== window && window.parent.postMessage({
@@ -53,93 +183,301 @@
         }()
     </script>
 
-    <div class="emscripten" id="status">Loading...</div>
-    <div class="emscripten">
-        <progress value="0" max="100" id="progress" hidden></progress>
-    </div>
-    <canvas class="emscripten" id="canvas" style="display:none;" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+	<!-- Simple XP-style Menu Bar -->
+	<div class="menu-bar-container">
+		<div class="menu-bar">
+			<div class="menu-item" data-menu="game">Game</div>
+			<div class="menu-item" data-menu="options">Options</div>
+			<div class="menu-item" data-menu="help">Help</div>
+		</div>
+		<!-- Game Menu Dropdown -->
+		<div class="menu-dropdown" id="game-menu">
+			<div class="menu-dropdown-item" data-action="new">New Game<span style="float:right">F2</span></div>
+			<div class="menu-dropdown-item" data-action="pause">Pause/Resume<span style="float:right">F3</span></div>
+			<div class="menu-dropdown-divider"></div>
+			<div class="menu-dropdown-item disabled" data-action="highscores">High Scores...</div>
+			<div class="menu-dropdown-item" data-action="demo">Demo</div>
+			<div class="menu-dropdown-divider"></div>
+			<div class="menu-dropdown-item" data-action="exit">Exit</div>
+		</div>
+		<!-- Options Menu Dropdown -->
+		<div class="menu-dropdown" id="options-menu">
+			<div class="menu-dropdown-item" data-action="fullscreen">Full Screen<span style="float:right">F4</span></div>
+			<div class="menu-dropdown-divider"></div>
+			<div class="menu-dropdown-item" data-action="audio"><span class="check" id="check-audio">✓</span>Audio</div>
+		</div>
+		<!-- Help Menu Dropdown -->
+		<div class="menu-dropdown" id="help-menu">
+			<div class="menu-dropdown-item disabled" data-action="helptopics">Help Topics<span style="float:right">F1</span></div>
+			<div class="menu-dropdown-divider"></div>
+			<div class="menu-dropdown-item" data-action="about">About Pinball</div>
+		</div>
+	</div>
 
-    <script type='text/javascript'>
-        var statusElement = document.getElementById('status');
-        var progressElement = document.getElementById('progress');
+	<div id="canvas-container">
+		<div class="emscripten" id="status">Downloading...</div>
+		<div class="emscripten">
+			<progress value="0" max="100" id="progress" hidden=1></progress>
+		</div>
+		<!-- tabindex=0 lets os-gui know to focus this control when refocusing the window, e.g. when closing the menus -->
+		<canvas
+			class="emscripten"
+			id="canvas"
+			style="display: none; outline: 0;"
+			oncontextmenu="event.preventDefault()"
+			tabindex="0"
+			width="600" height="440"
+		></canvas>
+		<!-- This overlay canvas is for freezing the display while the menus are open (especially the non-thematic ImGui menus). -->
+		<canvas id="overlay-canvas" width="600" height="440"></canvas>
+		<!-- This overlay image covers up the bit of the ImGui menus that are rendered over the game (visually and functionally). -->
+		<img id="overlay-img" draggable="false" src="../../../assets/apps/pinball/pinball-overlay.png" style="display: none;">
+	</div>
 
-        var Module = {
-            preRun: [],
-            postRun: [],
-            locateFile: function(path, prefix) {
-                // Ensure all WASM files load from the build/ subdirectory
-                if (path.endsWith('.data') || path.endsWith('.wasm')) {
-                    return 'build/' + path;
-                }
-                return prefix + path;
-            },
-            print: (function () {
-                return function (text) {
-                    if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
-                    console.log(text);
-                };
-            })(),
-            printErr: function (text) {
-                if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
-                console.error(text);
-            },
-            canvas: (function () {
-                var canvas = document.getElementById('canvas');
-                canvas.addEventListener("webglcontextlost", function (e) {
-                    alert('WebGL context lost. You will need to reload the page.');
-                    e.preventDefault();
-                }, false);
-                return canvas;
-            })(),
-            setStatus: function (text) {
-                if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
-                if (text === Module.setStatus.last.text) return;
+	<script>
+		document.getElementById("canvas").getContext("webgl", { preserveDrawingBuffer: true }); // to allow screenshot for freeze frame
 
-                var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
-                var now = Date.now();
-                if (m && now - Module.setStatus.last.time < 30) return;
-                Module.setStatus.last.time = now;
-                Module.setStatus.last.text = text;
+		function gameLoaded() {
+			// Hide splash screen
+			document.getElementById("canvas-container").classList.add("loaded");
 
-                if (m) {
-                    text = m[1];
-                    progressElement.value = parseInt(m[2]) * 100;
-                    progressElement.max = parseInt(m[4]) * 100;
-                    progressElement.hidden = false;
-                } else {
-                    progressElement.value = null;
-                    progressElement.max = null;
-                    progressElement.hidden = true;
-                    var canvas = document.getElementById('canvas');
-                    canvas.style.display = "";
-                }
+			let event_name = "game-loaded";
+			if (Module.SDL2) {
+				document.getElementById("overlay-img").style.display = "";
+			} else {
+				event_name = "game-load-failed";
+			}
+			// Send an event for hiding the splash screen
+			try {
+				frameElement?.dispatchEvent(new CustomEvent(event_name));
+			} catch (e) {
+				console.warn(`error dispatching ${event_name} event: `, e);
+			}
+			if (!Module.SDL2) {
+				return;
+			}
+			// set up audio muting
+			var audioContext = Module.SDL2.audioContext;
+			var gainNode = audioContext.createGain();
+			window.mute_game_audio = function () {
+				gainNode.gain.value = 0;
+			};
+			window.unmute_game_audio = function () {
+				gainNode.gain.value = 1;
+			};
+			gainNode.connect(audioContext.destination);
+			Module.SDL2.audio.scriptProcessorNode.disconnect();
+			Module.SDL2.audio.scriptProcessorNode.connect(gainNode);
+		}
 
-                statusElement.innerHTML = text;
 
-                if (text === "") {
-                    statusElement.style.display = "none";
-                    progressElement.style.display = "none";
-                } else {
-                    statusElement.style.display = "";
-                    progressElement.style.display = "";
-                }
-            },
-            totalDependencies: 0,
-            monitorRunDependencies: function (left) {
-                this.totalDependencies = Math.max(this.totalDependencies, left);
-                Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies - left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
-            }
-        };
+		window.alert = (message) => {
+			const { $window } = showMessageBox({
+				title: "3D Pinball",
+				message,
+				iconID: "error", // alert will only happen for a fatal error
+			});
 
-        Module.setStatus('Downloading...');
+			// the emscripten app is overzealously preventing default behavior for events,
+			// so we need to handle this default button behavior manually
+			$window.$content.on("keydown", "button", (event) => {
+				if (event.key === "Enter") {
+					event.currentTarget.click();
+				}
+			}).on("keyup", "button", (event) => {
+				if (event.key === " ") {
+					event.currentTarget.click();
+				}
+			});
+		};
 
-        window.onerror = function () {
-            Module.setStatus('Exception thrown, see JavaScript console');
-            Module.setStatus = function (text) {
-                if (text) Module.printErr('[post-exception status] ' + text);
-            };
-        };
-    </script>
-    <script async src="build/SpaceCadetPinball.js"></script>
+		var statusElement = document.getElementById('status');
+		var progressElement = document.getElementById('progress');
+
+		var Module = {
+			preRun: [],
+			postRun: [gameLoaded],
+			locateFile: function(path, prefix) {
+				// Ensure all WASM files load from the build/ subdirectory
+				if (path.endsWith('.data') || path.endsWith('.wasm')) {
+					return 'build/' + path;
+				}
+				return prefix + path;
+			},
+			print: (function () {
+				var element = document.getElementById('output');
+				if (element) element.value = ''; // clear browser cache
+				return function (text) {
+					if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+					console.log(text);
+				};
+			})(),
+			printErr: function (text) {
+				if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+				console.error(text);
+			},
+			canvas: (function () {
+				var canvas = document.getElementById('canvas');
+
+				// As a default initial behavior, pop up an alert when webgl context is lost. To make your
+				// application robust, you may want to override this behavior before shipping!
+				// See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
+				canvas.addEventListener("webglcontextlost", function (e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
+
+				return canvas;
+			})(),
+			setStatus: function (text) {
+				if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
+				if (text === Module.setStatus.last.text) return;
+
+				var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+				var now = Date.now();
+				if (m && now - Module.setStatus.last.time < 30) return; // if this is a progress update, skip it if too soon
+				Module.setStatus.last.time = now;
+				Module.setStatus.last.text = text;
+				if (m) {
+					text = m[1];
+					progressElement.value = parseInt(m[2]) * 100;
+					progressElement.max = parseInt(m[4]) * 100;
+					progressElement.hidden = false;
+				} else {
+					progressElement.value = null;
+					progressElement.max = null;
+					progressElement.hidden = true;
+
+					var canvas = document.getElementById('canvas');
+					canvas.style.display = "";
+				}
+				statusElement.innerHTML = text;
+
+				if (text === "") {
+					statusElement.style.display = "none";
+					progressElement.style.display = "none";
+				} else {
+					statusElement.style.display = "";
+					progressElement.style.display = "";
+				}
+			},
+			totalDependencies: 0,
+			monitorRunDependencies: function (left) {
+				this.totalDependencies = Math.max(this.totalDependencies, left);
+				Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies - left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+			}
+		};
+		Module.setStatus('Downloading...');
+		window.onerror = function () {
+			Module.setStatus('Exception thrown, see JavaScript console');
+			Module.setStatus = function (text) {
+				if (text) Module.printErr('[post-exception status] ' + text);
+			};
+		};
+	</script>
+	<script async="" src="build/SpaceCadetPinball.js"></script>
+
+	<!-- Simple Menu Bar JavaScript -->
+	<script>
+		let audioEnabled = true;
+		let currentMenu = null;
+
+		// Menu interaction
+		document.querySelectorAll('.menu-item').forEach(item => {
+			item.addEventListener('click', function(e) {
+				e.stopPropagation();
+				const menuName = this.getAttribute('data-menu');
+				const dropdown = document.getElementById(menuName + '-menu');
+
+				// Close other menus
+				document.querySelectorAll('.menu-dropdown').forEach(m => {
+					if (m !== dropdown) m.style.display = 'none';
+				});
+				document.querySelectorAll('.menu-item').forEach(m => {
+					if (m !== this) m.classList.remove('active');
+				});
+
+				// Toggle current menu
+				if (dropdown.style.display === 'block') {
+					dropdown.style.display = 'none';
+					this.classList.remove('active');
+					currentMenu = null;
+				} else {
+					dropdown.style.display = 'block';
+					dropdown.style.left = this.offsetLeft + 'px';
+					this.classList.add('active');
+					currentMenu = menuName;
+				}
+			});
+		});
+
+		// Menu actions
+		document.querySelectorAll('.menu-dropdown-item:not(.disabled)').forEach(item => {
+			item.addEventListener('click', function(e) {
+				e.stopPropagation();
+				const action = this.getAttribute('data-action');
+
+				// Close menus
+				document.querySelectorAll('.menu-dropdown').forEach(m => m.style.display = 'none');
+				document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+				currentMenu = null;
+
+				// Handle actions
+				switch(action) {
+					case 'new':
+						// Trigger F2 key
+						canvas.dispatchEvent(new KeyboardEvent('keydown', {key: 'F2', keyCode: 113}));
+						break;
+					case 'pause':
+						// Trigger F3 key
+						canvas.dispatchEvent(new KeyboardEvent('keydown', {key: 'F3', keyCode: 114}));
+						break;
+					case 'demo':
+						// Trigger demo mode (you may need to adjust this)
+						break;
+					case 'fullscreen':
+						toggleFullscreen();
+						break;
+					case 'audio':
+						audioEnabled = !audioEnabled;
+						document.getElementById('check-audio').textContent = audioEnabled ? '✓' : '';
+						if (audioEnabled) {
+							if (window.unmute_game_audio) window.unmute_game_audio();
+						} else {
+							if (window.mute_game_audio) window.mute_game_audio();
+						}
+						break;
+					case 'about':
+						window.open('https://github.com/k4zmu2a/SpaceCadetPinball', '_blank');
+						break;
+					case 'exit':
+						window.close();
+						break;
+				}
+			});
+		});
+
+		// Close menus when clicking outside
+		document.addEventListener('click', function() {
+			document.querySelectorAll('.menu-dropdown').forEach(m => m.style.display = 'none');
+			document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+			currentMenu = null;
+		});
+
+		// Fullscreen toggle
+		function toggleFullscreen() {
+			if (document.fullscreenElement) {
+				document.exitFullscreen();
+			} else {
+				document.body.requestFullscreen();
+			}
+		}
+
+		// Keyboard shortcuts
+		window.addEventListener('keydown', function(e) {
+			if (e.key === 'F4') {
+				e.preventDefault();
+				toggleFullscreen();
+			}
+		});
+	</script>
 </body>
+
 </html>

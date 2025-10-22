@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width,initial-scale=1" name="viewport">
+    <title>Calculator</title>
+    <link href="../../../assets/fonts/tahoma.woff2" rel="preload" crossorigin as="font" type="font/woff2">
+    <link href="../../../assets/fonts/tahomabd.woff2" rel="preload" crossorigin as="font" type="font/woff2">
+    <link href="../../libs/os-gui/windows-xp.css" rel="stylesheet" type="text/css">
+    <link href="calculator.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+    <script>
+        !function() {
+            try {
+                window.parent && window.parent !== window && window.parent.postMessage({
+                    type: "app-preload-ready",
+                    appId: "calculator-window"
+                }, "*")
+            } catch (e) {}
+        }()
+    </script>
+
+    <div class="splash">
+        <div class="spinner"></div>
+        <div class="msg"></div>
+    </div>
+
+    <script>
+        function show(msg) {
+            document.querySelector(".splash > .msg").innerHTML = msg;
+        }
+        function revealCalc() {
+            document.querySelector(".container").style.display = "";
+            document.querySelector(".splash").style.display = "none";
+        }
+    </script>
+
+    <div style="display: none;" class="container">
+        <div class="menu-bar-container">
+            <div class="menu-bar">
+                <div class="menu-item" data-menu="edit">Edit</div>
+                <div class="menu-item" data-menu="view">View</div>
+                <div class="menu-item disabled" data-menu="help">Help</div>
+            </div>
+            <div class="menu-dropdown" id="edit-menu" style="display:none">
+                <div class="menu-dropdown-item disabled" data-action="copy">Copy</div>
+                <div class="menu-dropdown-item disabled" data-action="paste">Paste</div>
+            </div>
+            <div class="menu-dropdown" id="view-menu" style="display:none">
+                <div class="menu-dropdown-item disabled" data-action="standard">
+                    <span class="check">✓</span>Standard
+                </div>
+                <div class="menu-dropdown-item disabled" data-action="scientific">
+                    <span class="check"></span>Scientific
+                </div>
+            </div>
+        </div>
+
+        <div class="calc-container">
+            <div id="calc">
+                <div id="display" class="field-row">
+                    <div id="expression" hidden>expression panel</div>
+                    <input id="primary" type="text" readonly value="0">
+                </div>
+                <div id="inp">
+                    <div class="row row-with-deletion-options">
+                        <div class="memory-column">
+                            <div id="memory-indicator" class="inset-deep"></div>
+                        </div>
+                        <div class="remaining-columns">
+                            <button id="CommandBACK" class="red-text">Backspace</button>
+                            <button id="CommandCENTR" class="red-text" aria-label="clear entry">CE</button>
+                            <button id="CommandCLEAR" class="red-text" aria-label="clear">C</button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="memory-column">
+                            <button id="CommandMCLEAR" disabled class="red-text onmem" aria-label="memory clear">MC</button>
+                        </div>
+                        <div class="remaining-columns">
+                            <button id="Command7" class="blue-text">7</button>
+                            <button id="Command8" class="blue-text">8</button>
+                            <button id="Command9" class="blue-text">9</button>
+                            <button id="CommandDIV" class="red-text" aria-label="divide">÷</button>
+                            <button id="CommandSQRT" class="blue-text" aria-label="square root">√</button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="memory-column">
+                            <button id="CommandRECALL" disabled class="red-text onmem">MR</button>
+                        </div>
+                        <div class="remaining-columns">
+                            <button id="Command4" class="blue-text">4</button>
+                            <button id="Command5" class="blue-text">5</button>
+                            <button id="Command6" class="blue-text">6</button>
+                            <button id="CommandMUL" class="red-text" aria-label="multiply">*</button>
+                            <button id="CommandPERCENT" class="blue-text" aria-label="percent">%</button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="memory-column">
+                            <button id="CommandSTORE" class="red-text">MS</button>
+                        </div>
+                        <div class="remaining-columns">
+                            <button id="Command1" class="blue-text">1</button>
+                            <button id="Command2" class="blue-text">2</button>
+                            <button id="Command3" class="blue-text">3</button>
+                            <button id="CommandSUB" class="red-text" aria-label="subtract">-</button>
+                            <button id="CommandREC" class="blue-text" aria-label="reciprocal">1/x</button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="memory-column">
+                            <button id="CommandMPLUS" class="red-text">M+</button>
+                        </div>
+                        <div class="remaining-columns">
+                            <button id="Command0" class="blue-text">0</button>
+                            <button id="CommandSIGN" class="blue-text" aria-label="negate">+/-</button>
+                            <button id="CommandPNT" class="blue-text" aria-label="decimal point">.</button>
+                            <button id="CommandADD" class="red-text" aria-label="add">+</button>
+                            <button id="CommandEQU" class="red-text" aria-label="equals">=</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="sidebar">
+                <div id="nav">
+                    <div id="hspanel" class="nav-item active">History</div>
+                    <div id="mempanel" class="nav-item">Memory</div>
+                </div>
+                <div id="panel">
+                    <div class="hspanel">
+                        <p>There is no history yet</p>
+                        <button style="display: none;" onclick="clearHistory()" class="del">🗑</button>
+                    </div>
+                    <div style="display: none;" class="mempanel">
+                        <p>There's nothing saved in memory</p>
+                        <button id="memory-item-template" style="display: none;" class="memory-item">
+                            <div class="value">8566</div>
+                            <div class="btns">
+                                <div class="mp">M+</div>
+                                <div class="mm">M-</div>
+                                <div class="mc">MC</div>
+                            </div>
+                        </button>
+                        <button style="display: none;" onclick="clearAllMemory()" class="del">🗑</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="mcalculator/server/public/fonts.css" />
+    <script async src="mcalculator/server/public/js/script.js"></script>
+    <script async onload="show('Please wait...');" src="mcalculator/server/public/js/engine.js"></script>
+    <script src="calculator.js"></script>
+
+    <noscript>
+        <p>Calculator requires Javascript and WebAssembly to be enabled.</p>
+    </noscript>
+</body>
+</html>

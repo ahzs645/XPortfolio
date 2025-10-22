@@ -156,6 +156,18 @@ const programData = {
         canMaximize: false,
     }),
 
+    // --- Calculator ---
+    calculator: createProgram('calculator', 'Calculator', 'start-menu/calculator.png', {
+        appPath: 'src/apps/calculator/calculator.html',
+        icon: './assets/apps/calculator/calculator-icon.png',
+        dimensions: { width: 280, height: 320 },
+        minDimensions: { width: 260, height: 300 },
+        resizable: true,
+        canMaximize: true,
+        maximizeDisabled: true,
+        statusBarText: null,
+    }),
+
     // --- Spider Solitaire ---
     'spider-solitaire': createProgram('spider-solitaire', 'Spider Solitaire', 'start-menu/solitaire.svg', {
         appPath: 'src/apps/spider-solitaire/spider-solitaire.html',

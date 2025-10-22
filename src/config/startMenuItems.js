@@ -72,6 +72,14 @@ export const START_MENU_CATALOG = {
         description: null,
         disabled: false
     },
+    calculator: {
+        type: 'program',
+        programName: 'calculator',
+        icon: './assets/apps/calculator/calculator-icon.png',
+        title: 'Calculator',
+        description: null,
+        disabled: false
+    },
     musicPlayer: {
         type: 'program',
         programName: 'musicPlayer',
@@ -136,6 +144,7 @@ export const ALL_PROGRAMS_ORDER = [
     'divider-main',
     'mediaPlayer',
     'winamp',
+    'calculator',
     'minesweeper',
     'spider-solitaire',
     'pinball',

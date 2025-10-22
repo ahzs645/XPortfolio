@@ -757,9 +757,9 @@ export default class WindowManager {
             menuBarContainer.setParentWindowElement(windowElement);
         }
 
-        // Add status bar for most windows (except cmd, musicPlayer, mediaPlayer, minesweeper, spider-solitaire, pinball)
+        // Add status bar for most windows (except cmd, musicPlayer, mediaPlayer, minesweeper, spider-solitaire, pinball, calculator)
         const windowType = programConfig.id.replace('-window', '');
-        if (windowType !== 'cmd' && windowType !== 'musicPlayer' && windowType !== 'mediaPlayer' && windowType !== 'minesweeper' && windowType !== 'spider-solitaire' && windowType !== 'pinball') {
+        if (windowType !== 'cmd' && windowType !== 'musicPlayer' && windowType !== 'mediaPlayer' && windowType !== 'minesweeper' && windowType !== 'spider-solitaire' && windowType !== 'pinball' && windowType !== 'calculator') {
             const statusBar = this._createElement('div', 'status-bar');
             const statusBarField = this._createElement('p', 'status-bar-field');
 
@@ -834,7 +834,7 @@ export default class WindowManager {
                 </div>
                 <div class="title-bar-controls">
                     ${programConfig.canMinimize !== false ? '<button class="xp-button" aria-label="Minimize" data-action="minimize"></button>' : ''}
-                    ${programConfig.canMaximize !== false ? '<button class="xp-button" aria-label="Maximize" data-action="maximize"></button>' : ''}
+                    ${programConfig.canMaximize !== false ? `<button class="xp-button" aria-label="Maximize" data-action="maximize"${programConfig.maximizeDisabled ? ' disabled' : ''}></button>` : ''}
                     <button class="xp-button" aria-label="Close" data-action="close"></button>
                 </div>
             </div>
@@ -941,7 +941,7 @@ export default class WindowManager {
                     }
                 }
 
-                if (programConfig && programConfig.canMaximize !== false) {
+                if (programConfig && programConfig.canMaximize !== false && !programConfig.maximizeDisabled) {
                     this.toggleMaximize(windowElement);
                 }
             });
