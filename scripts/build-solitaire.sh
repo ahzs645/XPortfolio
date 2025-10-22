@@ -85,9 +85,9 @@ PKG_EOF
     if command -v pnpm &> /dev/null; then
         pnpm install || true
     elif command -v yarn &> /dev/null; then
-        yarn install || true
+        yarn install --ignore-scripts || true
     else
-        npm install || true
+        npm install --ignore-scripts || true
     fi
 
     # Ensure lmdb-store stub is still in place after yarn install
