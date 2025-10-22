@@ -56,17 +56,17 @@
 
 /* Use the shared balloon styles from taskbar.css, no overrides needed */
 
-/* Animation effects */
-.clippy-container {
+/* Animation effects - only on sprite, not container */
+.clippy-sprite {
   transition: transform 0.1s ease;
 }
 
-.clippy-container:hover {
-  transform: scale(1.05);
+.clippy-container:hover .clippy-sprite {
+  transform: scale(1.1);
 }
 
-.clippy-container:active {
-  transform: scale(0.98);
+.clippy-container:active .clippy-sprite {
+  transform: scale(0.95);
 }
 
 /* Mobile responsiveness */

@@ -76,7 +76,10 @@ class Clippy {
 
     // Close button handler
     const closeBtn = this.balloon.querySelector('.balloon__close');
-    closeBtn.addEventListener('click', () => this.hideBalloon());
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent click from bubbling up to Clippy container
+      this.hideBalloon();
+    });
   }
 
   attachEventListeners() {
