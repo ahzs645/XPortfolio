@@ -65,12 +65,14 @@ class Clippy {
         <p class="balloon__text__first clippy-message" style="padding: 0 8px 0 2px;">
           Hi! I'm Clippy!
         </p>
-        <div class="balloon-pointer-anchor" style="position:absolute;bottom:-19px;left:40px;width:0;height:0;"></div>
+        <div class="balloon-pointer-anchor" style="position:absolute;bottom:-19px;right:24px;width:0;height:0;"></div>
       </div>
     `;
 
     this.balloon.innerHTML = balloonHTML;
-    document.body.appendChild(this.balloon);
+
+    // Append to clippy container instead of body
+    this.container.appendChild(this.balloon);
 
     // Close button handler
     const closeBtn = this.balloon.querySelector('.balloon__close');
@@ -186,14 +188,14 @@ class Clippy {
   }
 
   positionBalloon() {
-    // Get Clippy's position
-    const clippyRect = this.container.getBoundingClientRect();
+    // Position balloon relative to Clippy container
     const balloonElement = this.balloon.querySelector('.balloon');
     const balloonHeight = balloonElement ? balloonElement.offsetHeight : 100;
 
-    // Position balloon above and to the left, closer to Clippy's top-left
-    this.balloon.style.left = `${clippyRect.left - 30}px`; // Much closer to Clippy's left edge
-    this.balloon.style.top = `${clippyRect.top - balloonHeight - 20}px`; // Just above Clippy with small gap
+    // Position balloon above and to the left of Clippy (right-justified)
+    this.balloon.style.left = 'auto'; // Clear left positioning
+    this.balloon.style.right = '0'; // Align right edge with Clippy's right edge
+    this.balloon.style.bottom = `${this.container.offsetHeight + 20}px`; // Above Clippy with 20px gap
   }
 
   // Public method to trigger specific animations

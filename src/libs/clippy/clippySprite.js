@@ -51,8 +51,6 @@ class ClippySprite {
       return;
     }
 
-    console.log(`Playing animation: ${animationName}, Frames: ${animation.Frames.length}`);
-
     // Stop any existing animation
     this.stopAnimation();
 

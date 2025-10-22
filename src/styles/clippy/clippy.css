@@ -5,10 +5,11 @@
   right: 20px;
   width: 124px;
   height: 93px;
-  z-index: 1300;
+  z-index: 50; /* Above desktop (0) but behind windows (100) */
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
+  /* Make container the positioning context for balloon */
 }
 
 .clippy-sprite {
@@ -25,8 +26,8 @@
 
 /* Clippy Balloon */
 #clippy-balloon {
-  position: fixed;
-  z-index: 1400;
+  position: absolute;
+  z-index: 10; /* Above Clippy sprite within the container */
   pointer-events: all;
 }
 
