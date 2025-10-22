@@ -4,7 +4,7 @@
   "version": "1.0",
   "messageTagWeights": {
     "normal": 95,
-    "unhinged": 5
+    "unhinged": 20
   },
   "settings": {
     "enableUnhingedMessages": true,

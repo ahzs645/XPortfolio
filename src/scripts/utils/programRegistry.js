@@ -165,6 +165,17 @@ const programData = {
         resizable: true,
         canMaximize: true,
     }),
+
+    // --- 3D Pinball for Windows - Space Cadet ---
+    pinball: createProgram('pinball', '3D Pinball for Windows - Space Cadet', 'start-menu/pinball.png', {
+        appPath: 'src/apps/pinball/pinball.html',
+        icon: './assets/apps/pinball/pinball-icon.png',
+        dimensions: { width: 610, height: 475 },
+        minDimensions: { width: 610, height: 475 },
+        resizable: true,
+        canMaximize: false,
+        statusBarText: null,
+    }),
     musicPlayer: createProgram('musicPlayer', 'Music Player', 'start-menu/music.webp', {
         appPath: 'src/apps/musicPlayer/musicplayer.html',
         dimensions: {

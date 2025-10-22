@@ -56,6 +56,14 @@ export const START_MENU_CATALOG = {
         description: null,
         disabled: false
     },
+    pinball: {
+        type: 'program',
+        programName: 'pinball',
+        icon: './assets/apps/pinball/pinball-icon.png',
+        title: '3D Pinball',
+        description: null,
+        disabled: false
+    },
     winamp: {
         type: 'program',
         programName: 'winamp',
@@ -130,6 +138,7 @@ export const ALL_PROGRAMS_ORDER = [
     'winamp',
     'minesweeper',
     'spider-solitaire',
+    'pinball',
     'musicPlayer',
     'image-viewer',
     'paint',
