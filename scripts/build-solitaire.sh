@@ -22,6 +22,13 @@ fi
 # Navigate to submodule
 cd "$SUBMODULE_DIR"
 
+# Create .parcelrc to use default config (avoids LMDB cache issues)
+cat > .parcelrc << 'EOF'
+{
+  "extends": "@parcel/config-default"
+}
+EOF
+
 # Check if we need to install dependencies
 if [ ! -d "node_modules" ]; then
     echo "Installing dependencies..."
@@ -36,14 +43,13 @@ fi
 
 # Build the app
 echo "Building app..."
-# Use filesystem cache instead of LMDB to avoid native dependency issues
-export PARCEL_CACHE_DIR=".parcel-cache"
+# Disable Parcel cache completely to avoid LMDB native dependency issues
 if command -v pnpm &> /dev/null; then
-    PARCEL_WORKERS=0 pnpm build
+    pnpm build --no-cache
 elif command -v yarn &> /dev/null; then
-    PARCEL_WORKERS=0 yarn build
+    yarn build --no-cache
 else
-    PARCEL_WORKERS=0 npm run build
+    npm run build -- --no-cache
 fi
 
 # Create target directory if it doesn't exist
