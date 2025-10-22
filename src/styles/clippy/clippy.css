@@ -31,6 +31,29 @@
   pointer-events: all;
 }
 
+/* Override balloon width */
+#clippy-balloon .balloon {
+  width: 200px; /* Fixed width */
+  min-width: 200px;
+  max-width: 200px;
+  /* Height will grow automatically based on content */
+}
+
+/* Make text wrap properly */
+#clippy-balloon .balloon__text__first {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+#clippy-balloon .balloon__header__text {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
 /* Use the shared balloon styles from taskbar.css, no overrides needed */
 
 /* Animation effects */
