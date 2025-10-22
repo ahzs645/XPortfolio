@@ -39,6 +39,11 @@ if [ ! -d "node_modules" ]; then
     else
         npm install --ignore-optional || true
     fi
+
+    # Remove problematic native dependencies to prevent Parcel from trying to load them
+    echo "Removing native cache dependencies..."
+    rm -rf node_modules/lmdb-store || true
+    rm -rf node_modules/msgpackr-extract || true
 fi
 
 # Build the app
