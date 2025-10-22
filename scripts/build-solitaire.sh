@@ -26,11 +26,11 @@ cd "$SUBMODULE_DIR"
 if [ ! -d "node_modules" ]; then
     echo "Installing dependencies..."
     if command -v pnpm &> /dev/null; then
-        pnpm install
+        pnpm install --ignore-optional || true
     elif command -v yarn &> /dev/null; then
-        yarn install
+        yarn install --ignore-optional || true
     else
-        npm install
+        npm install --ignore-optional || true
     fi
 fi
 

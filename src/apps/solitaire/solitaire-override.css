@@ -51,32 +51,13 @@
     justify-content: center !important;
 }
 
-/* Make the game scale to fill window */
+/* Make the game fit to window size naturally */
 .solitaire {
-    width: 100% !important;
-    height: 100% !important;
-    max-width: none !important;
-    max-height: none !important;
-    transform-origin: top left !important;
-}
-
-/* Scale the game based on window size */
-@media (min-width: 800px) {
-    .solitaire {
-        transform: scale(1.2) !important;
-    }
-}
-
-@media (min-width: 1000px) {
-    .solitaire {
-        transform: scale(1.5) !important;
-    }
-}
-
-@media (min-width: 1200px) {
-    .solitaire {
-        transform: scale(1.8) !important;
-    }
+    width: 660px !important;
+    height: 440px !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    margin: 0 !important;
 }
 
 /* Fix card sprite image path */

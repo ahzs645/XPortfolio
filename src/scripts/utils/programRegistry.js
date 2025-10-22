@@ -172,10 +172,11 @@ const programData = {
     solitaire: createProgram('solitaire', 'Solitaire', 'start-menu/solitaire-icon.png', {
         appPath: 'src/apps/solitaire/solitaire.html',
         icon: './assets/apps/solitaire/solitaire-icon.png',
-        dimensions: { width: 800, height: 600 },
-        minDimensions: { width: 600, height: 400 },
-        resizable: true,
-        canMaximize: true,
+        dimensions: { width: 680, height: 490 },
+        minDimensions: { width: 680, height: 490 },
+        resizable: false,
+        canMaximize: false,
+        statusBarText: null,
     }),
 
     // --- Spider Solitaire ---
