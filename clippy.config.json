@@ -1,0 +1,20 @@
+{
+  "name": "Clippy Configuration",
+  "description": "Configure Clippy's behavior and message probabilities",
+  "version": "1.0",
+  "messageTagWeights": {
+    "normal": 95,
+    "unhinged": 5
+  },
+  "settings": {
+    "enableUnhingedMessages": true,
+    "idleAnimationInterval": 8000,
+    "messageDuration": 8000
+  },
+  "notes": {
+    "messageTagWeights": "Percentage chance for each tag to be selected (must add up to 100)",
+    "enableUnhingedMessages": "Set to false to disable unhinged messages entirely",
+    "idleAnimationInterval": "Time in milliseconds between idle animations",
+    "messageDuration": "Time in milliseconds before message auto-hides"
+  }
+}
