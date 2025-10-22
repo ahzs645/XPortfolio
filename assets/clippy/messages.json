@@ -209,6 +209,12 @@
       "animation": "GetAttention",
       "type": "tip",
       "tag": "unhinged"
+    },
+    {
+      "text": "It is a strange fate that we should suffer so much fear and doubt over so small a thing",
+      "animation": "GetWizardy",
+      "type": "idle",
+      "tag": "unhinged"
     }
   ],
   "meta": {
