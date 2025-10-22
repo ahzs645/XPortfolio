@@ -4,3 +4,9 @@ src/libs/.DS_Store
 
 # Auto-generated spider-solitaire build files
 src/apps/spider-solitaire/build/
+
+# Auto-generated solitaire build files
+src/apps/solitaire/build/
+
+# Auto-generated paint build files
+src/apps/paint/build/

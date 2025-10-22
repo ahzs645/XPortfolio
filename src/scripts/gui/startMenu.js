@@ -4,7 +4,8 @@ import {
     ALL_PROGRAMS_ORDER,
     PINNED_LEFT_ORDER,
     PINNED_RIGHT_ORDER,
-    START_MENU_CATALOG
+    START_MENU_CATALOG,
+    START_MENU_FOLDERS
 } from '../../config/startMenuItems.js';
 
 function getCatalogEntry(id) {
@@ -111,6 +112,18 @@ function renderDetailedMenuItem(item) {
 // Base program items
 const ALL_PROGRAMS_ITEMS_BASE = ALL_PROGRAMS_ORDER
     .map(id => {
+        // Check if this is a folder first
+        if (START_MENU_FOLDERS && START_MENU_FOLDERS[id]) {
+            const folder = START_MENU_FOLDERS[id];
+            return {
+                type: 'folder',
+                folderId: id,
+                icon: folder.icon,
+                label: folder.title
+            };
+        }
+
+        // Otherwise check the catalog
         const entry = getCatalogEntry(id);
         if (!entry) return null;
         if (entry.type === 'separator') {
@@ -379,6 +392,12 @@ function buildMenuHTML(items, itemClass, ulClass) {
         items.map(item => {
             if (item.type === 'separator') {
                 return '<li class="' + itemClass + '-separator"></li>';
+            } else if (item.type === 'folder') {
+                return '<li class="' + itemClass + '-item folder-item" data-action="toggle-folder" data-folder-id="' + item.folderId + '">\n' +
+                    ('<img decoding="async" src="' + item.icon + '" alt="' + item.label + '">\n') +
+                    (item.label + '\n') +
+                    '<span class="folder-arrow">►</span>\n' +
+                    '</li>';
             } else if (item.type === 'program') {
                 return '<li class="' + itemClass + '-item' + (item.disabled ? ' disabled' : '') + '" data-action="open-program" data-program-name="' + item.programName + '">\n' +
                     ('<img decoding="async" src="' + item.icon + '" alt="' + item.label + '">\n') +
@@ -418,6 +437,7 @@ export default class StartMenu {
         this.startMenu = null;
         this.allProgramsMenu = null;
         this.recentlyUsedMenu = null;
+        this.folderSubmenus = {};
         this.activeWindowOverlay = null;
         this.infoData = {};
         this.systemAssets = null;
@@ -469,9 +489,17 @@ export default class StartMenu {
                 this.recentlyUsedMenu.parentNode.removeChild(this.recentlyUsedMenu);
             }
 
+            // Clean up folder submenus
+            Object.values(this.folderSubmenus).forEach(submenu => {
+                if (submenu && submenu.parentNode) {
+                    submenu.parentNode.removeChild(submenu);
+                }
+            });
+
             this.startMenu = null;
             this.allProgramsMenu = null;
             this.recentlyUsedMenu = null;
+            this.folderSubmenus = {};
             this.activeWindowOverlay = null;
             this._eventsInitialized = false;
         } catch (error) {}
@@ -576,6 +604,18 @@ export default class StartMenu {
             itemSelector: '.all-programs-item',
             attachClickHandler: true
         });
+
+        // Set up folder hover handlers
+        if (this.allProgramsMenu) {
+            const folderItems = this.allProgramsMenu.querySelectorAll('.folder-item');
+            folderItems.forEach(folderItem => {
+                const folderId = folderItem.dataset.folderId;
+
+                folderItem.addEventListener('mouseenter', () => {
+                    this.showFolderSubmenu(folderId, folderItem);
+                });
+            });
+        }
     }
 
     createRecentlyUsedMenu() {
@@ -692,8 +732,9 @@ export default class StartMenu {
             const clickedStartButton = this.startButton.contains(target);
             const clickedAllPrograms = this.allProgramsMenu?.contains(target);
             const clickedRecentlyUsed = this.recentlyUsedMenu?.contains(target);
+            const clickedInFolderSubmenu = Object.values(this.folderSubmenus).some(submenu => submenu?.contains(target));
 
-            if (!clickedInMenu && !clickedStartButton && !clickedAllPrograms && !clickedRecentlyUsed) {
+            if (!clickedInMenu && !clickedStartButton && !clickedAllPrograms && !clickedRecentlyUsed && !clickedInFolderSubmenu) {
                 event.stopPropagation();
                 event.preventDefault();
                 this.hideAllProgramsMenu();
@@ -733,6 +774,14 @@ export default class StartMenu {
         const action = target.dataset.action;
         const programName = target.dataset.programName;
         const url = target.dataset.url;
+        const folderId = target.dataset.folderId;
+
+        if (action === 'toggle-folder' && folderId) {
+            event.stopPropagation();
+            event.preventDefault();
+            this.showFolderSubmenu(folderId, target);
+            return;
+        }
 
         if (action === 'toggle-recently-used') {
             this.showRecentlyUsedMenu();
@@ -836,21 +885,46 @@ export default class StartMenu {
                  event.relatedTarget === this.allProgramsMenu)) {
                 return;
             }
-            this.hideAllProgramsMenu();
+            // Delay hiding to allow reaching submenu
+            setTimeout(() => {
+                // Don't hide if folder submenu is visible
+                const anyFolderSubmenuVisible = Object.values(this.folderSubmenus).some(
+                    submenu => submenu && submenu.style.display !== 'none'
+                );
+                if (!anyFolderSubmenuVisible) {
+                    this.hideAllProgramsMenu();
+                }
+            }, 200);
         });
 
         this.allProgramsMenu.addEventListener('mouseleave', event => {
-            if (event.relatedTarget &&
-                (event.relatedTarget === allProgramsButton ||
-                 event.relatedTarget.closest('#menu-all-programs'))) {
+            const relatedTarget = event.relatedTarget;
+
+            if (relatedTarget &&
+                (relatedTarget === allProgramsButton ||
+                 relatedTarget.closest('#menu-all-programs') ||
+                 relatedTarget.closest('.folder-submenu'))) {
                 return;
             }
-            this.hideAllProgramsMenu();
+
+            // Delay hiding to allow reaching submenu
+            setTimeout(() => {
+                // Don't hide if folder submenu is visible or mouse is in submenu
+                const anyFolderSubmenuVisible = Object.values(this.folderSubmenus).some(
+                    submenu => submenu && submenu.style.display !== 'none'
+                );
+                if (!anyFolderSubmenuVisible) {
+                    this.hideAllProgramsMenu();
+                }
+            }, 200);
         });
 
         const otherMenuItems = this.startMenu.querySelectorAll('.menu-item:not(#menu-all-programs), .menutopbar, .start-menu-footer, .middle-right');
         otherMenuItems.forEach(item => {
-            item.addEventListener('mouseenter', () => this.hideAllProgramsMenu());
+            item.addEventListener('mouseenter', () => {
+                this.hideAllProgramsMenu();
+                this.hideFolderSubmenus();
+            });
         });
     }
 
@@ -877,10 +951,21 @@ export default class StartMenu {
     }
 
     hideAllProgramsMenu() {
+        // Don't hide if any folder submenu is visible
+        const anyFolderSubmenuVisible = Object.values(this.folderSubmenus).some(
+            submenu => submenu && submenu.style.display !== 'none'
+        );
+
+        if (anyFolderSubmenuVisible) {
+            return; // Keep All Programs open while folder is open
+        }
+
         if (this.allProgramsMenu) {
             this.allProgramsMenu.classList.remove('active');
             this.allProgramsMenu.style.display = 'none';
         }
+        // Also hide folder submenus when hiding all programs
+        this.hideFolderSubmenus();
     }
 
     openProgram(programName) {
@@ -928,6 +1013,7 @@ export default class StartMenu {
 
         this.startMenu.classList.remove('active');
         this.hideAllProgramsMenu();
+        this.hideFolderSubmenus();
         this.updateContentOverlay(null);
         this.removeIframeFocusListeners();
         this.removeWindowBlurListener();
@@ -1027,6 +1113,177 @@ export default class StartMenu {
             this._cachedProgram4Button = this.startMenu?.querySelector('#menu-program4');
         }
         this._cachedProgram4Button?.classList.remove('active-submenu-trigger');
+    }
+
+    createFolderSubmenu(folderId) {
+        if (this.folderSubmenus[folderId]) {
+            return this.folderSubmenus[folderId];
+        }
+
+        const folder = START_MENU_FOLDERS[folderId];
+        if (!folder) return null;
+
+        const folderItems = folder.items.map(itemId => {
+            const entry = getCatalogEntry(itemId);
+            if (!entry) return null;
+            return toProgramItem(entry);
+        }).filter(Boolean);
+
+        const submenu = document.createElement('div');
+        submenu.className = 'folder-submenu';
+        submenu.dataset.folderId = folderId;
+        submenu.innerHTML = buildMenuHTML(folderItems, 'all-programs', 'all-programs-items');
+        submenu.style.display = 'none';
+        document.body.appendChild(submenu);
+
+        attachMenuItemEffects(submenu, '.all-programs-item');
+        submenu.addEventListener('click', this._handleMenuClick.bind(this));
+
+        this.folderSubmenus[folderId] = submenu;
+        return submenu;
+    }
+
+    showFolderSubmenu(folderId, triggerElement) {
+        // Hide all other folder submenus
+        Object.values(this.folderSubmenus).forEach(submenu => {
+            submenu.style.display = 'none';
+            submenu.classList.remove('mut-menu-active');
+        });
+
+        // Remove active state from all folder items
+        if (this.allProgramsMenu) {
+            this.allProgramsMenu.querySelectorAll('.folder-item').forEach(item => {
+                item.classList.remove('active-submenu-trigger');
+            });
+        }
+
+        let submenu = this.folderSubmenus[folderId];
+        if (!submenu) {
+            submenu = this.createFolderSubmenu(folderId);
+        }
+
+        if (!submenu || !triggerElement) return;
+
+        const triggerRect = triggerElement.getBoundingClientRect();
+
+        submenu.style.visibility = 'hidden';
+        submenu.style.display = 'block';
+
+        const submenuRect = submenu.getBoundingClientRect();
+
+        // Position directly adjacent to trigger (no gap)
+        let left = triggerRect.right - 4; // More overlap to prevent gap
+        if (left + submenuRect.width > window.innerWidth) {
+            left = triggerRect.left - submenuRect.width + 4;
+        }
+
+        let top = triggerRect.top - 3; // Align with top of trigger with overlap
+        if (top + submenuRect.height > window.innerHeight) {
+            top = window.innerHeight - submenuRect.height - 10;
+        }
+        if (top < 0) {
+            top = 0;
+        }
+
+        Object.assign(submenu.style, {
+            left: left + 'px',
+            top: top + 'px',
+            display: 'block',
+            visibility: 'visible'
+        });
+
+        submenu.classList.add('mut-menu-active');
+        triggerElement.classList.add('active-submenu-trigger');
+
+        // Clean up old listeners
+        if (submenu._hideHandler) {
+            submenu.removeEventListener('mouseleave', submenu._hideHandler);
+            if (submenu._triggerElement) {
+                submenu._triggerElement.removeEventListener('mouseleave', submenu._hideHandler);
+                submenu._triggerElement.removeEventListener('mouseenter', submenu._enterHandler);
+            }
+        }
+        if (submenu._enterHandler) {
+            submenu.removeEventListener('mouseenter', submenu._enterHandler);
+        }
+        if (submenu._hideTimeout) {
+            clearTimeout(submenu._hideTimeout);
+        }
+
+        // Set up mouse leave handlers with longer delay
+        const hideHandler = (event) => {
+            const relatedTarget = event.relatedTarget;
+
+            // Clear any pending hide timeout
+            if (submenu._hideTimeout) {
+                clearTimeout(submenu._hideTimeout);
+            }
+
+            if (!relatedTarget) {
+                // Add longer delay before hiding
+                submenu._hideTimeout = setTimeout(() => {
+                    this.hideFolderSubmenus();
+                }, 500);
+                return;
+            }
+
+            // Don't hide if moving within All Programs menu or to submenu
+            const movingToSubmenu = submenu.contains(relatedTarget) || relatedTarget.closest('.folder-submenu');
+            const movingToTrigger = triggerElement.contains(relatedTarget) || relatedTarget === triggerElement;
+            const movingToAllPrograms = this.allProgramsMenu?.contains(relatedTarget);
+
+            if (!movingToSubmenu && !movingToTrigger && !movingToAllPrograms) {
+                // Add longer delay before hiding
+                submenu._hideTimeout = setTimeout(() => {
+                    this.hideFolderSubmenus();
+                }, 500);
+            }
+        };
+
+        const enterHandler = () => {
+            // Cancel hide when mouse enters
+            if (submenu._hideTimeout) {
+                clearTimeout(submenu._hideTimeout);
+            }
+        };
+
+        submenu._hideHandler = hideHandler;
+        submenu._enterHandler = enterHandler;
+        submenu._triggerElement = triggerElement;
+
+        submenu.addEventListener('mouseleave', hideHandler);
+        submenu.addEventListener('mouseenter', enterHandler);
+        triggerElement.addEventListener('mouseleave', hideHandler);
+        triggerElement.addEventListener('mouseenter', enterHandler);
+    }
+
+    hideFolderSubmenus() {
+        Object.values(this.folderSubmenus).forEach(submenu => {
+            if (submenu._hideTimeout) {
+                clearTimeout(submenu._hideTimeout);
+            }
+            submenu.style.display = 'none';
+            submenu.classList.remove('mut-menu-active');
+        });
+
+        if (this.allProgramsMenu) {
+            this.allProgramsMenu.querySelectorAll('.folder-item').forEach(item => {
+                item.classList.remove('active-submenu-trigger');
+            });
+        }
+
+        // After hiding folder submenus, hide all programs menu if appropriate
+        setTimeout(() => {
+            if (this.allProgramsMenu && this.allProgramsMenu.style.display !== 'none') {
+                // Check if mouse is still in the menu area
+                const allProgramsButton = document.getElementById('menu-all-programs');
+                if (allProgramsButton && !allProgramsButton.matches(':hover') &&
+                    !this.allProgramsMenu.matches(':hover')) {
+                    this.allProgramsMenu.classList.remove('active');
+                    this.allProgramsMenu.style.display = 'none';
+                }
+            }
+        }, 200);
     }
 
     attachIframeFocusListeners() {

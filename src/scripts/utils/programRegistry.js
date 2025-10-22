@@ -168,6 +168,16 @@ const programData = {
         statusBarText: null,
     }),
 
+    // --- Solitaire ---
+    solitaire: createProgram('solitaire', 'Solitaire', 'start-menu/solitaire-icon.png', {
+        appPath: 'src/apps/solitaire/solitaire.html',
+        icon: './assets/apps/solitaire/solitaire-icon.png',
+        dimensions: { width: 800, height: 600 },
+        minDimensions: { width: 600, height: 400 },
+        resizable: true,
+        canMaximize: true,
+    }),
+
     // --- Spider Solitaire ---
     'spider-solitaire': createProgram('spider-solitaire', 'Spider Solitaire', 'start-menu/solitaire.svg', {
         appPath: 'src/apps/spider-solitaire/spider-solitaire.html',

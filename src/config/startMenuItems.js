@@ -48,6 +48,14 @@ export const START_MENU_CATALOG = {
         description: null,
         disabled: false
     },
+    solitaire: {
+        type: 'program',
+        programName: 'solitaire',
+        icon: './assets/apps/solitaire/solitaire-icon.png',
+        title: 'Solitaire',
+        description: null,
+        disabled: false
+    },
     'spider-solitaire': {
         type: 'program',
         programName: 'spider-solitaire',
@@ -136,6 +144,21 @@ export const PINNED_RIGHT_ORDER = [
     'resume'
 ];
 
+// Folder definitions
+export const START_MENU_FOLDERS = {
+    games: {
+        type: 'folder',
+        title: 'Games',
+        icon: './assets/gui/start-menu/folder-icon.png',
+        items: [
+            'minesweeper',
+            'solitaire',
+            'spider-solitaire',
+            'pinball'
+        ]
+    }
+};
+
 export const ALL_PROGRAMS_ORDER = [
     'about',
     'projects',
@@ -145,9 +168,7 @@ export const ALL_PROGRAMS_ORDER = [
     'mediaPlayer',
     'winamp',
     'calculator',
-    'minesweeper',
-    'spider-solitaire',
-    'pinball',
+    'games',
     'musicPlayer',
     'image-viewer',
     'paint',
