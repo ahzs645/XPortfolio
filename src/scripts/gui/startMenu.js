@@ -742,7 +742,7 @@ export default class StartMenu {
         if (action === 'open-program' && programName) {
             // Show mobile restriction popup for certain programs
             if (document.documentElement.classList.contains('mobile-device') &&
-                (programName === 'mediaPlayer' || programName === 'paint')) {
+                (programName === 'mediaPlayer' || programName === 'paint' || programName === 'pinball')) {
                 event.preventDefault();
                 event.stopPropagation();
 
@@ -753,7 +753,8 @@ export default class StartMenu {
 
                     const programLabels = {
                         mediaPlayer: { title: 'Media Player', icon: './assets/gui/start-menu/mediaPlayer.webp' },
-                        paint: { title: 'Paint', icon: './assets/gui/start-menu/paint.webp' }
+                        paint: { title: 'Paint', icon: './assets/gui/start-menu/paint.webp' },
+                        pinball: { title: '3D Pinball', icon: './assets/apps/pinball/pinball-icon.png' }
                     };
 
                     const { title, icon } = programLabels[programName] || { title: 'This App', icon: null };
