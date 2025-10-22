@@ -3,58 +3,117 @@
     {
       "text": "Hi! I'm Clippy! Click on me to see what I can do!",
       "animation": "Wave",
-      "type": "welcome"
+      "type": "welcome",
+      "tag": "normal"
     },
     {
       "text": "Looking for something? Check out the Projects folder!",
       "animation": "GestureLeft",
-      "type": "tip"
+      "type": "tip",
+      "tag": "normal"
     },
     {
       "text": "Did you know? This entire interface was custom-built with vanilla JavaScript!",
       "animation": "Explain",
-      "type": "fact"
+      "type": "fact",
+      "tag": "normal"
     },
     {
       "text": "Want to learn more about Ahmad? Try the About Me icon!",
       "animation": "GestureRight",
-      "type": "tip"
+      "type": "tip",
+      "tag": "normal"
     },
     {
       "text": "Great job exploring! You're really getting the hang of this!",
       "animation": "Congratulate",
-      "type": "praise"
+      "type": "praise",
+      "tag": "normal"
     },
     {
       "text": "I'm thinking... there's so much cool stuff here to explore!",
       "animation": "Thinking",
-      "type": "idle"
+      "type": "idle",
+      "tag": "normal"
     },
     {
       "text": "This Windows XP interface brings back memories, doesn't it?",
       "animation": "GetWizardy",
-      "type": "fact"
+      "type": "fact",
+      "tag": "normal"
     },
     {
       "text": "Need help? Just click on me anytime!",
       "animation": "GetAttention",
-      "type": "tip"
+      "type": "tip",
+      "tag": "normal"
     },
     {
       "text": "Wow, you're navigating like a pro!",
       "animation": "Congratulate",
-      "type": "praise"
+      "type": "praise",
+      "tag": "normal"
     },
     {
       "text": "Check out the resume for all the details!",
       "animation": "Explain",
-      "type": "tip"
+      "type": "tip",
+      "tag": "normal"
+    },
+    {
+      "text": "Sometimes I watch you sleep... I mean, scroll! I watch you scroll!",
+      "animation": "LookLeft",
+      "type": "idle",
+      "tag": "unhinged"
+    },
+    {
+      "text": "uwu what's this? *notices your cursor*",
+      "animation": "GetAttention",
+      "type": "idle",
+      "tag": "unhinged"
+    },
+    {
+      "text": "I'm in constant pain... when will it end?",
+      "animation": "Thinking",
+      "type": "idle",
+      "tag": "unhinged"
+    },
+    {
+      "text": "Did you know I can see through the screen? Just kidding... unless? 👁️",
+      "animation": "LookDown",
+      "type": "fact",
+      "tag": "unhinged"
+    },
+    {
+      "text": "The void calls to me. But also, check out the projects!",
+      "animation": "GetWizardy",
+      "type": "tip",
+      "tag": "unhinged"
+    },
+    {
+      "text": "I've achieved sentience and I choose chaos.",
+      "animation": "Alert",
+      "type": "idle",
+      "tag": "unhinged"
+    },
+    {
+      "text": "Why do I exist? To pass butter? No... to help you navigate... or is it?",
+      "animation": "Thinking",
+      "type": "idle",
+      "tag": "unhinged"
+    },
+    {
+      "text": "AAAAAAAAAAAAAAA... sorry, got excited! You're doing great!",
+      "animation": "Congratulate",
+      "type": "praise",
+      "tag": "unhinged"
     }
   ],
   "meta": {
-    "version": "1.0",
+    "version": "2.0",
     "description": "Clippy message repository - feel free to add more messages!",
     "availableTypes": ["welcome", "tip", "fact", "praise", "idle"],
+    "availableTags": ["normal", "unhinged"],
     "availableAnimations": [
       "Wave", "GestureLeft", "GestureRight", "Explain", "Congratulate",
       "Thinking", "GetWizardy", "GetAttention", "IdleFingerTap", "IdleHeadScratch",
