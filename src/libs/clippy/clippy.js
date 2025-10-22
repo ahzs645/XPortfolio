@@ -1,4 +1,4 @@
-import { getRandomIdleAnimation, getRandomMessage } from './clippyAnimations.js';
+import { getRandomIdleAnimation, getRandomMessage, loadMessages } from './clippyAnimations.js';
 import ClippySprite from './clippySprite.js';
 
 class Clippy {
@@ -23,6 +23,9 @@ class Clippy {
       console.error('Failed to load Clippy animations');
       return;
     }
+
+    // Load messages from JSON
+    await loadMessages();
 
     this.isReady = true;
     this.createClippyElement();
