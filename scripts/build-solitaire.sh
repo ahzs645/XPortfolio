@@ -40,12 +40,25 @@ if [ ! -d "node_modules" ]; then
         npm install --ignore-optional || true
     fi
 
-    # Mock lmdb-store to return null so Parcel falls back to filesystem cache
+    # Mock lmdb-store with a no-op implementation
     echo "Creating lmdb-store stub..."
     mkdir -p node_modules/lmdb-store
     cat > node_modules/lmdb-store/index.js << 'LMDB_EOF'
-// Stub module to prevent Parcel from using LMDB cache
-module.exports = { open: () => null };
+// Stub module that implements basic LMDB interface as no-ops
+// This allows Parcel to run without LMDB but disables caching
+class StubLMDB {
+  get() { return null; }
+  put() { return Promise.resolve(); }
+  remove() { return Promise.resolve(); }
+  getMany() { return []; }
+  putSync() {}
+  removeSync() {}
+  close() {}
+}
+
+module.exports = {
+  open: () => new StubLMDB()
+};
 LMDB_EOF
     cat > node_modules/lmdb-store/package.json << 'PKG_EOF'
 {
