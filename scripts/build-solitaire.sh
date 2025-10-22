@@ -40,20 +40,46 @@ if [ ! -d "node_modules" ]; then
         npm install --ignore-optional || true
     fi
 
-    # Mock lmdb-store with a no-op implementation
+    # Mock lmdb-store with a in-memory implementation
     echo "Creating lmdb-store stub..."
     mkdir -p node_modules/lmdb-store
     cat > node_modules/lmdb-store/index.js << 'LMDB_EOF'
-// Stub module that implements basic LMDB interface as no-ops
-// This allows Parcel to run without LMDB but disables caching
+// Stub module that implements LMDB interface with in-memory cache
+// This allows Parcel to run without native LMDB bindings
 class StubLMDB {
-  get() { return null; }
-  put() { return Promise.resolve(); }
-  remove() { return Promise.resolve(); }
-  getMany() { return []; }
-  putSync() {}
-  removeSync() {}
-  close() {}
+  constructor() {
+    this.cache = new Map();
+  }
+
+  get(key) {
+    return this.cache.get(key);
+  }
+
+  put(key, value) {
+    this.cache.set(key, value);
+    return Promise.resolve();
+  }
+
+  remove(key) {
+    this.cache.delete(key);
+    return Promise.resolve();
+  }
+
+  getMany(keys) {
+    return keys.map(key => this.cache.get(key));
+  }
+
+  putSync(key, value) {
+    this.cache.set(key, value);
+  }
+
+  removeSync(key) {
+    this.cache.delete(key);
+  }
+
+  close() {
+    this.cache.clear();
+  }
 }
 
 module.exports = {
