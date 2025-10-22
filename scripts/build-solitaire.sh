@@ -36,12 +36,14 @@ fi
 
 # Build the app
 echo "Building app..."
+# Use filesystem cache instead of LMDB to avoid native dependency issues
+export PARCEL_CACHE_DIR=".parcel-cache"
 if command -v pnpm &> /dev/null; then
-    pnpm build
+    PARCEL_WORKERS=0 pnpm build
 elif command -v yarn &> /dev/null; then
-    yarn build
+    PARCEL_WORKERS=0 yarn build
 else
-    npm run build
+    PARCEL_WORKERS=0 npm run build
 fi
 
 # Create target directory if it doesn't exist
