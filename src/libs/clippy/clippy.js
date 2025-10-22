@@ -194,7 +194,7 @@ class Clippy {
 
     // Position balloon above and to the left of Clippy (right-justified)
     this.balloon.style.left = 'auto'; // Clear left positioning
-    this.balloon.style.right = '0'; // Align right edge with Clippy's right edge
+    this.balloon.style.right = '80px'; // Move balloon to the left (right edge 80px from Clippy's right edge)
     this.balloon.style.bottom = `${this.container.offsetHeight + 20}px`; // Above Clippy with 20px gap
   }
 
