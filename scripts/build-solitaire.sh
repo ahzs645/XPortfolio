@@ -40,10 +40,20 @@ if [ ! -d "node_modules" ]; then
         npm install --ignore-optional || true
     fi
 
-    # Remove problematic native dependencies to prevent Parcel from trying to load them
-    echo "Removing native cache dependencies..."
-    rm -rf node_modules/lmdb-store || true
-    rm -rf node_modules/msgpackr-extract || true
+    # Mock lmdb-store to return null so Parcel falls back to filesystem cache
+    echo "Creating lmdb-store stub..."
+    mkdir -p node_modules/lmdb-store
+    cat > node_modules/lmdb-store/index.js << 'LMDB_EOF'
+// Stub module to prevent Parcel from using LMDB cache
+module.exports = { open: () => null };
+LMDB_EOF
+    cat > node_modules/lmdb-store/package.json << 'PKG_EOF'
+{
+  "name": "lmdb-store",
+  "version": "0.0.0-stub",
+  "main": "index.js"
+}
+PKG_EOF
 fi
 
 # Build the app
