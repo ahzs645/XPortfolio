@@ -170,12 +170,18 @@ cp -r dist/* "$TARGET_DIR/"
 # Fix absolute paths in index.html to relative paths
 echo "Fixing asset paths..."
 if [ -f "$TARGET_DIR/index.html" ]; then
-    sed -i '' 's|href=/|href=./|g' "$TARGET_DIR/index.html"
-    sed -i '' 's|src=/|src=./|g' "$TARGET_DIR/index.html"
-
-    # Add custom override CSS to remove window chrome
-    echo "Adding custom CSS override..."
-    sed -i '' 's|</head>|	<link rel=stylesheet href=../solitaire-override.css>\n</head>|g' "$TARGET_DIR/index.html"
+    # Use sed -i with compatibility for both macOS and Linux
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS
+        sed -i '' 's|href=/|href=./|g' "$TARGET_DIR/index.html"
+        sed -i '' 's|src=/|src=./|g' "$TARGET_DIR/index.html"
+        sed -i '' 's|</head>|	<link rel=stylesheet href=../solitaire-override.css>\n</head>|g' "$TARGET_DIR/index.html"
+    else
+        # Linux
+        sed -i 's|href=/|href=./|g' "$TARGET_DIR/index.html"
+        sed -i 's|src=/|src=./|g' "$TARGET_DIR/index.html"
+        sed -i 's|</head>|	<link rel=stylesheet href=../solitaire-override.css>\n</head>|g' "$TARGET_DIR/index.html"
+    fi
 fi
 
 # Clean up build changes in submodule to avoid git tracking them
