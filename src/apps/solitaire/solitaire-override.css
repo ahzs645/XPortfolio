@@ -78,3 +78,8 @@ html {
     width: 100% !important;
     height: 100% !important;
 }
+
+/* Hide status bar */
+.status-bar {
+    display: none !important;
+}

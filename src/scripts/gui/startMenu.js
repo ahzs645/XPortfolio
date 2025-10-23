@@ -815,6 +815,9 @@ export default class StartMenu {
             }
 
             this.openProgram(programName);
+            // Immediately hide All Programs menu and folder submenus when program is launched
+            this.hideAllProgramsMenu();
+            this.hideFolderSubmenus();
             this.closeStartMenu();
         } else if (action === 'open-url' && url) {
             try {
@@ -826,6 +829,9 @@ export default class StartMenu {
             } catch (error) {
                 window.open(url, '_blank');
             }
+            // Immediately hide All Programs menu and folder submenus when URL is opened
+            this.hideAllProgramsMenu();
+            this.hideFolderSubmenus();
             this.closeStartMenu();
         } else if (action === 'log-off') {
             this.eventBus.publish(EVENTS.LOG_OFF_CONFIRMATION_REQUESTED, { dialogType: 'logOff' });

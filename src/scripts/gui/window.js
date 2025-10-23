@@ -757,9 +757,9 @@ export default class WindowManager {
             menuBarContainer.setParentWindowElement(windowElement);
         }
 
-        // Add status bar for most windows (except cmd, musicPlayer, mediaPlayer, minesweeper, spider-solitaire, pinball, calculator)
+        // Add status bar for most windows (except cmd, musicPlayer, mediaPlayer, minesweeper, solitaire, spider-solitaire, pinball, calculator)
         const windowType = programConfig.id.replace('-window', '');
-        if (windowType !== 'cmd' && windowType !== 'musicPlayer' && windowType !== 'mediaPlayer' && windowType !== 'minesweeper' && windowType !== 'spider-solitaire' && windowType !== 'pinball' && windowType !== 'calculator') {
+        if (windowType !== 'cmd' && windowType !== 'musicPlayer' && windowType !== 'mediaPlayer' && windowType !== 'minesweeper' && windowType !== 'solitaire' && windowType !== 'spider-solitaire' && windowType !== 'pinball' && windowType !== 'calculator') {
             const statusBar = this._createElement('div', 'status-bar');
             const statusBarField = this._createElement('p', 'status-bar-field');
 
