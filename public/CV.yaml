@@ -2,7 +2,7 @@ cv:
   name: Caleb Mueller
   location: Cochrane, AB
   email: me@cmueller.ca
-  phone: 778 266 6601
+  phone: +1-778-266-6601
   website: https://cmueller.ca
   social: []
   sections:
@@ -13,31 +13,31 @@ cv:
         start_date: "2025-03"
         end_date: "present"
         highlights:
-          - Pipeline integrity E.I.T contractor for Pacific Northern Gas Ltd. and Enbridge
+          - Pipeline integrity E.I.T/contractor for Pacific Northern Gas Ltd. and Enbridge
       - company: University of Northern British Columbia
         position: CAD Teaching Assistant
         location: Prince George, BC
         start_date: "2025-01"
         end_date: "2025-04"
         highlights:
-          - Taught graduate and undergraduate students 3D modeling using CAD software
-          - Led CAD workshops and provided one-on-one support on techniques and applications
+          - Teach graduate and undergraduate students 3D modeling for their research projects using CAD software
+          - Conduct CAD workshops and provide personalized support in techniques and applications
       - company: University of Northern British Columbia
         position: Field Research Assistant
         location: Prince George, BC
         start_date: "2024-11"
         end_date: "2025-02"
         highlights:
-          - Conducted hydrology field work in Fort St. James alongside a PhD student
+          - Conducted hydrology field work with a PHD student in Fort St. James
       - company: University of Northern British Columbia
         position: Environmental Data Analyst – Student Researcher
         location: Prince George, BC
         start_date: "2024-01"
         end_date: "2024-08"
         highlights:
-          - 3D modeling and thermal simulation of artificial bat roosts in SimScale (Jan–Apr)
-          - Researched impacts of climate change on water balance in agricultural watersheds in BC (Apr–Aug)
-          - Processed historical and projected climate data using Excel, Python, RStudio, and ArcGIS Pro
+          - 3D modeling and thermal simulation of artificial bat roosts in SimScale (January – April)
+          - Researched the impact of climate change on water balance in agricultural watersheds in BC (April – August)
+          - Processing of historical and projected climate data using Excel, Python, R-Studio, and ArcGIS Pro
       - company: University of Northern British Columbia
         position: Administrative Assistant
         location: Prince George, BC
@@ -47,23 +47,13 @@ cv:
           - Created an Excel database for historical newspaper articles from UNBC’s Northern BC Archives
           - Digitized bank and tax documents
       - company: Canada Revenue Agency
-        position: Administrative Assistant (Summer 2021)
+        position: Administrative Assistant
         location: Calgary, AB
         start_date: "2021-06"
-        end_date: "2021-08"
-        highlights:
-          - Prepared tax correspondence and notices for mailing to taxpayers
-          - Reset and troubleshot call agents’ phones
-          - Entered employee schedules, leave, and vacation balances; prepared Excel reports
-      - company: Canada Revenue Agency
-        position: Administrative Assistant (Summer 2022)
-        location: Calgary, AB
-        start_date: "2022-06"
         end_date: "2022-08"
         highlights:
-          - Prepared tax correspondence and notices for mailing to taxpayers
-          - Reset and troubleshot call agents’ phones
-          - Entered employee schedules, leave, and vacation balances; prepared Excel reports
+          - Prepared tax correspondence and notices for mailing to taxpayers, reset and troubleshooted call agent's phones
+          - Entered employee schedules, leave, and vacation balances in a proprietary database, prepared Excel reports
 
     volunteer:
       - company: Spark Lab
@@ -72,18 +62,18 @@ cv:
         start_date: "2024-01"
         end_date: "2025-04"
         highlights:
-          - Engaged with researchers to understand needs and challenges in lab and field environments
-          - Designed custom research solutions using CAD and 3D printing
-          - Managed a 3D printing queue and ensured models were print-ready
-          - Repaired and maintained FDM 3D printers
-          - Worked with community members to solve everyday problems using technical solutions
+          - Engaged with researchers to understand their needs and challenges in laboratory/field environments
+          - Designed customized research solutions using CAD and 3D printing
+          - Management of a 3D printing queue, ensuring models were print-ready, and edited for printability
+          - Repair and maintenance of three fused deposition modeling (FDM) 3D printers
+          - Engaged with community members to solve everyday problems using technically advanced solutions
       - company: UNBC School of Engineering
         position: Technician/Teacher
         location: Prince George, BC
-        start_date: "2024-07"
+        start_date: "2023-07"
         end_date: "2024-02"
         highlights:
-          - Maintained and operated FDM 3D printers
+          - Maintenance and operation of FDM 3D printers
           - Educated engineering students on 3D modeling and printing
       - company: Over the Edge Student Newspaper
         position: Content Writer
@@ -92,15 +82,11 @@ cv:
         end_date: "2024-12"
         highlights: []
 
-    projects:
-      - name: Spark Lab CKPG Feature
+    media:
+      - name: "Spark Lab CKPG Feature (video time: 13:10)"
         url: https://ckpgtoday.ca/2024/06/24/ckpg-today-for-june-24-2024/
-        date: "2024-06"
-        summary: Television segment highlighting Spark Lab work (segment starts at 13:10)
       - name: Prince George Public Library Repair Café
         url: https://www.princegeorgecitizen.com/local-news/eco-living-community-holds-a-repair-cafe-at-prince-george-public-library-for-small-appliances-and-textiles-satuday-9338448
-        date: "2024"
-        summary: Local news coverage of Repair Café community event
 
     education:
       - degree: BASc
@@ -110,32 +96,33 @@ cv:
         start_date: "2020-09"
         end_date: "2025-05"
         highlights:
-          - Accredited P.Eng. program with focus on energy, hydrology, lab testing, and project management
-          - Helped develop 3D printing capacity and taught CAD design to engineering students
-          - Participated in research projects related to climate change and hydrology
+          - Accredited P.Eng. program with a focus on energy, hydrology, lab testing, and project management
+          - Aided in the development of 3D printing capacity and educated engineering students in CAD design
+          - Participated in and conducted engineering research projects related to climate change and hydrology
 
-    professional_development: []
+    certifications:
+      - label: SolidWorks CAD Design Professional
+        details: "ID: C-Z86YEG5TLA"
+      - label: IBM Data Science Specialization
+        details: "ID: 7KUJ2G6G6EJL"
 
-    certifications_skills:
-      - label: Certifications
-        details: SolidWorks CAD Design Professional (ID: C-Z86YEG5TLA); IBM Data Science Specialization (ID: 7KUJ2G6G6EJL)
-      - label: Technical Skills
-        details: CAD/Simulation: SolidWorks, Fusion, HEC-RAS, EPANET, DWSIM, ArcGIS, SimScale; Data: Python, Excel, R; 3D printing (FDM) operation/maintenance; Scientific field work protocols
+    skills:
+      - bullet: "CAD/Simulation Software: SolidWorks, Fusion, HEC-RAS, EPANET, DWSIM, ArcGIS, SimScale"
+      - bullet: "Data Analysis: Python, Excel, R"
+      - bullet: "Operation and maintenance of FDM 3D printers"
+      - bullet: Scientific field work protocols
 
     awards:
-      - name: NSERC Undergraduate Student Research Award (USRA)
+      - name: NSERC Undergraduate Student Research Award
         summary: Natural Sciences and Engineering Research Council of Canada
         date: "2024-05"
         highlights:
-          - Merit-based award supporting undergraduate research in the natural sciences and engineering
-      - name: Undergraduate Research Experience (URE) Award
+          - Natural Sciences and Engineering Research Council of Canada Undergraduate Student Research Award, awarded for outstanding research contributions in the natural sciences and engineering fields. The award recognizes exceptional research skills, creativity, and potential for future contributions to the field.
+      - name: Undergraduate Research Experience Award
         summary: University of Northern British Columbia
         date: "2024-01"
         highlights:
-          - Competitive program supporting undergraduate involvement in scholarly research with faculty mentors
-
-    presentations: []
-    publications: []
+          - The Undergraduate Research Experience (URE) Award at UNBC is a competitive program designed to involve undergraduate students in scholarly research. Recipients collaborate with faculty on research projects, developing critical thinking, inquiry, and research skills.
 
 design:
   theme: ahmadstyle
@@ -144,3 +131,4 @@ design:
   keep_sections_together: false
   keep_entries_together: true
   website_link_color: blue
+  section_heading_size: 13pt
