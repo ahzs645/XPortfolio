@@ -13,6 +13,7 @@ import {
     viewportInternals,
     lifecycleInternals,
 } from './windowInternals.js';
+
 export default class WindowManager {
     constructor(eventBus) {
         this.eventBus = eventBus;
@@ -33,9 +34,11 @@ export default class WindowManager {
         this._cachedTaskbarElement = null;
         this._setupGlobalHandlers();
         this._subscribeToEvents();
+
         window.addEventListener('resize', () => {
             this._handleViewportChange();
         });
+
         window.addEventListener('message', messageEvent => {
             if (!this._toggleButtonState) {
                 this._toggleButtonState = (button, enabled) => {
@@ -49,6 +52,7 @@ export default class WindowManager {
                     }
                 };
             }
+
             if (messageEvent.data && messageEvent.data.type === 'ui:home-enabled') {
                 const targetWindow = this._findWindowByIframe(messageEvent.source);
                 if (targetWindow) {
@@ -56,6 +60,7 @@ export default class WindowManager {
                     this._toggleButtonState(homeButton, messageEvent.data.enabled);
                 }
             }
+
             if (messageEvent.data && messageEvent.data.type === 'nav:enabled') {
                 const navWindow = this._findWindowByIframe(messageEvent.source);
                 if (navWindow) {
@@ -65,7 +70,8 @@ export default class WindowManager {
                     this._toggleButtonState(nextButton, messageEvent.data.enabled);
                 }
             }
-            if (messageEvent['data'] && messageEvent['data']['type'] === 'throttle-nav-buttons') {
+
+            if (messageEvent.data && messageEvent.data.type === 'throttle-nav-buttons') {
                 this.projectNavigationDisabled = messageEvent.data.active;
                 const projectsWindow = this.windows['projects-window'];
                 if (projectsWindow) {
@@ -77,7 +83,13 @@ export default class WindowManager {
                     }
                 }
             }
-            messageEvent['data'] && messageEvent['data']['type'] === 'open-app' && (messageEvent['data']['appName'] && this['openProgram'](messageEvent['data']['appName']));
+
+            if (messageEvent.data && messageEvent.data.type === 'open-app') {
+                if (messageEvent.data.appName) {
+                    this.openProgram(messageEvent.data.appName);
+                }
+            }
+
             if (messageEvent.data && messageEvent.data.type === 'set-external-link-enabled') {
                 const linkWindow = this._findWindowByIframe(messageEvent.source);
                 if (linkWindow) {
@@ -96,12 +108,14 @@ export default class WindowManager {
                     }
                 }
             }
+
             if (messageEvent.data && messageEvent.data.type === 'update-status-bar') {
                 const statusWindow = this._findWindowByIframe(messageEvent.source);
                 if (statusWindow && statusWindow.statusBarField) {
                     statusWindow.statusBarField.textContent = messageEvent.data.text;
                 }
             }
+
             if (messageEvent.data && messageEvent.data.type === 'toolbar:zoom-state') {
                 const zoomWindow = this._findWindowByIframe(messageEvent.source);
                 if (zoomWindow) {
@@ -115,6 +129,7 @@ export default class WindowManager {
                     }
                 }
             }
+
             if (messageEvent.data && messageEvent.data.type === 'update-overlay-button-state') {
                 const overlayWindow = this._findWindowByIframe(messageEvent.source);
                 if (overlayWindow) {
@@ -128,6 +143,7 @@ export default class WindowManager {
                     }
                 }
             }
+
             if (messageEvent.data && messageEvent.data.type === 'update-address-bar') {
                 const addressWindow = this._findWindowByIframe(messageEvent.source);
                 if (addressWindow) {
@@ -137,7 +153,10 @@ export default class WindowManager {
                     }
                 }
             }
-            if (!(window['location']['protocol'] === 'file:' || messageEvent['origin'] === window['origin'])) return;
+
+            // Security check for message origin
+            if (!(window.location.protocol === 'file:' || messageEvent.origin === window.origin)) return;
+
             if (messageEvent.data && messageEvent.data.type === 'contact:form-state') {
                 let contactWindow = null;
                 for (const windowKey in this.windows) {
@@ -155,28 +174,34 @@ export default class WindowManager {
                     this._toggleButtonState(newButton, messageEvent.data.hasValue);
                 }
             }
+
             let sourceWindow = null;
             if (messageEvent.data?.type === 'window:iframe-interaction' && messageEvent.data.windowId) {
                 sourceWindow = document.getElementById(messageEvent.data.windowId);
             }
+
             if (!sourceWindow) {
                 sourceWindow = Array.from(document.querySelectorAll('.app-window')).find(candidateWindow => {
                     const candidateIframe = candidateWindow.querySelector('iframe');
                     return candidateIframe && candidateIframe.contentWindow === messageEvent.source;
                 });
             }
+
             if (!sourceWindow && messageEvent.data?.type === 'window:iframe-interaction') {
                 sourceWindow = Array.from(document.querySelectorAll('.app-window')).find(contactCandidate => {
                     const contactIframe = contactCandidate.querySelector('iframe');
                     return contactIframe && contactIframe.src.includes('contact.html');
                 });
             }
+
             if (!sourceWindow) return;
+
             if (messageEvent.data?.type === 'window:iframe-interaction') {
                 const customEventOptions = { bubbles: false };
                 sourceWindow.dispatchEvent(new CustomEvent('window:iframe-interaction', customEventOptions));
                 return;
             }
+
             // Window sizing and drag messages from apps (Winamp/Minesweeper)
             if (messageEvent.data?.type === 'resize-window-to') {
                 const { width, height } = messageEvent.data;
@@ -186,6 +211,7 @@ export default class WindowManager {
                 }
                 return;
             }
+
             if (messageEvent.data?.type === 'fit-content-size') {
                 const iframe = sourceWindow.querySelector('iframe');
                 if (iframe && typeof messageEvent.data.width === 'number' && typeof messageEvent.data.height === 'number') {
@@ -200,6 +226,7 @@ export default class WindowManager {
                 }
                 return;
             }
+
             if (messageEvent.data?.type === 'winamp-drag-start' || messageEvent.data?.type === 'winamp-drag-move' || messageEvent.data?.type === 'winamp-drag-end') {
                 const iframe = sourceWindow.querySelector('iframe');
                 if (!iframe) return;
@@ -219,6 +246,7 @@ export default class WindowManager {
                 }
                 return;
             }
+
             if (messageEvent.data?.type === 'minimize-window') {
                 this.minimizeWindow(sourceWindow);
             } else if (messageEvent.data?.type === 'close-window') {
@@ -228,6 +256,7 @@ export default class WindowManager {
                     sourceWindow.statusBarField.textContent = messageEvent.data.text;
                 }
             }
+
             if (messageEvent.data && messageEvent.data.type === 'project:view-state') {
                 const projectsWindow = this.windows['projects-window'];
                 let homeBtn, backBtn, forwardBtn, overlayToggleButton;
@@ -243,6 +272,7 @@ export default class WindowManager {
                 overlayToggleButton && this._toggleButtonState(overlayToggleButton, !messageEvent.data.inDetailView);
             }
         });
+
         const globalHomeButton = document.querySelector('.toolbar-button.home');
         if (globalHomeButton) {
             globalHomeButton.addEventListener('click', () => {
@@ -256,7 +286,9 @@ export default class WindowManager {
                 }
             });
         }
-    } _createElement(tagName, className = '', attributes = {}) {
+    }
+
+    _createElement(tagName, className = '', attributes = {}) {
         const element = document.createElement(tagName);
         if (className) element.className = className;
         Object.entries(attributes).forEach(([key, value]) => {
@@ -264,9 +296,11 @@ export default class WindowManager {
         });
         return element;
     }
+
     _isMobileDevice() {
         return document.documentElement.classList.contains('mobile-device');
     }
+
     _findWindowByIframe(iframeWindow) {
         for (const windowKey in this.windows) {
             const windowElement = this.windows[windowKey];
@@ -277,103 +311,187 @@ export default class WindowManager {
         }
         return null;
     }
+
     _setupGlobalHandlers() {
         document.addEventListener('mousedown', event => {
             const clickedOnDesktop = event.target.classList.contains('desktop') || event.target.classList.contains('selection-overlay');
-            clickedOnDesktop && !event.target.closest('.window') && (this.activeWindow && this.deactivateAllWindows());
+            if (clickedOnDesktop && !event.target.closest('.window')) {
+                if (this.activeWindow) {
+                    this.deactivateAllWindows();
+                }
+            }
         }, true);
     }
+
     _subscribeToEvents() {
-        this['eventBus']['subscribe'](EVENTS['PROGRAM_OPEN'], _0x3f53e3 => {
-            if (_0x3f53e3['programName'] === 'mediaPlayer' && !_0x3f53e3['skipLoading']) this['openMediaPlayerWithLoading']();
-            else {
-                if (_0x3f53e3['programName'] === 'musicPlayer' && !_0x3f53e3['skipLoading']) this['openMusicPlayerWithLoading']();
-                else _0x3f53e3['programName'] === 'paint' && !_0x3f53e3['skipLoading'] ? this['openPaintWithLoading']() : this['openProgram'](_0x3f53e3['programName'], _0x3f53e3);
-            }
-        }), this['eventBus']['subscribe'](EVENTS['WINDOW_FOCUSED'], _0x1f9f9e => this['_handleWindowFocus'](_0x1f9f9e['windowId'])), this['eventBus']['subscribe'](EVENTS['WINDOW_MINIMIZED'], _0x117d0d => this['_handleWindowMinimize'](_0x117d0d['windowId'])), this['eventBus']['subscribe'](EVENTS['WINDOW_CLOSED'], _0x2fdcac => this['_handleWindowCloseCleanup'](_0x2fdcac['windowId'])), this['eventBus']['subscribe'](EVENTS['WINDOW_RESTORED'], _0x38f7a0 => this['_handleWindowRestore'](_0x38f7a0['windowId'])), this['eventBus']['subscribe'](EVENTS['TASKBAR_ITEM_CLICKED'], _0x522e43 => this['_handleTaskbarClick'](_0x522e43['windowId'])), this['eventBus']['subscribe'](EVENTS['PROGRAM_CLOSE_REQUESTED'], _0x132100 => {
-            if (_0x132100 && _0x132100['programId']) {
-                const _0x4f14e0 = this['windows'][_0x132100['programId']];
-                _0x4f14e0 && this['closeWindow'](_0x4f14e0);
+        this.eventBus.subscribe(EVENTS.PROGRAM_OPEN, eventData => {
+            if (eventData.programName === 'mediaPlayer' && !eventData.skipLoading) {
+                this.openMediaPlayerWithLoading();
+            } else if (eventData.programName === 'musicPlayer' && !eventData.skipLoading) {
+                this.openMusicPlayerWithLoading();
+            } else if (eventData.programName === 'paint' && !eventData.skipLoading) {
+                this.openPaintWithLoading();
+            } else {
+                this.openProgram(eventData.programName, eventData);
             }
         });
-    } ['_calculateWindowToTaskbarTransform'](_0x60af45, _0x5804d5) {
-        return lifecycleInternals['calculateWindowToTaskbarTransform'](_0x60af45, _0x5804d5);
-    } ['openPaintWithLoading']() {
-        const loadingId = 'paint-' + Date['now']();
+
+        this.eventBus.subscribe(EVENTS.WINDOW_FOCUSED, data => this._handleWindowFocus(data.windowId));
+        this.eventBus.subscribe(EVENTS.WINDOW_MINIMIZED, data => this._handleWindowMinimize(data.windowId));
+        this.eventBus.subscribe(EVENTS.WINDOW_CLOSED, data => this._handleWindowCloseCleanup(data.windowId));
+        this.eventBus.subscribe(EVENTS.WINDOW_RESTORED, data => this._handleWindowRestore(data.windowId));
+        this.eventBus.subscribe(EVENTS.TASKBAR_ITEM_CLICKED, data => this._handleTaskbarClick(data.windowId));
+        this.eventBus.subscribe(EVENTS.PROGRAM_CLOSE_REQUESTED, data => {
+            if (data && data.programId) {
+                const windowElement = this.windows[data.programId];
+                if (windowElement) {
+                    this.closeWindow(windowElement);
+                }
+            }
+        });
+    }
+
+    _calculateWindowToTaskbarTransform(windowElement, taskbarItem) {
+        return lifecycleInternals.calculateWindowToTaskbarTransform(windowElement, taskbarItem);
+    }
+
+    openPaintWithLoading() {
+        const loadingId = 'paint-' + Date.now();
         systemLoadingManager.startLoading(loadingId);
-        const paintProgram = this.programData['paint'];
+        const paintProgram = this.programData.paint;
         if (!paintProgram) {
             systemLoadingManager.endLoading(loadingId);
             return;
         }
+
         let existingWindow = document.getElementById(paintProgram.id);
         if (existingWindow) {
             systemLoadingManager.endLoading(loadingId);
-            existingWindow.classList.contains('minimized') ? this.restoreWindow(existingWindow) : this.bringToFront(existingWindow);
+            if (existingWindow.classList.contains('minimized')) {
+                this.restoreWindow(existingWindow);
+            } else {
+                this.bringToFront(existingWindow);
+            }
             return;
         }
+
         const preloadIframe = document.createElement('iframe');
         preloadIframe.src = paintProgram.appPath;
-        preloadIframe.style.cssText = '\n      position: absolute;\n      top: -9999px;\n      left: -9999px;\n      width: 1px;\n      height: 1px;\n      visibility: hidden;\n      opacity: 0;\n      pointer-events: none;\n    ';
+        preloadIframe.style.cssText = `
+      position: absolute;
+      top: -9999px;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+    `;
         preloadIframe.setAttribute('aria-hidden', 'true');
         document.body.appendChild(preloadIframe);
+
         const finishLoading = () => {
-            document.body.contains(preloadIframe) && document.body.removeChild(preloadIframe);
+            if (document.body.contains(preloadIframe)) {
+                document.body.removeChild(preloadIframe);
+            }
             systemLoadingManager.endLoading(loadingId);
             const openEvent = { programName: 'paint', skipLoading: true };
-            this.eventBus.publish(EVENTS['PROGRAM_OPEN'], openEvent);
+            this.eventBus.publish(EVENTS.PROGRAM_OPEN, openEvent);
         };
+
         preloadIframe.onload = finishLoading;
         preloadIframe.onerror = finishLoading;
         setTimeout(() => {
-            document.body.contains(preloadIframe) && finishLoading();
-        }, 0x1388);
-    } ['openMediaPlayerWithLoading']() {
-        const loadingId = 'mediaPlayer-' + Date['now']();
+            if (document.body.contains(preloadIframe)) {
+                finishLoading();
+            }
+        }, 5000); // 0x1388
+    }
+
+    openMediaPlayerWithLoading() {
+        const loadingId = 'mediaPlayer-' + Date.now();
         systemLoadingManager.startLoading(loadingId);
-        const mediaProgram = this.programData['mediaPlayer'];
+        const mediaProgram = this.programData.mediaPlayer;
         if (!mediaProgram) {
             systemLoadingManager.endLoading(loadingId);
             return;
         }
+
         let existingWindow = document.getElementById(mediaProgram.id);
         if (existingWindow) {
             systemLoadingManager.endLoading(loadingId);
-            existingWindow.classList.contains('minimized') ? this.restoreWindow(existingWindow) : this.bringToFront(existingWindow);
+            if (existingWindow.classList.contains('minimized')) {
+                this.restoreWindow(existingWindow);
+            } else {
+                this.bringToFront(existingWindow);
+            }
             return;
         }
+
         const preloadIframe = document.createElement('iframe');
         preloadIframe.src = mediaProgram.appPath;
-        preloadIframe.style.cssText = '\n      position: absolute;\n      top: -9999px;\n      left: -9999px;\n      width: 1px;\n      height: 1px;\n      visibility: hidden;\n      opacity: 0;\n      pointer-events: none;\n    ';
+        preloadIframe.style.cssText = `
+      position: absolute;
+      top: -9999px;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+    `;
         preloadIframe.setAttribute('aria-hidden', 'true');
         document.body.appendChild(preloadIframe);
+
         setTimeout(() => {
-            document.body.contains(preloadIframe) && document.body.removeChild(preloadIframe);
+            if (document.body.contains(preloadIframe)) {
+                document.body.removeChild(preloadIframe);
+            }
             systemLoadingManager.endLoading(loadingId);
             const openEvent = { programName: 'mediaPlayer', skipLoading: true };
-            this.eventBus.publish(EVENTS['PROGRAM_OPEN'], openEvent);
-        }, 0x5dc);
-    } ['openMusicPlayerWithLoading']() {
-        const loadingId = 'musicPlayer-' + Date['now']();
+            this.eventBus.publish(EVENTS.PROGRAM_OPEN, openEvent);
+        }, 1500); // 0x5dc
+    }
+
+    openMusicPlayerWithLoading() {
+        const loadingId = 'musicPlayer-' + Date.now();
         systemLoadingManager.startLoading(loadingId);
-        const musicProgram = this.programData['musicPlayer'];
+        const musicProgram = this.programData.musicPlayer;
         if (!musicProgram) {
             systemLoadingManager.endLoading(loadingId);
             return;
         }
+
         let existingWindow = document.getElementById(musicProgram.id);
         if (existingWindow) {
             systemLoadingManager.endLoading(loadingId);
-            existingWindow.classList.contains('minimized') ? this.restoreWindow(existingWindow) : this.bringToFront(existingWindow);
+            if (existingWindow.classList.contains('minimized')) {
+                this.restoreWindow(existingWindow);
+            } else {
+                this.bringToFront(existingWindow);
+            }
             return;
         }
+
         const preloadIframe = document.createElement('iframe');
         preloadIframe.src = musicProgram.appPath;
-        preloadIframe.style.cssText = '\n      position: absolute;\n      top: -9999px;\n      left: -9999px;\n      width: 1px;\n      height: 1px;\n      visibility: hidden;\n      opacity: 0;\n      pointer-events: none;\n    ';
+        preloadIframe.style.cssText = `
+      position: absolute;
+      top: -9999px;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+    `;
         preloadIframe.setAttribute('aria-hidden', 'true');
         document.body.appendChild(preloadIframe);
+
         setTimeout(() => {
-            document.body.contains(preloadIframe) && document.body.removeChild(preloadIframe);
+            if (document.body.contains(preloadIframe)) {
+                document.body.removeChild(preloadIframe);
+            }
             const newWindow = this._createWindowElement(musicProgram);
             newWindow.classList.add('window-opening');
             this._registerWindow(newWindow, musicProgram);
@@ -382,457 +500,902 @@ export default class WindowManager {
             this.positionWindow(newWindow);
             this.bringToFront(newWindow);
             setTimeout(() => {
-                newWindow && newWindow.classList.remove('window-opening');
-            }, 0xc8);
+                if (newWindow) {
+                    newWindow.classList.remove('window-opening');
+                }
+            }, 200); // 0xc8
             systemLoadingManager.endLoading(loadingId);
-        }, 0x1f4);
-    } ['openProgram'](_0x445207, _0xc19382 = {}) {
-        if (!window['__BOOT_COMPLETE']) return null;
-        if (!_0x445207 || !this['programData'][_0x445207]) return;
-        const _0x805abb = {
-            ...this['programData'][_0x445207]
-        };
-        let _0x15442b = _0x805abb;
-        if (isFirefox() && _0x15442b['firefoxConfig']) {
-            if (document['documentElement']['classList']['contains']('mobile-device')) {
-                const {
-                    resizable: _0x3fae96,
-                    canMaximize: _0xdab677,
-                    ..._0x157b60
-                } = _0x15442b['firefoxConfig'];
-                void _0x3fae96, void _0xdab677, _0x15442b = {
-                    ..._0x15442b,
-                    ..._0x157b60
-                };
-            } else _0x15442b = {
-                ..._0x15442b,
-                ..._0x15442b['firefoxConfig']
-            };
-        }
-        let _0xdcc7f = document['getElementById'](_0x15442b['id']);
-        if (_0xdcc7f) {
-            _0xdcc7f['classList']['contains']('minimized') ? this['restoreWindow'](_0xdcc7f) : (this.bringToFront(_0xdcc7f), this['_handleWindowFocus'](_0xdcc7f['id']), _0xdcc7f['style']['transition'] = 'transform\x200.15s\x20ease-out', _0xdcc7f['style']['transform'] = 'scale(1.02)', setTimeout(() => {
-                _0xdcc7f && (_0xdcc7f['style']['transform'] = '', setTimeout(() => {
-                    if (_0xdcc7f) _0xdcc7f['style']['transition'] = '';
-                }, 0x96));
-            }, 0x32));
-            if (_0x445207 === 'image-viewer' && _0xc19382 && typeof _0xc19382['initialIndex'] !== 'undefined') {
-                const _0x1a646b = _0xdcc7f['querySelector']('iframe');
-                if (_0x1a646b && _0x1a646b['contentWindow']) {
-                    const _0x1a7ff0 = {};
-                    _0x1a7ff0['type'] = 'set-initial-index', _0x1a7ff0['initialIndex'] = _0xc19382['initialIndex'], _0x1a7ff0['projectTitle'] = _0xc19382['projectTitle'], _0x1a646b['contentWindow']['postMessage'](_0x1a7ff0, '*');
-                }
+        }, 500); // 0x1f4
+    }
+
+    openProgram(programName, options = {}) {
+        // Don't open windows if boot is not complete
+        if (!window.__BOOT_COMPLETE) return null;
+
+        if (!programName || !this.programData[programName]) return;
+
+        const programConfig = { ...this.programData[programName] };
+        let effectiveConfig = programConfig;
+
+        // Apply Firefox-specific configuration if needed
+        if (isFirefox() && effectiveConfig.firefoxConfig) {
+            if (document.documentElement.classList.contains('mobile-device')) {
+                const { resizable, canMaximize, ...restConfig } = effectiveConfig.firefoxConfig;
+                void resizable;
+                void canMaximize;
+                effectiveConfig = { ...effectiveConfig, ...restConfig };
+            } else {
+                effectiveConfig = { ...effectiveConfig, ...effectiveConfig.firefoxConfig };
             }
-            return _0xdcc7f;
         }
-        _0xdcc7f = this._createWindowElement(_0x15442b), this._registerWindow(_0xdcc7f, _0x15442b), this._setupWindowEvents(_0xdcc7f), document['getElementById']('windows-container')['appendChild'](_0xdcc7f), this.positionWindow(_0xdcc7f);
-        if (_0x15442b['id'] === 'projects') {
-            _0xdcc7f['style']['opacity'] = '0', _0xdcc7f['setAttribute']('data-program-loading', 'true');
-            const _0xe4a3a0 = _0xdcc7f['querySelector']('iframe');
-            if (_0xe4a3a0) {
-                const _0x42793e = _0x5ee2e7 => {
-                        _0x5ee2e7['source'] === _0xe4a3a0['contentWindow'] && _0x5ee2e7['data'] && _0x5ee2e7['data']['type'] === 'projects-ready' && (window['removeEventListener']('message', _0x42793e), clearTimeout(_0x400e52), _0xdcc7f['style']['opacity'] = '1', _0xdcc7f['removeAttribute']('data-program-loading'), this.bringToFront(_0xdcc7f), this['_handleWindowFocus'](_0xdcc7f['id']));
-                    },
-                    _0x400e52 = setTimeout(() => {
-                        window['removeEventListener']('message', _0x42793e), _0xdcc7f['hasAttribute']('data-program-loading') && (_0xdcc7f['style']['opacity'] = '1', _0xdcc7f['removeAttribute']('data-program-loading'), this.bringToFront(_0xdcc7f), this['_handleWindowFocus'](_0xdcc7f['id']));
-                    }, 0x1b58);
-                window['addEventListener']('message', _0x42793e);
-            }
-            this.bringToFront(_0xdcc7f);
-        } else {
-            const _0x3c22ba = window['__IS_IFRAME_CACHED'] && window['__IS_IFRAME_CACHED'](_0x15442b['id']);
-            if (_0x3c22ba) {
-                this.bringToFront(_0xdcc7f), this['_handleWindowFocus'](_0xdcc7f['id']);
-                if (_0x445207 === 'image-viewer' && _0xc19382 && typeof _0xc19382['initialIndex'] !== 'undefined') {
-                    const _0x63f9a4 = _0xdcc7f['querySelector']('iframe');
-                    if (_0x63f9a4 && _0x63f9a4['contentWindow']) {
-                        const _0xa395f5 = {};
-                        _0xa395f5['type'] = 'set-initial-index', _0xa395f5['initialIndex'] = _0xc19382['initialIndex'], _0xa395f5['projectTitle'] = _0xc19382['projectTitle'], _0x63f9a4['contentWindow']['postMessage'](_0xa395f5, '*');
-                    }
-                }
-            } else _0xdcc7f['style']['opacity'] = '0', this.bringToFront(_0xdcc7f), import('../utils/frameScheduler.js')['then'](({
-                scheduleWrite: _0x69b940
-            }) => {
-                _0x69b940(() => {
-                    _0xdcc7f['style']['transition'] = 'opacity\x200.15s\x20ease-out', _0xdcc7f['style']['opacity'] = '1', this['_handleWindowFocus'](_0xdcc7f['id']);
-                    if (_0x445207 === 'image-viewer' && _0xc19382 && typeof _0xc19382['initialIndex'] !== 'undefined') {
-                        const _0x6bf977 = _0xdcc7f['querySelector']('iframe');
-                        _0x6bf977 && setTimeout(() => {
-                            if (_0x6bf977['contentWindow']) {
-                                const _0xd74b0a = {};
-                                _0xd74b0a['type'] = 'set-initial-index', _0xd74b0a['initialIndex'] = _0xc19382['initialIndex'], _0xd74b0a['projectTitle'] = _0xc19382['projectTitle'], _0x6bf977['contentWindow']['postMessage'](_0xd74b0a, '*');
+
+        let existingWindow = document.getElementById(effectiveConfig.id);
+        if (existingWindow) {
+            if (existingWindow.classList.contains('minimized')) {
+                this.restoreWindow(existingWindow);
+            } else {
+                this.bringToFront(existingWindow);
+                this._handleWindowFocus(existingWindow.id);
+                // Add subtle bounce effect
+                existingWindow.style.transition = 'transform 0.15s ease-out';
+                existingWindow.style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    if (existingWindow) {
+                        existingWindow.style.transform = '';
+                        setTimeout(() => {
+                            if (existingWindow) {
+                                existingWindow.style.transition = '';
                             }
-                        }, 0x1f4);
+                        }, 150); // 0x96
                     }
-                    setTimeout(() => {
-                        if (_0xdcc7f) _0xdcc7f['style']['transition'] = '';
-                    }, 0x96);
+                }, 50); // 0x32
+            }
+
+            // Handle image viewer initial index
+            if (programName === 'image-viewer' && options && typeof options.initialIndex !== 'undefined') {
+                const iframe = existingWindow.querySelector('iframe');
+                if (iframe && iframe.contentWindow) {
+                    const message = {
+                        type: 'set-initial-index',
+                        initialIndex: options.initialIndex,
+                        projectTitle: options.projectTitle
+                    };
+                    iframe.contentWindow.postMessage(message, '*');
+                }
+            }
+
+            return existingWindow;
+        }
+
+        // Create new window
+        existingWindow = this._createWindowElement(effectiveConfig);
+        this._registerWindow(existingWindow, effectiveConfig);
+        this._setupWindowEvents(existingWindow);
+        document.getElementById('windows-container').appendChild(existingWindow);
+        this.positionWindow(existingWindow);
+
+        // Special handling for projects window
+        if (effectiveConfig.id === 'projects') {
+            existingWindow.style.opacity = '0';
+            existingWindow.setAttribute('data-program-loading', 'true');
+            const iframe = existingWindow.querySelector('iframe');
+            if (iframe) {
+                const messageHandler = event => {
+                    if (event.source === iframe.contentWindow && event.data && event.data.type === 'projects-ready') {
+                        window.removeEventListener('message', messageHandler);
+                        clearTimeout(timeout);
+                        existingWindow.style.opacity = '1';
+                        existingWindow.removeAttribute('data-program-loading');
+                        this.bringToFront(existingWindow);
+                        this._handleWindowFocus(existingWindow.id);
+                    }
+                };
+
+                const timeout = setTimeout(() => {
+                    window.removeEventListener('message', messageHandler);
+                    if (existingWindow.hasAttribute('data-program-loading')) {
+                        existingWindow.style.opacity = '1';
+                        existingWindow.removeAttribute('data-program-loading');
+                        this.bringToFront(existingWindow);
+                        this._handleWindowFocus(existingWindow.id);
+                    }
+                }, 7000); // 0x1b58
+
+                window.addEventListener('message', messageHandler);
+            }
+            this.bringToFront(existingWindow);
+        } else {
+            const isCached = window.__IS_IFRAME_CACHED && window.__IS_IFRAME_CACHED(effectiveConfig.id);
+            if (isCached) {
+                this.bringToFront(existingWindow);
+                this._handleWindowFocus(existingWindow.id);
+
+                // Handle image viewer initial index
+                if (programName === 'image-viewer' && options && typeof options.initialIndex !== 'undefined') {
+                    const iframe = existingWindow.querySelector('iframe');
+                    if (iframe && iframe.contentWindow) {
+                        const message = {
+                            type: 'set-initial-index',
+                            initialIndex: options.initialIndex,
+                            projectTitle: options.projectTitle
+                        };
+                        iframe.contentWindow.postMessage(message, '*');
+                    }
+                }
+            } else {
+                existingWindow.style.opacity = '0';
+                this.bringToFront(existingWindow);
+                import('../utils/frameScheduler.js').then(({ scheduleWrite }) => {
+                    scheduleWrite(() => {
+                        existingWindow.style.transition = 'opacity 0.15s ease-out';
+                        existingWindow.style.opacity = '1';
+                        this._handleWindowFocus(existingWindow.id);
+
+                        // Handle image viewer initial index
+                        if (programName === 'image-viewer' && options && typeof options.initialIndex !== 'undefined') {
+                            const iframe = existingWindow.querySelector('iframe');
+                            if (iframe) {
+                                setTimeout(() => {
+                                    if (iframe.contentWindow) {
+                                        const message = {
+                                            type: 'set-initial-index',
+                                            initialIndex: options.initialIndex,
+                                            projectTitle: options.projectTitle
+                                        };
+                                        iframe.contentWindow.postMessage(message, '*');
+                                    }
+                                }, 500); // 0x1f4
+                            }
+                        }
+
+                        setTimeout(() => {
+                            if (existingWindow) {
+                                existingWindow.style.transition = '';
+                            }
+                        }, 150); // 0x96
+                    });
                 });
-            });
-        }
-        if (document['documentElement']['classList']['contains']('mobile-device')) {
-            const _0x329eea = _0xdcc7f['querySelector']('.menu-bar-container'),
-                _0x49ce89 = _0xdcc7f['querySelector']('.toolbar-container');
-            _0x329eea && (_0x329eea['style']['pointerEvents'] = 'none', _0x329eea['classList']['add']('menubar-temporarily-disabled')), _0x49ce89 && (_0x49ce89['style']['pointerEvents'] = 'none', _0x49ce89['classList']['add']('toolbar-temporarily-disabled')), _0xdcc7f['dataset']['acceptInput'] = 'false', setTimeout(() => {
-                document['body']['contains'](_0xdcc7f) && (_0x329eea && (_0x329eea['style']['pointerEvents'] = 'auto'), _0x49ce89 && (_0x49ce89['style']['pointerEvents'] = 'auto'));
-            }, 0x1f4), setTimeout(() => {
-                document['body']['contains'](_0xdcc7f) && (_0xdcc7f['dataset']['acceptInput'] = 'true', _0x49ce89 && _0x49ce89['classList']['remove']('toolbar-temporarily-disabled'), _0x329eea && _0x329eea['classList']['remove']('menubar-temporarily-disabled'));
-            }, 0x226);
-        }
-        return _0xdcc7f;
-    } ['_createWindowElement'](_0x4052e3) {
-        const _0x431f7d = {};
-        _0x431f7d['id'] = _0x4052e3['id'];
-        const _0x4836f = this['_createElement']('div', 'app-window', _0x431f7d);
-        _0x4836f['setAttribute']('data-program', _0x4052e3['id']['replace']('-window', '')), _0x4836f['innerHTML'] = this['_getWindowBaseHTML'](_0x4052e3);
-        const _0x1a4758 = _0x4052e3['id']['replace']('-window', '');
-        if (document['documentElement']['classList']['contains']('mobile-device')) {
-            _0x1a4758 === 'musicPlayer' && _0x4052e3['mobileConfig'] ? (_0x4836f['classList']['add']('mobile-music-player'), _0x4052e3['mobileConfig']['dimensions'] && (_0x4052e3['mobileConfig']['dimensions']['width'] && (_0x4836f['style']['width'] = _0x4052e3['mobileConfig']['dimensions']['width'] + 'px', _0x4836f['style']['maxWidth'] = _0x4052e3['mobileConfig']['dimensions']['width'] + 'px'), _0x4052e3['mobileConfig']['dimensions']['height'] && (_0x4836f['style']['height'] = _0x4052e3['mobileConfig']['dimensions']['height'] + 'px')), _0x4052e3['mobileConfig']['draggable'] === ![] && _0x4836f['setAttribute']('data-mobile-no-drag', 'true')) : (_0x4836f['classList']['add']('maximized'), _0x4836f['style']['position'] = 'fixed', _0x4836f['style']['left'] = '0', _0x4836f['style']['top'] = '0', _0x4836f['style']['width'] = '100vw', _0x4836f['style']['maxWidth'] = '100vw');
-            if (_0x1a4758 !== 'musicPlayer') {
-                const _0x4da95f = _0x4836f['querySelector']('[data-action=\x22maximize\x22]');
-                _0x4da95f && (_0x4da95f['classList']['add']('restore'), _0x4da95f['setAttribute']('aria-label', 'Restore'), _0x4da95f['disabled'] = !![]);
             }
         }
-        const _0x22aed0 = WindowTemplates['getTemplate'](_0x4052e3['template'], _0x4052e3);
-        if (!_0x22aed0) return null;
-        _0x4836f['appendChild'](_0x22aed0), this['_addStartMenuOverlay'](_0x4836f, _0x22aed0);
-        const _0x5e73db = _0x22aed0['querySelector']('.menu-bar-container');
-        _0x5e73db && typeof _0x5e73db['setParentWindowElement'] === 'function' && _0x5e73db['setParentWindowElement'](_0x4836f);
-        const _0x2415e8 = _0x4052e3['id']['replace']('-window', '');
-        if (_0x2415e8 !== 'cmd' && _0x2415e8 !== 'musicPlayer' && _0x2415e8 !== 'mediaPlayer' && _0x2415e8 !== 'minesweeper') {
-            const _0x175910 = this['_createElement']('div', 'status-bar'),
-                _0x2055e3 = this['_createElement']('p', 'status-bar-field');
+
+        // Disable toolbar/menubar temporarily on mobile to prevent accidental clicks during animation
+        if (document.documentElement.classList.contains('mobile-device')) {
+            const menuBar = existingWindow.querySelector('.menu-bar-container');
+            const toolbar = existingWindow.querySelector('.toolbar-container');
+
+            if (menuBar) {
+                menuBar.style.pointerEvents = 'none';
+                menuBar.classList.add('menubar-temporarily-disabled');
+            }
+            if (toolbar) {
+                toolbar.style.pointerEvents = 'none';
+                toolbar.classList.add('toolbar-temporarily-disabled');
+            }
+
+            existingWindow.dataset.acceptInput = 'false';
+
+            setTimeout(() => {
+                if (document.body.contains(existingWindow)) {
+                    if (menuBar) {
+                        menuBar.style.pointerEvents = 'auto';
+                    }
+                    if (toolbar) {
+                        toolbar.style.pointerEvents = 'auto';
+                    }
+                }
+            }, 500); // 0x1f4
+
+            setTimeout(() => {
+                if (document.body.contains(existingWindow)) {
+                    existingWindow.dataset.acceptInput = 'true';
+                    if (toolbar) {
+                        toolbar.classList.remove('toolbar-temporarily-disabled');
+                    }
+                    if (menuBar) {
+                        menuBar.classList.remove('menubar-temporarily-disabled');
+                    }
+                }
+            }, 550); // 0x226
+        }
+
+        return existingWindow;
+    }
+
+    _createWindowElement(programConfig) {
+        const windowElement = this._createElement('div', 'app-window', { id: programConfig.id });
+        windowElement.setAttribute('data-program', programConfig.id.replace('-window', ''));
+        windowElement.innerHTML = this._getWindowBaseHTML(programConfig);
+
+        const programId = programConfig.id.replace('-window', '');
+
+        // Handle mobile-specific window configuration
+        if (document.documentElement.classList.contains('mobile-device')) {
+            if (programId === 'musicPlayer' && programConfig.mobileConfig) {
+                windowElement.classList.add('mobile-music-player');
+                if (programConfig.mobileConfig.dimensions) {
+                    if (programConfig.mobileConfig.dimensions.width) {
+                        windowElement.style.width = programConfig.mobileConfig.dimensions.width + 'px';
+                        windowElement.style.maxWidth = programConfig.mobileConfig.dimensions.width + 'px';
+                    }
+                    if (programConfig.mobileConfig.dimensions.height) {
+                        windowElement.style.height = programConfig.mobileConfig.dimensions.height + 'px';
+                    }
+                }
+                if (programConfig.mobileConfig.draggable === false) {
+                    windowElement.setAttribute('data-mobile-no-drag', 'true');
+                }
+            } else {
+                // Maximize all other windows on mobile
+                windowElement.classList.add('maximized');
+                windowElement.style.position = 'fixed';
+                windowElement.style.left = '0';
+                windowElement.style.top = '0';
+                windowElement.style.width = '100vw';
+                windowElement.style.maxWidth = '100vw';
+            }
+
+            if (programId !== 'musicPlayer') {
+                const maximizeButton = windowElement.querySelector('[data-action="maximize"]');
+                if (maximizeButton) {
+                    maximizeButton.classList.add('restore');
+                    maximizeButton.setAttribute('aria-label', 'Restore');
+                    maximizeButton.disabled = true;
+                }
+            }
+        }
+
+        // Get and append window template (content)
+        const templateContent = WindowTemplates.getTemplate(programConfig.template, programConfig);
+        if (!templateContent) return null;
+
+        windowElement.appendChild(templateContent);
+        this._addStartMenuOverlay(windowElement, templateContent);
+
+        // Setup menu bar if present
+        const menuBarContainer = templateContent.querySelector('.menu-bar-container');
+        if (menuBarContainer && typeof menuBarContainer.setParentWindowElement === 'function') {
+            menuBarContainer.setParentWindowElement(windowElement);
+        }
+
+        // Add status bar for most windows (except cmd, musicPlayer, mediaPlayer, minesweeper, solitaire, spider-solitaire, pinball, calculator)
+        const windowType = programConfig.id.replace('-window', '');
+        if (windowType !== 'cmd' && windowType !== 'musicPlayer' && windowType !== 'mediaPlayer' && windowType !== 'minesweeper' && windowType !== 'solitaire' && windowType !== 'spider-solitaire' && windowType !== 'pinball' && windowType !== 'calculator') {
+            const statusBar = this._createElement('div', 'status-bar');
+            const statusBarField = this._createElement('p', 'status-bar-field');
+
             // Handle async status bar text
-            if (_0x4052e3['getStatusBarText'] && typeof _0x4052e3['getStatusBarText'] === 'function') {
-                _0x4052e3['getStatusBarText']().then(text => {
-                    _0x2055e3['textContent'] = text || 'Ready';
+            if (programConfig.getStatusBarText && typeof programConfig.getStatusBarText === 'function') {
+                programConfig.getStatusBarText().then(text => {
+                    statusBarField.textContent = text || 'Ready';
                 }).catch(() => {
-                    _0x2055e3['textContent'] = _0x4052e3['statusBarText'] || 'Ready';
+                    statusBarField.textContent = programConfig.statusBarText || 'Ready';
                 });
             } else {
-                _0x2055e3['textContent'] = _0x4052e3['statusBarText'] || 'Ready';
+                statusBarField.textContent = programConfig.statusBarText || 'Ready';
             }
-            _0x175910['appendChild'](_0x2055e3), _0x4836f['appendChild'](_0x175910), _0x4836f['statusBarField'] = _0x2055e3;
+
+            statusBar.appendChild(statusBarField);
+            windowElement.appendChild(statusBar);
+            windowElement.statusBarField = statusBarField;
         }
-        const _0x3b5247 = 0x258,
-            _0x150909 = 0x190;
-        return !_0x4836f['style']['width'] && (_0x4836f['style']['width'] = (_0x4052e3['dimensions']?.['width'] || _0x3b5247) + 'px'), !_0x4836f['style']['height'] && (_0x4836f['style']['height'] = (_0x4052e3['dimensions']?.['height'] || _0x150909) + 'px'), _0x4836f['style']['position'] = 'absolute', _0x4836f['addEventListener']('request-close-window', () => {
-            this['closeWindow'](_0x4836f);
-        }), _0x4836f['addEventListener']('request-minimize-window', () => {
-            this['minimizeWindow'](_0x4836f);
-        }), _0x4836f['addEventListener']('request-maximize-window', () => {
-            this['toggleMaximize'](_0x4836f);
-        }), _0x4836f;
-    } ['_getWindowBaseHTML'](_0x33f614) {
-        const _0x5a226c = _0x33f614['resizable'] !== ![];
-        let _0x16cf3c = '';
-        return _0x5a226c && (_0x16cf3c = '\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22resizer\x20resizer-n\x22></div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22resizer\x20resizer-ne\x22></div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22resizer\x20resizer-e\x22></div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22resizer\x20resizer-se\x22></div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22resizer\x20resizer-s\x22></div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22resizer\x20resizer-sw\x22></div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22resizer\x20resizer-w\x22></div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22resizer\x20resizer-nw\x22></div>\x0a\x20\x20\x20\x20\x20\x20'), '\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22window-inactive-mask\x22></div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22title-bar\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22title-bar-left\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22title-bar-icon\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<img\x20decoding=\x22async\x22\x20loading=\x22lazy\x22\x20src=\x22' + _0x33f614['icon'] + '\x22\x20alt=\x22' + _0x33f614['title'] + '\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22title-bar-text\x22>' + _0x33f614['title'] + '</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22title-bar-controls\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20' + (_0x33f614['canMinimize'] !== ![] ? '<button\x20class=\x22xp-button\x22\x20aria-label=\x22Minimize\x22\x20data-action=\x22minimize\x22></button>' : '') + '\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20' + (_0x33f614['canMaximize'] !== ![] ? '<button\x20class=\x22xp-button\x22\x20aria-label=\x22Maximize\x22\x20data-action=\x22maximize\x22></button>' : '') + '\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<button\x20class=\x22xp-button\x22\x20aria-label=\x22Close\x22\x20data-action=\x22close\x22></button>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20' + _0x16cf3c + '\x0a\x20\x20\x20\x20\x20\x20\x20\x20';
-    } ['_addStartMenuOverlay'](_0x7de73, _0x4f83c6) {
-        const _0x2d59ac = this['_createElement']('div', 'start-menu-content-click-overlay'),
-            _0x50833c = _0x4f83c6['classList']['contains']('window-body') ? _0x4f83c6 : _0x7de73;
-        _0x50833c !== _0x7de73 && (_0x50833c['style']['position'] = 'relative'), _0x50833c['appendChild'](_0x2d59ac);
-    } ['_registerWindow'](_0x2d6aae, _0x16b391) {
-        const _0x370858 = _0x2d6aae['id'];
-        this['windows'][_0x370858] = _0x2d6aae, this['taskbarItems'][_0x370858] = this['_createTaskbarItem'](_0x2d6aae, _0x16b391), this['windowCount']++, _0x2d6aae['windowState'] = {
-            'isMaximized': _0x2d6aae['classList']['contains']('maximized'),
-            'isMinimized': ![],
-            'originalStyles': {
-                'width': _0x2d6aae['style']['width'],
-                'height': _0x2d6aae['style']['height'],
-                'top': _0x2d6aae['style']['top'],
-                'left': _0x2d6aae['style']['left'],
-                'transform': _0x2d6aae['style']['transform']
+
+        // Set default dimensions (600x400)
+        const DEFAULT_WIDTH = 600;  // 0x258
+        const DEFAULT_HEIGHT = 400; // 0x190
+
+        if (!windowElement.style.width) {
+            windowElement.style.width = (programConfig.dimensions?.width || DEFAULT_WIDTH) + 'px';
+        }
+        if (!windowElement.style.height) {
+            windowElement.style.height = (programConfig.dimensions?.height || DEFAULT_HEIGHT) + 'px';
+        }
+
+        windowElement.style.position = 'absolute';
+
+        // Add event listeners for window controls
+        windowElement.addEventListener('request-close-window', () => {
+            this.closeWindow(windowElement);
+        });
+        windowElement.addEventListener('request-minimize-window', () => {
+            this.minimizeWindow(windowElement);
+        });
+        windowElement.addEventListener('request-maximize-window', () => {
+            this.toggleMaximize(windowElement);
+        });
+
+        return windowElement;
+    }
+
+    _getWindowBaseHTML(programConfig) {
+        const isResizable = programConfig.resizable !== false;
+        let resizersHTML = '';
+
+        if (isResizable) {
+            resizersHTML = `
+            <div class="resizer resizer-n"></div>
+            <div class="resizer resizer-ne"></div>
+            <div class="resizer resizer-e"></div>
+            <div class="resizer resizer-se"></div>
+            <div class="resizer resizer-s"></div>
+            <div class="resizer resizer-sw"></div>
+            <div class="resizer resizer-w"></div>
+            <div class="resizer resizer-nw"></div>
+      `;
+        }
+
+        return `
+            <div class="window-inactive-mask"></div>
+            <div class="title-bar">
+                <div class="title-bar-left">
+                    <div class="title-bar-icon">
+            <img decoding="async" loading="lazy" src="${programConfig.icon}" alt="${programConfig.title}">
+                    </div>
+                    <div class="title-bar-text">${programConfig.title}</div>
+                </div>
+                <div class="title-bar-controls">
+                    ${programConfig.canMinimize !== false ? '<button class="xp-button" aria-label="Minimize" data-action="minimize"></button>' : ''}
+                    ${programConfig.canMaximize !== false ? `<button class="xp-button" aria-label="Maximize" data-action="maximize"${programConfig.maximizeDisabled ? ' disabled' : ''}></button>` : ''}
+                    <button class="xp-button" aria-label="Close" data-action="close"></button>
+                </div>
+            </div>
+            ${resizersHTML}
+        `;
+    }
+
+    _addStartMenuOverlay(windowElement, templateContent) {
+        const overlay = this._createElement('div', 'start-menu-content-click-overlay');
+        const targetElement = templateContent.classList.contains('window-body') ? templateContent : windowElement;
+
+        if (targetElement !== windowElement) {
+            targetElement.style.position = 'relative';
+        }
+        targetElement.appendChild(overlay);
+    }
+
+    _registerWindow(windowElement, programConfig) {
+        const windowId = windowElement.id;
+        this.windows[windowId] = windowElement;
+        this.taskbarItems[windowId] = this._createTaskbarItem(windowElement, programConfig);
+        this.windowCount++;
+
+        windowElement.windowState = {
+            isMaximized: windowElement.classList.contains('maximized'),
+            isMinimized: false,
+            originalStyles: {
+                width: windowElement.style.width,
+                height: windowElement.style.height,
+                top: windowElement.style.top,
+                left: windowElement.style.left,
+                transform: windowElement.style.transform
             }
-        }, this['_updateStackOrder'](_0x370858, 'add'), this['_updateZIndices']();
-    } ['_createTaskbarItem'](_0x11cee1, _0x5d8d22) {
-        const _0x5e2d33 = {};
-        _0x5e2d33['id'] = 'taskbar-' + _0x11cee1['id'];
-        const _0x121ef7 = this['_createElement']('div', 'taskbar-item', _0x5e2d33);
-        return _0x121ef7['setAttribute']('data-window-id', _0x11cee1['id']), _0x121ef7['setAttribute']('data-program-id', _0x5d8d22['id']), _0x121ef7['innerHTML'] = '\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<img\x20decoding=\x22async\x22\x20src=\x22' + _0x5d8d22['icon'] + '\x22\x20alt=\x22' + _0x5d8d22['title'] + '\x22\x20/>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<span>' + _0x5d8d22['title'] + '</span>\x0a\x20\x20\x20\x20\x20\x20\x20\x20', this['_bindControl'](_0x121ef7, 'mousedown', () => {
-            const _0x5e1e80 = {};
-            _0x5e1e80['windowId'] = _0x11cee1['id'], _0x5e1e80['__coalesce'] = !![], (window['batchedPublish'] || this['eventBus']['publish'])['call'](window['batchedPublish'] ? undefined : this['eventBus'], EVENTS['TASKBAR_ITEM_CLICKED'], _0x5e1e80);
-        }), this['taskbarPrograms']['appendChild'](_0x121ef7), _0x121ef7;
-    } ['_setupWindowEvents'](_0x334f90) {
-        const _0x1661ee = _0x334f90['querySelector']('.title-bar'),
-            _0x555527 = _0x334f90['querySelector']('.start-menu-content-click-overlay');
-        this['_bindControl'](_0x334f90['querySelector']('[data-action=\x22close\x22]'), 'click', () => this['closeWindow'](_0x334f90)), this['_bindControl'](_0x334f90['querySelector']('[data-action=\x22minimize\x22]'), 'click', () => this['minimizeWindow'](_0x334f90));
-        const _0x21c51a = _0x334f90['querySelector']('[data-action=\x22maximize\x22]');
-        _0x21c51a && this['_bindControl'](_0x21c51a, 'click', () => {
-            !_0x21c51a['disabled'] && this['toggleMaximize'](_0x334f90);
+        };
+
+        this._updateStackOrder(windowId, 'add');
+        this._updateZIndices();
+    }
+
+    _createTaskbarItem(windowElement, programConfig) {
+        const taskbarItem = this._createElement('div', 'taskbar-item', { id: 'taskbar-' + windowElement.id });
+        taskbarItem.setAttribute('data-window-id', windowElement.id);
+        taskbarItem.setAttribute('data-program-id', programConfig.id);
+        taskbarItem.innerHTML = `
+            <img decoding="async" src="${programConfig.icon}" alt="${programConfig.title}" />
+            <span>${programConfig.title}</span>
+        `;
+
+        this._bindControl(taskbarItem, 'mousedown', () => {
+            const eventData = { windowId: windowElement.id, __coalesce: true };
+            (window.batchedPublish || this.eventBus.publish).call(
+                window.batchedPublish ? undefined : this.eventBus,
+                EVENTS.TASKBAR_ITEM_CLICKED,
+                eventData
+            );
         });
-        _0x334f90['addEventListener']('minimize-window', () => {
-            this['minimizeWindow'](_0x334f90);
+
+        this.taskbarPrograms.appendChild(taskbarItem);
+        return taskbarItem;
+    }
+
+    _setupWindowEvents(windowElement) {
+        const titleBar = windowElement.querySelector('.title-bar');
+        const startMenuOverlay = windowElement.querySelector('.start-menu-content-click-overlay');
+
+        // Close button
+        this._bindControl(windowElement.querySelector('[data-action="close"]'), 'click', () => {
+            this.closeWindow(windowElement);
         });
-        _0x1661ee && (this['_bindControl'](_0x1661ee, 'dblclick', () => {
-            const _0x3b9e91 = _0x334f90['getAttribute']('data-program');
-            let _0x1c51d5 = this['programData'][_0x3b9e91];
-            if (isFirefox() && _0x1c51d5 && _0x1c51d5['firefoxConfig']) {
-                if (document['documentElement']['classList']['contains']('mobile-device')) {
-                    const {
-                        canMaximize: _0x4f5a91,
-                        ..._0x5a80ee
-                    } = _0x1c51d5['firefoxConfig'];
-                    _0x1c51d5 = {
-                        ..._0x1c51d5,
-                        ..._0x5a80ee
-                    };
-                } else _0x1c51d5 = {
-                    ..._0x1c51d5,
-                    ..._0x1c51d5['firefoxConfig']
-                };
-            }
-            _0x1c51d5 && _0x1c51d5['canMaximize'] !== ![] && this['toggleMaximize'](_0x334f90);
-        }), this['makeDraggable'](_0x334f90, _0x1661ee));
-        this['_bindControl'](_0x334f90, 'mousedown', () => {
-            _0x334f90 !== this['activeWindow'] && this.bringToFront(_0x334f90);
-        }, !![]);
-        _0x555527 && this['_bindControl'](_0x555527, 'mousedown', _0x524b21 => {
-            _0x524b21['stopPropagation'](), _0x524b21['preventDefault']();
-            const _0x448bbc = {};
-            _0x448bbc['__coalesce'] = !![], (window['batchedPublish'] || this['eventBus']['publish'])['call'](window['batchedPublish'] ? undefined : this['eventBus'], EVENTS['STARTMENU_CLOSE_REQUEST'], _0x448bbc);
+
+        // Minimize button
+        this._bindControl(windowElement.querySelector('[data-action="minimize"]'), 'click', () => {
+            this.minimizeWindow(windowElement);
         });
-        this['_setupIframeActivationOverlay'](_0x334f90);
-        const _0x456ab7 = _0x334f90['querySelectorAll']('.toolbar-button[data-action]');
-        _0x456ab7['forEach'](_0x4e60c5 => {
-            const _0x39d56d = _0x4e60c5['cloneNode'](!![]);
-            _0x4e60c5['replaceWith'](_0x39d56d), this['_bindControl'](_0x39d56d, 'click', () => {
-                if (_0x39d56d['classList']['contains']('disabled')) return;
-                const _0x32770d = _0x39d56d['getAttribute']('data-action');
-                this['_handleToolbarAction'](_0x32770d, _0x334f90, _0x39d56d);
+
+        // Maximize button
+        const maximizeButton = windowElement.querySelector('[data-action="maximize"]');
+        if (maximizeButton) {
+            this._bindControl(maximizeButton, 'click', () => {
+                if (!maximizeButton.disabled) {
+                    this.toggleMaximize(windowElement);
+                }
             });
-        }), _0x334f90['addEventListener']('dispatchToolbarAction', _0x3c36e1 => {
-            _0x3c36e1['detail'] && _0x3c36e1['detail']['action'] && this['_handleToolbarAction'](_0x3c36e1['detail']['action'], _0x334f90, _0x3c36e1['detail']['button']);
-        }), this['makeResizable'](_0x334f90);
-    } ['_handleToolbarAction'](_0x2bfc8f, _0x1cbaec, _0x3b7d72) {
-        switch (_0x2bfc8f) {
+        }
+
+        // Minimize event
+        windowElement.addEventListener('minimize-window', () => {
+            this.minimizeWindow(windowElement);
+        });
+
+        // Double-click title bar to maximize
+        if (titleBar) {
+            this._bindControl(titleBar, 'dblclick', () => {
+                const programId = windowElement.getAttribute('data-program');
+                let programConfig = this.programData[programId];
+
+                // Apply Firefox config if needed
+                if (isFirefox() && programConfig && programConfig.firefoxConfig) {
+                    if (document.documentElement.classList.contains('mobile-device')) {
+                        const { canMaximize, ...restConfig } = programConfig.firefoxConfig;
+                        programConfig = { ...programConfig, ...restConfig };
+                    } else {
+                        programConfig = { ...programConfig, ...programConfig.firefoxConfig };
+                    }
+                }
+
+                if (programConfig && programConfig.canMaximize !== false && !programConfig.maximizeDisabled) {
+                    this.toggleMaximize(windowElement);
+                }
+            });
+
+            this.makeDraggable(windowElement, titleBar);
+        }
+
+        // Bring window to front on mousedown
+        this._bindControl(windowElement, 'mousedown', () => {
+            if (windowElement !== this.activeWindow) {
+                this.bringToFront(windowElement);
+            }
+        }, true);
+
+        // Start menu overlay click
+        if (startMenuOverlay) {
+            this._bindControl(startMenuOverlay, 'mousedown', event => {
+                event.stopPropagation();
+                event.preventDefault();
+                const eventData = { __coalesce: true };
+                (window.batchedPublish || this.eventBus.publish).call(
+                    window.batchedPublish ? undefined : this.eventBus,
+                    EVENTS.STARTMENU_CLOSE_REQUEST,
+                    eventData
+                );
+            });
+        }
+
+        // Setup iframe overlays for activation
+        this._setupIframeActivationOverlay(windowElement);
+
+        // Setup toolbar button actions
+        const toolbarButtons = windowElement.querySelectorAll('.toolbar-button[data-action]');
+        toolbarButtons.forEach(button => {
+            const clonedButton = button.cloneNode(true);
+            button.replaceWith(clonedButton);
+            this._bindControl(clonedButton, 'click', () => {
+                if (clonedButton.classList.contains('disabled')) return;
+
+                const action = clonedButton.getAttribute('data-action');
+                this._handleToolbarAction(action, windowElement, clonedButton);
+            });
+        });
+
+        // Custom toolbar action dispatch
+        windowElement.addEventListener('dispatchToolbarAction', event => {
+            if (event.detail && event.detail.action) {
+                this._handleToolbarAction(event.detail.action, windowElement, event.detail.button);
+            }
+        });
+
+        this.makeResizable(windowElement);
+    }
+
+    _handleToolbarAction(action, windowElement, button) {
+        switch (action) {
             case 'openProjects':
-                this['openProgram']('projects');
+                this.openProgram('projects');
                 break;
+
             case 'openExternalLink':
-                if (_0x3b7d72 && _0x3b7d72['dataset']['urlToOpen'] && !_0x3b7d72['classList']['contains']('disabled')) try {
-                    window['postMessage']({
-                        'type': 'confirm-open-link',
-                        'url': _0x3b7d72['dataset']['urlToOpen'],
-                        'label': _0x3b7d72['getAttribute']('aria-label') || ''
-                    }, '*');
-                } catch (_0x3f072f) {
-                    window['open'](_0x3b7d72['dataset']['urlToOpen'], '_blank');
+                if (button && button.dataset.urlToOpen && !button.classList.contains('disabled')) {
+                    try {
+                        window.postMessage({
+                            type: 'confirm-open-link',
+                            url: button.dataset.urlToOpen,
+                            label: button.getAttribute('aria-label') || ''
+                        }, '*');
+                    } catch (error) {
+                        window.open(button.dataset.urlToOpen, '_blank');
+                    }
                 }
                 break;
+
             case 'openResume':
-                this['openProgram']('resume');
+                this.openProgram('resume');
                 break;
+
             case 'openContact':
-                this['openProgram']('contact');
+                this.openProgram('contact');
                 break;
+
             case 'saveResume':
                 this._handleSaveResume();
-            
                 break;
+
             case 'nav:prev':
             case 'nav:next': {
-                const _0x36d71f = _0x1cbaec['querySelector']('iframe');
-                if (_0x36d71f && _0x36d71f['contentWindow']) {
-                    const _0x2921ad = {};
-                    _0x2921ad['type'] = 'toolbar:action', _0x2921ad['action'] = _0x2bfc8f, _0x36d71f['contentWindow']['postMessage'](_0x2921ad, '*');
+                const iframe = windowElement.querySelector('iframe');
+                if (iframe && iframe.contentWindow) {
+                    const message = { type: 'toolbar:action', action: action };
+                    iframe.contentWindow.postMessage(message, '*');
                 }
                 break;
             }
+
             case 'navigateHome':
             case 'home': {
-                const _0x5547b7 = _0x1cbaec['querySelector']('iframe');
-                if (_0x5547b7 && _0x5547b7['contentWindow']) {
-                    const _0x57fcb8 = {};
-                    _0x57fcb8['type'] = 'toolbar:action', _0x57fcb8['action'] = 'navigateHome', _0x5547b7['contentWindow']['postMessage'](_0x57fcb8, '*');
+                const iframe = windowElement.querySelector('iframe');
+                if (iframe && iframe.contentWindow) {
+                    const message = { type: 'toolbar:action', action: 'navigateHome' };
+                    iframe.contentWindow.postMessage(message, '*');
                 }
                 break;
             }
+
             case 'toggleZoom': {
-                _0x3b7d72 && _0x3b7d72['classList']['toggle']('pressed');
-                const _0x3f51c3 = _0x1cbaec['querySelector']('iframe');
-                if (_0x3f51c3 && _0x3f51c3['contentWindow']) {
-                    const _0xa8519c = {};
-                    _0xa8519c['type'] = 'toolbar:action', _0xa8519c['action'] = 'toggleZoom', _0x3f51c3['contentWindow']['postMessage'](_0xa8519c, '*');
+                if (button) {
+                    button.classList.toggle('pressed');
+                }
+                const iframe = windowElement.querySelector('iframe');
+                if (iframe && iframe.contentWindow) {
+                    const message = { type: 'toolbar:action', action: 'toggleZoom' };
+                    iframe.contentWindow.postMessage(message, '*');
                 }
                 break;
             }
+
             case 'nextImage':
             case 'nav:back': {
-                const _0x3a22c5 = _0x1cbaec['querySelector']('.toolbar-button.zoom');
-                if (_0x3a22c5) _0x3a22c5['classList']['remove']('pressed');
-                const _0x20beec = _0x1cbaec['querySelector']('iframe');
-                if (_0x20beec && _0x20beec['contentWindow']) {
-                    const _0x557705 = {};
-                    _0x557705['type'] = 'toolbar:action', _0x557705['action'] = _0x2bfc8f, _0x20beec['contentWindow']['postMessage'](_0x557705, '*');
+                const zoomButton = windowElement.querySelector('.toolbar-button.zoom');
+                if (zoomButton) {
+                    zoomButton.classList.remove('pressed');
+                }
+                const iframe = windowElement.querySelector('iframe');
+                if (iframe && iframe.contentWindow) {
+                    const message = { type: 'toolbar:action', action: action };
+                    iframe.contentWindow.postMessage(message, '*');
                 }
                 break;
             }
+
             case 'sendMessage': {
-                const _0x40c3de = _0x1cbaec['querySelector']('iframe');
-                if (_0x40c3de && _0x40c3de['contentWindow']) {
-                    const _0x490caf = {};
-                    _0x490caf['type'] = 'contact:form-data:request', _0x40c3de['contentWindow']['postMessage'](_0x490caf, '*');
-                    const _0x2a0f99 = _0x3c7bc7 => {
-                        if (_0x3c7bc7['source'] === _0x40c3de['contentWindow'] && _0x3c7bc7['data'] && _0x3c7bc7['data']['type'] === 'contact:form-data:response') {
-                            const _0x54abf4 = _0x3c7bc7['data']['data'],
-                                _0x4a18fe = _0x54abf4['to'],
-                                _0x1a3ee8 = encodeURIComponent(_0x54abf4['subject']),
-                                _0x225fa5 = encodeURIComponent(_0x54abf4['message']);
-                            let _0x4e8f43 = 'mailto:' + _0x4a18fe;
-                            _0x4e8f43 += '?subject=' + _0x1a3ee8, _0x4e8f43 += '&body=' + _0x225fa5, window['open'](_0x4e8f43, '_blank'), window['removeEventListener']('message', _0x2a0f99);
-                            const _0xe20513 = {};
-                            _0xe20513['type'] = 'contact:clear-form', _0x40c3de['contentWindow']['postMessage'](_0xe20513, '*');
+                const iframe = windowElement.querySelector('iframe');
+                if (iframe && iframe.contentWindow) {
+                    iframe.contentWindow.postMessage({ type: 'contact:form-data:request' }, '*');
+
+                    const messageHandler = event => {
+                        if (event.source === iframe.contentWindow && event.data && event.data.type === 'contact:form-data:response') {
+                            const formData = event.data.data;
+                            const to = formData.to;
+                            const subject = encodeURIComponent(formData.subject);
+                            const message = encodeURIComponent(formData.message);
+
+                            let mailtoUrl = 'mailto:' + to;
+                            mailtoUrl += '?subject=' + subject;
+                            mailtoUrl += '&body=' + message;
+
+                            window.open(mailtoUrl, '_blank');
+                            window.removeEventListener('message', messageHandler);
+
+                            iframe.contentWindow.postMessage({ type: 'contact:clear-form' }, '*');
                         }
                     };
-                    window['addEventListener']('message', _0x2a0f99);
+
+                    window.addEventListener('message', messageHandler);
                 }
                 break;
             }
+
             default: {
-                const _0x15a229 = _0x1cbaec['querySelector']('iframe');
-                if (_0x15a229 && _0x15a229['contentWindow']) {
-                    const _0x128def = {};
-                    _0x128def['type'] = 'toolbar:action', _0x128def['action'] = _0x2bfc8f, _0x15a229['contentWindow']['postMessage'](_0x128def, '*');
+                // Forward action to iframe
+                const iframe = windowElement.querySelector('iframe');
+                if (iframe && iframe.contentWindow) {
+                    const message = { type: 'toolbar:action', action: action };
+                    iframe.contentWindow.postMessage(message, '*');
                 }
                 break;
             }
         }
-    } ['_setupIframeActivationOverlay'](_0x2d7a79) {
-        const _0x46dd56 = _0x2d7a79['querySelectorAll']('iframe');
-        if (!_0x2d7a79['iframeOverlays']) _0x2d7a79['iframeOverlays'] = [];
-        _0x46dd56['forEach'](_0x3851ce => {
-            const _0x551aef = this['_createElement']('div', 'iframe-overlay');
-            _0x551aef['style']['position'] = 'absolute', _0x551aef['style']['top'] = '0', _0x551aef['style']['left'] = '0', _0x551aef['style']['width'] = '100%', _0x551aef['style']['height'] = '100%', _0x551aef['style']['display'] = 'none';
-            const _0x52abef = _0x3851ce['parentElement'];
-            _0x52abef && (_0x52abef['style']['position'] = 'relative', _0x52abef['appendChild'](_0x551aef), this['_bindControl'](_0x551aef, 'mousedown', _0x4ea4e4 => {
-                _0x4ea4e4['preventDefault'](), _0x4ea4e4['stopPropagation'](), _0x2d7a79 !== this['activeWindow'] && this.bringToFront(_0x2d7a79);
-            }), _0x2d7a79['iframeOverlays']['push'](_0x551aef)), _0x3851ce['addEventListener']('focus', () => {
-                const _0x18f7bd = {};
-                _0x18f7bd['bubbles'] = ![], _0x2d7a79['dispatchEvent'](new CustomEvent('window:iframe-interaction', _0x18f7bd));
-            }), _0x3851ce['addEventListener']('mousedown', () => {
-                const _0x5877b3 = {};
-                _0x5877b3['bubbles'] = ![], _0x2d7a79['dispatchEvent'](new CustomEvent('window:iframe-interaction', _0x5877b3));
+    }
+
+    _setupIframeActivationOverlay(windowElement) {
+        const iframes = windowElement.querySelectorAll('iframe');
+        if (!windowElement.iframeOverlays) {
+            windowElement.iframeOverlays = [];
+        }
+
+        iframes.forEach(iframe => {
+            const overlay = this._createElement('div', 'iframe-overlay');
+            overlay.style.position = 'absolute';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.display = 'none';
+
+            const parent = iframe.parentElement;
+            if (parent) {
+                parent.style.position = 'relative';
+                parent.appendChild(overlay);
+
+                this._bindControl(overlay, 'mousedown', event => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (windowElement !== this.activeWindow) {
+                        this.bringToFront(windowElement);
+                    }
+                });
+
+                windowElement.iframeOverlays.push(overlay);
+            }
+
+            // Detect iframe interaction
+            iframe.addEventListener('focus', () => {
+                windowElement.dispatchEvent(new CustomEvent('window:iframe-interaction', { bubbles: false }));
+            });
+
+            iframe.addEventListener('mousedown', () => {
+                windowElement.dispatchEvent(new CustomEvent('window:iframe-interaction', { bubbles: false }));
             });
         });
-    } ['_handleTaskbarClick'](_0x9c8ba9) {
-        const _0x14526b = this['windows'][_0x9c8ba9];
-        if (_0x14526b) {
-            if (_0x14526b['windowState']['isMinimized']) this['restoreWindow'](_0x14526b);
-            else this['activeWindow'] === _0x14526b ? this['minimizeWindow'](_0x14526b) : this.bringToFront(_0x14526b);
+    }
+
+    _handleTaskbarClick(windowId) {
+        const windowElement = this.windows[windowId];
+        if (windowElement) {
+            if (windowElement.windowState.isMinimized) {
+                this.restoreWindow(windowElement);
+            } else if (this.activeWindow === windowElement) {
+                this.minimizeWindow(windowElement);
+            } else {
+                this.bringToFront(windowElement);
+            }
         } else {
-            const _0x5357f9 = _0x9c8ba9['replace']('-window', ''),
-                _0x79ca7b = Object['values'](this['windows']),
-                _0xcc9732 = _0x79ca7b['find'](_0xb6a397 => _0xb6a397['getAttribute']('data-program') === _0x5357f9);
-            if (_0xcc9732) _0xcc9732['windowState']['isMinimized'] ? this['restoreWindow'](_0xcc9732) : this.bringToFront(_0xcc9732);
-            else _0x5357f9 && this['programData'][_0x5357f9] && this['openProgram'](_0x5357f9);
+            // Try to find window by program ID
+            const programId = windowId.replace('-window', '');
+            const allWindows = Object.values(this.windows);
+            const matchingWindow = allWindows.find(win => win.getAttribute('data-program') === programId);
+
+            if (matchingWindow) {
+                if (matchingWindow.windowState.isMinimized) {
+                    this.restoreWindow(matchingWindow);
+                } else {
+                    this.bringToFront(matchingWindow);
+                }
+            } else if (programId && this.programData[programId]) {
+                this.openProgram(programId);
+            }
         }
-    } ['_handleWindowFocus'](_0x4e3ab4) {
-        const _0x3a69f3 = this['windows'][_0x4e3ab4];
-        _0x3a69f3 && !_0x3a69f3['windowState']['isMinimized'] && this.bringToFront(_0x3a69f3);
-    } ['_handleWindowRestore'](_0x1f4f4e) {
-        const _0x1a156f = this['windows'][_0x1f4f4e];
-        _0x1a156f && this['restoreWindow'](_0x1a156f);
-    } ['_handleWindowMinimize'](_0x252507) {
-        const _0x313ae9 = this['windows'][_0x252507];
-        _0x313ae9 && this['minimizeWindow'](_0x313ae9);
-    } ['_handleWindowCloseCleanup'](_0x14d4b5) {
-        const _0x3ae018 = this['windows'][_0x14d4b5];
-        if (!_0x3ae018) return;
+    }
+
+    _handleWindowFocus(windowId) {
+        const windowElement = this.windows[windowId];
+        if (windowElement && !windowElement.windowState.isMinimized) {
+            this.bringToFront(windowElement);
+        }
+    }
+
+    _handleWindowRestore(windowId) {
+        const windowElement = this.windows[windowId];
+        if (windowElement) {
+            this.restoreWindow(windowElement);
+        }
+    }
+
+    _handleWindowMinimize(windowId) {
+        const windowElement = this.windows[windowId];
+        if (windowElement) {
+            this.minimizeWindow(windowElement);
+        }
+    }
+
+    _handleWindowCloseCleanup(windowId) {
+        const windowElement = this.windows[windowId];
+        if (!windowElement) return;
+
+        // Notify cached iframe to reset state
         try {
-            if (window['__IFRAME_CACHE'] && window['__IFRAME_CACHE']['has'](_0x14d4b5)) {
-                const _0x156df4 = window['__IFRAME_CACHE']['get'](_0x14d4b5);
-                if (_0x156df4 && _0x156df4['iframe'] && _0x156df4['iframe']['contentWindow']) {
+            if (window.__IFRAME_CACHE && window.__IFRAME_CACHE.has(windowId)) {
+                const cacheEntry = window.__IFRAME_CACHE.get(windowId);
+                if (cacheEntry && cacheEntry.iframe && cacheEntry.iframe.contentWindow) {
                     try {
-                        performance['mark'](_0x14d4b5 + '-window:soft-reset-dispatch');
-                    } catch (_0x56613d) {}
-                    const _0x2c7fa1 = {};
-                    _0x2c7fa1['type'] = 'window:soft-reset', _0x156df4['iframe']['contentWindow']['postMessage'](_0x2c7fa1, '*');
+                        performance.mark(windowId + '-window:soft-reset-dispatch');
+                    } catch (e) {}
+                    cacheEntry.iframe.contentWindow.postMessage({ type: 'window:soft-reset' }, '*');
                 }
             }
-        } catch {}
-        const _0x223bfc = this['taskbarItems'][_0x14d4b5];
-        _0x223bfc && _0x223bfc['parentNode'] && _0x223bfc['parentNode']['removeChild'](_0x223bfc);
-        delete this['windows'][_0x14d4b5], delete this['taskbarItems'][_0x14d4b5];
-        this['activeWindow'] === _0x3ae018 && (this['activeWindow'] = null, this['_refreshActiveWindow']());
-        this['windowCount'] = Math['max'](0x0, this['windowCount'] - 0x1), this['_updateStackOrder'](_0x14d4b5, 'remove'), this['_updateZIndices']();
-        const _0x362b75 = {};
-        _0x362b75['windowId'] = _0x14d4b5, this['eventBus']['publish'](EVENTS['WINDOW_CLOSED'], _0x362b75);
-    } ['_refreshActiveWindow']() {
-        lifecycleInternals['refreshActiveWindow'](this);
-    } ['_clearAllTaskbarItemStates']() {
-        lifecycleInternals['clearAllTaskbarItemStates'](this);
-    } ['_updateTaskbarItemState'](_0x3e8c23, _0x4f469f) {
-        lifecycleInternals['updateTaskbarItemState'](this, _0x3e8c23, _0x4f469f);
-    } ['closeWindow'](_0x57cd0c) {
-        lifecycleInternals['closeWindow'](this, _0x57cd0c, EVENTS);
-    } ['minimizeWindow'](_0x599b60) {
-        lifecycleInternals['minimizeWindow'](this, _0x599b60, EVENTS);
-    } ['restoreWindow'](_0x18bec6) {
-        lifecycleInternals['restoreWindow'](this, _0x18bec6, EVENTS);
-    } ['toggleMaximize'](_0x374dc0) {
-        lifecycleInternals['toggleMaximize'](this, _0x374dc0, EVENTS);
-    } ['bringToFront'](_0x234836) {
-        if (!_0x234836 || this['activeWindow'] === _0x234836 || _0x234836['windowState']['isMinimized']) return;
-        const _0x2a1c8f = this['activeWindow'];
-        this['deactivateAllWindows'](_0x234836), _0x234836['classList']['add']('active'), this['activeWindow'] = _0x234836, this['_updateStackOrder'](_0x234836['id'], 'add'), this['_updateZIndices'](), this['_toggleInactiveMask'](_0x234836, ![]), this['_toggleIframeOverlays'](_0x234836, ![]), this['_updateTaskbarItemState'](_0x234836['id'], !![]);
-        if (_0x2a1c8f !== this['activeWindow']) {
-            const _0x3c4689 = Date['now']();
-            if (!this['_lastWindowFocusPublishTs'] || _0x3c4689 - this['_lastWindowFocusPublishTs'] > 0x64) {
-                this['_lastWindowFocusPublishTs'] = _0x3c4689;
-                const _0x2ce9d1 = {};
-                _0x2ce9d1['windowId'] = _0x234836['id'], _0x2ce9d1['__coalesce'] = !![], (window['batchedPublish'] || this['eventBus']['publish'])['call'](window['batchedPublish'] ? undefined : this['eventBus'], EVENTS['WINDOW_FOCUSED'], _0x2ce9d1);
+        } catch (e) {}
+
+        // Remove taskbar item
+        const taskbarItem = this.taskbarItems[windowId];
+        if (taskbarItem && taskbarItem.parentNode) {
+            taskbarItem.parentNode.removeChild(taskbarItem);
+        }
+
+        delete this.windows[windowId];
+        delete this.taskbarItems[windowId];
+
+        if (this.activeWindow === windowElement) {
+            this.activeWindow = null;
+            this._refreshActiveWindow();
+        }
+
+        this.windowCount = Math.max(0, this.windowCount - 1);
+        this._updateStackOrder(windowId, 'remove');
+        this._updateZIndices();
+
+        this.eventBus.publish(EVENTS.WINDOW_CLOSED, { windowId: windowId });
+    }
+
+    _refreshActiveWindow() {
+        lifecycleInternals.refreshActiveWindow(this);
+    }
+
+    _clearAllTaskbarItemStates() {
+        lifecycleInternals.clearAllTaskbarItemStates(this);
+    }
+
+    _updateTaskbarItemState(windowId, isActive) {
+        lifecycleInternals.updateTaskbarItemState(this, windowId, isActive);
+    }
+
+    closeWindow(windowElement) {
+        lifecycleInternals.closeWindow(this, windowElement, EVENTS);
+    }
+
+    minimizeWindow(windowElement) {
+        lifecycleInternals.minimizeWindow(this, windowElement, EVENTS);
+    }
+
+    restoreWindow(windowElement) {
+        lifecycleInternals.restoreWindow(this, windowElement, EVENTS);
+    }
+
+    toggleMaximize(windowElement) {
+        lifecycleInternals.toggleMaximize(this, windowElement, EVENTS);
+    }
+
+    bringToFront(windowElement) {
+        if (!windowElement || this.activeWindow === windowElement || windowElement.windowState.isMinimized) {
+            return;
+        }
+
+        const previousActiveWindow = this.activeWindow;
+        this.deactivateAllWindows(windowElement);
+
+        windowElement.classList.add('active');
+        this.activeWindow = windowElement;
+        this._updateStackOrder(windowElement.id, 'add');
+        this._updateZIndices();
+        this._toggleInactiveMask(windowElement, false);
+        this._toggleIframeOverlays(windowElement, false);
+        this._updateTaskbarItemState(windowElement.id, true);
+
+        // Publish window focused event
+        if (previousActiveWindow !== this.activeWindow) {
+            const now = Date.now();
+            if (!this._lastWindowFocusPublishTs || now - this._lastWindowFocusPublishTs > 100) {
+                this._lastWindowFocusPublishTs = now;
+                const eventData = { windowId: windowElement.id, __coalesce: true };
+                (window.batchedPublish || this.eventBus.publish).call(
+                    window.batchedPublish ? undefined : this.eventBus,
+                    EVENTS.WINDOW_FOCUSED,
+                    eventData
+                );
             }
-            const _0x5ba460 = _0x234836['querySelector']('iframe');
-            if (_0x5ba460 && _0x5ba460['contentWindow']) {
-                const _0x5c0c0a = {};
-                _0x5c0c0a['type'] = 'window:focused', _0x5ba460['contentWindow']['postMessage'](_0x5c0c0a, '*');
+
+            // Notify iframe of focus
+            const iframe = windowElement.querySelector('iframe');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage({ type: 'window:focused' }, '*');
             }
-            if (_0x2a1c8f) {
-                const _0x58d7d0 = _0x2a1c8f['querySelector']('iframe');
-                if (_0x58d7d0 && _0x58d7d0['contentWindow']) {
-                    const _0x42fccd = {};
-                    _0x42fccd['type'] = 'window:blurred', _0x58d7d0['contentWindow']['postMessage'](_0x42fccd, '*');
+
+            // Notify previous window of blur
+            if (previousActiveWindow) {
+                const prevIframe = previousActiveWindow.querySelector('iframe');
+                if (prevIframe && prevIframe.contentWindow) {
+                    prevIframe.contentWindow.postMessage({ type: 'window:blurred' }, '*');
                 }
             }
         }
-    } ['deactivateAllWindows'](_0x438f3e = null) {
-        lifecycleInternals['deactivateAllWindows'](this, _0x438f3e);
-    } ['_setWindowZIndex'](_0x38b075, _0x56465b) {
-        _0x38b075 && (_0x38b075['style']['zIndex'] = _0x56465b);
-    } ['_toggleInactiveMask'](_0x119bdc, _0x41b9e1) {
-        const _0x3406de = _0x119bdc['querySelector']('.window-inactive-mask');
-        _0x3406de && (_0x3406de['style']['display'] = _0x41b9e1 ? 'block' : 'none');
-    } ['_toggleIframeOverlays'](_0x318d5f, _0x32872c) {
-        _0x318d5f['iframeOverlays'] && _0x318d5f['iframeOverlays']['forEach'](_0xe80c9e => _0xe80c9e['style']['display'] = _0x32872c ? 'block' : 'none');
-    } ['positionWindow'](_0x49ee73) {
-        positionWindow(this, _0x49ee73);
-    } ['makeDraggable'](_0x1a2eaf, _0x3c13b0) {
-        makeDraggable(this, _0x1a2eaf, _0x3c13b0);
-    } ['_updateStackOrder'](_0x1f5195, _0x54cd86 = 'add') {
-        updateStackOrder(this, _0x1f5195, _0x54cd86);
-    } ['_updateZIndices']() {
+    }
+
+    deactivateAllWindows(exceptWindow = null) {
+        lifecycleInternals.deactivateAllWindows(this, exceptWindow);
+    }
+
+    _setWindowZIndex(windowElement, zIndex) {
+        if (windowElement) {
+            windowElement.style.zIndex = zIndex;
+        }
+    }
+
+    _toggleInactiveMask(windowElement, show) {
+        const mask = windowElement.querySelector('.window-inactive-mask');
+        if (mask) {
+            mask.style.display = show ? 'block' : 'none';
+        }
+    }
+
+    _toggleIframeOverlays(windowElement, show) {
+        if (windowElement.iframeOverlays) {
+            windowElement.iframeOverlays.forEach(overlay => {
+                overlay.style.display = show ? 'block' : 'none';
+            });
+        }
+    }
+
+    positionWindow(windowElement) {
+        positionWindow(this, windowElement);
+    }
+
+    makeDraggable(windowElement, handle) {
+        makeDraggable(this, windowElement, handle);
+    }
+
+    _updateStackOrder(windowId, operation = 'add') {
+        updateStackOrder(this, windowId, operation);
+    }
+
+    _updateZIndices() {
         applyZIndices(this);
-    } ['_findTopWindow']() {
-        for (let _0x2cf162 = this['zIndexStack']['length'] - 0x1; _0x2cf162 >= 0x0; _0x2cf162--) {
-            const _0x33fb89 = this['zIndexStack'][_0x2cf162],
-                _0x5a9406 = this['windows'][_0x33fb89];
-            if (_0x5a9406 && _0x5a9406['windowState'] && !_0x5a9406['windowState']['isMinimized']) return _0x5a9406;
+    }
+
+    _findTopWindow() {
+        for (let i = this.zIndexStack.length - 1; i >= 0; i--) {
+            const windowId = this.zIndexStack[i];
+            const windowElement = this.windows[windowId];
+            if (windowElement && windowElement.windowState && !windowElement.windowState.isMinimized) {
+                return windowElement;
+            }
         }
         return null;
-    } ['_bindControl'](_0x405619, _0x4a0c4f, _0x38888e, _0x555ade = ![]) {
-        _0x405619 && _0x405619['addEventListener'](_0x4a0c4f, _0x38888e, _0x555ade);
-    } ['makeResizable'](_0x31ec72) {
-        makeResizable(this, _0x31ec72);
-    } ['_getTaskbarHeight']() {
-        return viewportInternals['getTaskbarHeight'](this);
-    } ['_getTaskbarElement']() {
-        return viewportInternals['getTaskbarElement'](this);
-    } ['_getViewportDimensions']() {
-        return viewportInternals['getViewportDimensions'](this);
-    } ['_clearCachedValues']() {
-        viewportInternals['clearCachedValues'](this);
-    } ['_handleViewportChange']() {
-        viewportInternals['handleViewportChange'](this);
+    }
+
+    _bindControl(element, eventType, handler, useCapture = false) {
+        if (element) {
+            element.addEventListener(eventType, handler, useCapture);
+        }
+    }
+
+    makeResizable(windowElement) {
+        makeResizable(this, windowElement);
+    }
+
+    _getTaskbarHeight() {
+        return viewportInternals.getTaskbarHeight(this);
+    }
+
+    _getTaskbarElement() {
+        return viewportInternals.getTaskbarElement(this);
+    }
+
+    _getViewportDimensions() {
+        return viewportInternals.getViewportDimensions(this);
+    }
+
+    _clearCachedValues() {
+        viewportInternals.clearCachedValues(this);
+    }
+
+    _handleViewportChange() {
+        viewportInternals.handleViewportChange(this);
     }
 
     async _getPortfolioManager() {
@@ -849,31 +1412,31 @@ export default class WindowManager {
             const cvPdfUrl = portfolio.getCVPDFUrl();
             const fullName = portfolio.getFullName();
             const fileName = fullName ? `${fullName.replace(/\s+/g, '')}-CV.pdf` : 'resume.pdf';
-            
-            if (document['documentElement']['classList']['contains']('mobile-device')) {
-                window['open'](cvPdfUrl, '_blank');
+
+            if (document.documentElement.classList.contains('mobile-device')) {
+                window.open(cvPdfUrl, '_blank');
             } else {
-                const linkElement = this['_createElement']('a', '', {
+                const linkElement = this._createElement('a', '', {
                     href: cvPdfUrl,
                     download: fileName
                 });
-                document['body']['appendChild'](linkElement);
-                linkElement['click']();
-                document['body']['removeChild'](linkElement);
+                document.body.appendChild(linkElement);
+                linkElement.click();
+                document.body.removeChild(linkElement);
             }
         } catch (error) {
             console.error('Failed to download resume:', error);
             // Fallback to hardcoded path
-            if (document['documentElement']['classList']['contains']('mobile-device')) {
-                window['open']('/public/CV.pdf', '_blank');
+            if (document.documentElement.classList.contains('mobile-device')) {
+                window.open('/public/CV.pdf', '_blank');
             } else {
-                const linkElement = this['_createElement']('a', '', {
+                const linkElement = this._createElement('a', '', {
                     href: '/public/CV.pdf',
                     download: 'CV.pdf'
                 });
-                document['body']['appendChild'](linkElement);
-                linkElement['click']();
-                document['body']['removeChild'](linkElement);
+                document.body.appendChild(linkElement);
+                linkElement.click();
+                document.body.removeChild(linkElement);
             }
         }
     }

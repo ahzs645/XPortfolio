@@ -48,6 +48,14 @@ export const START_MENU_CATALOG = {
         description: null,
         disabled: false
     },
+    solitaire: {
+        type: 'program',
+        programName: 'solitaire',
+        icon: './assets/apps/solitaire/solitaire-icon.png',
+        title: 'Solitaire',
+        description: null,
+        disabled: false
+    },
     'spider-solitaire': {
         type: 'program',
         programName: 'spider-solitaire',
@@ -56,11 +64,27 @@ export const START_MENU_CATALOG = {
         description: null,
         disabled: false
     },
+    pinball: {
+        type: 'program',
+        programName: 'pinball',
+        icon: './assets/apps/pinball/pinball-icon.png',
+        title: '3D Pinball',
+        description: null,
+        disabled: false
+    },
     winamp: {
         type: 'program',
         programName: 'winamp',
         icon: './assets/apps/winamp/winamp.png',
         title: 'Winamp',
+        description: null,
+        disabled: false
+    },
+    calculator: {
+        type: 'program',
+        programName: 'calculator',
+        icon: './assets/apps/calculator/calculator-icon.png',
+        title: 'Calculator',
         description: null,
         disabled: false
     },
@@ -120,6 +144,21 @@ export const PINNED_RIGHT_ORDER = [
     'resume'
 ];
 
+// Folder definitions
+export const START_MENU_FOLDERS = {
+    games: {
+        type: 'folder',
+        title: 'Games',
+        icon: './assets/gui/start-menu/folder-icon.png',
+        items: [
+            'minesweeper',
+            'solitaire',
+            'spider-solitaire',
+            'pinball'
+        ]
+    }
+};
+
 export const ALL_PROGRAMS_ORDER = [
     'about',
     'projects',
@@ -128,8 +167,8 @@ export const ALL_PROGRAMS_ORDER = [
     'divider-main',
     'mediaPlayer',
     'winamp',
-    'minesweeper',
-    'spider-solitaire',
+    'calculator',
+    'games',
     'musicPlayer',
     'image-viewer',
     'paint',

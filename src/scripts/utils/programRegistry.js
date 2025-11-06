@@ -156,6 +156,29 @@ const programData = {
         canMaximize: false,
     }),
 
+    // --- Calculator ---
+    calculator: createProgram('calculator', 'Calculator', 'start-menu/calculator.png', {
+        appPath: 'src/apps/calculator/calculator.html',
+        icon: './assets/apps/calculator/calculator-icon.png',
+        dimensions: { width: 280, height: 320 },
+        minDimensions: { width: 260, height: 300 },
+        resizable: true,
+        canMaximize: true,
+        maximizeDisabled: true,
+        statusBarText: null,
+    }),
+
+    // --- Solitaire ---
+    solitaire: createProgram('solitaire', 'Solitaire', 'start-menu/solitaire-icon.png', {
+        appPath: 'src/apps/solitaire/solitaire.html',
+        icon: './assets/apps/solitaire/solitaire-icon.png',
+        dimensions: { width: 680, height: 490 },
+        minDimensions: { width: 680, height: 490 },
+        resizable: false,
+        canMaximize: false,
+        statusBarText: null,
+    }),
+
     // --- Spider Solitaire ---
     'spider-solitaire': createProgram('spider-solitaire', 'Spider Solitaire', 'start-menu/solitaire.svg', {
         appPath: 'src/apps/spider-solitaire/spider-solitaire.html',
@@ -164,6 +187,17 @@ const programData = {
         minDimensions: { width: 600, height: 400 },
         resizable: true,
         canMaximize: true,
+    }),
+
+    // --- 3D Pinball for Windows - Space Cadet ---
+    pinball: createProgram('pinball', '3D Pinball for Windows - Space Cadet', 'start-menu/pinball.png', {
+        appPath: 'src/apps/pinball/pinball.html',
+        icon: './assets/apps/pinball/pinball-icon.png',
+        dimensions: { width: 610, height: 475 },
+        minDimensions: { width: 610, height: 475 },
+        resizable: true,
+        canMaximize: false,
+        statusBarText: null,
     }),
     musicPlayer: createProgram('musicPlayer', 'Music Player', 'start-menu/music.webp', {
         appPath: 'src/apps/musicPlayer/musicplayer.html',

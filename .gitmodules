@@ -1,0 +1,9 @@
+[submodule "external/spider-solitaire"]
+	path = external/spider-solitaire
+	url = https://github.com/ahzs645/spider-solitaire.git
+[submodule "external/js-solitaire"]
+	path = external/js-solitaire
+	url = https://github.com/ahzs645/js-solitaire.git
+[submodule "external/jspaint"]
+	path = external/jspaint
+	url = https://github.com/ahzs645/jspaint.git

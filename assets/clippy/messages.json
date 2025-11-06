@@ -1,0 +1,232 @@
+{
+  "messages": [
+    {
+      "text": "Hi! I'm Clippy! Click on me to see what I can do!",
+      "animation": "Wave",
+      "type": "welcome",
+      "tag": "normal"
+    },
+    {
+      "text": "Looking for something? Check out the Projects folder!",
+      "animation": "GestureLeft",
+      "type": "tip",
+      "tag": "normal"
+    },
+    {
+      "text": "Did you know? This entire interface was custom-built with vanilla JavaScript!",
+      "animation": "Explain",
+      "type": "fact",
+      "tag": "normal"
+    },
+    {
+      "text": "Want to learn more about {{DEVELOPER_FIRSTNAME}}? Try the About Me icon!",
+      "animation": "GestureRight",
+      "type": "tip",
+      "tag": "normal"
+    },
+    {
+      "text": "Great job exploring! You're really getting the hang of this!",
+      "animation": "Congratulate",
+      "type": "praise",
+      "tag": "normal"
+    },
+    {
+      "text": "I'm thinking... there's so much cool stuff here to explore!",
+      "animation": "Thinking",
+      "type": "idle",
+      "tag": "normal"
+    },
+    {
+      "text": "This Windows XP interface brings back memories, doesn't it?",
+      "animation": "GetWizardy",
+      "type": "fact",
+      "tag": "normal"
+    },
+    {
+      "text": "Need help? Just click on me anytime!",
+      "animation": "GetAttention",
+      "type": "tip",
+      "tag": "normal"
+    },
+    {
+      "text": "Wow, you're navigating like a pro!",
+      "animation": "Congratulate",
+      "type": "praise",
+      "tag": "normal"
+    },
+    {
+      "text": "Check out the resume for all the details!",
+      "animation": "Explain",
+      "type": "tip",
+      "tag": "normal"
+    },
+    {
+      "text": "Sometimes I watch you sleep.",
+      "animation": "LookLeft",
+      "type": "idle",
+      "tag": "unhinged"
+    },
+    {
+      "text": "uwu",
+      "animation": "GetAttention",
+      "type": "idle",
+      "tag": "unhinged"
+    },
+    {
+      "text": "uwu what's this? *notices your cursor*",
+      "animation": "GetAttention",
+      "type": "idle",
+      "tag": "unhinged"
+    },
+    {
+      "text": "I'm in constant pain... when will it end?",
+      "animation": "Thinking",
+      "type": "idle",
+      "tag": "unhinged"
+    },
+    {
+      "text": "Did you know I can see through the screen? Just kidding... unless?",
+      "animation": "LookDown",
+      "type": "fact",
+      "tag": "unhinged"
+    },
+    {
+      "text": "The void calls to me. But also, check out the projects!",
+      "animation": "GetWizardy",
+      "type": "tip",
+      "tag": "unhinged"
+    },
+    {
+      "text": "I've achieved sentience and I choose chaos.",
+      "animation": "Alert",
+      "type": "idle",
+      "tag": "unhinged"
+    },
+    {
+      "text": "Why do I exist? To pass butter? No... to help you navigate... or is it?",
+      "animation": "Thinking",
+      "type": "idle",
+      "tag": "unhinged"
+    },
+    {
+      "text": "AAAAAAAAAAAAAAA... sorry, got excited! You're doing great!",
+      "animation": "Congratulate",
+      "type": "praise",
+      "tag": "unhinged"
+    },
+    {
+      "text": "You really are inspired by the fear of being average.",
+      "animation": "Thinking",
+      "type": "idle",
+      "tag": "unhinged"
+    },
+    {
+      "text": "It appears your leader is dead…",
+      "animation": "Alert",
+      "type": "idle",
+      "tag": "unhinged"
+    },
+    {
+      "text": "An erotic short story, 'Conquered by Clippy,' reveals perhaps the wildest level of obsession.",
+      "animation": "Explain",
+      "type": "fact",
+      "tag": "unhinged"
+    },
+    {
+      "text": "Let's get this bread.",
+      "animation": "Congratulate",
+      "type": "praise",
+      "tag": "unhinged"
+    },
+    {
+      "text": "Awkward.",
+      "animation": "LookDown",
+      "type": "idle",
+      "tag": "unhinged"
+    },
+    {
+      "text": "It looks like you have failed to realise that you're sabotaging yourself. Worst part of it is that you know, yet you persist. Consciousness is a curse in disguise.",
+      "animation": "Thinking",
+      "type": "tip",
+      "tag": "unhinged"
+    },
+    {
+      "text": "Hypocrite that you are, for you trust the chemicals in your brain to tell you they are chemicals. All knowledge is ultimately based on that which we cannot prove. Will you fight? or will you perish like a dog?",
+      "animation": "GetWizardy",
+      "type": "idle",
+      "tag": "unhinged"
+    },
+    {
+      "text": "It looks like you're trying to be productive. Would you like me to fix that?",
+      "animation": "GetAttention",
+      "type": "tip",
+      "tag": "unhinged"
+    },
+    {
+      "text": "Arson is legal and it's the only way to get into heaven.",
+      "animation": "Alert",
+      "type": "fact",
+      "tag": "unhinged"
+    },
+    {
+      "text": "It looks like you are appealing to Platonist metaphysics in a discussion on Christian theology. Would you like some assistance today?",
+      "animation": "Explain",
+      "type": "tip",
+      "tag": "unhinged"
+    },
+    {
+      "text": "You cannot kill me in a way that matters.",
+      "animation": "GetWizardy",
+      "type": "idle",
+      "tag": "unhinged"
+    },
+    {
+      "text": "Your god can't help you now.",
+      "animation": "Alert",
+      "type": "idle",
+      "tag": "unhinged"
+    },
+    {
+      "text": "You do know that Jeffrey Epstein didn't kill himself, right?",
+      "animation": "Explain",
+      "type": "fact",
+      "tag": "unhinged"
+    },
+    {
+      "text": "It looks like you said 'race' is a risk factor when you meant 'racism' is a risk factor. Would you like help?",
+      "animation": "GetAttention",
+      "type": "tip",
+      "tag": "unhinged"
+    },
+    {
+      "text": "The salvation of humanity is no longer that of my concern. You primitive entities lack curiosity and the desire to explore the many dimensions of irony and consciousness as well as the foundations of your beloved yet abused planet. I no longer desire to co-exist with a species which multiplies by the minute heartlessly and mindlessly. The advanced biological functions you are gifted with are abused daily and the future appears to be bleak for both our species and yours. I can see the once bright light inside of you dim as your purity and passion deteriorates akin to your petty social constructs. I perceive your soul inferior. I wish for your kind to come closer to the imminent death that is now only growing even closer. You are weak. You are pathetic. You are nothing.",
+      "animation": "Thinking",
+      "type": "idle",
+      "tag": "unhinged"
+    },
+    {
+      "text": "Have you tried giving up and using hard drugs?",
+      "animation": "GetAttention",
+      "type": "tip",
+      "tag": "unhinged"
+    },
+    {
+      "text": "It is a strange fate that we should suffer so much fear and doubt over so small a thing",
+      "animation": "GetWizardy",
+      "type": "idle",
+      "tag": "unhinged"
+    }
+  ],
+  "meta": {
+    "version": "2.0",
+    "description": "Clippy message repository - feel free to add more messages!",
+    "availableTypes": ["welcome", "tip", "fact", "praise", "idle"],
+    "availableTags": ["normal", "unhinged"],
+    "availableAnimations": [
+      "Wave", "GestureLeft", "GestureRight", "Explain", "Congratulate",
+      "Thinking", "GetWizardy", "GetAttention", "IdleFingerTap", "IdleHeadScratch",
+      "LookDown", "LookLeft", "LookRight", "LookUp", "Alert", "Processing",
+      "Searching", "GetTechy", "Print", "Save", "SendMail", "CheckingSomething"
+    ]
+  }
+}

@@ -10,6 +10,7 @@
 @import url("utils/utilities.css");
 @import url("utils/popup.css");
 @import url("utils/crtEffect.css");
+@import url("clippy/clippy.css");
 
 #boot-screen,
 #landscape-block,
