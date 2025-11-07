@@ -3,13 +3,13 @@
   "description": "Configure Clippy's behavior and message probabilities",
   "version": "1.0",
   "messageTagWeights": {
-    "normal": 95,
-    "unhinged": 20
+    "normal": 90,
+    "unhinged": 10
   },
   "settings": {
     "enableUnhingedMessages": true,
-    "idleAnimationInterval": 8000,
-    "messageDuration": 8000
+    "idleAnimationInterval": 10000,
+    "messageDuration": 10000
   },
   "notes": {
     "messageTagWeights": "Percentage chance for each tag to be selected (must add up to 100)",
