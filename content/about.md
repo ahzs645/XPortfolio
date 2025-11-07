@@ -1,9 +1,6 @@
-Hi! 
-
-My name is Caleb and I'm currently working as an Engineer in Training (E.I.T) in pursuit of my Professional Engineering (P.Eng) Designation.
+Hi! My name is Caleb, and I'm currently working as an Engineer in Training (E.I.T) in pursuit of my Professional Engineering (P.Eng) Designation.
 
 My specialty is mainly Excel, then more Excel, then maybe a bit more Excel and an email to finish off the day.
-
 Jokes aside, I work remotely on PNG and Enbridge's pipelines through Weigl Enterprises.
 
 I got my Bachelor's of Applied Science in Environmental Engineering (I really think it should be renamed to Fluid Engineering) at the University of Northern British Columbia.
