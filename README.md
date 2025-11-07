@@ -18,7 +18,7 @@ This project provides an interactive Windows XP desktop environment for showcasi
 - 📄 **Portfolio Apps**: Resume, Projects, About Me, Contact
 - 🎨 **Authentic XP Styling**: Using [XP.css](https://botoxparty.github.io/XP.css/)
 - ⚙️ **YAML Configuration**: Easy content management via `public/CV.yaml`
-- 🔄 **Template System**: Automatic placeholder replacement from YAML data
+- 🔄 **Template System**: `index.template.html` stays in git, while `npm run build` generates a fresh `index.html` from CV.yaml data
 - 🪟 **Window Management**: Draggable, resizable windows with proper z-index handling
 - 📱 **Mobile Support**: Responsive design with touch support
 
@@ -53,7 +53,7 @@ previewImage: "./assets/gui/boot/preview.png"
 npm run build
 ```
 
-This runs the template replacement script to populate placeholders in `index.html` with your YAML data.
+This generates a fresh `index.html` from `index.template.html`, replacing placeholders with your YAML data (the generated file is git-ignored, so rerun this whenever CV.yaml changes).
 
 ### 4. Run Locally
 
@@ -65,11 +65,31 @@ python3 -m http.server 8000
 
 Then open: `http://localhost:8000/`
 
+### Template Workflow
+
+1. Edit `public/CV.yaml` (or the config files) with your latest information.
+2. Run `npm run build` (or `npm run replace-templates`) to copy `index.template.html` to `index.html` and inject the YAML values.
+3. Serve or deploy the generated `index.html`. Because it is git-ignored, only the template stays committed—run the build again whenever your CV data changes.
+
+## Using a Private CV Repository
+
+If you store `CV.yaml` in a different (private) repository, the deployment workflow can now pull it automatically:
+
+1. Create a fine-grained personal access token with at least **Contents: Read** (classic token with `repo` scope also works).
+2. Add the token as a repository secret named `CV_SOURCE_PAT`.
+3. Add repository variables (Settings → Variables) for:
+   - `CV_SOURCE_REPO`: `owner/private-repo-name`
+   - `CV_SOURCE_REF` *(optional)*: branch or tag to read from (defaults to `main`)
+   - `CV_SOURCE_PATH` *(optional)*: path to the YAML file inside that repo (defaults to `CV.yaml`)
+
+During `deploy.yml`, the workflow will checkout the additional repository with that token and copy the specified file into `public/CV.yaml` before running `npm run build`. If no variables are set, the workflow continues to use the tracked `public/CV.yaml` in this repo, so local development still works unchanged.
+
 ## Project Structure
 
 ```
 XPortfolio/
-├── index.html              # Main entry point (with template placeholders)
+├── index.template.html     # Source template with placeholders
+├── index.html              # Generated at build time (git-ignored)
 ├── public/
 │   └── CV.yaml            # Your portfolio configuration
 ├── src/

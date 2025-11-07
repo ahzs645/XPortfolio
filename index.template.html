@@ -5,21 +5,21 @@
 <meta content=nosniff http-equiv=X-Content-Type-Options>
 <meta content="public, max-age=31536000" http-equiv=Cache-Control>
 <meta content="light only" name=color-scheme>
-<meta content="Ahmad Jalil - Research Assistant. View my work through an interactive Windows XP desktop experience. Complete with working applications and authentic retro interface." name=description>
-<meta content="Windows XP, Desktop, HTML, CSS, JavaScript, Web, UI, Portfolio, Ahmad Jalil, Web Development, Frontend, Operating System, Simulation" name=keywords>
-<meta content="Ahmad Jalil (me@ahmadjalil.com)" name=author>
+<meta content="{{DEVELOPER_NAME}} - {{DEVELOPER_TITLE}}. View my work through an interactive Windows XP desktop experience. Complete with working applications and authentic retro interface." name=description>
+<meta content="Windows XP, Desktop, HTML, CSS, JavaScript, Web, UI, Portfolio, {{DEVELOPER_NAME}}, Web Development, Frontend, Operating System, Simulation" name=keywords>
+<meta content="{{DEVELOPER_NAME}} ({{DEVELOPER_EMAIL}})" name=author>
 <link href=./assets/gui/boot/favicon.png rel=icon type=image/png>
-<title>Ahmad XP</title>
-<meta content="Ahmad Jalil — Windows XP Portfolio" property=og:title>
-<meta content="A Windows XP–style interactive portfolio showcasing work by Ahmad Jalil." property=og:description>
+<title>{{DEVELOPER_FIRSTNAME}} XP</title>
+<meta content="{{DEVELOPER_NAME}} — Windows XP Portfolio" property=og:title>
+<meta content="A Windows XP–style interactive portfolio showcasing the work of {{DEVELOPER_NAME}}, {{DEVELOPER_TITLE}}." property=og:description>
 <meta content=website property=og:type>
-<meta content="Ahmad XP" property=og:site_name>
-<meta content=link./assets/gui/boot/link.png property=og:image>
-<meta content="Ahmad XP" property=og:image:alt>
+<meta content="{{DEVELOPER_FIRSTNAME}} XP" property=og:site_name>
+<meta content="{{HTML_PREVIEW_IMAGE}}" property=og:image>
+<meta content="{{DEVELOPER_FIRSTNAME}} XP" property=og:image:alt>
 <meta content=summary_large_image name=twitter:card>
-<meta content="Ahmad Jalil — Windows XP Portfolio" name=twitter:title>
-<meta content="A Windows XP–style interactive portfolio showcasing work by Ahmad Jalil." name=twitter:description>
-<meta content=link./assets/gui/boot/link.png name=twitter:image>
+<meta content="{{DEVELOPER_NAME}} — Windows XP Portfolio" name=twitter:title>
+<meta content="A Windows XP–style interactive portfolio showcasing the work of {{DEVELOPER_NAME}}, {{DEVELOPER_TITLE}}." name=twitter:description>
+<meta content="{{HTML_PREVIEW_IMAGE}}" name=twitter:image>
 <meta content=index,follow name=robots>
 <script>
     ["selectstart", "dragstart", "contextmenu"].forEach(e => {
@@ -84,13 +84,13 @@
     {
         "@context": "https://schema.org",
         "@type": "Person",
-        "name": "Ahmad Jalil",
-        "jobTitle": "Research Assistant",
-        "url": "https://ahmadjalil.com",
+        "name": "{{DEVELOPER_NAME}}",
+        "jobTitle": "{{DEVELOPER_TITLE}}",
+        "url": "{{DEVELOPER_WEBSITE}}",
         "sameAs": [
-            "https://instagram.com/ahzs645",
-            "https://github.com/ahzs645 https://www.facebook.com/ahzs645",
-            "https://www.linkedin.com/in/ahmad-jalil-b00669197/ https://github.com/ahzs645"
+            "{{SOCIAL_INSTAGRAM_URL}}",
+            "{{SOCIAL_GITHUB_URL}}",
+            "{{SOCIAL_LINKEDIN_URL}}"
         ]
     }
 </script>
@@ -98,8 +98,8 @@
     {
         "@context": "https://schema.org",
         "@type": "WebSite",
-        "name": "Ahmad XP",
-        "url": "https://ahmadjalil.com"
+        "name": "{{DEVELOPER_FIRSTNAME}} XP",
+        "url": "{{DEVELOPER_WEBSITE}}"
     }
 </script>
 
@@ -117,9 +117,9 @@
             }
         }
     </style><a href=#desktop-icons class=sr-only>Skip to desktop applications</a> <a href=#start-button class=sr-only>Skip to start menu</a>
-    <h1 class=sr-only>Ahmad Jalil — Research Assistant Portfolio</h1>
+    <h1 class=sr-only>{{DEVELOPER_NAME}} — {{DEVELOPER_TITLE}} Portfolio</h1>
     <!-- Wallpaper preload will be dynamically generated --><noscript>
-        <p>Welcome to my portfolio. JavaScript is required for the full Windows XP experience. You can reach me on <a href=https://www.linkedin.com/in/ahmad-jalil-b00669197/ https://github.com/ahzs645 rel=noopener target=_blank>LinkedIn</a>, view my work on <a href=https://github.com/ahzs645 https://www.facebook.com/ahzs645 rel=noopener target=_blank>GitHub</a>, or see my latest on <a href=https://instagram.com/ahzs645 rel=noopener target=_blank>Instagram</a>.</p>
+        <p>Welcome to my portfolio. JavaScript is required for the full Windows XP experience. You can reach me on <a href="{{SOCIAL_LINKEDIN_URL}}" rel=noopener target=_blank>LinkedIn</a>, view my work on <a href="{{SOCIAL_GITHUB_URL}}" rel=noopener target=_blank>GitHub</a>, or see my latest on <a href="{{SOCIAL_INSTAGRAM_URL}}" rel=noopener target=_blank>Instagram</a>. You can also visit my website at <a href="{{DEVELOPER_WEBSITE}}" rel=noopener target=_blank>{{DEVELOPER_WEBSITE}}</a>.</p>
     </noscript>
     <div class=pre-boot-overlay-style id=pre-boot-overlay></div>
     <div id=boot-screen>
@@ -139,8 +139,8 @@
         <div class="login-screen login-screen-initial-display">
             <div class=login-screen-inner>
                 <div class=login-screen-center>
-                    <div class=left><img alt="Windows XP Loading" src=./assets/gui/boot/xp.svg draggable=false class=xp-logo-image>
-                        <div class=left-text><span class=desktop-login-instruction>To begin, click on <span class=login-instruction-name>Mitch Ivin</span> to log in</span></div>
+                        <div class=left><img alt="Windows XP Loading" src=./assets/gui/boot/xp.svg draggable=false class=xp-logo-image>
+                        <div class=left-text><span class=desktop-login-instruction>To begin, click on <span class=login-instruction-name>{{DEVELOPER_DISPLAY_NAME}}</span> to log in</span></div>
                     </div>
                     <hr class="login-separator mobile-only">
                     <div class=login-divider aria-hidden=true></div>
@@ -148,15 +148,15 @@
                         <div class="interactive back-gradient">
                             <div class=user></div>
                             <div class=text-wrap>
-                                <div class=name>Mitch Ivin</div>
-                                <div class=user-title>Graphic Designer</div>
+                                <div class=name>{{DEVELOPER_DISPLAY_NAME}}</div>
+                                <div class=user-title>{{DEVELOPER_TITLE}}</div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class=turn-off><img alt=Restart src=./assets/gui/start-menu/restart.webp draggable=false id=shutdown-icon>
-                <div class=shutdown-text>Restart MitchIvin XP</div>
+                <div class=shutdown-text>Restart {{DEVELOPER_OS_NAME}}</div>
             </div>
             <div class=right-bottom><span class=desktop-bottom-detail>After you log on, the system's yours to explore.</span> <span class=desktop-bottom-detail>Every detail has been designed with a purpose.</span> <span class=mobile-bottom-detail>Tap on the user icon to begin</span></div>
         </div>

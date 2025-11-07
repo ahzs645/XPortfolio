@@ -16,6 +16,10 @@ concurrency:
 
 jobs:
   deploy:
+    env:
+      CV_SOURCE_REPO: ${{ vars.CV_SOURCE_REPO || '' }}
+      CV_SOURCE_REF: ${{ vars.CV_SOURCE_REF || 'main' }}
+      CV_SOURCE_PATH: ${{ vars.CV_SOURCE_PATH || 'CV.yaml' }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -25,6 +29,27 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Checkout CV source
+        if: ${{ env.CV_SOURCE_REPO != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.CV_SOURCE_REPO }}
+          ref: ${{ env.CV_SOURCE_REF }}
+          token: ${{ secrets.CV_SOURCE_PAT }}
+          path: cv-source
+
+      - name: Sync CV.yaml
+        if: ${{ env.CV_SOURCE_REPO != '' }}
+        run: |
+          SRC="cv-source/${{ env.CV_SOURCE_PATH }}"
+          DEST="public/CV.yaml"
+          if [ ! -f "$SRC" ]; then
+            echo "CV source file not found at $SRC"
+            exit 1
+          fi
+          cp "$SRC" "$DEST"
+          echo "Copied $SRC -> $DEST"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
