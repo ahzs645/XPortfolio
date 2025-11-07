@@ -66,6 +66,11 @@ fi
 HTML_PREVIEW_IMAGE=$(get_config_value "HTML_PREVIEW_IMAGE")
 [ -z "$HTML_PREVIEW_IMAGE" ] && HTML_PREVIEW_IMAGE="link.webp"
 
+DESKTOP_PROGRAMS_RAW=$(get_config_value "DESKTOP_PROGRAMS")
+DESKTOP_PROGRAMS_CLEAN=$(trim_value "$DESKTOP_PROGRAMS_RAW")
+[ -z "$DESKTOP_PROGRAMS_CLEAN" ] && DESKTOP_PROGRAMS_CLEAN="about,resume,projects,contact"
+DESKTOP_PROGRAMS=$(printf '%s' "$DESKTOP_PROGRAMS_CLEAN" | tr -d '[:space:]')
+
 NAME_DISPLAY_MODE=$(get_config_value "NAME_DISPLAY_MODE")
 CUSTOM_NAME=$(get_config_value "CUSTOM_NAME")
 OS_SUFFIX=$(get_config_value "OS_SUFFIX")
@@ -132,6 +137,7 @@ echo "🔗 LinkedIn: $SOCIAL_LINKEDIN_URL"
 echo "🐱 GitHub: $SOCIAL_GITHUB_URL"
 echo "📷 Instagram: $SOCIAL_INSTAGRAM_URL"
 echo "🖼️  Preview Image: $HTML_PREVIEW_IMAGE"
+echo "🖥️  Desktop Programs: $DESKTOP_PROGRAMS"
 
 # Prepare index.html from template
 if [ ! -f "$TEMPLATE_FILE" ]; then
@@ -163,6 +169,7 @@ for FILE in $FILES_TO_PROCESS; do
         sed -i.tmp "s|{{SOCIAL_GITHUB_URL}}|$SOCIAL_GITHUB_URL|g" "$FILE"
         sed -i.tmp "s|{{SOCIAL_INSTAGRAM_URL}}|$SOCIAL_INSTAGRAM_URL|g" "$FILE"
         sed -i.tmp "s|{{HTML_PREVIEW_IMAGE}}|$HTML_PREVIEW_IMAGE|g" "$FILE"
+        sed -i.tmp "s|{{DESKTOP_PROGRAMS}}|$DESKTOP_PROGRAMS|g" "$FILE"
 
         # Clean up temp file
         rm -f "${FILE}.tmp"

@@ -1,4 +1,5 @@
 import { EVENTS } from '../utils/eventBus.js';
+import { START_MENU_CATALOG } from '../../config/startMenuItems.js';
 
 const SOCIAL_ICON_MAP = {
     linkedin: './assets/gui/start-menu/linkedin.webp',
@@ -10,6 +11,13 @@ const SOCIAL_ICON_MAP = {
 
 let SOCIALS_CACHE = null;
 let SYSTEM_ASSETS = null;
+const DEFAULT_DESKTOP_PROGRAMS = [
+    'about',
+    'resume',
+    'projects',
+    'contact'
+];
+const FALLBACK_PROGRAM_ICON = './assets/gui/start-menu/cmd.webp';
 
 // Function to clear cache for development/testing
 window.clearSystemAssetsCache = () => {
@@ -80,10 +88,44 @@ async function getSystemAssets() {
     }
 }
 
+function normalizeProgramId(programId = '') {
+    return programId.trim();
+}
+
+function resolveCatalogEntry(programId) {
+    const normalizedId = normalizeProgramId(programId);
+    if (!normalizedId) return null;
+
+    if (START_MENU_CATALOG[normalizedId]) {
+        return START_MENU_CATALOG[normalizedId];
+    }
+
+    const entries = Object.values(START_MENU_CATALOG || {});
+    return entries.find(entry => entry?.programName === normalizedId) || null;
+}
+
+function toIconConfig(programId) {
+    const entry = resolveCatalogEntry(programId);
+    if (!entry || entry.type === 'separator') return null;
+
+    const label = entry.title || entry.programName || programId;
+    const programName = entry.programName || programId;
+    const icon = entry.icon || FALLBACK_PROGRAM_ICON;
+
+    return {
+        programName,
+        label,
+        icon,
+        ariaLabel: `Open ${label}`
+    };
+}
+
 export default class Desktop {
     constructor(eventBus) {
         this.eventBus = eventBus;
         this.desktop = document.querySelector('.desktop');
+        this.desktopIconsContainer = this.desktop?.querySelector('#desktop-icons');
+        this.desktopProgramIds = this.resolveDesktopPrograms();
         this.selectionBox = null;
         this.isDragging = false;
         this.hasDragged = false;
@@ -94,11 +136,12 @@ export default class Desktop {
         this.activeDragPointerId = null;
         this.cleanupArtifacts();
         this.createSelectionOverlay();
+        this.renderDesktopIcons();
         getSocials().then(socials => {
             this.socials = socials;
             this.updateSocialDesktopIcons();
-            this.setupIconEvents();
         });
+        this.setupIconEvents();
         this.setupDesktopEvents();
         this.setupPointerSelectionEvents();
         this.setupKeyboardNavigation();
@@ -121,6 +164,65 @@ export default class Desktop {
                 this.desktop.style.backgroundImage = `url('${assets.wallpaperDesktop}')`;
             }
         });
+    }
+
+    resolveDesktopPrograms() {
+        if (!this.desktop) return [...DEFAULT_DESKTOP_PROGRAMS];
+        const datasetValue = this.desktop.dataset.desktopPrograms || '';
+        const configured = datasetValue
+            .split(',')
+            .map(value => value.trim())
+            .filter(Boolean);
+        if (configured.length === 0) {
+            return [...DEFAULT_DESKTOP_PROGRAMS];
+        }
+        return configured;
+    }
+
+    renderDesktopIcons() {
+        if (!this.desktopIconsContainer) return;
+
+        let iconConfigs = this.desktopProgramIds
+            .map(programId => toIconConfig(programId))
+            .filter(Boolean);
+
+        if (iconConfigs.length === 0) {
+            console.warn('No valid desktop programs found; falling back to defaults.');
+            this.desktopProgramIds = [...DEFAULT_DESKTOP_PROGRAMS];
+            iconConfigs = this.desktopProgramIds
+                .map(programId => toIconConfig(programId))
+                .filter(Boolean);
+        }
+
+        if (iconConfigs.length === 0) return;
+
+        const fragment = document.createDocumentFragment();
+        iconConfigs.forEach(config => {
+            fragment.appendChild(this.createDesktopIcon(config));
+        });
+        this.desktopIconsContainer.innerHTML = '';
+        this.desktopIconsContainer.appendChild(fragment);
+    }
+
+    createDesktopIcon(config) {
+        const iconElement = document.createElement('div');
+        iconElement.className = 'desktop-icon';
+        iconElement.setAttribute('role', 'button');
+        iconElement.setAttribute('tabindex', '0');
+        iconElement.setAttribute('aria-label', config.ariaLabel);
+        iconElement.dataset.programName = config.programName;
+
+        const img = document.createElement('img');
+        img.loading = 'eager';
+        img.alt = config.label;
+        img.src = config.icon;
+
+        const label = document.createElement('span');
+        label.textContent = config.label;
+
+        iconElement.appendChild(img);
+        iconElement.appendChild(label);
+        return iconElement;
     }
 
     getIcons() {

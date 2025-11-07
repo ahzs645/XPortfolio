@@ -152,7 +152,13 @@ yourapp: createProgram('yourapp', 'Your App', 'icon.svg', {
 
 ### Desktop Icons
 
-Desktop icons are configured in `src/scripts/gui/desktop.js`. Add new icons by defining them in the `DESKTOP_ICONS` array.
+Configure the desktop shortcuts via the `DESKTOP_PROGRAMS` environment variable in `config.env`. Provide a comma-separated list of program IDs that exist in `src/config/startMenuItems.js`. Example:
+
+```
+DESKTOP_PROGRAMS=about,resume,projects,mediaPlayer
+```
+
+If the value is empty or references unknown IDs, the default `about,resume,projects,contact` set is used.
 
 ### Start Menu
 

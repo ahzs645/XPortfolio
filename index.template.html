@@ -162,14 +162,9 @@
         </div>
         <div class="welcome-message welcome-message-initial-hidden"><span class=welcome-image-fallback>Welcome</span></div>
     </div>
-    <div class=desktop>
+    <div class=desktop data-desktop-programs="{{DESKTOP_PROGRAMS}}">
         <h2 class=sr-only>Desktop Applications</h2>
-        <div class=desktop-icons id=desktop-icons>
-            <div class=desktop-icon aria-label="Open About Me" role=button tabindex=0 data-program-name=about><img alt="About Me" src=./assets/gui/desktop/about.webp loading=eager> <span>About Me</span></div>
-            <div class=desktop-icon aria-label="Open My Resume" role=button tabindex=0 data-program-name=resume><img alt=Resume src=./assets/gui/desktop/resume.svg loading=eager> <span>My Resume</span></div>
-            <div class=desktop-icon aria-label="Open My Projects" role=button tabindex=0 data-program-name=projects><img alt="My Projects" src=./assets/gui/desktop/projects.webp loading=eager> <span>My Projects</span></div>
-            <div class=desktop-icon aria-label="Open Contact Me" role=button tabindex=0 data-program-name=contact><img alt="Contact Me" src=./assets/gui/desktop/contact.webp loading=eager> <span>Contact Me</span></div>
-        </div>
+        <div class=desktop-icons id=desktop-icons></div>
     </div>
     <div id=windows-container></div>
     <h2 class=sr-only>Taskbar</h2>
