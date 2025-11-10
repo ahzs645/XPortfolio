@@ -21,8 +21,8 @@ export default function Window({
     () => ({
       zIndex,
       transform: `translate(${position.x}px, ${position.y}px)`,
-      width: (size && size.width) || 520,
-      height: (size && size.height) || 360,
+      width: size?.width ?? 520,
+      height: size?.height ?? 360,
       visibility: minimized ? 'hidden' : 'visible',
       pointerEvents: minimized ? 'none' : 'auto'
     }),
