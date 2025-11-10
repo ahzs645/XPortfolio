@@ -1,14 +1,9 @@
 {
   "name": "xportfolio",
-  "version": "1.0.0",
-  "description": "Windows XP-style interactive portfolio",
+  "version": "2.0.0",
+  "description": "Windows XP-style interactive portfolio rebuilt with React.",
   "scripts": {
-    "replace-templates": "./scripts/replace-templates.sh",
-    "build:spider": "./scripts/build-spider-solitaire.sh",
-    "build:solitaire": "./scripts/build-solitaire.sh",
-    "build:paint": "./scripts/build-jspaint.sh",
-    "build": "npm run build:spider && npm run build:solitaire && npm run build:paint && npm run replace-templates",
-    "build:local": "npm run replace-templates"
+    "build": "./scripts/replace-templates.sh"
   },
   "author": "",
   "license": "MIT"

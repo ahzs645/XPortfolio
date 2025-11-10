@@ -1,11 +1,11 @@
 # XPortfolio - Windows XP Style Portfolio
 
-A YAML-based Windows XP themed portfolio website with a nostalgic desktop experience. Built with vanilla JavaScript, HTML, and CSS.
+A YAML-driven Windows XP themed portfolio rebuilt with React. The entire desktop, window management, and application content now run through React state instead of sandboxed iframes.
 
 ## Overview
 
 This project provides an interactive Windows XP desktop environment for showcasing your portfolio, complete with:
-- Working applications (Minesweeper, Paint, Media Player, etc.)
+- React state driven desktop and window management (no iframes)
 - Customizable content via YAML configuration
 - Authentic Windows XP UI/UX
 - Fully responsive design
@@ -14,7 +14,7 @@ This project provides an interactive Windows XP desktop environment for showcasi
 
 ## Features
 
-- 🎮 **Interactive Apps**: Minesweeper, Paint (via jspaint.app), Media Player, Music Player (Winamp)
+- 🪟 **React Windows**: Desktop windows are powered by React components instead of embedded iframes.
 - 📄 **Portfolio Apps**: Resume, Projects, About Me, Contact
 - 🎨 **Authentic XP Styling**: Using [XP.css](https://botoxparty.github.io/XP.css/)
 - ⚙️ **YAML Configuration**: Easy content management via `public/CV.yaml`
@@ -24,13 +24,7 @@ This project provides an interactive Windows XP desktop environment for showcasi
 
 ## Quick Start
 
-### 1. Install Dependencies
-
-```bash
-npm install
-```
-
-### 2. Configure Your Portfolio
+### 1. Configure Your Portfolio
 
 Edit `public/CV.yaml` with your information:
 
@@ -47,7 +41,7 @@ instagram: "https://instagram.com/yourusername"
 previewImage: "./assets/gui/boot/preview.png"
 ```
 
-### 3. Build
+### 2. Build the Template
 
 ```bash
 npm run build
@@ -55,7 +49,7 @@ npm run build
 
 This generates a fresh `index.html` from `index.template.html`, replacing placeholders with your YAML data (the generated file is git-ignored, so rerun this whenever CV.yaml changes).
 
-### 4. Run Locally
+### 3. Run Locally
 
 Start a local server:
 
@@ -91,26 +85,21 @@ XPortfolio/
 ├── index.template.html     # Source template with placeholders
 ├── index.html              # Generated at build time (git-ignored)
 ├── public/
-│   └── CV.yaml            # Your portfolio configuration
+│   └── CV.yaml            # Portfolio configuration used for template injection
 ├── src/
-│   ├── apps/              # Application components
-│   │   ├── minesweeper/   # Minesweeper game
-│   │   ├── paint/         # Paint app (iframe to jspaint.app)
-│   │   ├── resume/        # Resume viewer
-│   │   ├── projects/      # Projects showcase
-│   │   ├── about/         # About me
-│   │   ├── contact/       # Contact form
-│   │   ├── mediaPlayer/   # Video player
-│   │   └── musicPlayer/   # Winamp-style music player
-│   ├── scripts/
-│   │   ├── gui/           # Window management, taskbar, start menu
-│   │   └── utils/         # Program registry, helpers
-│   └── styles/
-│       └── gui/           # Window, taskbar, desktop styling
+│   ├── react-app/         # React desktop, windows, and app content
+│   │   ├── components/    # Desktop icons, windows, taskbar, start menu
+│   │   ├── data/          # App registry for the React desktop
+│   │   └── styles/        # XP-inspired styling for the React UI
+│   ├── apps/              # Legacy vanilla JS applications (kept for reference)
+│   ├── scripts/           # Legacy window manager utilities (unused by React build)
+│   └── styles/            # Legacy CSS (unused by React build)
 ├── assets/                # Images, fonts, icons
 └── scripts/
     └── replace-templates.sh  # YAML → HTML template script
 ```
+
+> The React experience loads from `src/react-app/main.js`, while the legacy vanilla assets remain in `src/apps/` for reference.
 
 ## Applications
 
