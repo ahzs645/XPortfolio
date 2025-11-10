@@ -119,7 +119,9 @@ export default function App() {
     setStartMenuOpen(prev => !prev);
   };
 
-  const desktopApps = desktopAppIds.map(id => appsById[id]).filter(Boolean);
+  const desktopApps = desktopAppIds
+    .map(id => appsById[id] || (console.warn('Invalid app ID:', id), null))
+    .filter(Boolean);
 
   return html`
     <div
