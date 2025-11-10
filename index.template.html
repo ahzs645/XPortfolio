@@ -41,10 +41,13 @@
         developerOsName: "{{DEVELOPER_OS_NAME}}",
         developerWebsite: "{{DEVELOPER_WEBSITE}}",
         wallpaper: './assets/gui/bgs/blissorg.jpeg',
-        desktopPrograms: "{{DESKTOP_PROGRAMS}}"
-          .split(',')
-          .map(item => item.trim())
-          .filter(Boolean),
+        desktopPrograms: (
+          "{{DESKTOP_PROGRAMS}}" &&
+          "{{DESKTOP_PROGRAMS}}" !== "undefined" &&
+          "{{DESKTOP_PROGRAMS}}".trim() !== ""
+        )
+          ? "{{DESKTOP_PROGRAMS}}".split(',').map(item => item.trim()).filter(Boolean)
+          : [],
         socialLinks: {
           linkedin: "{{SOCIAL_LINKEDIN_URL}}",
           github: "{{SOCIAL_GITHUB_URL}}",
