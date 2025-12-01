@@ -159,6 +159,33 @@ const WindowContainer = styled.div`
   position: absolute;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+
+  .title-bar {
+    height: 28px;
+    min-height: 28px;
+    padding: 0 3px;
+  }
+
+  .title-bar-text {
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+  }
+
+  .window-body {
+    flex: 1;
+    overflow: hidden;
+    margin: 0 3px 0 3px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .window-body > * {
+    flex: 1;
+    overflow: auto;
+  }
 `;
 
 export default Windows;
