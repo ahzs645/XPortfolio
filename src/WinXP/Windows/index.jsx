@@ -1,0 +1,164 @@
+import React, { useRef, memo } from 'react';
+import styled from 'styled-components';
+
+import { useElementResize, useWindowSize } from '../../hooks';
+
+function Windows({
+  apps,
+  onMouseDown,
+  onClose,
+  onMinimize,
+  onMaximize,
+  focusedAppId,
+}) {
+  return (
+    <div style={{ position: 'relative', zIndex: 0 }}>
+      {apps.map((app) => (
+        <Window
+          show={!app.minimized}
+          key={app.id}
+          id={app.id}
+          onMouseDown={onMouseDown}
+          onMouseUpClose={onClose}
+          onMouseUpMinimize={onMinimize}
+          onMouseUpMaximize={onMaximize}
+          isFocus={focusedAppId === app.id}
+          {...app}
+        />
+      ))}
+    </div>
+  );
+}
+
+const Window = memo(function ({
+  injectProps,
+  id,
+  onMouseDown,
+  onMouseUpClose,
+  onMouseUpMinimize,
+  onMouseUpMaximize,
+  header,
+  defaultSize,
+  defaultOffset,
+  resizable,
+  maximized,
+  component: Component,
+  zIndex,
+  isFocus,
+  show,
+}) {
+  function _onMouseDown() {
+    onMouseDown(id);
+  }
+
+  function _onMouseUpClose() {
+    onMouseUpClose(id);
+  }
+
+  function _onMouseUpMinimize() {
+    onMouseUpMinimize(id);
+  }
+
+  function _onMouseUpMaximize() {
+    if (resizable) onMouseUpMaximize(id);
+  }
+
+  function onDoubleClickHeader(e) {
+    if (e.target !== dragRef.current) return;
+    _onMouseUpMaximize();
+  }
+
+  const dragRef = useRef(null);
+  const ref = useRef(null);
+  const { width: windowWidth, height: windowHeight } = useWindowSize();
+  const { offset, size } = useElementResize(ref, {
+    dragRef,
+    defaultOffset,
+    defaultSize,
+    boundary: {
+      top: 1,
+      right: windowWidth - 1,
+      bottom: windowHeight - 31,
+      left: 1,
+    },
+    resizable,
+    resizeThreshold: 10,
+  });
+
+  let width, height, x, y;
+  if (maximized) {
+    width = windowWidth + 6;
+    height = windowHeight - 24;
+    x = -3;
+    y = -3;
+  } else {
+    width = size.width;
+    height = size.height;
+    x = offset.x;
+    y = offset.y;
+  }
+
+  if (!show) return null;
+
+  return (
+    <WindowContainer
+      ref={ref}
+      className={`window ${isFocus ? '' : 'inactive'}`}
+      onMouseDown={_onMouseDown}
+      style={{
+        transform: `translate(${x}px,${y}px)`,
+        width: width ? `${width}px` : 'auto',
+        height: height ? `${height}px` : 'auto',
+        zIndex,
+      }}
+    >
+      {!header.invisible && (
+        <div className="title-bar" ref={dragRef} onDoubleClick={onDoubleClickHeader}>
+          <div className="title-bar-text">
+            {header.icon && (
+              <img
+                src={header.icon}
+                alt=""
+                onDoubleClick={_onMouseUpClose}
+                draggable={false}
+                style={{ width: 16, height: 16, marginRight: 4, marginLeft: 2 }}
+              />
+            )}
+            {header.title}
+          </div>
+          <div className="title-bar-controls">
+            {(!header.buttons || header.buttons.includes('minimize')) && (
+              <button aria-label="Minimize" onMouseUp={_onMouseUpMinimize} />
+            )}
+            {(!header.buttons || header.buttons.includes('maximize')) && (
+              <button
+                aria-label={maximized ? 'Restore' : 'Maximize'}
+                onMouseUp={_onMouseUpMaximize}
+                disabled={!resizable}
+              />
+            )}
+            {(!header.buttons || header.buttons.includes('close')) && (
+              <button aria-label="Close" onMouseUp={_onMouseUpClose} />
+            )}
+          </div>
+        </div>
+      )}
+      <div className="window-body">
+        <Component
+          onClose={_onMouseUpClose}
+          onMinimize={_onMouseUpMinimize}
+          isFocus={isFocus}
+          {...injectProps}
+        />
+      </div>
+    </WindowContainer>
+  );
+});
+
+const WindowContainer = styled.div`
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+`;
+
+export default Windows;

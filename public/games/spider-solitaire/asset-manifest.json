@@ -1,0 +1,22 @@
+{
+  "files": {
+    "main.css": "./static/css/main.47dd0ff3.css",
+    "main.js": "./static/js/main.92c54dc4.js",
+    "static/media/win.ogg": "./static/media/win.fc702605022d7b9d61b1.ogg",
+    "static/media/hint.ogg": "./static/media/hint.14af02d08ade06597118.ogg",
+    "static/media/Card_Back_Spider.png": "./static/media/Card_Back_Spider.3440d6eaa0ad44623d75.png",
+    "static/media/no-hint.ogg": "./static/media/no-hint.2b127c57559e869cb0c0.ogg",
+    "static/media/cannot-deal.ogg": "./static/media/cannot-deal.719a6f617eada93b780b.ogg",
+    "static/media/deal.ogg": "./static/media/deal.d303474b721eac99dbe8.ogg",
+    "static/media/mouse-down.ogg": "./static/media/mouse-down.2c3d79bd0f1934bc609a.ogg",
+    "index.html": "./index.html",
+    "static/media/clickable.cur": "./static/media/clickable.8631aaabd2cfb34ba958.cur",
+    "static/media/normal.cur": "./static/media/normal.85d4fca447efc91fabb6.cur",
+    "main.47dd0ff3.css.map": "./static/css/main.47dd0ff3.css.map",
+    "main.92c54dc4.js.map": "./static/js/main.92c54dc4.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.47dd0ff3.css",
+    "static/js/main.92c54dc4.js"
+  ]
+}
