@@ -1,6 +1,7 @@
 import React, { useReducer, useRef, useCallback, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useMouse } from '../hooks';
+import useSystemSounds from '../hooks/useSystemSounds';
 
 import {
   ADD_APP,
