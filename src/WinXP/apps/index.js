@@ -8,6 +8,10 @@ import Minesweeper from './Minesweeper';
 import Solitaire from './Solitaire';
 import SpiderSolitaire from './SpiderSolitaire';
 import Pinball from './Pinball';
+import CMD from './CMD';
+import MediaPlayer from './MediaPlayer';
+import ImageViewer from './ImageViewer';
+import Paint from './Paint';
 
 // Default apps open on startup (empty for now - user opens via desktop icons)
 export const defaultAppState = [];
@@ -51,7 +55,7 @@ export const defaultIconState = [
   },
   {
     id: 5,
-    icon: '/icons/solitaire.png',
+    icon: '/icons/minesweeper.png',
     title: 'Minesweeper',
     component: Minesweeper,
     isFocus: false,
@@ -144,18 +148,22 @@ export const appSettings = {
     header: {
       icon: '/icons/calculator.png',
       title: 'Calculator',
-      buttons: ['minimize', 'close'],
+      buttons: ['minimize', 'maximize', 'close'],
     },
     component: Calculator,
     defaultSize: {
-      width: 230,
-      height: 300,
+      width: 250,
+      height: 310,
+    },
+    minSize: {
+      width: 250,
+      height: 310,
     },
     defaultOffset: {
       x: 200,
       y: 100,
     },
-    resizable: false,
+    resizable: true,
     minimized: false,
     maximized: false,
     multiInstance: true,
@@ -206,8 +214,7 @@ export const appSettings = {
       title: 'Paint',
       buttons: ['minimize', 'maximize', 'close'],
     },
-    // Paint will use iframe for jspaint.app
-    component: () => null,
+    component: Paint,
     defaultSize: {
       width: 800,
       height: 600,
@@ -281,6 +288,106 @@ export const appSettings = {
     maximized: false,
     multiInstance: false,
   },
+  CMD: {
+    header: {
+      icon: '/icons/cmd.png',
+      title: 'Command Prompt',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: CMD,
+    defaultSize: {
+      width: 680,
+      height: 400,
+    },
+    defaultOffset: {
+      x: 100,
+      y: 80,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
+  },
+  'Command Prompt': {
+    header: {
+      icon: '/icons/cmd.png',
+      title: 'Command Prompt',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: CMD,
+    defaultSize: {
+      width: 680,
+      height: 400,
+    },
+    defaultOffset: {
+      x: 100,
+      y: 80,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
+  },
+  'Media Player': {
+    header: {
+      icon: '/icons/media-player.png',
+      title: 'Windows Media Player',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: MediaPlayer,
+    defaultSize: {
+      width: 640,
+      height: 480,
+    },
+    defaultOffset: {
+      x: 80,
+      y: 50,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'Windows Media Player': {
+    header: {
+      icon: '/icons/media-player.png',
+      title: 'Windows Media Player',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: MediaPlayer,
+    defaultSize: {
+      width: 640,
+      height: 480,
+    },
+    defaultOffset: {
+      x: 80,
+      y: 50,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'Image Viewer': {
+    header: {
+      icon: '/icons/image-viewer.png',
+      title: 'Windows Picture and Fax Viewer',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: ImageViewer,
+    defaultSize: {
+      width: 600,
+      height: 450,
+    },
+    defaultOffset: {
+      x: 120,
+      y: 70,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
+  },
   'My Computer': {
     header: {
       icon: '/icons/my-computer.png',
@@ -323,4 +430,19 @@ export const appSettings = {
   },
 };
 
-export { About, Resume, Projects, Contact, Calculator, Notepad, Minesweeper, Solitaire, SpiderSolitaire, Pinball };
+export {
+  About,
+  Resume,
+  Projects,
+  Contact,
+  Calculator,
+  Notepad,
+  Minesweeper,
+  Solitaire,
+  SpiderSolitaire,
+  Pinball,
+  CMD,
+  MediaPlayer,
+  ImageViewer,
+  Paint,
+};

@@ -39,6 +39,7 @@ const Window = memo(function ({
   onMouseUpMaximize,
   header,
   defaultSize,
+  minSize,
   defaultOffset,
   resizable,
   maximized,
@@ -75,6 +76,7 @@ const Window = memo(function ({
     dragRef,
     defaultOffset,
     defaultSize,
+    minSize,
     boundary: {
       top: 1,
       right: windowWidth - 1,

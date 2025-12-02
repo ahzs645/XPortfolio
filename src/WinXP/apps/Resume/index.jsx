@@ -1,85 +1,286 @@
-import React from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
+import { useConfig } from '../../../contexts/ConfigContext';
+import { ProgramLayout } from '../../../components';
 
-function Resume({ onClose, isFocus }) {
+const PDFJS_VERSION = '3.11.174';
+const PDFJS_BASE = `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/build`;
+
+// Menu configuration for Resume window
+const RESUME_MENUS = [
+  {
+    id: 'file',
+    label: 'File',
+    items: [
+      { label: 'Print', action: 'print' },
+      { label: 'Download', action: 'download' },
+      { separator: true },
+      { label: 'Exit', action: 'exitProgram' },
+    ],
+  },
+  {
+    id: 'view',
+    label: 'View',
+    items: [
+      { label: 'Zoom In', action: 'zoomIn' },
+      { label: 'Zoom Out', action: 'zoomOut' },
+      { label: 'Fit to Window', action: 'fitToWindow' },
+      { separator: true },
+      { label: 'Maximize', action: 'maximizeWindow' },
+      { label: 'Minimize', action: 'minimizeWindow' },
+    ],
+  },
+  {
+    id: 'help',
+    label: 'Help',
+    disabled: true,
+  },
+];
+
+function Resume({ onClose, onMinimize, onMaximize, isFocus }) {
+  const { getCVPDFUrl } = useConfig();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [scaleMode, setScaleMode] = useState('fit'); // 'fit' or 'zoomed'
+  const [pdfDoc, setPdfDoc] = useState(null);
+  const containerRef = useRef(null);
+  const canvasContainerRef = useRef(null);
+
+  // Load PDF.js library
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadPdfJs() {
+      if (window.pdfjsLib) return window.pdfjsLib;
+
+      return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = `${PDFJS_BASE}/pdf.min.js`;
+        script.onload = () => {
+          if (window.pdfjsLib) {
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc = `${PDFJS_BASE}/pdf.worker.min.js`;
+            resolve(window.pdfjsLib);
+          } else {
+            reject(new Error('PDF.js failed to load'));
+          }
+        };
+        script.onerror = () => reject(new Error('Failed to load PDF.js script'));
+        document.head.appendChild(script);
+      });
+    }
+
+    async function loadPdf() {
+      try {
+        const pdfjs = await loadPdfJs();
+        const pdfUrl = getCVPDFUrl();
+
+        // First check if the PDF exists
+        const response = await fetch(pdfUrl, { method: 'HEAD' });
+        if (!response.ok) {
+          throw new Error(`PDF not found at ${pdfUrl}. Please add your CV.pdf to the public folder.`);
+        }
+
+        const doc = await pdfjs.getDocument(pdfUrl).promise;
+        if (!cancelled) {
+          setPdfDoc(doc);
+          setIsLoading(false);
+        }
+      } catch (err) {
+        console.error('Failed to load PDF:', err);
+        if (!cancelled) {
+          // Provide helpful error message
+          let errorMsg = err.message || 'Failed to load PDF';
+          if (err.name === 'InvalidPDFException') {
+            errorMsg = 'The PDF file is invalid or corrupted. Please check your CV.pdf file.';
+          } else if (errorMsg.includes('not found')) {
+            errorMsg = 'Resume PDF not found. Please add CV.pdf to your public folder.';
+          }
+          setError(errorMsg);
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadPdf();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [getCVPDFUrl]);
+
+  // Render PDF pages
+  const renderPages = useCallback(async () => {
+    if (!pdfDoc || !canvasContainerRef.current) return;
+
+    const container = canvasContainerRef.current;
+    container.innerHTML = '';
+
+    try {
+      // Get first page to calculate scale
+      const firstPage = await pdfDoc.getPage(1);
+      const probeViewport = firstPage.getViewport({ scale: 1.0 });
+
+      // Calculate fit scale based on container width
+      const containerStyle = getComputedStyle(container);
+      const paddingX = (parseFloat(containerStyle.paddingLeft) || 0) +
+                       (parseFloat(containerStyle.paddingRight) || 0);
+      const availableWidth = container.clientWidth - paddingX;
+      const fitScale = Math.min(availableWidth / probeViewport.width, 3);
+      const baseScale = fitScale > 0 ? fitScale : 1.0;
+      const currentScale = scaleMode === 'fit' ? baseScale : baseScale * 1.5;
+
+      // Render all pages
+      for (let i = 1; i <= pdfDoc.numPages; i++) {
+        const page = await pdfDoc.getPage(i);
+        const viewport = page.getViewport({ scale: currentScale });
+
+        const canvas = document.createElement('canvas');
+        canvas.className = 'pdf-page-canvas';
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = Math.ceil(viewport.width);
+        canvas.height = Math.ceil(viewport.height);
+        canvas.style.width = `${Math.ceil(viewport.width)}px`;
+        canvas.style.height = `${Math.ceil(viewport.height)}px`;
+
+        container.appendChild(canvas);
+
+        await page.render({
+          canvasContext: ctx,
+          viewport: viewport,
+        }).promise;
+      }
+    } catch (err) {
+      console.error('Failed to render PDF pages:', err);
+    }
+  }, [pdfDoc, scaleMode]);
+
+  // Re-render on pdf load or scale change
+  useEffect(() => {
+    renderPages();
+  }, [renderPages]);
+
+  // Re-render on window resize (only in fit mode)
+  useEffect(() => {
+    if (scaleMode !== 'fit') return;
+
+    const handleResize = () => {
+      renderPages();
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [scaleMode, renderPages]);
+
+  const toggleZoom = useCallback(() => {
+    setScaleMode((prev) => (prev === 'fit' ? 'zoomed' : 'fit'));
+  }, []);
+
+  const handlePrint = useCallback(() => {
+    const pdfUrl = getCVPDFUrl();
+    const printWindow = window.open(pdfUrl, '_blank');
+    if (printWindow) {
+      printWindow.addEventListener('load', () => {
+        printWindow.print();
+      });
+    }
+  }, [getCVPDFUrl]);
+
+  const handleDownload = useCallback(() => {
+    const pdfUrl = getCVPDFUrl();
+    const link = document.createElement('a');
+    link.href = pdfUrl;
+    link.download = 'resume.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, [getCVPDFUrl]);
+
+  const handleToolbarAction = useCallback((action) => {
+    switch (action) {
+      case 'print':
+        handlePrint();
+        break;
+      case 'download':
+        handleDownload();
+        break;
+      case 'zoomIn':
+        setScaleMode('zoomed');
+        break;
+      case 'zoomOut':
+      case 'fitToWindow':
+        setScaleMode('fit');
+        break;
+      default:
+        break;
+    }
+  }, [handlePrint, handleDownload]);
+
+  // Toolbar configuration for Resume window
+  const toolbarItems = [
+    { type: 'button', id: 'print', icon: '/gui/toolbar/print.webp', label: 'Print', action: 'print' },
+    { type: 'button', id: 'download', icon: '/gui/toolbar/save.webp', label: 'Download', action: 'download' },
+    { type: 'separator' },
+    { type: 'button', id: 'zoomIn', icon: '/gui/toolbar/search.webp', label: 'Zoom In', action: 'zoomIn' },
+    { type: 'button', id: 'zoomOut', icon: '/gui/toolbar/views.webp', label: 'Zoom Out', action: 'zoomOut' },
+  ];
+
+  if (isLoading) {
+    return (
+      <ProgramLayout
+        windowActions={{ onClose, onMinimize, onMaximize }}
+        menus={RESUME_MENUS}
+        menuLogo="/gui/toolbar/barlogo.webp"
+        toolbarItems={toolbarItems}
+        onToolbarAction={handleToolbarAction}
+        addressTitle="Resume"
+        addressIcon="/icons/resume.webp"
+        statusFields="Loading..."
+      >
+        <Container ref={containerRef}>
+          <LoadingMessage>Loading PDF...</LoadingMessage>
+        </Container>
+      </ProgramLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <ProgramLayout
+        windowActions={{ onClose, onMinimize, onMaximize }}
+        menus={RESUME_MENUS}
+        menuLogo="/gui/toolbar/barlogo.webp"
+        toolbarItems={toolbarItems}
+        onToolbarAction={handleToolbarAction}
+        addressTitle="Resume"
+        addressIcon="/icons/resume.webp"
+        statusFields="Error"
+      >
+        <Container ref={containerRef}>
+          <ErrorMessage>
+            <p>Failed to load resume PDF</p>
+            <p>{error}</p>
+          </ErrorMessage>
+        </Container>
+      </ProgramLayout>
+    );
+  }
+
   return (
-    <Container>
-      <Toolbar>
-        <ToolbarButton>Print</ToolbarButton>
-        <ToolbarButton>Download PDF</ToolbarButton>
-      </Toolbar>
-      <ResumeContent>
-        <ResumeHeader>
-          <Name>John Doe</Name>
-          <ContactInfo>
-            john@example.com | (555) 123-4567 | San Francisco, CA
-          </ContactInfo>
-        </ResumeHeader>
-
-        <Section>
-          <SectionTitle>Professional Summary</SectionTitle>
-          <p>
-            Experienced Full Stack Developer with 5+ years of experience building
-            scalable web applications. Proficient in JavaScript, React, Node.js,
-            and cloud technologies.
-          </p>
-        </Section>
-
-        <Section>
-          <SectionTitle>Experience</SectionTitle>
-          <Job>
-            <JobHeader>
-              <JobTitle>Senior Software Engineer</JobTitle>
-              <JobDate>2021 - Present</JobDate>
-            </JobHeader>
-            <Company>Tech Company Inc.</Company>
-            <JobDescription>
-              <li>Led development of microservices architecture</li>
-              <li>Mentored junior developers and conducted code reviews</li>
-              <li>Improved application performance by 40%</li>
-            </JobDescription>
-          </Job>
-          <Job>
-            <JobHeader>
-              <JobTitle>Software Engineer</JobTitle>
-              <JobDate>2018 - 2021</JobDate>
-            </JobHeader>
-            <Company>Startup XYZ</Company>
-            <JobDescription>
-              <li>Developed React frontend applications</li>
-              <li>Built RESTful APIs using Node.js</li>
-              <li>Implemented CI/CD pipelines</li>
-            </JobDescription>
-          </Job>
-        </Section>
-
-        <Section>
-          <SectionTitle>Education</SectionTitle>
-          <Education>
-            <Degree>Bachelor of Science in Computer Science</Degree>
-            <School>University of Technology, 2018</School>
-          </Education>
-        </Section>
-
-        <Section>
-          <SectionTitle>Skills</SectionTitle>
-          <SkillsGrid>
-            <SkillCategory>
-              <SkillCategoryTitle>Frontend</SkillCategoryTitle>
-              <span>React, Vue.js, TypeScript, CSS</span>
-            </SkillCategory>
-            <SkillCategory>
-              <SkillCategoryTitle>Backend</SkillCategoryTitle>
-              <span>Node.js, Python, PostgreSQL, MongoDB</span>
-            </SkillCategory>
-            <SkillCategory>
-              <SkillCategoryTitle>Tools</SkillCategoryTitle>
-              <span>Git, Docker, AWS, CI/CD</span>
-            </SkillCategory>
-          </SkillsGrid>
-        </Section>
-      </ResumeContent>
-    </Container>
+    <ProgramLayout
+      windowActions={{ onClose, onMinimize, onMaximize }}
+      menus={RESUME_MENUS}
+      menuLogo="/gui/toolbar/barlogo.webp"
+      toolbarItems={toolbarItems}
+      onToolbarAction={handleToolbarAction}
+      addressTitle="Resume"
+      addressIcon="/icons/resume.webp"
+      statusFields={pdfDoc ? `${pdfDoc.numPages} page(s)` : 'Ready'}
+    >
+      <Container ref={containerRef}>
+        <PDFViewer ref={canvasContainerRef} $zoomed={scaleMode === 'zoomed'} />
+      </Container>
+    </ProgramLayout>
   );
 }
 
@@ -87,135 +288,53 @@ const Container = styled.div`
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: #f5f5f5;
+  background: #97958f;
+  overflow: hidden;
 `;
 
-const Toolbar = styled.div`
+const PDFViewer = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: ${({ $zoomed }) => ($zoomed ? 'auto' : 'hidden')};
+  background: #c0c0c0;
   display: flex;
-  gap: 5px;
-  padding: 5px;
-  background: #ece9d8;
-  border-bottom: 1px solid #aaa;
-`;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
 
-const ToolbarButton = styled.button`
-  padding: 5px 15px;
-  border: 1px solid #888;
-  border-radius: 3px;
-  background: linear-gradient(to bottom, #fff 0%, #e3e3e3 100%);
-  cursor: pointer;
-  font-size: 11px;
-
-  &:hover {
-    background: linear-gradient(to bottom, #e3e3e3 0%, #fff 100%);
+  .pdf-page-canvas {
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+    display: block;
   }
 `;
 
-const ResumeContent = styled.div`
+const LoadingMessage = styled.div`
   flex: 1;
-  overflow: auto;
-  padding: 30px;
-  background: white;
-  margin: 20px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  font-family: 'Times New Roman', serif;
-`;
-
-const ResumeHeader = styled.div`
-  text-align: center;
-  margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid #333;
-`;
-
-const Name = styled.h1`
-  margin: 0;
-  font-size: 28px;
-  color: #333;
-`;
-
-const ContactInfo = styled.p`
-  margin: 10px 0 0;
-  color: #666;
-  font-size: 12px;
-`;
-
-const Section = styled.div`
-  margin-bottom: 25px;
-`;
-
-const SectionTitle = styled.h2`
-  font-size: 14px;
-  color: #333;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  border-bottom: 1px solid #ccc;
-  padding-bottom: 5px;
-  margin-bottom: 15px;
-`;
-
-const Job = styled.div`
-  margin-bottom: 15px;
-`;
-
-const JobHeader = styled.div`
   display: flex;
-  justify-content: space-between;
   align-items: center;
-`;
-
-const JobTitle = styled.h3`
-  margin: 0;
-  font-size: 14px;
+  justify-content: center;
   color: #333;
-`;
-
-const JobDate = styled.span`
-  font-size: 12px;
-  color: #666;
-`;
-
-const Company = styled.p`
-  margin: 3px 0;
-  font-style: italic;
-  color: #666;
-  font-size: 13px;
-`;
-
-const JobDescription = styled.ul`
-  margin: 10px 0;
-  padding-left: 20px;
-  font-size: 12px;
-  line-height: 1.6;
-`;
-
-const Education = styled.div``;
-
-const Degree = styled.h3`
-  margin: 0;
+  font-family: Tahoma, sans-serif;
   font-size: 14px;
 `;
 
-const School = styled.p`
-  margin: 3px 0;
-  color: #666;
+const ErrorMessage = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #800000;
+  font-family: Tahoma, sans-serif;
   font-size: 12px;
-`;
+  text-align: center;
+  padding: 20px;
 
-const SkillsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 15px;
-`;
-
-const SkillCategory = styled.div`
-  font-size: 12px;
-`;
-
-const SkillCategoryTitle = styled.h4`
-  margin: 0 0 5px;
-  font-size: 12px;
-  color: #333;
+  p {
+    margin: 5px 0;
+  }
 `;
 
 export default Resume;

@@ -21,29 +21,6 @@ const GlobalStyle = createGlobalStyle`
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-
-  /* Windows XP style scrollbars */
-  ::-webkit-scrollbar {
-    width: 16px;
-    height: 16px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: #f1f1f1;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border: 1px solid #a1a1a1;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: #a1a1a1;
-  }
-
-  ::-webkit-scrollbar-corner {
-    background: #f1f1f1;
-  }
 `;
 
 function App() {

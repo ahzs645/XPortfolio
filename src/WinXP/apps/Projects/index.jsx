@@ -1,232 +1,375 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
+import { ProgramLayout } from '../../../components';
 
-const projects = [
+// Menu configuration for Projects window
+const PROJECTS_MENUS = [
+  {
+    id: 'file',
+    label: 'File',
+    items: [
+      { label: 'Exit', action: 'exitProgram' },
+    ],
+  },
+  {
+    id: 'view',
+    label: 'View',
+    items: [
+      { label: 'Refresh', action: 'refresh' },
+      { separator: true },
+      { label: 'Maximize', action: 'maximizeWindow' },
+      { label: 'Minimize', action: 'minimizeWindow' },
+    ],
+  },
+  {
+    id: 'help',
+    label: 'Help',
+    disabled: true,
+  },
+];
+
+// Toolbar configuration for Projects window
+const PROJECTS_TOOLBAR = [
+  { type: 'button', id: 'back', icon: '/gui/toolbar/back.webp', label: 'Back', disabled: true },
+  { type: 'button', id: 'forward', icon: '/gui/toolbar/forward.webp', label: 'Forward', disabled: true },
+  { type: 'separator' },
+  { type: 'button', id: 'refresh', icon: '/gui/toolbar/search.webp', label: 'Refresh', action: 'refresh' },
+  { type: 'separator' },
+  { type: 'button', id: 'views', icon: '/gui/toolbar/views.webp', label: 'Views', disabled: true },
+];
+
+// Sample projects - in production, these would come from a projects.json or ConfigContext
+const defaultProjects = [
   {
     id: 1,
     title: 'E-Commerce Platform',
-    description: 'A full-stack e-commerce application with React, Node.js, and MongoDB.',
-    tech: ['React', 'Node.js', 'MongoDB', 'Stripe'],
+    subtitle: 'Full-stack web application',
     image: '/projects/ecommerce.png',
-    github: 'https://github.com/user/ecommerce',
-    demo: 'https://ecommerce-demo.com',
+    workType: 'client',
   },
   {
     id: 2,
     title: 'Task Management App',
-    description: 'A Trello-like task management application with drag and drop functionality.',
-    tech: ['React', 'TypeScript', 'Firebase'],
+    subtitle: 'Productivity tool with React',
     image: '/projects/taskapp.png',
-    github: 'https://github.com/user/taskapp',
-    demo: 'https://taskapp-demo.com',
+    workType: 'personal',
   },
   {
     id: 3,
     title: 'Weather Dashboard',
-    description: 'Real-time weather dashboard with location-based forecasts.',
-    tech: ['Vue.js', 'OpenWeather API', 'Chart.js'],
+    subtitle: 'Real-time weather data',
     image: '/projects/weather.png',
-    github: 'https://github.com/user/weather',
-    demo: 'https://weather-demo.com',
+    workType: 'personal',
   },
   {
     id: 4,
     title: 'Chat Application',
-    description: 'Real-time chat application with WebSocket support.',
-    tech: ['React', 'Socket.io', 'Express'],
+    subtitle: 'Real-time messaging',
     image: '/projects/chat.png',
-    github: 'https://github.com/user/chat',
-    demo: 'https://chat-demo.com',
+    workType: 'client',
+  },
+  {
+    id: 5,
+    title: 'Portfolio Website',
+    subtitle: 'Personal branding',
+    image: '/projects/portfolio.png',
+    workType: 'personal',
+  },
+  {
+    id: 6,
+    title: 'Analytics Dashboard',
+    subtitle: 'Data visualization',
+    image: '/projects/analytics.png',
+    workType: 'client',
   },
 ];
 
-function Projects({ onClose, isFocus }) {
-  const [selectedProject, setSelectedProject] = useState(null);
+function Projects({ onClose, onMinimize, onMaximize, isFocus }) {
+  const [projects, setProjects] = useState(defaultProjects);
+  const [hoveredProject, setHoveredProject] = useState(null);
+
+  // Try to load projects from projects.json
+  const loadProjects = useCallback(async () => {
+    try {
+      const response = await fetch('/projects.json');
+      if (response.ok) {
+        const data = await response.json();
+        if (Array.isArray(data) && data.length > 0) {
+          setProjects(
+            data.map((p, i) => ({
+              id: i + 1,
+              title: p.title || `Project ${i + 1}`,
+              subtitle: p.subtitle || p.description || '',
+              image: p.images?.[0]?.src || p.image || '/projects/placeholder.png',
+              workType: p.workType || 'personal',
+              url: p.url,
+              github: p.github,
+            }))
+          );
+        }
+      }
+    } catch (err) {
+      console.log('Using default projects');
+    }
+  }, []);
+
+  useEffect(() => {
+    loadProjects();
+  }, [loadProjects]);
+
+  const handleProjectClick = (project) => {
+    if (project.url) {
+      window.open(project.url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const handleToolbarAction = useCallback((action) => {
+    if (action === 'refresh') {
+      loadProjects();
+    }
+  }, [loadProjects]);
 
   return (
+    <ProgramLayout
+      windowActions={{ onClose, onMinimize, onMaximize }}
+      menus={PROJECTS_MENUS}
+      menuLogo="/gui/toolbar/barlogo.webp"
+      toolbarItems={PROJECTS_TOOLBAR}
+      onToolbarAction={handleToolbarAction}
+      addressTitle="My Projects"
+      addressIcon="/icons/projects.webp"
+      statusFields={`${projects.length} projects`}
+    >
     <Container>
-      <Sidebar>
-        <SidebarTitle>My Projects</SidebarTitle>
-        <ProjectList>
-          {projects.map((project) => (
-            <ProjectItem
-              key={project.id}
-              $selected={selectedProject?.id === project.id}
-              onClick={() => setSelectedProject(project)}
-            >
-              <ProjectIcon />
-              <span>{project.title}</span>
-            </ProjectItem>
-          ))}
-        </ProjectList>
-      </Sidebar>
-      <MainContent>
-        {selectedProject ? (
-          <ProjectDetails>
-            <ProjectImage src={selectedProject.image} alt={selectedProject.title} />
-            <ProjectInfo>
-              <ProjectTitle>{selectedProject.title}</ProjectTitle>
-              <ProjectDescription>{selectedProject.description}</ProjectDescription>
-              <TechStack>
-                {selectedProject.tech.map((tech, index) => (
-                  <TechTag key={index}>{tech}</TechTag>
-                ))}
-              </TechStack>
-              <ProjectLinks>
-                <ProjectLink href={selectedProject.github} target="_blank">
-                  View on GitHub
-                </ProjectLink>
-                <ProjectLink href={selectedProject.demo} target="_blank">
-                  Live Demo
-                </ProjectLink>
-              </ProjectLinks>
-            </ProjectInfo>
-          </ProjectDetails>
-        ) : (
-          <EmptyState>
-            <h2>Select a project to view details</h2>
-            <p>Click on a project from the sidebar to see more information.</p>
-          </EmptyState>
-        )}
-      </MainContent>
+      <BackgroundGradient />
+      <BackgroundGrid />
+      <MainLayout>
+        <GridContainer>
+          <ProjectsGrid className="loaded">
+            {projects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                className={hoveredProject === project.id ? 'hover' : ''}
+                onMouseEnter={() => setHoveredProject(project.id)}
+                onMouseLeave={() => setHoveredProject(null)}
+                onClick={() => handleProjectClick(project)}
+              >
+                <ProjectImage
+                  src={project.image}
+                  alt={project.title}
+                  onError={(e) => {
+                    e.target.style.background = 'linear-gradient(135deg, #1a1a2e, #16213e 50%, #0f172a)';
+                  }}
+                />
+                <ProjectOverlay />
+                <ProjectText>
+                  <ProjectTitle>{project.title}</ProjectTitle>
+                  {project.subtitle && (
+                    <ProjectSubtitle>{project.subtitle}</ProjectSubtitle>
+                  )}
+                  <WorkLabel data-work-type={project.workType}>
+                    {project.workType === 'client' ? 'Client Work' : 'Personal Project'}
+                  </WorkLabel>
+                </ProjectText>
+              </ProjectCard>
+            ))}
+          </ProjectsGrid>
+        </GridContainer>
+      </MainLayout>
     </Container>
+    </ProgramLayout>
   );
 }
 
 const Container = styled.div`
+  position: relative;
+  width: 100%;
   height: 100%;
-  display: flex;
-  background: #fff;
+  overflow: hidden;
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  color: #fff;
+  user-select: none;
 `;
 
-const Sidebar = styled.div`
-  width: 200px;
-  background: #f5f5f5;
-  border-right: 1px solid #ddd;
-  overflow: auto;
+const BackgroundGradient = styled.div`
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    1200px 800px at 10% 10%,
+    #0f172a 0%,
+    #0b1224 40%,
+    #090f1f 65%,
+    #070c19 100%
+  );
+  z-index: -1;
+  pointer-events: none;
 `;
 
-const SidebarTitle = styled.h3`
-  padding: 15px;
-  margin: 0;
-  font-size: 14px;
-  background: linear-gradient(to bottom, #fff 0%, #e8e8e8 100%);
-  border-bottom: 1px solid #ddd;
+const BackgroundGrid = styled.div`
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.12) 1px,
+      transparent 0
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12) 1px, transparent 0);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse 80% 80% at 0 0, #000 50%, transparent 90%);
+  -webkit-mask-image: radial-gradient(
+    ellipse 80% 80% at 0 0,
+    #000 50%,
+    transparent 90%
+  );
+  z-index: -1;
+  pointer-events: none;
 `;
 
-const ProjectList = styled.div`
-  padding: 10px;
-`;
-
-const ProjectItem = styled.div`
+const MainLayout = styled.div`
   display: flex;
   align-items: center;
-  padding: 8px 10px;
-  cursor: pointer;
-  border-radius: 3px;
-  margin-bottom: 5px;
-  background: ${({ $selected }) => ($selected ? '#0b61ff' : 'transparent')};
-  color: ${({ $selected }) => ($selected ? 'white' : 'inherit')};
-
-  &:hover {
-    background: ${({ $selected }) => ($selected ? '#0b61ff' : '#e8e8e8')};
-  }
-
-  span {
-    font-size: 12px;
-  }
-`;
-
-const ProjectIcon = styled.div`
-  width: 16px;
-  height: 16px;
-  background: #1e3c72;
-  border-radius: 2px;
-  margin-right: 8px;
-`;
-
-const MainContent = styled.div`
-  flex: 1;
-  padding: 20px;
+  justify-content: center;
+  height: 100%;
+  padding: 16px;
+  position: relative;
+  z-index: 10;
   overflow: auto;
 `;
 
-const EmptyState = styled.div`
+const GridContainer = styled.div`
+  display: flex;
+  flex: 1;
+  height: 100%;
+  overflow: visible;
+`;
+
+const ProjectsGrid = styled.main`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  width: 100%;
+  align-content: start;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 8px;
+  overflow: auto;
+
+  &.loaded {
+    opacity: 1;
+  }
+`;
+
+const ProjectOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(2px);
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+  pointer-events: none;
+`;
+
+const ProjectText = styled.div`
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  color: #666;
+  padding: 12% 8%;
   text-align: center;
-
-  h2 {
-    margin-bottom: 10px;
-    font-size: 18px;
-  }
-
-  p {
-    font-size: 13px;
-  }
+  opacity: 0;
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 2;
+  pointer-events: none;
 `;
 
-const ProjectDetails = styled.div`
-  max-width: 600px;
+const ProjectCard = styled.div`
+  position: relative;
+  aspect-ratio: 4 / 5;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+  filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.2))
+    drop-shadow(0 0 12px rgba(139, 92, 246, 0.14));
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(135deg, #1a1a2e, #16213e 50%, #0f172a);
+
+  &.hover {
+    transform: scale(1.03);
+    border-color: #fff;
+    z-index: 20;
+    filter: drop-shadow(0 0 0 rgba(0, 0, 0, 0))
+      drop-shadow(0 1px 3px rgba(0, 0, 0, 0.25))
+      drop-shadow(0 8px 20px rgba(0, 0, 0, 0.6))
+      drop-shadow(0 0 10px rgba(59, 130, 246, 0.35))
+      drop-shadow(0 0 18px rgba(139, 92, 246, 0.25));
+
+    ${ProjectOverlay}, ${ProjectText} {
+      opacity: 1;
+    }
+
+    ${ProjectText} {
+      pointer-events: auto;
+    }
+  }
 `;
 
 const ProjectImage = styled.img`
+  display: block;
   width: 100%;
-  height: 200px;
+  height: 100%;
   object-fit: cover;
-  background: #e0e0e0;
-  border-radius: 5px;
-  margin-bottom: 20px;
+  pointer-events: none;
 `;
 
-const ProjectInfo = styled.div``;
-
-const ProjectTitle = styled.h2`
-  margin: 0 0 10px;
-  font-size: 20px;
-  color: #333;
+const ProjectTitle = styled.h3`
+  color: #fff;
+  font-size: clamp(0.85rem, 2.5vh, 1.4rem);
+  font-weight: 800;
+  line-height: 1.2;
+  margin: 0 0 8px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 `;
 
-const ProjectDescription = styled.p`
-  color: #666;
-  line-height: 1.6;
-  margin-bottom: 15px;
+const ProjectSubtitle = styled.p`
+  color: rgba(255, 255, 255, 0.8);
+  font-size: clamp(0.7rem, 1.6vh, 1rem);
+  font-weight: 400;
+  line-height: 1.5;
+  margin: 0 0 12px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 `;
 
-const TechStack = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 20px;
-`;
+const WorkLabel = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  font-size: clamp(10px, 1.2vw, 12px);
+  font-weight: 600;
+  color: #fff;
+  backdrop-filter: blur(2px);
+  white-space: nowrap;
+  opacity: 0.95;
 
-const TechTag = styled.span`
-  background: #e8f0fe;
-  color: #1e3c72;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 11px;
-`;
+  &[data-work-type='client'] {
+    border-left: 3px solid #74a7ff;
+  }
 
-const ProjectLinks = styled.div`
-  display: flex;
-  gap: 10px;
-`;
-
-const ProjectLink = styled.a`
-  padding: 8px 16px;
-  background: #1e3c72;
-  color: white;
-  text-decoration: none;
-  border-radius: 3px;
-  font-size: 12px;
-
-  &:hover {
-    background: #2a5298;
+  &[data-work-type='personal'] {
+    border-left: 3px solid #9be080;
   }
 `;
 

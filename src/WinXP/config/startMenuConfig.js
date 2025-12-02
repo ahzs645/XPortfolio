@@ -80,6 +80,27 @@ export const START_MENU_CATALOG = {
     title: 'Paint',
     description: null,
   },
+  cmd: {
+    type: 'program',
+    appKey: 'Command Prompt',
+    icon: '/icons/cmd.png',
+    title: 'Command Prompt',
+    description: null,
+  },
+  mediaPlayer: {
+    type: 'program',
+    appKey: 'Windows Media Player',
+    icon: '/icons/media-player.png',
+    title: 'Windows Media Player',
+    description: null,
+  },
+  imageViewer: {
+    type: 'program',
+    appKey: 'Image Viewer',
+    icon: '/icons/image-viewer.png',
+    title: 'Picture and Fax Viewer',
+    description: null,
+  },
   myComputer: {
     type: 'program',
     appKey: 'My Computer',
@@ -128,6 +149,18 @@ export const START_MENU_FOLDERS = {
     icon: '/icons/folder-icon.png',
     items: ['minesweeper', 'solitaire', 'spiderSolitaire', 'pinball'],
   },
+  accessories: {
+    type: 'folder',
+    title: 'Accessories',
+    icon: '/icons/folder-icon.png',
+    items: ['calculator', 'notepad', 'paint', 'cmd', 'imageViewer'],
+  },
+  entertainment: {
+    type: 'folder',
+    title: 'Entertainment',
+    icon: '/icons/folder-icon.png',
+    items: ['mediaPlayer'],
+  },
 };
 
 // All Programs menu order
@@ -137,10 +170,9 @@ export const ALL_PROGRAMS_ORDER = [
   'resume',
   'contact',
   'divider-main',
-  'calculator',
-  'notepad',
-  'games', // folder
-  'paint',
+  'accessories', // folder with Calculator, Notepad, Paint, CMD, Image Viewer
+  'entertainment', // folder with Media Player
+  'games', // folder with Minesweeper, Solitaire, Spider Solitaire, Pinball
   'divider-trailing',
   'help',
 ];

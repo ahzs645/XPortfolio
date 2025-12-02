@@ -1,4 +1,4 @@
-import React, { useReducer, useRef, useCallback } from 'react';
+import React, { useReducer, useRef, useCallback, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useMouse } from '../hooks';
 
@@ -25,6 +25,8 @@ import Windows from './Windows';
 import Icons from './Icons';
 import DashedBox from '../components/DashedBox';
 import BootScreen from './BootScreen';
+import Clippy from './Clippy';
+import CRTEffect from './CRTEffect';
 
 const initState = {
   apps: [],
@@ -186,9 +188,14 @@ const reducer = (state, action = { type: '' }) => {
 
 function WinXP() {
   const [state, dispatch] = useReducer(reducer, initState);
+  const [crtEnabled, setCrtEnabled] = useState(true);
   const ref = useRef(null);
   const mouse = useMouse(ref);
   const focusedAppId = getFocusedAppId();
+
+  const handleToggleCRT = useCallback(() => {
+    setCrtEnabled((prev) => !prev);
+  }, []);
 
   const onFocusApp = useCallback((id) => {
     dispatch({ type: FOCUS_APP, payload: id });
@@ -308,6 +315,7 @@ function WinXP() {
       onMouseUp={onMouseUpDesktop}
       onMouseDown={onMouseDownDesktop}
       $powerState={state.powerState}
+      $crtEnabled={crtEnabled}
     >
       <Icons
         icons={state.icons}
@@ -328,13 +336,17 @@ function WinXP() {
         onMaximize={onMaximizeWindow}
         focusedAppId={focusedAppId}
       />
+      <Clippy />
       <Footer
         apps={state.apps}
         onMouseDownApp={onMouseDownFooterApp}
         focusedAppId={focusedAppId}
         onMouseDown={onMouseDownFooter}
         onClickMenuItem={onClickMenuItem}
+        crtEnabled={crtEnabled}
+        onToggleCRT={handleToggleCRT}
       />
+      <CRTEffect enabled={crtEnabled} />
       {state.powerState !== POWER_STATE.START && (
         <Modal
           onClose={onModalClose}
@@ -372,6 +384,11 @@ const Container = styled.div`
   background: url('/bliss.jpg') no-repeat center center fixed;
   background-size: cover;
   animation: ${({ $powerState }) => animation[$powerState]} 5s forwards;
+  filter: ${({ $crtEnabled }) =>
+    $crtEnabled
+      ? 'brightness(1.06) contrast(1.08) saturate(1.12)'
+      : 'brightness(1.01) contrast(1.015) saturate(1.02)'};
+  transition: filter 0.3s ease;
 
   *:not(input):not(textarea) {
     user-select: none;

@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { BOOT_STATE } from '../constants';
 import { useConfig } from '../../contexts/ConfigContext';
+import useSystemSounds from '../../hooks/useSystemSounds';
 
 function BootScreen({ bootState, onComplete }) {
   const [showLogin, setShowLogin] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const { isLoading, getDisplayName, getProfession, getUserLoginIcon } = useConfig();
+  const { playLogin, prewarmBalloon } = useSystemSounds();
 
   const userName = getDisplayName();
   const userTitle = getProfession();
@@ -26,6 +28,14 @@ function BootScreen({ bootState, onComplete }) {
   const handleLogin = () => {
     // Don't hide login screen - just show welcome overlay on top
     setShowWelcome(true);
+
+    // Play the Windows login sound
+    playLogin();
+
+    // Prewarm balloon sound for later use
+    setTimeout(() => {
+      prewarmBalloon();
+    }, 50);
 
     // After welcome message, transition to desktop
     setTimeout(() => {

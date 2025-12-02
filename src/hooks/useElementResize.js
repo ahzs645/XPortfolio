@@ -4,11 +4,14 @@ function useElementResize(ref, options) {
   const {
     defaultOffset,
     defaultSize,
+    minSize,
     boundary,
     resizable = true,
     resizeThreshold = 10,
     constraintSize = 200,
   } = options;
+  const minWidth = minSize?.width || constraintSize;
+  const minHeight = minSize?.height || constraintSize;
   const [offset, setOffset] = useState(defaultOffset);
   const [size, setSize] = useState(defaultSize);
   const cursorPos = useCursor(ref, resizeThreshold, resizable);
@@ -260,44 +263,44 @@ function useElementResize(ref, options) {
       if (e.target !== target || !resizable) return;
       switch (cursorPos) {
         case 'topLeft':
-          _boundary.right = originMouseX + previousSize.width - constraintSize;
-          _boundary.bottom = originMouseY + previousSize.height - constraintSize;
+          _boundary.right = originMouseX + previousSize.width - minWidth;
+          _boundary.bottom = originMouseY + previousSize.height - minHeight;
           onResizeStartTopLeft(e);
           onDragStart(e);
           break;
         case 'left':
-          _boundary.right = originMouseX + previousSize.width - constraintSize;
+          _boundary.right = originMouseX + previousSize.width - minWidth;
           onResizeStartLeft(e);
           onDragStartLeft(e);
           break;
         case 'bottomLeft':
-          _boundary.right = originMouseX + previousSize.width - constraintSize;
-          _boundary.top = originMouseY - previousSize.height + constraintSize;
+          _boundary.right = originMouseX + previousSize.width - minWidth;
+          _boundary.top = originMouseY - previousSize.height + minHeight;
           onResizeStartBottomLeft(e);
           onDragStartLeft(e);
           break;
         case 'top':
-          _boundary.bottom = originMouseY + previousSize.height - constraintSize;
+          _boundary.bottom = originMouseY + previousSize.height - minHeight;
           onResizeStartTop(e);
           onDragStartTop(e);
           break;
         case 'topRight':
-          _boundary.bottom = originMouseY + previousSize.height - constraintSize;
-          _boundary.left = originMouseX - previousSize.width + constraintSize;
+          _boundary.bottom = originMouseY + previousSize.height - minHeight;
+          _boundary.left = originMouseX - previousSize.width + minWidth;
           onDragStartTop(e);
           onResizeStartTopRight(e);
           break;
         case 'right':
-          _boundary.left = originMouseX - previousSize.width + constraintSize;
+          _boundary.left = originMouseX - previousSize.width + minWidth;
           onResizeStartRight(e);
           break;
         case 'bottomRight':
-          _boundary.top = originMouseY - previousSize.height + constraintSize;
-          _boundary.left = originMouseX - previousSize.width + constraintSize;
+          _boundary.top = originMouseY - previousSize.height + minHeight;
+          _boundary.left = originMouseX - previousSize.width + minWidth;
           onResizeStartBottomRight(e);
           break;
         case 'bottom':
-          _boundary.top = originMouseY - previousSize.height + constraintSize;
+          _boundary.top = originMouseY - previousSize.height + minHeight;
           onResizeStartBottom(e);
           break;
         default:

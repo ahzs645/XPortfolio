@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import FooterMenu from './FooterMenu';
 
@@ -26,11 +26,16 @@ function Footer({
   focusedAppId,
   onMouseDown,
   onClickMenuItem,
+  crtEnabled,
+  onToggleCRT,
 }) {
   const [time, setTime] = useState(getTime);
   const [menuOn, setMenuOn] = useState(false);
+  const [showWelcomeBalloon, setShowWelcomeBalloon] = useState(false);
   const menuRef = useRef(null);
   const startButtonRef = useRef(null);
+  const welcomeIconRef = useRef(null);
+  const balloonTimeoutRef = useRef(null);
 
   function toggleMenu(e) {
     e.stopPropagation();
@@ -46,6 +51,32 @@ function Footer({
     onClickMenuItem(name);
     setMenuOn(false);
   }
+
+  const handleWelcomeClick = useCallback(() => {
+    setShowWelcomeBalloon((prev) => !prev);
+
+    // Auto-hide after 10 seconds
+    if (balloonTimeoutRef.current) {
+      clearTimeout(balloonTimeoutRef.current);
+    }
+    balloonTimeoutRef.current = setTimeout(() => {
+      setShowWelcomeBalloon(false);
+    }, 10000);
+  }, []);
+
+  const handleFullscreenClick = useCallback(() => {
+    setShowWelcomeBalloon(false);
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      document.documentElement.requestFullscreen();
+    }
+  }, []);
+
+  const handleBalloonLinkClick = useCallback((appName) => {
+    setShowWelcomeBalloon(false);
+    onClickMenuItem(appName);
+  }, [onClickMenuItem]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -72,6 +103,30 @@ function Footer({
     window.addEventListener('mousedown', handleClickOutside);
     return () => window.removeEventListener('mousedown', handleClickOutside);
   }, [menuOn]);
+
+  // Close balloon when clicking outside
+  useEffect(() => {
+    if (!showWelcomeBalloon) return;
+
+    function handleClickOutside(e) {
+      const welcomeEl = welcomeIconRef.current;
+      if (welcomeEl && welcomeEl.contains(e.target)) return;
+      if (e.target.closest('.welcome-balloon')) return;
+      setShowWelcomeBalloon(false);
+    }
+
+    window.addEventListener('mousedown', handleClickOutside);
+    return () => window.removeEventListener('mousedown', handleClickOutside);
+  }, [showWelcomeBalloon]);
+
+  // Cleanup timeout
+  useEffect(() => {
+    return () => {
+      if (balloonTimeoutRef.current) {
+        clearTimeout(balloonTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <Container onMouseDown={_onMouseDown}>
@@ -103,6 +158,50 @@ function Footer({
       </div>
 
       <div className="footer__items right">
+        {showWelcomeBalloon && (
+          <WelcomeBalloon className="welcome-balloon">
+            <button
+              className="balloon__close"
+              onClick={() => setShowWelcomeBalloon(false)}
+            />
+            <div className="balloon__header">
+              <img src="/gui/taskbar/welcome.webp" alt="welcome" />
+              <span>Welcome to XPortfolio</span>
+            </div>
+            <p className="balloon__text">
+              A faithful XP-inspired interface, custom-built to showcase my work and attention to detail.
+            </p>
+            <p className="balloon__links">
+              Get Started:{' '}
+              <a href="#" onClick={(e) => { e.preventDefault(); handleBalloonLinkClick('About Me'); }}>
+                About Me
+              </a>{' '}
+              |{' '}
+              <a href="#" onClick={(e) => { e.preventDefault(); handleBalloonLinkClick('Projects'); }}>
+                My Projects
+              </a>
+            </p>
+          </WelcomeBalloon>
+        )}
+        <TrayIcon
+          ref={welcomeIconRef}
+          src="/gui/taskbar/welcome.webp"
+          alt="Welcome"
+          title="Welcome"
+          onClick={handleWelcomeClick}
+        />
+        <TrayIcon
+          src={crtEnabled ? '/gui/taskbar/crt.webp' : '/gui/taskbar/crt-off.webp'}
+          alt="CRT Effects"
+          title={crtEnabled ? 'CRT Effects: ON' : 'CRT Effects: OFF'}
+          onClick={onToggleCRT}
+        />
+        <TrayIcon
+          src="/gui/taskbar/fullscreen.webp"
+          alt="Fullscreen"
+          title="Toggle Fullscreen"
+          onClick={handleFullscreenClick}
+        />
         <div className="footer__time">{time}</div>
       </div>
     </Container>
@@ -135,6 +234,118 @@ const StartButton = styled.img`
 
   &:active {
     filter: brightness(0.85);
+  }
+`;
+
+const TrayIcon = styled.img`
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  margin: 0 3px;
+  opacity: 0.9;
+
+  &:hover {
+    opacity: 1;
+    filter: brightness(1.2);
+  }
+
+  &:active {
+    filter: brightness(0.9);
+  }
+`;
+
+const WelcomeBalloon = styled.div`
+  position: absolute;
+  bottom: 40px;
+  right: 10px;
+  width: 260px;
+  background: #ffffcc;
+  border: 1px solid #000;
+  border-radius: 4px;
+  padding: 10px;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  z-index: 9999;
+  font-size: 11px;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    right: 40px;
+    border-width: 10px 10px 0 10px;
+    border-style: solid;
+    border-color: #ffffcc transparent transparent transparent;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    right: 39px;
+    border-width: 11px 11px 0 11px;
+    border-style: solid;
+    border-color: #000 transparent transparent transparent;
+  }
+
+  .balloon__close {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 16px;
+    height: 16px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    color: #666;
+
+    &::before {
+      content: 'x';
+    }
+
+    &:hover {
+      color: #000;
+    }
+  }
+
+  .balloon__header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    padding-right: 16px;
+
+    img {
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
+    }
+
+    span {
+      font-weight: bold;
+      color: #000;
+    }
+  }
+
+  .balloon__text {
+    margin: 0 0 8px 0;
+    color: #000;
+    line-height: 1.4;
+  }
+
+  .balloon__links {
+    margin: 0;
+    color: #000;
+
+    a {
+      color: blue;
+      text-decoration: underline;
+      cursor: pointer;
+
+      &:hover {
+        color: darkblue;
+      }
+    }
   }
 `;
 

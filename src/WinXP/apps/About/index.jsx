@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useConfig } from '../../../contexts/ConfigContext';
+import { ProgramLayout } from '../../../components';
 
 // Social network icon mapping
 const SOCIAL_ICONS = {
@@ -19,13 +20,52 @@ const SKILL_ICONS = [
   '/apps/about/skill5.webp',
 ];
 
-function About({ onClose, isFocus }) {
+// Menu configuration for About window
+const ABOUT_MENUS = [
+  {
+    id: 'file',
+    label: 'File',
+    items: [
+      { label: 'Print', disabled: true },
+      { label: 'Print Setup', disabled: true },
+      { separator: true },
+      { label: 'Exit', action: 'exitProgram' },
+    ],
+  },
+  {
+    id: 'view',
+    label: 'View',
+    items: [
+      { label: 'Maximize', action: 'maximizeWindow' },
+      { label: 'Minimize', action: 'minimizeWindow' },
+    ],
+  },
+  {
+    id: 'help',
+    label: 'Help',
+    disabled: true,
+  },
+];
+
+// Toolbar configuration for About window
+const ABOUT_TOOLBAR = [
+  { type: 'button', id: 'prev', icon: '/gui/toolbar/back.webp', label: 'Previous', disabled: true, action: 'nav:prev' },
+  { type: 'button', id: 'next', icon: '/gui/toolbar/forward.webp', label: 'Next', disabled: true, action: 'nav:next' },
+  { type: 'separator' },
+  { type: 'button', id: 'projects', icon: '/icons/projects.webp', label: 'My Projects', action: 'openProjects' },
+  { type: 'button', id: 'resume', icon: '/icons/resume.webp', label: 'My Resume', action: 'openResume' },
+  { type: 'separator' },
+  { type: 'button', id: 'folder', icon: '/gui/toolbar/up.webp', disabled: true },
+];
+
+function About({ onClose, onMinimize, onMaximize, isFocus }) {
   const {
     getSocialLinks,
     getSkills,
     getSoftware,
     getAboutContent,
     isFeatureEnabled,
+    getDisplayName,
   } = useConfig();
 
   const [expandedCards, setExpandedCards] = useState({
@@ -38,6 +78,7 @@ function About({ onClose, isFocus }) {
   const skills = getSkills();
   const software = getSoftware();
   const aboutContent = getAboutContent();
+  const displayName = getDisplayName();
 
   const showSocial = isFeatureEnabled('SHOW_SOCIAL_IN_ABOUT');
   const showSkills = isFeatureEnabled('SHOW_SKILLS_IN_ABOUT');
@@ -54,6 +95,12 @@ function About({ onClose, isFocus }) {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
+  const handleToolbarAction = (action) => {
+    // Handle custom toolbar actions here
+    console.log('Toolbar action:', action);
+    // You can dispatch events to open other apps, etc.
+  };
+
   // Check if any sidebar content should be shown
   const hasSidebarContent =
     (showSocial && socialLinks.length > 0) ||
@@ -61,113 +108,124 @@ function About({ onClose, isFocus }) {
     (showSoftware && software.length > 0);
 
   return (
-    <Container>
-      {hasSidebarContent && (
-        <LeftPanel>
-          {showSocial && socialLinks.length > 0 && (
-            <Card className={expandedCards.social ? '' : 'collapsed'} $isSocial>
-              <CardHeader $isSocial onClick={() => toggleCard('social')}>
-                <span>Social Links</span>
-                <img
-                  src={
-                    expandedCards.social
-                      ? '/apps/about/pullup-alt.webp'
-                      : '/apps/about/pulldown-alt.webp'
-                  }
-                  alt=""
-                />
-              </CardHeader>
-              <CardContent>
-                <CardContentInner>
-                  {socialLinks.map((social) => (
-                    <CardRow
-                      key={social.network}
-                      as="a"
-                      href={social.url}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleSocialClick(social.url);
-                      }}
-                    >
-                      <img
-                        src={
-                          SOCIAL_ICONS[social.network.toLowerCase()] ||
-                          '/icons/cmd.webp'
-                        }
-                        alt={social.network}
-                      />
-                      <span>{social.network}</span>
-                    </CardRow>
-                  ))}
-                </CardContentInner>
-              </CardContent>
-            </Card>
-          )}
+    <ProgramLayout
+      windowActions={{ onClose, onMinimize, onMaximize }}
+      menus={ABOUT_MENUS}
+      menuLogo="/gui/toolbar/barlogo.webp"
+      toolbarItems={ABOUT_TOOLBAR}
+      onToolbarAction={handleToolbarAction}
+      addressTitle="About Me"
+      addressIcon="/icons/about.webp"
+      statusFields={`Learn more about ${displayName || 'me'}`}
+    >
+      <Container>
+        {hasSidebarContent && (
+          <LeftPanel>
+            {showSocial && socialLinks.length > 0 && (
+              <Card className={expandedCards.social ? '' : 'collapsed'} $isSocial>
+                <CardHeader $isSocial onClick={() => toggleCard('social')}>
+                  <span>Social Links</span>
+                  <img
+                    src={
+                      expandedCards.social
+                        ? '/apps/about/pullup-alt.webp'
+                        : '/apps/about/pulldown-alt.webp'
+                    }
+                    alt=""
+                  />
+                </CardHeader>
+                <CardContent>
+                  <CardContentInner>
+                    {socialLinks.map((social) => (
+                      <CardRow
+                        key={social.network}
+                        as="a"
+                        href={social.url}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleSocialClick(social.url);
+                        }}
+                      >
+                        <img
+                          src={
+                            SOCIAL_ICONS[social.network.toLowerCase()] ||
+                            '/icons/cmd.webp'
+                          }
+                          alt={social.network}
+                        />
+                        <span>{social.network}</span>
+                      </CardRow>
+                    ))}
+                  </CardContentInner>
+                </CardContent>
+              </Card>
+            )}
 
-          {showSkills && skills.length > 0 && (
-            <Card className={expandedCards.skills ? '' : 'collapsed'}>
-              <CardHeader onClick={() => toggleCard('skills')}>
-                <span>Skills</span>
-                <img
-                  src={
-                    expandedCards.skills
-                      ? '/apps/about/pullup.webp'
-                      : '/apps/about/pulldown.webp'
-                  }
-                  alt=""
-                />
-              </CardHeader>
-              <CardContent>
-                <CardContentInner>
-                  {skills.map((skill, index) => (
-                    <CardRow key={skill}>
-                      <img
-                        src={SKILL_ICONS[index % SKILL_ICONS.length]}
-                        alt=""
-                      />
-                      <span>{skill}</span>
-                    </CardRow>
-                  ))}
-                </CardContentInner>
-              </CardContent>
-            </Card>
-          )}
+            {showSkills && skills.length > 0 && (
+              <Card className={expandedCards.skills ? '' : 'collapsed'}>
+                <CardHeader onClick={() => toggleCard('skills')}>
+                  <span>Skills</span>
+                  <img
+                    src={
+                      expandedCards.skills
+                        ? '/apps/about/pullup.webp'
+                        : '/apps/about/pulldown.webp'
+                    }
+                    alt=""
+                  />
+                </CardHeader>
+                <CardContent>
+                  <CardContentInner>
+                    {skills.map((skill, index) => (
+                      <CardRow key={skill}>
+                        <img
+                          src={SKILL_ICONS[index % SKILL_ICONS.length]}
+                          alt=""
+                        />
+                        <span>{skill}</span>
+                      </CardRow>
+                    ))}
+                  </CardContentInner>
+                </CardContent>
+              </Card>
+            )}
 
-          {showSoftware && software.length > 0 && (
-            <Card className={expandedCards.software ? '' : 'collapsed'}>
-              <CardHeader onClick={() => toggleCard('software')}>
-                <span>Software</span>
-                <img
-                  src={
-                    expandedCards.software
-                      ? '/apps/about/pullup.webp'
-                      : '/apps/about/pulldown.webp'
-                  }
-                  alt=""
-                />
-              </CardHeader>
-              <CardContent>
-                <CardContentInner>
-                  {software.map((item, index) => (
-                    <CardRow key={item}>
-                      <img src="/apps/about/creative-cloud.webp" alt="" />
-                      <span>{item}</span>
-                    </CardRow>
-                  ))}
-                </CardContentInner>
-              </CardContent>
-            </Card>
-          )}
-        </LeftPanel>
-      )}
+            {showSoftware && software.length > 0 && (
+              <Card className={expandedCards.software ? '' : 'collapsed'}>
+                <CardHeader onClick={() => toggleCard('software')}>
+                  <span>Software</span>
+                  <img
+                    src={
+                      expandedCards.software
+                        ? '/apps/about/pullup.webp'
+                        : '/apps/about/pulldown.webp'
+                    }
+                    alt=""
+                  />
+                </CardHeader>
+                <CardContent>
+                  <CardContentInner>
+                    {software.map((item, index) => (
+                      <CardRow key={item}>
+                        <img src="/apps/about/creative-cloud.webp" alt="" />
+                        <span>{item}</span>
+                      </CardRow>
+                    ))}
+                  </CardContentInner>
+                </CardContent>
+              </Card>
+            )}
+          </LeftPanel>
+        )}
 
-      <ScrollContent>
-        <Main>
-          <WelcomeText>About Me</WelcomeText>
-          <SectionText dangerouslySetInnerHTML={{ __html: aboutContent.html }} />
-        </Main>
-      </ScrollContent>
-    </Container>
+        <ScrollContent>
+          <Main>
+            <WelcomeText>About Me</WelcomeText>
+            <SectionText dangerouslySetInnerHTML={{ __html: aboutContent.html }} />
+          </Main>
+        </ScrollContent>
+      </Container>
+    </ProgramLayout>
   );
 }
 
@@ -193,6 +251,7 @@ const LeftPanel = styled.aside`
   padding: 0;
   position: relative;
   z-index: 1;
+  overflow-y: auto;
 
   &::after {
     content: '';

@@ -177,6 +177,21 @@ export function ConfigProvider({ children }) {
     return `/${config?.PROFILE_PHOTO || 'profile.jpg'}`;
   };
 
+  // Get CV PDF URL
+  const getCVPDFUrl = () => {
+    let pdfPath = config?.CV_PDF_PATH || 'public/CV.pdf';
+    // Remove 'public/' prefix if present since it's served from root
+    if (pdfPath.startsWith('public/')) {
+      pdfPath = pdfPath.substring(7);
+    }
+    return `/${pdfPath}`;
+  };
+
+  // Get full name from CV
+  const getFullName = () => {
+    return cvData?.cv?.name || config?.CUSTOM_NAME || 'User';
+  };
+
   // Get social links from CV data
   const getSocialLinks = () => {
     const socials = cvData?.cv?.social || [];
@@ -269,6 +284,8 @@ export function ConfigProvider({ children }) {
     getProfession,
     getUserLoginIcon,
     getProfilePhotoPath,
+    getCVPDFUrl,
+    getFullName,
     getSocialLinks,
     getSkills,
     getSoftware,
