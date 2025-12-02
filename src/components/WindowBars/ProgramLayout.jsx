@@ -149,7 +149,9 @@ const ProgramContainer = styled.div`
 
 const ContentArea = styled.div`
   flex: 1;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   min-height: 0;
 `;
 

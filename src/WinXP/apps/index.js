@@ -196,7 +196,7 @@ export const appSettings = {
     },
     component: Minesweeper,
     defaultSize: {
-      width: 0,
+      width: 162,
       height: 0,
     },
     defaultOffset: {

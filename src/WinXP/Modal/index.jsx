@@ -8,42 +8,47 @@ function Modal({ onClose, onClickButton, mode }) {
 
   return ReactDOM.createPortal(
     <Overlay>
-      <Container>
-        <Header>{isLogOff ? 'Log Off Windows' : 'Turn off computer'}</Header>
-        <Content>
-          <Text>
-            {isLogOff
-              ? 'Are you sure you want to log off?'
-              : 'What do you want the computer to do?'}
-          </Text>
-          <Buttons>
+      <DialogContainer>
+        <DialogBody>
+          <DialogHeader>
+            <DialogHeaderText>
+              {isLogOff ? 'Log Off Windows' : 'Shut Down Windows'}
+            </DialogHeaderText>
+            <DialogHeaderIcon
+              src="/assets/gui/boot/favicon.png"
+              alt=""
+            />
+          </DialogHeader>
+          <DialogButtonContainer>
             {isLogOff ? (
               <>
-                <Button onClick={onClickButton}>Log Off</Button>
-                <Button onClick={onClose}>Cancel</Button>
+                <DialogButton onClick={onClickButton} role="button" tabIndex={0}>
+                  <img src="/assets/gui/start-menu/restart.webp" alt="" />
+                  <span>Restart</span>
+                </DialogButton>
+                <DialogButton onClick={onClickButton} role="button" tabIndex={0}>
+                  <img src="/assets/gui/start-menu/logoff.webp" alt="" />
+                  <span>Log Off</span>
+                </DialogButton>
               </>
             ) : (
               <>
-                <PowerButton $color="red" onClick={onClickButton}>
-                  <div className="icon stand-by" />
-                  <span>Stand By</span>
-                </PowerButton>
-                <PowerButton $color="green" onClick={onClickButton}>
-                  <div className="icon turn-off" />
-                  <span>Turn Off</span>
-                </PowerButton>
-                <PowerButton $color="yellow" onClick={onClickButton}>
-                  <div className="icon restart" />
+                <DialogButton onClick={onClickButton} role="button" tabIndex={0}>
+                  <img src="/assets/gui/start-menu/restart.webp" alt="" />
                   <span>Restart</span>
-                </PowerButton>
+                </DialogButton>
+                <DialogButton onClick={onClickButton} role="button" tabIndex={0} $disabled>
+                  <img src="/assets/gui/start-menu/shutdown.webp" alt="" />
+                  <span>Shut Down</span>
+                </DialogButton>
               </>
             )}
-          </Buttons>
-          {!isLogOff && (
+          </DialogButtonContainer>
+          <DialogFooter>
             <CancelButton onClick={onClose}>Cancel</CancelButton>
-          )}
-        </Content>
-      </Container>
+          </DialogFooter>
+        </DialogBody>
+      </DialogContainer>
     </Overlay>,
     document.body
   );
@@ -51,106 +56,170 @@ function Modal({ onClose, onClickButton, mode }) {
 
 const Overlay = styled.div`
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 99999;
-`;
-
-const Container = styled.div`
-  background: linear-gradient(to bottom, #3168d5 0%, #4078d8 100%);
-  border-radius: 10px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-  min-width: 400px;
-  overflow: hidden;
-`;
-
-const Header = styled.div`
-  color: white;
-  font-size: 16px;
-  font-weight: bold;
-  padding: 15px 20px;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-`;
-
-const Content = styled.div`
-  background: #ece9d8;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-`;
-
-const Text = styled.p`
-  margin-bottom: 20px;
-  color: #333;
-`;
-
-const Buttons = styled.div`
-  display: flex;
-  gap: 20px;
-  margin-bottom: 15px;
-`;
-
-const Button = styled.button`
-  padding: 8px 25px;
-  border: 1px solid #003c74;
-  border-radius: 3px;
-  background: linear-gradient(to bottom, #fff 0%, #e3e3e3 100%);
-  cursor: pointer;
-
-  &:hover {
-    background: linear-gradient(to bottom, #e3e3e3 0%, #fff 100%);
-  }
-`;
-
-const PowerButton = styled.button`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 10px 20px;
-  border: none;
+  z-index: 10001;
   background: transparent;
-  cursor: pointer;
-  border-radius: 5px;
+`;
 
-  &:hover {
-    background: rgba(0, 0, 0, 0.1);
+const DialogContainer = styled.div`
+  background-color: #ece9d8;
+  border: 1px solid #2b2b2b;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  color: #000;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 11px;
+  padding: 0;
+  position: relative;
+  width: 350px;
+  z-index: 2;
+`;
+
+const DialogBody = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0;
+`;
+
+const DialogHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(90deg, #002a8c, #0039a9 50%, #002a8c);
+  color: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  height: 50px;
+  padding: 4px 4px 4px 16px;
+  position: relative;
+  letter-spacing: 0.1px;
+  box-sizing: border-box;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      transparent 25%,
+      #bad7f8 45%,
+      #bad7f8 55%,
+      transparent 75%
+    );
+    pointer-events: none;
+  }
+`;
+
+const DialogHeaderText = styled.span`
+  flex-grow: 1;
+`;
+
+const DialogHeaderIcon = styled.img`
+  width: 36px;
+  height: 36px;
+  margin-right: 10px;
+`;
+
+const DialogButtonContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  background: linear-gradient(90deg, #587cdb, #688ceb 50%, #587cdb);
+  padding: 36px 0;
+  margin: 0;
+  flex-grow: 1;
+  width: auto;
+`;
+
+const DialogButton = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none !important;
+  border: none !important;
+  color: #fff;
+  text-align: center;
+  width: 80px;
+  cursor: pointer;
+  opacity: ${({ $disabled }) => ($disabled ? '0.6' : '1')};
+  pointer-events: ${({ $disabled }) => ($disabled ? 'none' : 'auto')};
+
+  &:hover img {
+    filter: brightness(1.06) drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.5));
   }
 
-  .icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    margin-bottom: 5px;
-    background: ${({ $color }) =>
-      $color === 'red'
-        ? 'linear-gradient(to bottom, #ff6b6b 0%, #c0392b 100%)'
-        : $color === 'green'
-        ? 'linear-gradient(to bottom, #27ae60 0%, #1e8449 100%)'
-        : 'linear-gradient(to bottom, #f1c40f 0%, #f39c12 100%)'};
+  img {
+    background: none !important;
+    border: none !important;
+    width: 40px;
+    height: 40px;
+    margin-bottom: 6px;
+    filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.4));
+    transition: filter 0.15s ease-in-out;
   }
 
   span {
-    font-size: 12px;
-    color: #333;
+    color: #fff;
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 13.5px;
+    line-height: 1.2;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4);
   }
 `;
 
+const DialogFooter = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  background: linear-gradient(90deg, #002a8c, #0039a9 50%, #002a8c);
+  height: 50px;
+  padding: 0 15px;
+  position: relative;
+`;
+
 const CancelButton = styled.button`
-  padding: 5px 15px;
-  border: 1px solid #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f0f0;
+  border: 1.5px solid transparent;
+  border-top: 1.5px solid #fff;
+  border-left: 1.5px solid #fff;
+  border-right: 1.5px solid #6d6d6d;
+  border-bottom: 1.5px solid #6d6d6d;
   border-radius: 3px;
-  background: #f5f5f5;
+  box-shadow: 1px 1px 0 #6d6d6d;
+  color: #222;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 11px;
+  padding: 2px 12px;
   cursor: pointer;
+  user-select: none;
+  transition: box-shadow 0.13s, border 0.13s, background 0.13s;
 
   &:hover {
-    background: #e5e5e5;
+    background: #fff;
+    border-top-color: #fff;
+    border-left-color: #fff;
+    border-right-color: #b0b0b0;
+    border-bottom-color: #b0b0b0;
+    box-shadow: 1px 1px 0 #b0b0b0;
+  }
+
+  &:active {
+    background: #d4d0c8;
+    border-top-color: #6d6d6d;
+    border-left-color: #6d6d6d;
+    border-right-color: #fff;
+    border-bottom-color: #fff;
+    box-shadow: inset 1px 1px 0 #6d6d6d;
   }
 `;
 

@@ -1,4 +1,4 @@
-import React, { useRef, memo } from 'react';
+import React, { useRef, memo, useCallback } from 'react';
 import styled from 'styled-components';
 
 import { useElementResize, useWindowSize } from '../../hooks';
@@ -72,7 +72,7 @@ const Window = memo(function ({
   const dragRef = useRef(null);
   const ref = useRef(null);
   const { width: windowWidth, height: windowHeight } = useWindowSize();
-  const { offset, size } = useElementResize(ref, {
+  const { offset, size, setSize } = useElementResize(ref, {
     dragRef,
     defaultOffset,
     defaultSize,
@@ -86,6 +86,10 @@ const Window = memo(function ({
     resizable,
     resizeThreshold: 10,
   });
+
+  const onResize = useCallback((newWidth, newHeight) => {
+    setSize({ width: newWidth, height: newHeight || 0 });
+  }, [setSize]);
 
   let width, height, x, y;
   if (maximized) {
@@ -109,8 +113,8 @@ const Window = memo(function ({
       onMouseDown={_onMouseDown}
       style={{
         transform: `translate(${x}px,${y}px)`,
-        width: width ? `${width}px` : 'auto',
-        height: height ? `${height}px` : 'auto',
+        ...(width && { width: `${width}px` }),
+        ...(height && { height: `${height}px` }),
         zIndex,
       }}
     >
@@ -149,6 +153,7 @@ const Window = memo(function ({
         <Component
           onClose={_onMouseUpClose}
           onMinimize={_onMouseUpMinimize}
+          onResize={onResize}
           isFocus={isFocus}
           {...injectProps}
         />
@@ -159,7 +164,7 @@ const Window = memo(function ({
 
 const WindowContainer = styled.div`
   position: absolute;
-  display: flex;
+  display: inline-flex;
   flex-direction: column;
   overflow: hidden;
 
@@ -167,26 +172,24 @@ const WindowContainer = styled.div`
     height: 28px;
     min-height: 28px;
     padding: 0 3px;
+    min-width: 0;
   }
 
   .title-bar-text {
     display: flex;
     align-items: center;
     pointer-events: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    flex: 1;
   }
 
   .window-body {
-    flex: 1;
     overflow: hidden;
-    margin: 0 3px 0 3px;
+    margin: 0 3px 3px 3px;
     padding: 0;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .window-body > * {
-    flex: 1;
-    overflow: auto;
   }
 `;
 

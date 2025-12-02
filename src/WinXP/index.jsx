@@ -193,6 +193,7 @@ function WinXP() {
   const ref = useRef(null);
   const mouse = useMouse(ref);
   const focusedAppId = getFocusedAppId();
+  const { playLogoff, playBalloon } = useSystemSounds();
 
   const handleToggleCRT = useCallback(() => {
     setCrtEnabled((prev) => !prev);
@@ -267,6 +268,7 @@ function WinXP() {
     if (appSetting) {
       dispatch({ type: ADD_APP, payload: appSetting });
     } else if (appName === 'Log Off') {
+      playLogoff();
       dispatch({ type: POWER_OFF, payload: POWER_STATE.LOG_OFF });
     } else if (appName === 'Turn Off Computer') {
       dispatch({ type: POWER_OFF, payload: POWER_STATE.TURN_OFF });
@@ -346,6 +348,7 @@ function WinXP() {
         onClickMenuItem={onClickMenuItem}
         crtEnabled={crtEnabled}
         onToggleCRT={handleToggleCRT}
+        playBalloonSound={playBalloon}
       />
       <CRTEffect enabled={crtEnabled} />
       {state.powerState !== POWER_STATE.START && (

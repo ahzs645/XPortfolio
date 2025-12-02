@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
+import useSystemSounds from '../../hooks/useSystemSounds';
 
 const SPRITE_SHEET_URL = '/clippy/map.png';
 const FRAME_WIDTH = 124;
@@ -44,6 +45,8 @@ function Clippy() {
   const balloonTimeoutRef = useRef(null);
   const animationFrameRef = useRef(null);
   const isPlayingRef = useRef(false);
+
+  const { playBalloon } = useSystemSounds();
 
   // Load animations data
   useEffect(() => {
@@ -223,6 +226,9 @@ function Clippy() {
       setCurrentMessage(text);
       setShowBalloon(true);
 
+      // Play balloon notification sound
+      playBalloon();
+
       if (balloonTimeoutRef.current) {
         clearTimeout(balloonTimeoutRef.current);
       }
@@ -230,7 +236,7 @@ function Clippy() {
         hideBalloon();
       }, config.settings.messageDuration);
     },
-    [playAnimation, status, showRestPose, hideBalloon, config.settings.messageDuration]
+    [playAnimation, status, showRestPose, hideBalloon, config.settings.messageDuration, playBalloon]
   );
 
   const handleClick = useCallback(() => {

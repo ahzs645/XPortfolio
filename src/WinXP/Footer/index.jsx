@@ -28,6 +28,7 @@ function Footer({
   onClickMenuItem,
   crtEnabled,
   onToggleCRT,
+  playBalloonSound,
 }) {
   const [time, setTime] = useState(getTime);
   const [menuOn, setMenuOn] = useState(false);
@@ -53,7 +54,13 @@ function Footer({
   }
 
   const handleWelcomeClick = useCallback(() => {
-    setShowWelcomeBalloon((prev) => !prev);
+    setShowWelcomeBalloon((prev) => {
+      // Play balloon sound when showing (not hiding)
+      if (!prev && playBalloonSound) {
+        playBalloonSound();
+      }
+      return !prev;
+    });
 
     // Auto-hide after 10 seconds
     if (balloonTimeoutRef.current) {
@@ -62,7 +69,7 @@ function Footer({
     balloonTimeoutRef.current = setTimeout(() => {
       setShowWelcomeBalloon(false);
     }, 10000);
-  }, []);
+  }, [playBalloonSound]);
 
   const handleFullscreenClick = useCallback(() => {
     setShowWelcomeBalloon(false);

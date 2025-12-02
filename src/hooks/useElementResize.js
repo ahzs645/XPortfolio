@@ -337,7 +337,7 @@ function useElementResize(ref, options) {
     // eslint-disable-next-line
   }, [boundary.top, boundary.right, boundary.bottom, boundary.left, cursorPos]);
 
-  return { offset, size };
+  return { offset, size, setSize };
 }
 
 function useCursor(ref, threshold, resizable) {

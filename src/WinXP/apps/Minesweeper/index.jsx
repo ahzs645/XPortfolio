@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import styled from 'styled-components';
+import { MenuBar } from '../../../components';
 
 const ASSET_BASE = '/apps/minesweeper/';
 
@@ -70,19 +71,51 @@ function getNeighbors(i, rows, cols) {
   return ns;
 }
 
-function Minesweeper({ onClose }) {
+// Calculate window width for a given number of columns
+function calcWindowWidth(cols) {
+  // Board: cols * 16px + 6px borders
+  // MineContent padding: 6px (3px each side)
+  // window-body margin: 6px (3px each side)
+  return cols * 16 + 6 + 6 + 6;
+}
+
+function Minesweeper({ onClose, onResize }) {
   const [difficulty, setDifficulty] = useState('Beginner');
   const [grid, setGrid] = useState(() => createEmptyGrid(9, 9));
   const [status, setStatus] = useState('new'); // 'new', 'started', 'won', 'dead'
   const [seconds, setSeconds] = useState(0);
   const [flags, setFlags] = useState(0);
   const [face, setFace] = useState(FACE.SMILE);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [flagMode, setFlagMode] = useState(false);
   const timerRef = useRef(null);
   const boardRef = useRef(null);
 
   const { rows, cols, mines } = Config[difficulty];
+
+  // Resize window when difficulty changes
+  useEffect(() => {
+    if (onResize) {
+      onResize(calcWindowWidth(cols), 0);
+    }
+  }, [cols, onResize]);
+
+  // Menu configuration
+  const menus = useMemo(() => [
+    {
+      id: 'game',
+      label: 'Game',
+      items: [
+        { label: 'New', action: 'new' },
+        { separator: true },
+        { label: `${difficulty === 'Beginner' ? '✓ ' : '   '}Beginner`, action: 'difficulty:Beginner' },
+        { label: `${difficulty === 'Intermediate' ? '✓ ' : '   '}Intermediate`, action: 'difficulty:Intermediate' },
+        { label: `${difficulty === 'Expert' ? '✓ ' : '   '}Expert`, action: 'difficulty:Expert' },
+        { separator: true },
+        { label: 'Exit', action: 'exitProgram' },
+      ],
+    },
+    { id: 'help', label: 'Help', disabled: true },
+  ], [difficulty]);
 
   const resetGame = useCallback((diff = difficulty) => {
     const { rows, cols } = Config[diff];
@@ -264,7 +297,6 @@ function Minesweeper({ onClose }) {
 
   const changeDifficulty = (diff) => {
     setDifficulty(diff);
-    setMenuOpen(false);
     const { rows, cols } = Config[diff];
     setGrid(createEmptyGrid(rows, cols));
     setStatus('new');
@@ -276,6 +308,15 @@ function Minesweeper({ onClose }) {
       timerRef.current = null;
     }
   };
+
+  const handleMenuAction = useCallback((action) => {
+    if (action === 'new') {
+      resetGame();
+    } else if (action.startsWith('difficulty:')) {
+      const diff = action.split(':')[1];
+      changeDifficulty(diff);
+    }
+  }, [resetGame]);
 
   const handleTouchStart = (i) => {
     if (flagMode) {
@@ -306,53 +347,25 @@ function Minesweeper({ onClose }) {
 
   return (
     <Container>
-      <MenuBarContainer>
-        <MenuBar>
-          <MenuItem
-            className={menuOpen ? 'active' : ''}
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            Game
-          </MenuItem>
-          <MenuItem className="disabled">Help</MenuItem>
-          <MobileOnly>
-            <label>
-              <input
-                type="checkbox"
-                checked={flagMode}
-                onChange={(e) => setFlagMode(e.target.checked)}
-              />
-              Flag
-            </label>
-          </MobileOnly>
-        </MenuBar>
-        {menuOpen && (
-          <MenuDropdown>
-            <MenuDropdownItem onClick={() => { resetGame(); setMenuOpen(false); }}>
-              New
-            </MenuDropdownItem>
-            <MenuDropdownDivider />
-            <MenuDropdownItem onClick={() => changeDifficulty('Beginner')}>
-              <span className="check">{difficulty === 'Beginner' ? '✓' : ''}</span>
-              Beginner
-            </MenuDropdownItem>
-            <MenuDropdownItem onClick={() => changeDifficulty('Intermediate')}>
-              <span className="check">{difficulty === 'Intermediate' ? '✓' : ''}</span>
-              Intermediate
-            </MenuDropdownItem>
-            <MenuDropdownItem onClick={() => changeDifficulty('Expert')}>
-              <span className="check">{difficulty === 'Expert' ? '✓' : ''}</span>
-              Expert
-            </MenuDropdownItem>
-            <MenuDropdownDivider />
-            <MenuDropdownItem onClick={() => { setMenuOpen(false); onClose && onClose(); }}>
-              Exit
-            </MenuDropdownItem>
-          </MenuDropdown>
-        )}
-      </MenuBarContainer>
+      <MenuBarWrapper>
+        <MenuBar
+          menus={menus}
+          onAction={handleMenuAction}
+          windowActions={{ onClose }}
+        />
+        <MobileOnly>
+          <label>
+            <input
+              type="checkbox"
+              checked={flagMode}
+              onChange={(e) => setFlagMode(e.target.checked)}
+            />
+            Flag
+          </label>
+        </MobileOnly>
+      </MenuBarWrapper>
       <MineContent>
-        <Scorebar style={{ width: cols * 16 + 6 }}>
+        <Scorebar>
           <Digits>{renderDigits(Math.max(0, mines - flags))}</Digits>
           <FaceButton
             onMouseDown={() => setFace(FACE.OHH)}
@@ -392,44 +405,20 @@ function Minesweeper({ onClose }) {
 }
 
 const Container = styled.div`
-  height: 100%;
+  width: fit-content;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   background: #c0c0c0;
   font-family: Tahoma, 'Segoe UI', Arial, sans-serif;
-  overflow: auto;
+  overflow: hidden;
 `;
 
-const MenuBarContainer = styled.div`
+const MenuBarWrapper = styled.div`
   position: relative;
-  background: #ece9d8;
-  border-bottom: 1px solid #fff;
-  user-select: none;
-`;
-
-const MenuBar = styled.div`
   display: flex;
   align-items: center;
-  height: 20px;
-  font-size: 11px;
-`;
-
-const MenuItem = styled.div`
-  padding: 4px 8px;
-  cursor: pointer;
-  border: 1px solid transparent;
-
-  &:hover:not(.disabled),
-  &.active {
-    background: #316ac5;
-    color: white;
-    border: 1px solid #316ac5;
-  }
-
-  &.disabled {
-    color: #808080;
-    cursor: default;
-  }
+  background: #ece9d8;
 `;
 
 const MobileOnly = styled.div`
@@ -438,66 +427,25 @@ const MobileOnly = styled.div`
   align-items: center;
   gap: 6px;
   padding-right: 8px;
+  font-size: 11px;
 
   @media (pointer: coarse) {
     display: flex;
   }
 `;
 
-const MenuDropdown = styled.div`
-  position: absolute;
-  top: 100%;
-  left: 0;
-  background: white;
-  border: 2px solid;
-  border-color: #fff #808080 #808080 #fff;
-  box-shadow: 2px 2px 1px rgba(0, 0, 0, 0.2);
-  padding: 2px;
-  min-width: 140px;
-  z-index: 1000;
-  font-size: 11px;
-`;
-
-const MenuDropdownItem = styled.div`
-  padding: 4px 20px 4px 24px;
-  cursor: pointer;
-  white-space: nowrap;
-  position: relative;
-
-  &:hover {
-    background: #316ac5;
-    color: white;
-  }
-
-  .check {
-    position: absolute;
-    left: 4px;
-    width: 16px;
-    text-align: center;
-  }
-`;
-
-const MenuDropdownDivider = styled.div`
-  margin: 3px 2px;
-  border: none;
-  border-top: 1px solid #d4d0c8;
-  height: 0;
-`;
-
 const MineContent = styled.div`
   background: #c0c0c0;
-  padding: 3px;
+  padding: 3px 3px 0;
   width: max-content;
-  margin: 0 auto;
 `;
 
 const Scorebar = styled.div`
-  display: grid;
-  grid-template-columns: 40px 1fr 40px;
+  display: flex;
   align-items: center;
-  gap: 5px;
+  justify-content: space-between;
   height: 34px;
-  padding: 3px 7px 3px 4px;
+  padding: 3px 2px;
   border-top: 2px solid #808080;
   border-left: 2px solid #808080;
   border-right: 2px solid #f5f5f5;
@@ -527,7 +475,11 @@ const Digits = styled.div`
 
 const FaceButton = styled.button`
   width: 24px;
+  min-width: 24px;
+  max-width: 24px;
   height: 24px;
+  flex-shrink: 0;
+  flex-grow: 0;
   background: #c0c0c0;
   border: 2px solid;
   border-color: #f5f5f5 #808080 #808080 #f5f5f5;
@@ -536,7 +488,6 @@ const FaceButton = styled.button`
   justify-content: center;
   padding: 0;
   cursor: pointer;
-  justify-self: center;
   border-radius: 2px;
   outline: none;
 
