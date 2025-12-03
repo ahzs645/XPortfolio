@@ -38,7 +38,7 @@ const RESUME_MENUS = [
 ];
 
 function Resume({ onClose, onMinimize, onMaximize, isFocus }) {
-  const { getCVPDFUrl } = useConfig();
+  const { getCVPDFUrl, getPDFDisplayMode, shouldUsePDFJS } = useConfig();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [scaleMode, setScaleMode] = useState('fit'); // 'fit' or 'zoomed'
@@ -46,8 +46,34 @@ function Resume({ onClose, onMinimize, onMaximize, isFocus }) {
   const containerRef = useRef(null);
   const canvasContainerRef = useRef(null);
 
-  // Load PDF.js library
+  const displayMode = getPDFDisplayMode();
+  const usePdfJs = shouldUsePDFJS();
+
+  // Handle non-embed display modes
   useEffect(() => {
+    const pdfUrl = getCVPDFUrl();
+
+    if (displayMode === 'download') {
+      // Trigger download and close
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+      link.download = 'resume.pdf';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      onClose?.();
+    } else if (displayMode === 'new_tab') {
+      // Open in new tab and close
+      window.open(pdfUrl, '_blank');
+      onClose?.();
+    }
+  }, [displayMode, getCVPDFUrl, onClose]);
+
+  // Load PDF.js library (only if using embed mode with PDF.js)
+  useEffect(() => {
+    // Skip if not embed mode or not using PDF.js
+    if (displayMode !== 'embed') return;
+
     let cancelled = false;
 
     async function loadPdfJs() {
@@ -70,6 +96,12 @@ function Resume({ onClose, onMinimize, onMaximize, isFocus }) {
     }
 
     async function loadPdf() {
+      // If not using PDF.js, use native iframe embed
+      if (!usePdfJs) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const pdfjs = await loadPdfJs();
         const pdfUrl = getCVPDFUrl();
@@ -106,7 +138,7 @@ function Resume({ onClose, onMinimize, onMaximize, isFocus }) {
     return () => {
       cancelled = true;
     };
-  }, [getCVPDFUrl]);
+  }, [getCVPDFUrl, displayMode, usePdfJs]);
 
   // Render PDF pages
   const renderPages = useCallback(async () => {
@@ -266,6 +298,26 @@ function Resume({ onClose, onMinimize, onMaximize, isFocus }) {
     );
   }
 
+  // Native iframe embed when PDF.js is disabled
+  if (!usePdfJs && displayMode === 'embed') {
+    return (
+      <ProgramLayout
+        windowActions={{ onClose, onMinimize, onMaximize }}
+        menus={RESUME_MENUS}
+        menuLogo="/gui/toolbar/barlogo.webp"
+        toolbarItems={toolbarItems}
+        onToolbarAction={handleToolbarAction}
+        addressTitle="Resume"
+        addressIcon="/icons/resume.webp"
+        statusFields="Ready"
+      >
+        <Container ref={containerRef}>
+          <NativeEmbed src={getCVPDFUrl()} title="Resume PDF" />
+        </Container>
+      </ProgramLayout>
+    );
+  }
+
   return (
     <ProgramLayout
       windowActions={{ onClose, onMinimize, onMaximize }}
@@ -335,6 +387,13 @@ const ErrorMessage = styled.div`
   p {
     margin: 5px 0;
   }
+`;
+
+const NativeEmbed = styled.iframe`
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #fff;
 `;
 
 export default Resume;

@@ -16,51 +16,99 @@ import Paint from './Paint';
 // Default apps open on startup (empty for now - user opens via desktop icons)
 export const defaultAppState = [];
 
-// Desktop icons configuration
-export const defaultIconState = [
-  {
-    id: 0,
+// Full catalog of all available desktop icons
+export const desktopIconCatalog = {
+  about: {
     icon: '/icons/about.webp',
     title: 'About Me',
     component: About,
-    isFocus: false,
   },
-  {
-    id: 1,
+  resume: {
     icon: '/icons/resume.webp',
     title: 'Resume',
     component: Resume,
-    isFocus: false,
   },
-  {
-    id: 2,
+  projects: {
     icon: '/icons/projects.webp',
     title: 'Projects',
     component: Projects,
-    isFocus: false,
   },
-  {
-    id: 3,
+  contact: {
     icon: '/icons/contact.webp',
     title: 'Contact',
     component: Contact,
-    isFocus: false,
   },
-  {
-    id: 4,
+  calculator: {
     icon: '/icons/calculator.png',
     title: 'Calculator',
     component: Calculator,
-    isFocus: false,
   },
-  {
-    id: 5,
+  notepad: {
+    icon: '/icons/notepad.png',
+    title: 'Notepad',
+    component: Notepad,
+  },
+  minesweeper: {
     icon: '/icons/minesweeper.png',
     title: 'Minesweeper',
     component: Minesweeper,
-    isFocus: false,
   },
-];
+  solitaire: {
+    icon: '/icons/solitaire-icon.png',
+    title: 'Solitaire',
+    component: Solitaire,
+  },
+  spiderSolitaire: {
+    icon: '/icons/spider-solitaire-icon.webp',
+    title: 'Spider Solitaire',
+    component: SpiderSolitaire,
+  },
+  pinball: {
+    icon: '/icons/pinball-icon.png',
+    title: '3D Pinball',
+    component: Pinball,
+  },
+  cmd: {
+    icon: '/icons/cmd.png',
+    title: 'Command Prompt',
+    component: CMD,
+  },
+  mediaPlayer: {
+    icon: '/icons/media-player.png',
+    title: 'Windows Media Player',
+    component: MediaPlayer,
+  },
+  imageViewer: {
+    icon: '/icons/image-viewer.png',
+    title: 'Image Viewer',
+    component: ImageViewer,
+  },
+  paint: {
+    icon: '/icons/paint.webp',
+    title: 'Paint',
+    component: Paint,
+  },
+};
+
+// Generate desktop icon state from program list
+export function generateIconState(programIds = ['about', 'resume', 'projects', 'contact']) {
+  return programIds
+    .map((id, index) => {
+      const catalogEntry = desktopIconCatalog[id];
+      if (!catalogEntry) return null;
+      return {
+        id: index,
+        icon: catalogEntry.icon,
+        title: catalogEntry.title,
+        component: catalogEntry.component,
+        isFocus: false,
+      };
+    })
+    .filter(Boolean);
+}
+
+// Default desktop icons (fallback)
+export const defaultIconState = generateIconState(['about', 'resume', 'projects', 'contact', 'calculator', 'minesweeper']);
 
 // App settings for launching from menu and icons
 export const appSettings = {

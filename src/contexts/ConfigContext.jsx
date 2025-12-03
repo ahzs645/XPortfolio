@@ -33,20 +33,55 @@ function parseEnv(envText) {
 // Get default config values
 function getDefaultConfig() {
   return {
+    // Identity
     NAME_DISPLAY_MODE: 'first',
     CUSTOM_NAME: 'User',
     OS_SUFFIX: 'XP',
+
+    // Login screen
     SHOW_PROFESSION: true,
     CUSTOM_PROFESSION: null,
+
+    // Content paths
     PROFILE_PHOTO: 'profile.jpg',
-    USER_LOGIN_ICON: '/favicon.png',
     CV_YAML_PATH: 'public/CV.yaml',
     CV_PDF_PATH: 'public/CV.pdf',
     ABOUT_MD: 'content/about.md',
+
+    // User interface assets
+    USER_LOGIN_ICON: '/favicon.png',
+    USER_START_MENU_ICON: '/favicon.png',
+    LOADING_IMAGE_PATH: '/xp.svg',
+    WALLPAPER_DESKTOP_PATH: '/bliss.jpg',
+    WALLPAPER_MOBILE_PATH: '/bliss.jpg',
+
+    // Desktop icons
+    DESKTOP_PROGRAMS: 'about,resume,projects,contact',
+
+    // Feature toggles
+    SHOW_SOCIAL_IN_START_MENU: true,
     SHOW_SOCIAL_IN_ABOUT: true,
     SHOW_SKILLS_IN_ABOUT: false,
     SHOW_SOFTWARE_IN_ABOUT: false,
     SOCIALS_EXCLUDE: '',
+    ENABLE_PROJECT_MARKDOWN: true,
+    SHOW_PROJECTS_WITHOUT_MARKDOWN: true,
+
+    // Content directories
+    CONTENT_DIR: 'content',
+    PROJECTS_DIR: 'content/projects',
+
+    // Terminal customization
+    TERMINAL_WELCOME_CUSTOM: false,
+    TERMINAL_WELCOME_MESSAGE: '',
+
+    // Resume/PDF viewer
+    PDF_DISPLAY_MODE: 'embed',
+    USE_PDF_JS: true,
+
+    // Media player
+    MEDIA_PLAYER_PRIMARY_PLAYLIST: 'PLWoiCrWR5QfNd1s2WwJwjqBfWewzIszLb',
+    MEDIA_PLAYER_ALT_PLAYLIST: 'PLgwcgfCVaMC1z5AqphnubDfIu_pp0Ok9O',
   };
 }
 
@@ -236,6 +271,90 @@ export function ConfigProvider({ children }) {
     return config?.[feature] === true;
   };
 
+  // Get start menu user icon path
+  const getStartMenuIcon = () => {
+    if (config?.USER_START_MENU_ICON) {
+      let iconPath = config.USER_START_MENU_ICON;
+      if (iconPath.startsWith('./')) {
+        iconPath = iconPath.substring(1);
+      }
+      return iconPath;
+    }
+    return '/favicon.png';
+  };
+
+  // Get loading/boot image path
+  const getLoadingImagePath = () => {
+    if (config?.LOADING_IMAGE_PATH) {
+      let imgPath = config.LOADING_IMAGE_PATH;
+      if (imgPath.startsWith('./')) {
+        imgPath = imgPath.substring(1);
+      }
+      return imgPath;
+    }
+    return '/xp.svg';
+  };
+
+  // Get wallpaper path (desktop or mobile)
+  const getWallpaperPath = (isMobile = false) => {
+    const key = isMobile ? 'WALLPAPER_MOBILE_PATH' : 'WALLPAPER_DESKTOP_PATH';
+    if (config?.[key]) {
+      let wallpaperPath = config[key];
+      if (wallpaperPath.startsWith('./')) {
+        wallpaperPath = wallpaperPath.substring(1);
+      }
+      return wallpaperPath;
+    }
+    return '/bliss.jpg';
+  };
+
+  // Get desktop programs list
+  const getDesktopPrograms = () => {
+    const programs = config?.DESKTOP_PROGRAMS || 'about,resume,projects,contact';
+    return programs.split(',').map(p => p.trim()).filter(Boolean);
+  };
+
+  // Get terminal welcome message
+  const getTerminalWelcome = () => {
+    if (config?.TERMINAL_WELCOME_CUSTOM && config?.TERMINAL_WELCOME_MESSAGE) {
+      return config.TERMINAL_WELCOME_MESSAGE;
+    }
+    return null; // Use default
+  };
+
+  // Get PDF display mode
+  const getPDFDisplayMode = () => {
+    return config?.PDF_DISPLAY_MODE || 'embed';
+  };
+
+  // Check if PDF.js should be used
+  const shouldUsePDFJS = () => {
+    return config?.USE_PDF_JS !== false;
+  };
+
+  // Get media player playlists
+  const getMediaPlayerPlaylists = () => {
+    return {
+      primary: config?.MEDIA_PLAYER_PRIMARY_PLAYLIST || 'PLWoiCrWR5QfNd1s2WwJwjqBfWewzIszLb',
+      alt: config?.MEDIA_PLAYER_ALT_PLAYLIST || 'PLgwcgfCVaMC1z5AqphnubDfIu_pp0Ok9O',
+    };
+  };
+
+  // Get projects directory
+  const getProjectsDir = () => {
+    return config?.PROJECTS_DIR || 'content/projects';
+  };
+
+  // Check if project markdown is enabled
+  const isProjectMarkdownEnabled = () => {
+    return config?.ENABLE_PROJECT_MARKDOWN !== false;
+  };
+
+  // Check if projects without markdown should be shown
+  const shouldShowProjectsWithoutMarkdown = () => {
+    return config?.SHOW_PROJECTS_WITHOUT_MARKDOWN !== false;
+  };
+
   // Get about content (load from markdown)
   const [aboutContent, setAboutContent] = useState(null);
 
@@ -279,17 +398,37 @@ export function ConfigProvider({ children }) {
     cvData,
     isLoading,
     error,
+    // Identity
     getDisplayName,
     getOSName,
-    getProfession,
-    getUserLoginIcon,
-    getProfilePhotoPath,
-    getCVPDFUrl,
     getFullName,
+    getProfession,
+    // User interface assets
+    getUserLoginIcon,
+    getStartMenuIcon,
+    getProfilePhotoPath,
+    getLoadingImagePath,
+    getWallpaperPath,
+    // Content
+    getCVPDFUrl,
     getSocialLinks,
     getSkills,
     getSoftware,
     getAboutContent,
+    // Desktop
+    getDesktopPrograms,
+    // Terminal
+    getTerminalWelcome,
+    // PDF/Resume
+    getPDFDisplayMode,
+    shouldUsePDFJS,
+    // Media player
+    getMediaPlayerPlaylists,
+    // Projects
+    getProjectsDir,
+    isProjectMarkdownEnabled,
+    shouldShowProjectsWithoutMarkdown,
+    // Feature checks
     isFeatureEnabled,
   };
 

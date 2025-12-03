@@ -127,7 +127,7 @@ const COMMANDS = {
 };
 
 function CMD({ onClose }) {
-  const { getFullName, getSkills, getSocialLinks } = useConfig();
+  const { getFullName, getSkills, getSocialLinks, getTerminalWelcome } = useConfig();
   const [history, setHistory] = useState([]);
   const [currentLine, setCurrentLine] = useState('');
   const [commandHistory, setCommandHistory] = useState([]);
@@ -148,7 +148,9 @@ function CMD({ onClose }) {
 
   const prompt = `C:\\>`;
 
-  const initialMessage = `${firstName} DOS [Version 2.0]
+  // Use custom welcome message if configured, otherwise use default
+  const customWelcome = getTerminalWelcome();
+  const initialMessage = customWelcome || `${firstName} DOS [Version 2.0]
 (C) Copyright ${firstName}. All rights reserved.
 
 Type 'help' to see available commands.

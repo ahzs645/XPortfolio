@@ -13,7 +13,7 @@ import {
 function FooterMenu({ className, onClick }) {
   const [showAllPrograms, setShowAllPrograms] = useState(false);
   const [activeFolder, setActiveFolder] = useState(null);
-  const { getDisplayName, getUserLoginIcon } = useConfig();
+  const { getDisplayName, getStartMenuIcon } = useConfig();
 
   function handleItemClick(item) {
     if (item.type === 'folder') {
@@ -53,7 +53,7 @@ function FooterMenu({ className, onClick }) {
   return (
     <div className={className}>
       <header>
-        <img className="header__img" src={getUserLoginIcon()} alt="avatar" />
+        <img className="header__img" src={getStartMenuIcon()} alt="avatar" />
         <span className="header__text">{getDisplayName()}</span>
       </header>
       <section className="menu">

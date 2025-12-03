@@ -1,7 +1,8 @@
-import React, { useReducer, useRef, useCallback, useState } from 'react';
+import React, { useReducer, useRef, useCallback, useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { useMouse } from '../hooks';
+import { useMouse, useWindowSize } from '../hooks';
 import useSystemSounds from '../hooks/useSystemSounds';
+import { useConfig } from '../contexts/ConfigContext';
 
 import {
   ADD_APP,
@@ -11,6 +12,7 @@ import {
   TOGGLE_MAXIMIZE_APP,
   FOCUS_ICON,
   SELECT_ICONS,
+  SET_ICONS,
   FOCUS_DESKTOP,
   START_SELECT,
   END_SELECT,
@@ -19,7 +21,7 @@ import {
   SET_BOOT_STATE,
 } from './constants/actions';
 import { FOCUSING, POWER_STATE, BOOT_STATE } from './constants';
-import { defaultIconState, defaultAppState, appSettings } from './apps';
+import { defaultIconState, defaultAppState, appSettings, generateIconState } from './apps';
 import Modal from './Modal';
 import Footer from './Footer';
 import Windows from './Windows';
@@ -182,6 +184,11 @@ const reducer = (state, action = { type: '' }) => {
         ...state,
         bootState: action.payload,
       };
+    case SET_ICONS:
+      return {
+        ...state,
+        icons: action.payload,
+      };
     default:
       return state;
   }
@@ -192,8 +199,23 @@ function WinXP() {
   const [crtEnabled, setCrtEnabled] = useState(true);
   const ref = useRef(null);
   const mouse = useMouse(ref);
+  const { width } = useWindowSize();
   const focusedAppId = getFocusedAppId();
   const { playLogoff, playBalloon } = useSystemSounds();
+  const { getWallpaperPath, getDesktopPrograms, isLoading: configLoading } = useConfig();
+
+  // Determine if mobile based on viewport width
+  const isMobile = width < 768;
+  const wallpaperPath = getWallpaperPath(isMobile);
+
+  // Update desktop icons when config loads
+  useEffect(() => {
+    if (!configLoading) {
+      const programIds = getDesktopPrograms();
+      const icons = generateIconState(programIds);
+      dispatch({ type: SET_ICONS, payload: icons });
+    }
+  }, [configLoading, getDesktopPrograms]);
 
   const handleToggleCRT = useCallback(() => {
     setCrtEnabled((prev) => !prev);
@@ -319,6 +341,7 @@ function WinXP() {
       onMouseDown={onMouseDownDesktop}
       $powerState={state.powerState}
       $crtEnabled={crtEnabled}
+      $wallpaper={wallpaperPath}
     >
       <Icons
         icons={state.icons}
@@ -385,7 +408,7 @@ const Container = styled.div`
   height: 100%;
   overflow: hidden;
   position: relative;
-  background: url('/bliss.jpg') no-repeat center center fixed;
+  background: url('${({ $wallpaper }) => $wallpaper || '/bliss.jpg'}') no-repeat center center fixed;
   background-size: cover;
   animation: ${({ $powerState }) => animation[$powerState]} 5s forwards;
   filter: ${({ $crtEnabled }) =>

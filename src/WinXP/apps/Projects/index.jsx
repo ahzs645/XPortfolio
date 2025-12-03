@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { ProgramLayout } from '../../../components';
+import { useConfig } from '../../../contexts/ConfigContext';
 
 // Menu configuration for Projects window
 const PROJECTS_MENUS = [
@@ -85,33 +86,52 @@ const defaultProjects = [
 ];
 
 function Projects({ onClose, onMinimize, onMaximize, isFocus }) {
+  const {
+    getProjectsDir,
+    isProjectMarkdownEnabled,
+    shouldShowProjectsWithoutMarkdown,
+  } = useConfig();
+
   const [projects, setProjects] = useState(defaultProjects);
   const [hoveredProject, setHoveredProject] = useState(null);
 
-  // Try to load projects from projects.json
+  // Try to load projects from projects.json or markdown files
   const loadProjects = useCallback(async () => {
+    const projectsDir = getProjectsDir();
+    const markdownEnabled = isProjectMarkdownEnabled();
+    const showWithoutMarkdown = shouldShowProjectsWithoutMarkdown();
+
     try {
+      // First try to load from projects.json
       const response = await fetch('/projects.json');
       if (response.ok) {
         const data = await response.json();
         if (Array.isArray(data) && data.length > 0) {
-          setProjects(
-            data.map((p, i) => ({
-              id: i + 1,
-              title: p.title || `Project ${i + 1}`,
-              subtitle: p.subtitle || p.description || '',
-              image: p.images?.[0]?.src || p.image || '/projects/placeholder.png',
-              workType: p.workType || 'personal',
-              url: p.url,
-              github: p.github,
-            }))
-          );
+          let projectList = data.map((p, i) => ({
+            id: i + 1,
+            title: p.title || `Project ${i + 1}`,
+            subtitle: p.subtitle || p.description || '',
+            image: p.images?.[0]?.src || p.image || '/projects/placeholder.png',
+            workType: p.workType || 'personal',
+            url: p.url,
+            github: p.github,
+            hasMarkdown: p.hasMarkdown || false,
+            markdownFile: p.markdownFile || null,
+          }));
+
+          // If markdown is enabled but showWithoutMarkdown is false,
+          // filter to only show projects with markdown files
+          if (markdownEnabled && !showWithoutMarkdown) {
+            projectList = projectList.filter(p => p.hasMarkdown);
+          }
+
+          setProjects(projectList);
         }
       }
     } catch (err) {
       console.log('Using default projects');
     }
-  }, []);
+  }, [getProjectsDir, isProjectMarkdownEnabled, shouldShowProjectsWithoutMarkdown]);
 
   useEffect(() => {
     loadProjects();

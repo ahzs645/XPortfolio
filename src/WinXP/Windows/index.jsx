@@ -187,9 +187,13 @@ const WindowContainer = styled.div`
   }
 
   .window-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
-    margin: 0 3px 3px 3px;
+    margin: 0 3px 0 3px;
     padding: 0;
+    min-height: 0;
   }
 `;
 

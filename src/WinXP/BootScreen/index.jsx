@@ -7,12 +7,13 @@ import useSystemSounds from '../../hooks/useSystemSounds';
 function BootScreen({ bootState, onComplete }) {
   const [showLogin, setShowLogin] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
-  const { isLoading, getDisplayName, getProfession, getUserLoginIcon } = useConfig();
+  const { isLoading, getDisplayName, getProfession, getUserLoginIcon, getLoadingImagePath } = useConfig();
   const { playLogin, prewarmBalloon } = useSystemSounds();
 
   const userName = getDisplayName();
   const userTitle = getProfession();
   const userIcon = getUserLoginIcon();
+  const bootLogo = getLoadingImagePath();
 
   useEffect(() => {
     if (bootState === BOOT_STATE.BOOTING && !isLoading) {
@@ -49,7 +50,7 @@ function BootScreen({ bootState, onComplete }) {
         <LoginScreenInner>
           <LoginContainer $fadeOut={showWelcome}>
             <LoginLeft $fadeOut={showWelcome}>
-              <XPLogo src="/xp.svg" alt="Windows XP" />
+              <XPLogo src={bootLogo} alt="Windows XP" />
               <LoginInstruction>
                 To begin, click on <LoginInstructionName>{userName}</LoginInstructionName>
               </LoginInstruction>
@@ -88,7 +89,7 @@ function BootScreen({ bootState, onComplete }) {
   return (
     <BootContainer>
       <BootContent>
-        <BootLogo src="/xp.svg" alt="Windows XP" />
+        <BootLogo src={bootLogo} alt="Windows XP" />
         <LoadingBoxes>
           <LoadingBox />
           <LoadingBox />
