@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 import { useConfig } from '../../../contexts/ConfigContext';
-import { ProgramLayout } from '../../../components';
+import { ProgramLayout, TaskPanel } from '../../../components';
 
 // Social network icon mapping
 const SOCIAL_ICONS = {
@@ -68,12 +68,6 @@ function About({ onClose, onMinimize, onMaximize, isFocus }) {
     getDisplayName,
   } = useConfig();
 
-  const [expandedCards, setExpandedCards] = useState({
-    social: true,
-    skills: true,
-    software: true,
-  });
-
   const socialLinks = getSocialLinks();
   const skills = getSkills();
   const software = getSoftware();
@@ -83,17 +77,6 @@ function About({ onClose, onMinimize, onMaximize, isFocus }) {
   const showSocial = isFeatureEnabled('SHOW_SOCIAL_IN_ABOUT');
   const showSkills = isFeatureEnabled('SHOW_SKILLS_IN_ABOUT');
   const showSoftware = isFeatureEnabled('SHOW_SOFTWARE_IN_ABOUT');
-
-  const toggleCard = (cardName) => {
-    setExpandedCards((prev) => ({
-      ...prev,
-      [cardName]: !prev[cardName],
-    }));
-  };
-
-  const handleSocialClick = (url) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
 
   const handleToolbarAction = (action) => {
     // Handle custom toolbar actions here
@@ -120,102 +103,47 @@ function About({ onClose, onMinimize, onMaximize, isFocus }) {
     >
       <Container>
         {hasSidebarContent && (
-          <LeftPanel>
+          <TaskPanel>
             {showSocial && socialLinks.length > 0 && (
-              <Card className={expandedCards.social ? '' : 'collapsed'} $isSocial>
-                <CardHeader $isSocial onClick={() => toggleCard('social')}>
-                  <span>Social Links</span>
-                  <img
-                    src={
-                      expandedCards.social
-                        ? '/apps/about/pullup-alt.webp'
-                        : '/apps/about/pulldown-alt.webp'
-                    }
-                    alt=""
-                  />
-                </CardHeader>
-                <CardContent>
-                  <CardContentInner>
-                    {socialLinks.map((social) => (
-                      <CardRow
-                        key={social.network}
-                        as="a"
-                        href={social.url}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleSocialClick(social.url);
-                        }}
-                      >
-                        <img
-                          src={
-                            SOCIAL_ICONS[social.network.toLowerCase()] ||
-                            '/icons/cmd.webp'
-                          }
-                          alt={social.network}
-                        />
-                        <span>{social.network}</span>
-                      </CardRow>
-                    ))}
-                  </CardContentInner>
-                </CardContent>
-              </Card>
+              <TaskPanel.Section title="Social Links" variant="primary">
+                {socialLinks.map((social) => (
+                  <TaskPanel.Link
+                    key={social.network}
+                    icon={SOCIAL_ICONS[social.network.toLowerCase()] || '/icons/cmd.webp'}
+                    href={social.url}
+                  >
+                    {social.network}
+                  </TaskPanel.Link>
+                ))}
+              </TaskPanel.Section>
             )}
 
             {showSkills && skills.length > 0 && (
-              <Card className={expandedCards.skills ? '' : 'collapsed'}>
-                <CardHeader onClick={() => toggleCard('skills')}>
-                  <span>Skills</span>
-                  <img
-                    src={
-                      expandedCards.skills
-                        ? '/apps/about/pullup.webp'
-                        : '/apps/about/pulldown.webp'
-                    }
-                    alt=""
-                  />
-                </CardHeader>
-                <CardContent>
-                  <CardContentInner>
-                    {skills.map((skill, index) => (
-                      <CardRow key={skill}>
-                        <img
-                          src={SKILL_ICONS[index % SKILL_ICONS.length]}
-                          alt=""
-                        />
-                        <span>{skill}</span>
-                      </CardRow>
-                    ))}
-                  </CardContentInner>
-                </CardContent>
-              </Card>
+              <TaskPanel.Section title="Skills">
+                {skills.map((skill, index) => (
+                  <TaskPanel.Text
+                    key={skill}
+                    icon={SKILL_ICONS[index % SKILL_ICONS.length]}
+                  >
+                    {skill}
+                  </TaskPanel.Text>
+                ))}
+              </TaskPanel.Section>
             )}
 
             {showSoftware && software.length > 0 && (
-              <Card className={expandedCards.software ? '' : 'collapsed'}>
-                <CardHeader onClick={() => toggleCard('software')}>
-                  <span>Software</span>
-                  <img
-                    src={
-                      expandedCards.software
-                        ? '/apps/about/pullup.webp'
-                        : '/apps/about/pulldown.webp'
-                    }
-                    alt=""
-                  />
-                </CardHeader>
-                <CardContent>
-                  <CardContentInner>
-                    {software.map((item, index) => (
-                      <CardRow key={item}>
-                        <img src="/apps/about/creative-cloud.webp" alt="" />
-                        <span>{item}</span>
-                      </CardRow>
-                    ))}
-                  </CardContentInner>
-                </CardContent>
-              </Card>
+              <TaskPanel.Section title="Software">
+                {software.map((item) => (
+                  <TaskPanel.Text
+                    key={item}
+                    icon="/apps/about/creative-cloud.webp"
+                  >
+                    {item}
+                  </TaskPanel.Text>
+                ))}
+              </TaskPanel.Section>
             )}
-          </LeftPanel>
+          </TaskPanel>
         )}
 
         <ScrollContent>
@@ -239,130 +167,6 @@ const Container = styled.div`
   background-size: cover;
   background-attachment: fixed;
   font-family: Tahoma, Arial, sans-serif;
-`;
-
-const LeftPanel = styled.aside`
-  background: linear-gradient(180deg, #748aff 0%, #4057d3 100%);
-  width: 190px;
-  min-width: 190px;
-  max-width: 190px;
-  flex-shrink: 0;
-  height: 100%;
-  padding: 0;
-  position: relative;
-  z-index: 1;
-  overflow-y: auto;
-
-  &::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 0;
-    width: 1px;
-    height: 100%;
-    background: linear-gradient(180deg, #fff 0%, transparent 70%);
-    transform: scaleX(0.8);
-    transform-origin: right;
-    pointer-events: none;
-    z-index: 2;
-  }
-`;
-
-const Card = styled.div`
-  margin: 0 auto;
-  width: calc(92% - 6px);
-  max-width: calc(95% - 6px);
-  padding-top: 14px;
-  overflow: hidden;
-  border-top-left-radius: 3px;
-  border-top-right-radius: 3px;
-
-  &:first-child {
-    padding-top: 20px;
-  }
-
-  &.collapsed .card-content {
-    max-height: 0;
-    opacity: 0;
-    padding: 0;
-    pointer-events: none;
-  }
-`;
-
-const CardHeader = styled.div`
-  display: flex;
-  align-items: center;
-  height: 23px;
-  padding: 0 8px 0 10px;
-  border-top-left-radius: 5px;
-  border-top-right-radius: 5px;
-  background: ${(props) =>
-    props.$isSocial
-      ? 'linear-gradient(90deg, #0059ce 0%, #2e9aff 100%)'
-      : 'linear-gradient(90deg, #fff 0%, #f0f0ff 50%, #c2d4ec 100%)'};
-  cursor: pointer;
-
-  span {
-    flex: 1;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.2px;
-    color: ${(props) => (props.$isSocial ? '#fff' : '#0c327d')};
-  }
-
-  img {
-    width: 13px;
-    height: 13px;
-    filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.5));
-    transition: filter 0.1s ease, transform 0.05s ease;
-
-    &:hover {
-      filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.5)) brightness(1.2);
-    }
-
-    &:active {
-      filter: drop-shadow(0 0 0 rgba(0, 0, 0, 0.4)) brightness(1.1);
-      transform: translate(0.5px, 0.5px);
-    }
-  }
-`;
-
-const CardContent = styled.div.attrs({ className: 'card-content' })`
-  background: #c2d4ec;
-  border: 1.5px solid #fff;
-  border-top: none;
-  max-height: 1000px;
-  opacity: 1;
-  overflow: hidden;
-  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s;
-`;
-
-const CardContentInner = styled.div`
-  padding: 5px 10px;
-`;
-
-const CardRow = styled.div`
-  display: flex;
-  align-items: center;
-  margin-bottom: 2px;
-  text-decoration: none;
-  color: inherit;
-
-  &:hover span {
-    text-decoration: underline;
-  }
-
-  img {
-    width: 13px;
-    height: 13px;
-    margin-right: 6px;
-  }
-
-  span {
-    font-size: 10px;
-    line-height: 14px;
-    color: #0c327d;
-  }
 `;
 
 const ScrollContent = styled.div`

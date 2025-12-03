@@ -48,6 +48,9 @@ const Window = memo(function ({
   isFocus,
   show,
 }) {
+  // State for dynamic header updates from child components
+  const [dynamicHeader, setDynamicHeader] = React.useState(null);
+  const currentHeader = dynamicHeader || header;
   function _onMouseDown() {
     onMouseDown(id);
   }
@@ -109,14 +112,14 @@ const Window = memo(function ({
   return (
     <WindowContainer
       ref={ref}
-      className={header.invisible ? 'frameless' : `window ${isFocus ? '' : 'inactive'}`}
+      className={currentHeader.invisible ? 'frameless' : `window ${isFocus ? '' : 'inactive'}`}
       onMouseDown={_onMouseDown}
       style={{
         transform: `translate(${x}px,${y}px)`,
         ...(width && { width: `${width}px` }),
         ...(height && { height: `${height}px` }),
         zIndex,
-        ...(header.invisible && {
+        ...(currentHeader.invisible && {
           background: 'transparent',
           boxShadow: 'none',
           border: 'none',
@@ -125,43 +128,44 @@ const Window = memo(function ({
         }),
       }}
     >
-      {!header.invisible && (
+      {!currentHeader.invisible && (
         <div className="title-bar" ref={dragRef} onDoubleClick={onDoubleClickHeader}>
           <div className="title-bar-text">
-            {header.icon && (
+            {currentHeader.icon && (
               <img
-                src={header.icon}
+                src={currentHeader.icon}
                 alt=""
                 onDoubleClick={_onMouseUpClose}
                 draggable={false}
                 style={{ width: 16, height: 16, marginRight: 4, marginLeft: 2 }}
               />
             )}
-            {header.title}
+            {currentHeader.title}
           </div>
           <div className="title-bar-controls">
-            {(!header.buttons || header.buttons.includes('minimize')) && (
+            {(!currentHeader.buttons || currentHeader.buttons.includes('minimize')) && (
               <button aria-label="Minimize" onMouseUp={_onMouseUpMinimize} />
             )}
-            {(!header.buttons || header.buttons.includes('maximize')) && (
+            {(!currentHeader.buttons || currentHeader.buttons.includes('maximize')) && (
               <button
                 aria-label={maximized ? 'Restore' : 'Maximize'}
                 onMouseUp={_onMouseUpMaximize}
                 disabled={!resizable}
               />
             )}
-            {(!header.buttons || header.buttons.includes('close')) && (
+            {(!currentHeader.buttons || currentHeader.buttons.includes('close')) && (
               <button aria-label="Close" onMouseUp={_onMouseUpClose} />
             )}
           </div>
         </div>
       )}
-      <div className="window-body" style={header.invisible ? { margin: 0 } : undefined}>
+      <div className="window-body" style={currentHeader.invisible ? { margin: 0 } : undefined}>
         <Component
           onClose={_onMouseUpClose}
           onMinimize={_onMouseUpMinimize}
           onResize={onResize}
           isFocus={isFocus}
+          onUpdateHeader={setDynamicHeader}
           {...injectProps}
         />
       </div>

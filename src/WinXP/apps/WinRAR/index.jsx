@@ -36,10 +36,7 @@ function WinRAR({ onClose, fileData, fileName, parentFolderId }) {
   const saveToFileSystem = async (obj, parentId, key) => {
     if (cancelledRef.current) return;
 
-    console.log('[WinRAR] saveToFileSystem:', { key, parentId, isFile: obj instanceof File, obj });
-
     if (obj instanceof File) {
-      console.log('[WinRAR] Saving file:', obj.name, 'size:', obj.size);
       setProgress(`Saving ${obj.name}...`);
       // Read file as base64
       const reader = new FileReader();
@@ -49,20 +46,16 @@ function WinRAR({ onClose, fileData, fileName, parentFolderId }) {
         reader.readAsDataURL(obj);
       });
 
-      console.log('[WinRAR] File data length:', data?.length);
-      const fileId = await createFile(parentId, obj.name, {
+      await createFile(parentId, obj.name, {
         data: data,
         size: obj.size,
         type: obj.type,
         lastModified: obj.lastModified || Date.now(),
       });
-      console.log('[WinRAR] Created file with ID:', fileId);
     } else if (typeof obj === 'object' && obj !== null) {
       // It's a folder
-      console.log('[WinRAR] Creating folder:', key);
       setProgress(`Creating folder ${key}...`);
       const folderId = await createItem(parentId, key, 'folder');
-      console.log('[WinRAR] Created folder with ID:', folderId);
       for (const k of Object.keys(obj)) {
         await saveToFileSystem(obj[k], folderId, k);
       }
@@ -91,34 +84,21 @@ function WinRAR({ onClose, fileData, fileName, parentFolderId }) {
 
       setProgress('Extracting files...');
       const extractedFiles = await archive.extractFiles((entry) => {
-        console.log('[WinRAR] Extracting entry:', entry.path);
         setProgress(`Extracting: ${entry.path}`);
       });
 
-      console.log('[WinRAR] Extracted files:', extractedFiles);
-      console.log('[WinRAR] Keys:', Object.keys(extractedFiles));
-
       // Determine target folder (same folder as the archive, or Desktop)
       const targetFolder = parentFolderId || SYSTEM_IDS.DESKTOP;
-      console.log('[WinRAR] Target folder:', targetFolder);
 
       // Save each extracted item
       const keys = Object.keys(extractedFiles);
-      console.log('[WinRAR] Saving', keys.length, 'items, cancelled:', cancelledRef.current);
-
       for (let i = 0; i < keys.length; i++) {
-        console.log('[WinRAR] Loop iteration', i, 'cancelled:', cancelledRef.current);
-        if (cancelledRef.current) {
-          console.log('[WinRAR] Breaking due to cancelled');
-          break;
-        }
+        if (cancelledRef.current) break;
         const key = keys[i];
-        console.log('[WinRAR] Saving item:', key, extractedFiles[key]);
         setProgress(`Saving ${i + 1}/${keys.length}: ${key}`);
         await saveToFileSystem(extractedFiles[key], targetFolder, key);
       }
 
-      console.log('[WinRAR] Extraction complete, closing');
       onClose();
     } catch (err) {
       console.error('Extraction error:', err);

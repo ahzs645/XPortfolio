@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../../../contexts/FileSystemContext';
 import { ProgramLayout } from '../../../components';
@@ -15,6 +15,7 @@ function RecycleBin({ onClose, onMinimize, onMaximize }) {
 
   const [selectedItems, setSelectedItems] = useState([]);
   const [contextMenu, setContextMenu] = useState(null);
+  const containerRef = useRef(null);
 
   const contents = getFolderContents(SYSTEM_IDS.RECYCLE_BIN);
 
@@ -39,9 +40,14 @@ function RecycleBin({ onClose, onMinimize, onMaximize }) {
       setSelectedItems([item.id]);
     }
 
+    // Get the container's bounding rect to account for CSS transforms on parent elements
+    const rect = containerRef.current?.getBoundingClientRect();
+    const offsetX = rect ? rect.left : 0;
+    const offsetY = rect ? rect.top : 0;
+
     setContextMenu({
-      x: e.clientX,
-      y: e.clientY,
+      x: e.clientX - offsetX,
+      y: e.clientY - offsetY,
       isItem: !!item,
     });
   }, [selectedItems]);
@@ -149,7 +155,7 @@ function RecycleBin({ onClose, onMinimize, onMaximize }) {
       addressIcon={recycleBinIcon}
       statusFields={statusText}
     >
-      <Container tabIndex={0} onClick={handleContainerClick}>
+      <Container ref={containerRef} tabIndex={0} onClick={handleContainerClick}>
         <Content onContextMenu={(e) => handleContextMenu(e, null)}>
           {contents.length === 0 ? (
             <EmptyMessage>
@@ -266,7 +272,7 @@ const FileName = styled.span`
 `;
 
 const ContextMenuOverlay = styled.div`
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;

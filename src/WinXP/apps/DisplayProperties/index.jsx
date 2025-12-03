@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import styled from 'styled-components';
-import { ProgramLayout } from '../../../components';
+import { ProgramLayout, FileChooser } from '../../../components';
 import { useConfig } from '../../../contexts/ConfigContext';
 
 const WALLPAPERS = [
@@ -54,6 +54,8 @@ function DisplayProperties({ onClose, onMinimize }) {
   const [waitMinutes, setWaitMinutes] = useState(60);
   const [requirePassword, setRequirePassword] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
+  const [showBrowse, setShowBrowse] = useState(false);
+  const [customWallpapers, setCustomWallpapers] = useState([]);
   const previewRef = useRef(null);
 
   useEffect(() => {
@@ -81,6 +83,20 @@ function DisplayProperties({ onClose, onMinimize }) {
   const handleTabClick = (tab) => {
     if (!tab.enabled) return;
     setActiveTab(tab.id);
+  };
+
+  const handleBrowseSelect = (file) => {
+    if (file && file.data) {
+      // Add to custom wallpapers list
+      const newWallpaper = {
+        id: `custom-${Date.now()}`,
+        name: file.name,
+        path: file.data,
+      };
+      setCustomWallpapers(prev => [...prev, newWallpaper]);
+      setSelected(file.data);
+    }
+    setShowBrowse(false);
   };
 
   return (
@@ -142,6 +158,18 @@ function DisplayProperties({ onClose, onMinimize }) {
                         <span>{item.name}</span>
                       </ListItem>
                     ))}
+                    {customWallpapers.map((item) => (
+                      <ListItem
+                        key={item.id}
+                        $active={selected === item.path}
+                        onClick={() => setSelected(item.path)}
+                        role="option"
+                        aria-selected={selected === item.path}
+                      >
+                        <WallpaperIcon src="/icons/xp/JPG.png" alt="" />
+                        <span>{item.name}</span>
+                      </ListItem>
+                    ))}
                   </List>
                   <CustomizeButton type="button">Customize Desktop...</CustomizeButton>
                 </ListArea>
@@ -149,7 +177,7 @@ function DisplayProperties({ onClose, onMinimize }) {
                 <SideControls>
                   <SideRow>
                     <SideLabel>Browse...</SideLabel>
-                    <SideButton type="button" disabled>
+                    <SideButton type="button" onClick={() => setShowBrowse(true)}>
                       Browse...
                     </SideButton>
                   </SideRow>
@@ -295,7 +323,20 @@ function DisplayProperties({ onClose, onMinimize }) {
             document.body
           )
         )}
+
       </WindowSurface>
+
+      {showBrowse && createPortal(
+        <FileChooser
+          isOpen={showBrowse}
+          onClose={() => setShowBrowse(false)}
+          onSelect={handleBrowseSelect}
+          title="Browse"
+          fileTypes={['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp']}
+          fileTypesDesc="Image Files"
+        />,
+        document.body
+      )}
     </ProgramLayout>
   );
 }

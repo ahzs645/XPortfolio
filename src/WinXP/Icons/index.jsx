@@ -5,6 +5,7 @@ function Icons({
   icons,
   onMouseDown,
   onDoubleClick,
+  onContextMenu,
   displayFocus,
   mouse,
   selecting,
@@ -127,6 +128,18 @@ function Icons({
     onDoubleClick(icon);
   }, [onDoubleClick]);
 
+  const handleContextMenu = useCallback((e, icon) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Select the icon if not already selected
+    if (!icon.isFocus) {
+      onMouseDown(icon.id);
+    }
+    if (onContextMenu) {
+      onContextMenu(e, icon);
+    }
+  }, [onContextMenu, onMouseDown]);
+
   // Get position for an icon (use drag position if dragging, otherwise use icon position)
   const getIconPosition = (icon) => {
     if (dragPositions[icon.id]) {
@@ -145,6 +158,7 @@ function Icons({
             ref={(el) => (iconRefs.current[index] = el)}
             onMouseDown={(e) => handleMouseDown(e, icon)}
             onDoubleClick={() => handleDoubleClick(icon)}
+            onContextMenu={(e) => handleContextMenu(e, icon)}
             $isFocus={icon.isFocus && displayFocus}
             $isDragging={dragging && (dragging.id === icon.id || (icon.isFocus && dragging.iconStartPositions[icon.id]))}
             style={{

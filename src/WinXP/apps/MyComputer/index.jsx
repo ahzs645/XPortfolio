@@ -2,9 +2,9 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../../../contexts/FileSystemContext';
 import { parseDroppedFiles } from '../../../utils/fileDropParser';
-import { ProgramLayout } from '../../../components';
+import { ProgramLayout, TaskPanel } from '../../../components';
 
-function MyComputer({ onClose, onMinimize, onMaximize, initialPath }) {
+function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPath }) {
   const {
     fileSystem,
     isLoading,
@@ -21,7 +21,9 @@ function MyComputer({ onClose, onMinimize, onMaximize, initialPath }) {
     clipboardOp,
   } = useFileSystem();
 
-  const [currentFolder, setCurrentFolder] = useState(initialPath || SYSTEM_IDS.C_DRIVE);
+  // null = My Computer root view, otherwise folder ID
+  const [currentFolder, setCurrentFolder] = useState(initialPath || null);
+  const isMyComputerRoot = currentFolder === null;
   const [selectedItems, setSelectedItems] = useState([]);
   const [contextMenu, setContextMenu] = useState(null);
   const [renamingItem, setRenamingItem] = useState(null);
@@ -31,12 +33,58 @@ function MyComputer({ onClose, onMinimize, onMaximize, initialPath }) {
   const containerRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  const currentFolderData = fileSystem?.[currentFolder];
-  const contents = getFolderContents(currentFolder);
-  const pathString = getPath(currentFolder);
+  const currentFolderData = isMyComputerRoot ? null : fileSystem?.[currentFolder];
+  const contents = isMyComputerRoot ? [] : getFolderContents(currentFolder);
+  const pathString = isMyComputerRoot ? 'My Computer' : getPath(currentFolder);
 
-  // Navigation history
-  const [history, setHistory] = useState([SYSTEM_IDS.C_DRIVE]);
+  // Get items for My Computer root view
+  const myComputerItems = React.useMemo(() => {
+    if (!fileSystem) return { folders: [], drives: [] };
+
+    const folders = [
+      fileSystem[SYSTEM_IDS.MY_DOCUMENTS],
+      fileSystem[SYSTEM_IDS.MY_PICTURES],
+      fileSystem[SYSTEM_IDS.MY_MUSIC],
+    ].filter(Boolean);
+
+    const drives = [
+      fileSystem[SYSTEM_IDS.C_DRIVE],
+    ].filter(Boolean);
+
+    return { folders, drives };
+  }, [fileSystem]);
+
+  // Format path as shorter string (e.g., "C:\Desktop\folder" instead of "Local Disk (C:)\Desktop\folder")
+  const formatShortPath = useCallback((path) => {
+    if (!path || path === 'My Computer') return 'My Computer';
+    return path
+      .replace('Local Disk (C:)', 'C:')
+      .replace(/\\/g, '\\');
+  }, []);
+
+  const shortPathString = formatShortPath(pathString);
+
+  // Update window header when folder changes
+  useEffect(() => {
+    if (onUpdateHeader) {
+      if (isMyComputerRoot) {
+        onUpdateHeader({
+          icon: XP_ICONS.myComputer,
+          title: 'My Computer',
+          buttons: ['minimize', 'maximize', 'close'],
+        });
+      } else if (currentFolderData) {
+        onUpdateHeader({
+          icon: currentFolderData.icon || XP_ICONS.folder,
+          title: currentFolderData.name || 'My Computer',
+          buttons: ['minimize', 'maximize', 'close'],
+        });
+      }
+    }
+  }, [currentFolder, currentFolderData, isMyComputerRoot, onUpdateHeader]);
+
+  // Navigation history (null = My Computer root)
+  const [history, setHistory] = useState([null]);
   const [historyIndex, setHistoryIndex] = useState(0);
 
   const navigateTo = useCallback((folderId) => {
@@ -69,10 +117,21 @@ function MyComputer({ onClose, onMinimize, onMaximize, initialPath }) {
   }, [historyIndex, history]);
 
   const goUp = useCallback(() => {
-    if (currentFolderData?.parent) {
+    if (isMyComputerRoot) return;
+
+    // If at a top-level folder (like C: drive), go to My Computer root
+    if (!currentFolderData?.parent || currentFolderData?.parent === null) {
+      setCurrentFolder(null);
+      setSelectedItems([]);
+      setContextMenu(null);
+      const newHistory = history.slice(0, historyIndex + 1);
+      newHistory.push(null);
+      setHistory(newHistory);
+      setHistoryIndex(newHistory.length - 1);
+    } else {
       navigateTo(currentFolderData.parent);
     }
-  }, [currentFolderData, navigateTo]);
+  }, [currentFolderData, isMyComputerRoot, navigateTo, history, historyIndex]);
 
   const handleItemClick = useCallback((e, item) => {
     e.stopPropagation();
@@ -103,9 +162,15 @@ function MyComputer({ onClose, onMinimize, onMaximize, initialPath }) {
       setSelectedItems([item.id]);
     }
 
+    // Get the container's bounding rect to account for CSS transforms on parent elements
+    // (transforms create a new containing block for position:fixed children)
+    const rect = containerRef.current?.getBoundingClientRect();
+    const offsetX = rect ? rect.left : 0;
+    const offsetY = rect ? rect.top : 0;
+
     setContextMenu({
-      x: e.clientX,
-      y: e.clientY,
+      x: e.clientX - offsetX,
+      y: e.clientY - offsetY,
       isItem: !!item,
     });
   }, [selectedItems]);
@@ -321,8 +386,8 @@ function MyComputer({ onClose, onMinimize, onMaximize, initialPath }) {
     return (
       <ProgramLayout
         windowActions={{ onClose, onMinimize, onMaximize }}
-        addressTitle="My Computer"
-        addressIcon={XP_ICONS.myComputer}
+        addressTitle="C:"
+        addressIcon={XP_ICONS.localDisk}
         statusFields="Loading..."
       >
         <LoadingContainer>Loading...</LoadingContainer>
@@ -367,7 +432,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, initialPath }) {
   const toolbarItems = [
     { type: 'button', id: 'back', icon: '/gui/toolbar/back.webp', label: 'Back', action: 'back', disabled: historyIndex === 0 },
     { type: 'button', id: 'forward', icon: '/gui/toolbar/forward.webp', label: 'Forward', action: 'forward', disabled: historyIndex >= history.length - 1 },
-    { type: 'button', id: 'up', icon: '/gui/toolbar/up.webp', label: 'Up', action: 'up', disabled: !currentFolderData?.parent },
+    { type: 'button', id: 'up', icon: '/gui/toolbar/up.webp', label: 'Up', action: 'up', disabled: isMyComputerRoot },
     { type: 'separator' },
     { type: 'button', id: 'search', icon: '/gui/toolbar/search.webp', label: 'Search', disabled: true },
     { type: 'button', id: 'folders', icon: '/gui/toolbar/favorites.webp', label: 'Folders', disabled: true },
@@ -375,9 +440,25 @@ function MyComputer({ onClose, onMinimize, onMaximize, initialPath }) {
     { type: 'button', id: 'views', icon: '/gui/toolbar/views.webp', label: 'Views', action: 'views' },
   ];
 
+  const itemCount = isMyComputerRoot
+    ? myComputerItems.folders.length + myComputerItems.drives.length
+    : contents.length;
   const statusText = selectedItems.length > 0
     ? `${selectedItems.length} object(s) selected`
-    : `${contents.length} object(s)`;
+    : `${itemCount} object(s)`;
+
+  // Render item for My Computer root view (larger icons)
+  const renderMyComputerItem = (item) => (
+    <MyComputerFileItem
+      key={item.id}
+      $selected={selectedItems.includes(item.id)}
+      onClick={(e) => handleItemClick(e, item)}
+      onDoubleClick={() => handleItemDoubleClick(item)}
+    >
+      <MyComputerFileIcon src={item.icon || XP_ICONS.folder} alt="" />
+      <MyComputerFileName>{item.name}</MyComputerFileName>
+    </MyComputerFileItem>
+  );
 
   return (
     <ProgramLayout
@@ -386,7 +467,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, initialPath }) {
       onMenuAction={handleMenuAction}
       toolbarItems={toolbarItems}
       onToolbarAction={handleToolbarAction}
-      addressTitle={pathString || 'My Computer'}
+      addressTitle={shortPathString || 'My Computer'}
       addressIcon={currentFolderData?.icon || XP_ICONS.myComputer}
       statusFields={statusText}
     >
@@ -394,9 +475,9 @@ function MyComputer({ onClose, onMinimize, onMaximize, initialPath }) {
         ref={containerRef}
         tabIndex={0}
         onClick={handleContainerClick}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
+        onDragOver={!isMyComputerRoot ? handleDragOver : undefined}
+        onDragLeave={!isMyComputerRoot ? handleDragLeave : undefined}
+        onDrop={!isMyComputerRoot ? handleDrop : undefined}
       >
         <HiddenFileInput
           ref={fileInputRef}
@@ -405,42 +486,123 @@ function MyComputer({ onClose, onMinimize, onMaximize, initialPath }) {
           onChange={handleFileInputChange}
         />
 
-        <Content onContextMenu={(e) => handleContextMenu(e, null)} $isDragOver={isDragOver}>
-          {contents.length === 0 ? (
-            <EmptyMessage>
-              This folder is empty.
-              <br />
-              <br />
-              Drag files here to upload them.
-            </EmptyMessage>
-          ) : (
-            contents.map(item => (
-              <FileItem
-                key={item.id}
-                $selected={selectedItems.includes(item.id)}
-                $isCut={clipboardOp === 'cut' && clipboard.includes(item.id)}
-                onClick={(e) => handleItemClick(e, item)}
-                onDoubleClick={() => handleItemDoubleClick(item)}
-                onContextMenu={(e) => handleContextMenu(e, item)}
-              >
-                <FileIcon src={item.icon || XP_ICONS.folder} alt="" />
-                {renamingItem === item.id ? (
-                  <RenameForm onSubmit={handleRenameSubmit}>
-                    <RenameInput
-                      value={renameValue}
-                      onChange={(e) => setRenameValue(e.target.value)}
-                      onBlur={handleRenameSubmit}
-                      autoFocus
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </RenameForm>
-                ) : (
-                  <FileName>{item.name}</FileName>
-                )}
-              </FileItem>
-            ))
-          )}
-        </Content>
+        {isMyComputerRoot ? (
+          <MyComputerLayout>
+            <TaskPanel width={180}>
+              <TaskPanel.Section title="System Tasks" variant="primary">
+                <TaskPanel.Item
+                  icon={XP_ICONS.help}
+                  onClick={() => console.log('View system info')}
+                >
+                  View system information
+                </TaskPanel.Item>
+                <TaskPanel.Item
+                  icon={XP_ICONS.programs}
+                  onClick={() => console.log('Add/remove programs')}
+                >
+                  Add or remove programs
+                </TaskPanel.Item>
+                <TaskPanel.Item
+                  icon={XP_ICONS.controlPanel}
+                  onClick={() => console.log('Change a setting')}
+                >
+                  Change a setting
+                </TaskPanel.Item>
+              </TaskPanel.Section>
+              <TaskPanel.Section title="Other Places">
+                <TaskPanel.Item
+                  icon={XP_ICONS.folder}
+                  onClick={() => console.log('My Network Places')}
+                >
+                  My Network Places
+                </TaskPanel.Item>
+                <TaskPanel.Item
+                  icon={XP_ICONS.myDocuments}
+                  onClick={() => navigateTo(SYSTEM_IDS.MY_DOCUMENTS)}
+                >
+                  My Documents
+                </TaskPanel.Item>
+                <TaskPanel.Item
+                  icon={XP_ICONS.controlPanel}
+                  onClick={() => console.log('Control Panel')}
+                >
+                  Control Panel
+                </TaskPanel.Item>
+              </TaskPanel.Section>
+              <TaskPanel.Section title="Details" defaultExpanded={false}>
+                <TaskPanel.Text icon={XP_ICONS.myComputer}>
+                  My Computer
+                </TaskPanel.Text>
+                <TaskPanel.Text>
+                  System Folder
+                </TaskPanel.Text>
+              </TaskPanel.Section>
+            </TaskPanel>
+            <MyComputerContent>
+              {myComputerItems.folders.length > 0 && (
+                <CategorySection>
+                  <CategoryHeader>
+                    <CategoryIcon src="/gui/mycomputer/files_header.png" alt="" onError={(e) => e.target.style.display = 'none'} />
+                    <CategoryTitle>Files Stored on This Computer</CategoryTitle>
+                  </CategoryHeader>
+                  <CategoryDivider />
+                  <CategoryItems>
+                    {myComputerItems.folders.map(renderMyComputerItem)}
+                  </CategoryItems>
+                </CategorySection>
+              )}
+              {myComputerItems.drives.length > 0 && (
+                <CategorySection>
+                  <CategoryHeader>
+                    <CategoryIcon src="/gui/mycomputer/drives_header.png" alt="" onError={(e) => e.target.style.display = 'none'} />
+                    <CategoryTitle>Hard Disk Drives</CategoryTitle>
+                  </CategoryHeader>
+                  <CategoryDivider />
+                  <CategoryItems>
+                    {myComputerItems.drives.map(renderMyComputerItem)}
+                  </CategoryItems>
+                </CategorySection>
+              )}
+            </MyComputerContent>
+          </MyComputerLayout>
+        ) : (
+          <Content onContextMenu={(e) => handleContextMenu(e, null)} $isDragOver={isDragOver}>
+            {contents.length === 0 ? (
+              <EmptyMessage>
+                This folder is empty.
+                <br />
+                <br />
+                Drag files here to upload them.
+              </EmptyMessage>
+            ) : (
+              contents.map(item => (
+                <FileItem
+                  key={item.id}
+                  $selected={selectedItems.includes(item.id)}
+                  $isCut={clipboardOp === 'cut' && clipboard.includes(item.id)}
+                  onClick={(e) => handleItemClick(e, item)}
+                  onDoubleClick={() => handleItemDoubleClick(item)}
+                  onContextMenu={(e) => handleContextMenu(e, item)}
+                >
+                  <FileIcon src={item.icon || XP_ICONS.folder} alt="" />
+                  {renamingItem === item.id ? (
+                    <RenameForm onSubmit={handleRenameSubmit}>
+                      <RenameInput
+                        value={renameValue}
+                        onChange={(e) => setRenameValue(e.target.value)}
+                        onBlur={handleRenameSubmit}
+                        autoFocus
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </RenameForm>
+                  ) : (
+                    <FileName>{item.name}</FileName>
+                  )}
+                </FileItem>
+              ))
+            )}
+          </Content>
+        )}
 
         {contextMenu && (
           <ContextMenuOverlay>
@@ -604,7 +766,7 @@ const RenameInput = styled.input`
 `;
 
 const ContextMenuOverlay = styled.div`
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
@@ -731,6 +893,89 @@ const UploadProgressText = styled.div`
   font-size: 11px;
   text-align: center;
   color: #808080;
+`;
+
+// My Computer root view styles
+const MyComputerLayout = styled.div`
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+`;
+
+const MyComputerContent = styled.div`
+  flex: 1;
+  padding: 8px 16px;
+  overflow: auto;
+  background: white;
+  border: 1px solid #808080;
+  border-top: 1px solid #404040;
+  border-left: 1px solid #404040;
+`;
+
+const CategorySection = styled.div`
+  margin-bottom: 16px;
+`;
+
+const CategoryHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+`;
+
+const CategoryIcon = styled.img`
+  width: 24px;
+  height: 24px;
+`;
+
+const CategoryTitle = styled.h3`
+  font-size: 11px;
+  font-weight: bold;
+  color: #215DC6;
+  margin: 0;
+`;
+
+const CategoryDivider = styled.div`
+  height: 1px;
+  background: linear-gradient(to right, #215DC6 0%, #215DC6 40%, transparent 100%);
+  margin: 4px 0 12px 0;
+`;
+
+const CategoryItems = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-left: 4px;
+`;
+
+const MyComputerFileItem = styled.div`
+  width: 100px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: ${({ $selected }) => $selected ? 'rgba(11, 97, 255, 0.2)' : 'transparent'};
+  border-color: ${({ $selected }) => $selected ? 'rgba(11, 97, 255, 0.5)' : 'transparent'};
+
+  &:hover {
+    background: ${({ $selected }) => $selected ? 'rgba(11, 97, 255, 0.3)' : 'rgba(11, 97, 255, 0.1)'};
+  }
+`;
+
+const MyComputerFileIcon = styled.img`
+  width: 48px;
+  height: 48px;
+  margin-bottom: 6px;
+`;
+
+const MyComputerFileName = styled.span`
+  font-size: 11px;
+  text-align: center;
+  word-break: break-word;
+  line-height: 1.3;
 `;
 
 export default MyComputer;

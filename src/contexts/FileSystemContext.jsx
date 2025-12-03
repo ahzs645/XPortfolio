@@ -49,6 +49,12 @@ export const XP_ICONS = {
   displayProperties: '/icons/xp/DisplayProperties.png',
   file: '/icons/xp/JPG.png',
   rar: '/icons/xp/RAR.png',
+  default: '/icons/xp/Default.png',
+  controlPanel: '/icons/xp/ControlPanel.png',
+  search: '/icons/xp/Search.png',
+  help: '/icons/xp/HelpandSupport.png',
+  programs: '/icons/xp/Programs.png',
+  run: '/icons/xp/Run.png',
 };
 
 // Special folder IDs
@@ -597,7 +603,7 @@ export function FileSystemProvider({ children }) {
     await idb.set(storageKey, fileContent.data);
 
     // Determine icon based on content type and extension
-    let icon = XP_ICONS.file;
+    let icon = XP_ICONS.default; // Use default icon for unknown file types
     const lowerExt = ext.toLowerCase();
 
     // Check extension first for specific file types
@@ -605,7 +611,7 @@ export function FileSystemProvider({ children }) {
       icon = XP_ICONS.rar;
     } else if (['.html', '.htm'].includes(lowerExt)) {
       icon = '/icons/xp/InternetExplorer6.png';
-    } else if (['.txt', '.log', '.md', '.json', '.js', '.jsx', '.ts', '.tsx', '.css'].includes(lowerExt)) {
+    } else if (['.txt', '.log', '.md'].includes(lowerExt)) {
       icon = XP_ICONS.notepad;
     } else if (fileContent.type) {
       if (fileContent.type.startsWith('image/')) {
@@ -621,6 +627,7 @@ export function FileSystemProvider({ children }) {
       } else if (fileContent.type === 'text/plain') {
         icon = XP_ICONS.notepad;
       }
+      // Other types will use the default icon set above
     }
 
     // Use functional update to work with latest state
