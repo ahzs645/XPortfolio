@@ -254,9 +254,9 @@ const LoginContainer = styled.div`
 
 const LoginLeft = styled.div`
   position: absolute;
-  left: 50%;
+  right: calc(50% + 72px);
   top: 45%;
-  transform: translate(calc(-100% - 72px), -50%);
+  transform: translateY(-50%);
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -268,7 +268,7 @@ const XPLogo = styled.img`
   display: block;
   height: 170px;
   max-height: 28vh;
-  max-width: 80vw;
+  max-width: 100%;
   object-fit: contain;
   width: auto;
 `;

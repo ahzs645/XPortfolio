@@ -27,6 +27,10 @@ const convertToDesktopIcons = (items, appSettings, savedPositions = {}) => {
     const defaultX = startX + column * (iconWidth + iconGapX);
     const defaultY = startY + row * (iconHeight + iconGapY);
 
+    // Ensure positions are valid numbers
+    const validX = (savedPos?.x !== undefined && !isNaN(savedPos.x)) ? savedPos.x : defaultX;
+    const validY = (savedPos?.y !== undefined && !isNaN(savedPos.y)) ? savedPos.y : defaultY;
+
     // For shortcuts, find the matching app component
     let component = null;
     if (item.type === 'shortcut' && item.target) {
@@ -43,8 +47,8 @@ const convertToDesktopIcons = (items, appSettings, savedPositions = {}) => {
       title: item.name,
       component: component,
       isFocus: false,
-      x: savedPos?.x ?? defaultX,
-      y: savedPos?.y ?? defaultY,
+      x: validX,
+      y: validY,
       // Extra info for file handling
       type: item.type,
       target: item.target,
@@ -274,7 +278,7 @@ function WinXP() {
   const focusedAppId = getFocusedAppId();
   const { playLogoff, playBalloon } = useSystemSounds();
   const { getWallpaperPath, isLoading: configLoading } = useConfig();
-  const { createFile, createItem, getFolderContents, fileSystem, isLoading: fsLoading } = useFileSystem();
+  const { createFile, createItem, getFolderContents, getFileContent, fileSystem, isLoading: fsLoading } = useFileSystem();
 
   // Determine if mobile based on viewport width
   const isMobile = width < 768;
@@ -347,7 +351,9 @@ function WinXP() {
     dispatch({ type: FOCUS_ICON, payload: id });
   }
 
-  function onDoubleClickIcon(icon) {
+  async function onDoubleClickIcon(icon) {
+    console.log('[DoubleClick]', icon.title, 'type:', icon.type, 'hasData:', !!icon.data);
+
     // Handle shortcuts - launch the target app
     if (icon.type === 'shortcut' && icon.target) {
       const appSetting = appSettings[icon.target];
@@ -370,7 +376,29 @@ function WinXP() {
     }
 
     // Handle files - open with appropriate viewer
-    if (icon.type === 'file' && icon.data) {
+    if (icon.type === 'file') {
+      // Load file data if not present (stored in IndexedDB)
+      let fileData = icon.data;
+      if (!fileData) {
+        const fileItem = fileSystem?.[icon.id];
+        if (fileItem?.storageKey) {
+          const blob = await getFileContent(icon.id);
+          if (blob) {
+            // Convert blob to data URL
+            fileData = await new Promise((resolve) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.readAsDataURL(blob);
+            });
+          }
+        }
+      }
+
+      if (!fileData) {
+        console.log('[DoubleClick] No file data available');
+        return;
+      }
+
       // For images, open with Image Viewer
       const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp'];
       if (imageTypes.includes(icon.fileType)) {
@@ -381,25 +409,80 @@ function WinXP() {
             title: `${icon.title} - Windows Picture and Fax Viewer`,
           },
           injectProps: {
-            initialImage: { src: icon.data, title: icon.title },
+            initialImage: { src: fileData, title: icon.title },
           },
         };
         dispatch({ type: ADD_APP, payload: imageViewerSetting });
         return;
       }
 
+      // For archive files, open with WinRAR
+      const archiveExtensions = ['.zip', '.rar', '.7z', '.tar', '.gz'];
+      const ext = icon.title.substring(icon.title.lastIndexOf('.')).toLowerCase();
+      if (archiveExtensions.includes(ext)) {
+        const winrarSetting = {
+          ...appSettings['WinRAR'],
+          header: {
+            ...appSettings['WinRAR'].header,
+            title: `Extracting ${icon.title}`,
+          },
+          injectProps: {
+            fileData: fileData,
+            fileName: icon.title,
+            parentFolderId: null, // Extract to Desktop
+          },
+        };
+        dispatch({ type: ADD_APP, payload: winrarSetting });
+        return;
+      }
+
+      // For HTML files, open with Internet Explorer
+      const htmlExtensions = ['.html', '.htm'];
+      if (htmlExtensions.includes(ext)) {
+        // Convert base64 data URL to blob URL for iframe display
+        let blobUrl = fileData;
+        try {
+          const base64Data = fileData.split(',')[1] || fileData;
+          const binaryString = atob(base64Data);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          const blob = new Blob([bytes], { type: 'text/html' });
+          blobUrl = URL.createObjectURL(blob);
+        } catch (e) {
+          console.error('Failed to create blob URL for HTML file:', e);
+        }
+
+        // Build file path for display
+        const filePath = `C:\\Desktop\\${icon.title}`;
+
+        const ieSetting = {
+          ...appSettings['Internet Explorer'],
+          header: {
+            ...appSettings['Internet Explorer'].header,
+            title: `${icon.title} - Internet Explorer`,
+          },
+          injectProps: {
+            initialUrl: blobUrl,
+            filePath: filePath,
+          },
+        };
+        dispatch({ type: ADD_APP, payload: ieSetting });
+        return;
+      }
+
       // For text files, open with Notepad
       const textTypes = ['text/plain'];
-      const textExtensions = ['.txt', '.log', '.md', '.json', '.js', '.jsx', '.ts', '.tsx', '.css', '.html'];
-      const ext = icon.title.substring(icon.title.lastIndexOf('.')).toLowerCase();
+      const textExtensions = ['.txt', '.log', '.md', '.json', '.js', '.jsx', '.ts', '.tsx', '.css'];
       if (textTypes.includes(icon.fileType) || textExtensions.includes(ext)) {
         // Decode base64 data to text
         let textContent = '';
         try {
-          const base64Data = icon.data.split(',')[1] || icon.data;
+          const base64Data = fileData.split(',')[1] || fileData;
           textContent = atob(base64Data);
         } catch (e) {
-          textContent = icon.data;
+          textContent = fileData;
         }
 
         const notepadSetting = {
@@ -419,7 +502,7 @@ function WinXP() {
 
       // For other files, try to open/download
       const link = document.createElement('a');
-      link.href = icon.data;
+      link.href = fileData;
       link.download = icon.title;
       link.click();
       return;

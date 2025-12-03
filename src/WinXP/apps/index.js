@@ -16,6 +16,8 @@ import Paint from './Paint';
 import Winamp from './Winamp';
 import MyComputer from './MyComputer';
 import RecycleBin from './RecycleBin';
+import WinRAR from './WinRAR';
+import InternetExplorer from './InternetExplorer';
 
 // XP Icons paths
 const XP_ICONS = {
@@ -29,6 +31,7 @@ const XP_ICONS = {
   mediaPlayer: '/icons/xp/WindowsMediaPlayer9.png',
   recycleBinEmpty: '/icons/xp/RecycleBinempty.png',
   recycleBinFull: '/icons/xp/RecycleBinfull.png',
+  internetExplorer: '/icons/xp/InternetExplorer6.png',
 };
 
 // Default apps open on startup (empty for now - user opens via desktop icons)
@@ -126,6 +129,11 @@ export const desktopIconCatalog = {
     title: 'Recycle Bin',
     component: RecycleBin,
   },
+  internetExplorer: {
+    icon: XP_ICONS.internetExplorer,
+    title: 'Internet Explorer',
+    component: InternetExplorer,
+  },
 };
 
 // Load saved icon positions from localStorage
@@ -181,7 +189,7 @@ export function generateIconState(programIds = ['about', 'resume', 'projects', '
 }
 
 // Default desktop icons (fallback)
-export const defaultIconState = generateIconState(['myComputer', 'recycleBin', 'about', 'resume', 'projects', 'contact', 'calculator', 'minesweeper']);
+export const defaultIconState = generateIconState(['myComputer', 'recycleBin', 'internetExplorer', 'about', 'resume', 'projects', 'contact', 'calculator', 'minesweeper']);
 
 // App settings for launching from menu and icons
 export const appSettings = {
@@ -609,6 +617,46 @@ export const appSettings = {
     maximized: false,
     multiInstance: false,
   },
+  WinRAR: {
+    header: {
+      icon: '/icons/xp/RAR.png',
+      title: 'WinRAR',
+      buttons: ['close'],
+    },
+    component: WinRAR,
+    defaultSize: {
+      width: 280,
+      height: 180,
+    },
+    defaultOffset: {
+      x: 200,
+      y: 150,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
+  },
+  'Internet Explorer': {
+    header: {
+      icon: XP_ICONS.internetExplorer,
+      title: 'Internet Explorer',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: InternetExplorer,
+    defaultSize: {
+      width: 900,
+      height: 600,
+    },
+    defaultOffset: {
+      x: 80,
+      y: 40,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
+  },
 };
 
 export {
@@ -629,4 +677,6 @@ export {
   Winamp,
   MyComputer,
   RecycleBin,
+  WinRAR,
+  InternetExplorer,
 };

@@ -27,6 +27,8 @@ export const fileIcons = {
   '.gif': '/icons/image-viewer.png',
   '.bmp': '/icons/paint.webp',
   '.pdf': '/icons/resume.webp',
+  '.html': '/icons/xp/InternetExplorer6.png',
+  '.htm': '/icons/xp/InternetExplorer6.png',
 };
 
 // XP-style icons
@@ -175,6 +177,52 @@ export function FileSystemProvider({ children }) {
   const [clipboardOp, setClipboardOp] = useState('copy'); // 'copy' or 'cut'
   const [isLoading, setIsLoading] = useState(true);
 
+  // Ensure desktop shortcuts exist in file system
+  const ensureDesktopShortcuts = (fs) => {
+    const now = Date.now();
+    let modified = false;
+
+    // Ensure Desktop folder exists
+    if (!fs[SYSTEM_IDS.DESKTOP]) {
+      fs[SYSTEM_IDS.DESKTOP] = {
+        id: SYSTEM_IDS.DESKTOP,
+        type: 'folder',
+        name: 'Desktop',
+        icon: XP_ICONS.desktop,
+        parent: SYSTEM_IDS.C_DRIVE,
+        children: [],
+        dateCreated: now,
+        dateModified: now,
+      };
+      modified = true;
+    }
+
+    // Ensure each shortcut exists
+    DESKTOP_SHORTCUTS.forEach(shortcut => {
+      if (!fs[shortcut.id]) {
+        fs[shortcut.id] = {
+          id: shortcut.id,
+          type: 'shortcut',
+          name: shortcut.name,
+          icon: shortcut.icon,
+          target: shortcut.target,
+          parent: SYSTEM_IDS.DESKTOP,
+          dateCreated: now,
+          dateModified: now,
+        };
+        modified = true;
+      }
+
+      // Ensure shortcut is in desktop's children
+      if (!fs[SYSTEM_IDS.DESKTOP].children.includes(shortcut.id)) {
+        fs[SYSTEM_IDS.DESKTOP].children.push(shortcut.id);
+        modified = true;
+      }
+    });
+
+    return modified;
+  };
+
   // Load file system from IndexedDB on mount
   useEffect(() => {
     const loadFileSystem = async () => {
@@ -182,8 +230,11 @@ export function FileSystemProvider({ children }) {
         let fs = await idb.get('fileSystem');
         if (!fs) {
           fs = createInitialFileSystem();
-          await idb.set('fileSystem', fs);
+        } else {
+          // Ensure desktop shortcuts exist
+          ensureDesktopShortcuts(fs);
         }
+        await idb.set('fileSystem', fs);
         setFileSystem(fs);
       } catch (error) {
         console.error('Failed to load file system:', error);
@@ -552,7 +603,9 @@ export function FileSystemProvider({ children }) {
     // Check extension first for specific file types
     if (['.zip', '.rar', '.7z', '.tar', '.gz'].includes(lowerExt)) {
       icon = XP_ICONS.rar;
-    } else if (['.txt', '.log', '.md', '.json', '.js', '.jsx', '.ts', '.tsx', '.css', '.html'].includes(lowerExt)) {
+    } else if (['.html', '.htm'].includes(lowerExt)) {
+      icon = '/icons/xp/InternetExplorer6.png';
+    } else if (['.txt', '.log', '.md', '.json', '.js', '.jsx', '.ts', '.tsx', '.css'].includes(lowerExt)) {
       icon = XP_ICONS.notepad;
     } else if (fileContent.type) {
       if (fileContent.type.startsWith('image/')) {
