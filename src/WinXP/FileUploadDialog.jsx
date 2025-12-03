@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import styled, { keyframes } from 'styled-components';
+import React, { useEffect, useRef } from 'react';
+import styled from 'styled-components';
 
 function FileUploadDialog({ files, onConfirm, onCancel, uploading, progress }) {
   const hasStartedRef = useRef(false);
@@ -31,15 +31,7 @@ function FileUploadDialog({ files, onConfirm, onCancel, uploading, progress }) {
         </TitleBar>
 
         <Content>
-          <AnimationRow>
-            <FolderLeft src="/icons/xp/FolderOpened.png" alt="" />
-            <FlyingFilesContainer>
-              <FlyingFile src="/icons/xp/JPG.png" alt="" $delay="0s" />
-              <FlyingFile src="/icons/xp/JPG.png" alt="" $delay="0.3s" />
-              <FlyingFile src="/icons/xp/JPG.png" alt="" $delay="0.6s" />
-            </FlyingFilesContainer>
-            <FolderRight src="/icons/xp/FolderClosed.png" alt="" />
-          </AnimationRow>
+          <AnimationImage src="/gui/copying.gif" alt="Copying animation" />
 
           <InfoText>
             Copying {currentFileName}...
@@ -80,7 +72,7 @@ const Dialog = styled.div`
   box-shadow:
     0 0 0 1px #0054e3,
     2px 2px 8px rgba(0, 0, 0, 0.3);
-  min-width: 380px;
+  width: 370px;
 `;
 
 const TitleBar = styled.div`
@@ -154,73 +146,31 @@ const CloseIcon = styled.span`
 `;
 
 const Content = styled.div`
-  padding: 20px 24px 16px;
+  padding: 8px 12px 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 `;
 
-const flyAnimation = keyframes`
-  0% {
-    transform: translateX(0) translateY(0) scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: translateX(75px) translateY(-20px) scale(0.8);
-    opacity: 0.9;
-  }
-  100% {
-    transform: translateX(150px) translateY(0) scale(0.6);
-    opacity: 0;
-  }
-`;
-
-const AnimationRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 0 16px;
-  position: relative;
-  height: 70px;
-`;
-
-const FolderLeft = styled.img`
-  width: 54px;
-  height: 54px;
-  position: absolute;
-  left: 40px;
-`;
-
-const FolderRight = styled.img`
-  width: 54px;
-  height: 54px;
-  position: absolute;
-  right: 40px;
-`;
-
-const FlyingFilesContainer = styled.div`
-  position: absolute;
-  left: 80px;
-  top: 8px;
-`;
-
-const FlyingFile = styled.img`
-  width: 24px;
-  height: 24px;
-  position: absolute;
-  animation: ${flyAnimation} 1.2s ease-in-out infinite;
-  animation-delay: ${({ $delay }) => $delay};
+const AnimationImage = styled.img`
+  width: 272px;
+  height: 60px;
+  align-self: flex-start;
 `;
 
 const InfoText = styled.div`
   font-size: 11px;
   color: #000;
+  margin: 4px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 const FromToText = styled.div`
   font-size: 11px;
   color: #000;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 `;
 
 const ProgressRow = styled.div`
@@ -231,7 +181,7 @@ const ProgressRow = styled.div`
 
 const ProgressBar = styled.div`
   flex: 1;
-  height: 18px;
+  height: 15px;
   background: #fff;
   border: 1px solid #808080;
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
