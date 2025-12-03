@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#8ed58e"/>
+      <stop offset="50%" style="stop-color:#3cb43c"/>
+      <stop offset="100%" style="stop-color:#228b22"/>
+    </linearGradient>
+    <linearGradient id="shineGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:rgba(255,255,255,0.6)"/>
+      <stop offset="100%" style="stop-color:rgba(255,255,255,0)"/>
+    </linearGradient>
+  </defs>
+  <circle cx="16" cy="16" r="14" fill="url(#greenGrad)" stroke="#1a6b1a" stroke-width="1.5"/>
+  <ellipse cx="16" cy="10" rx="10" ry="6" fill="url(#shineGrad)"/>
+  <path d="M14 10 L20 16 L14 22" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -101,6 +101,13 @@ export const START_MENU_CATALOG = {
     title: 'Picture and Fax Viewer',
     description: null,
   },
+  winamp: {
+    type: 'program',
+    appKey: 'Winamp',
+    icon: '/icons/winamp.png',
+    title: 'Winamp',
+    description: null,
+  },
   myComputer: {
     type: 'program',
     appKey: 'My Computer',
@@ -159,7 +166,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Entertainment',
     icon: '/icons/folder-icon.png',
-    items: ['mediaPlayer'],
+    items: ['mediaPlayer', 'winamp'],
   },
 };
 

@@ -109,13 +109,20 @@ const Window = memo(function ({
   return (
     <WindowContainer
       ref={ref}
-      className={`window ${isFocus ? '' : 'inactive'}`}
+      className={header.invisible ? 'frameless' : `window ${isFocus ? '' : 'inactive'}`}
       onMouseDown={_onMouseDown}
       style={{
         transform: `translate(${x}px,${y}px)`,
         ...(width && { width: `${width}px` }),
         ...(height && { height: `${height}px` }),
         zIndex,
+        ...(header.invisible && {
+          background: 'transparent',
+          boxShadow: 'none',
+          border: 'none',
+          borderRadius: 0,
+          padding: 0,
+        }),
       }}
     >
       {!header.invisible && (
@@ -149,7 +156,7 @@ const Window = memo(function ({
           </div>
         </div>
       )}
-      <div className="window-body">
+      <div className="window-body" style={header.invisible ? { margin: 0 } : undefined}>
         <Component
           onClose={_onMouseUpClose}
           onMinimize={_onMouseUpMinimize}
@@ -167,6 +174,14 @@ const WindowContainer = styled.div`
   display: inline-flex;
   flex-direction: column;
   overflow: hidden;
+
+  &.frameless {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+  }
 
   .title-bar {
     height: 28px;

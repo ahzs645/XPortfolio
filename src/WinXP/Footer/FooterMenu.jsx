@@ -10,9 +10,24 @@ import {
   getMenuItem,
 } from '../config/startMenuConfig';
 
+// Vanity "Recently Used" items - disabled software icons for visual effect
+const RECENTLY_USED_ITEMS = [
+  { key: 'photoshop', title: 'Adobe Photoshop', icon: '/icons/vanity/photoshop.webp', disabled: true },
+  { key: 'premiere', title: 'Adobe Premiere Pro', icon: '/icons/vanity/premiere.webp', disabled: true },
+  { key: 'aftereffects', title: 'Adobe After Effects', icon: '/icons/vanity/after-effects.webp', disabled: true },
+  { key: 'illustrator', title: 'Adobe Illustrator', icon: '/icons/vanity/illustrator.webp', disabled: true },
+  { key: 'figma', title: 'Figma', icon: '/icons/vanity/figma.webp', disabled: true },
+  { key: 'vscode', title: 'VS Code', icon: '/icons/vanity/vscode.webp', disabled: true },
+  { key: 'blender', title: 'Blender', icon: '/icons/vanity/blender.webp', disabled: true },
+  { key: 'davinci', title: 'DaVinci Resolve', icon: '/icons/vanity/davinci.webp', disabled: true },
+  { key: 'obs', title: 'OBS Studio', icon: '/icons/vanity/obs.webp', disabled: true },
+  { key: 'copilot', title: 'GitHub Copilot', icon: '/icons/vanity/copilot.webp', disabled: true },
+];
+
 function FooterMenu({ className, onClick }) {
   const [showAllPrograms, setShowAllPrograms] = useState(false);
   const [activeFolder, setActiveFolder] = useState(null);
+  const [showRecentlyUsed, setShowRecentlyUsed] = useState(false);
   const { getDisplayName, getStartMenuIcon } = useConfig();
 
   function handleItemClick(item) {
@@ -104,6 +119,23 @@ function FooterMenu({ className, onClick }) {
               />
             )
           )}
+          <div className="menu__separator" />
+          <div
+            className="recently-used-container"
+            onMouseEnter={() => setShowRecentlyUsed(true)}
+            onMouseLeave={() => setShowRecentlyUsed(false)}
+          >
+            <div className={`menu__item menu__item--with-arrow ${showRecentlyUsed ? 'active' : ''}`}>
+              <img className="menu__item__img" src="/icons/recently-used.webp" alt="Recently Used" />
+              <div className="menu__item__texts">
+                <div className="menu__item__text">Recently Used</div>
+              </div>
+              <span className="menu__item__arrow">►</span>
+            </div>
+            {showRecentlyUsed && (
+              <RecentlyUsedMenu items={RECENTLY_USED_ITEMS} />
+            )}
+          </div>
         </div>
       </section>
       <footer>
@@ -208,6 +240,25 @@ function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemC
         </div>
       )}
     </li>
+  );
+}
+
+function RecentlyUsedMenu({ items }) {
+  return (
+    <div className="recently-used-menu">
+      <div className="recently-used-sidebar" />
+      <ul className="recently-used-items">
+        {items.map((item) => (
+          <li
+            key={item.key}
+            className={`recently-used-item ${item.disabled ? 'disabled' : ''}`}
+          >
+            <img src={item.icon} alt="" />
+            <span>{item.title}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -671,5 +722,91 @@ export default styled(FooterMenu)`
     left: 8px;
     top: 50%;
     transform: translateY(-50%);
+  }
+
+  /* Recently Used Container */
+  .recently-used-container {
+    position: relative;
+  }
+
+  .menu__item--with-arrow {
+    position: relative;
+    padding-right: 20px;
+  }
+
+  .menu__item__arrow {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%) scaleX(0.6);
+    font-size: 10px;
+    color: inherit;
+  }
+
+  .menu__item--with-arrow.active {
+    background-color: #2f71cd;
+    color: #fff;
+  }
+
+  /* Recently Used Flyout Menu */
+  .recently-used-menu {
+    position: absolute;
+    left: 100%;
+    bottom: 0;
+    background: #f2f2f2;
+    border: 1px solid #d0d0d0;
+    box-shadow: 2px -2px 5px rgba(0, 0, 0, 0.15);
+    min-width: 180px;
+    z-index: 10;
+  }
+
+  .recently-used-sidebar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, #1c57ad 0%, #2a70ce 50%, #5b9fe2 100%);
+    z-index: 1;
+  }
+
+  .recently-used-items {
+    list-style: none;
+    margin: 0;
+    padding: 4px 0;
+  }
+
+  .recently-used-item {
+    display: flex;
+    align-items: center;
+    padding: 4px 20px 4px 30px;
+    cursor: default;
+    color: #000;
+    position: relative;
+    white-space: nowrap;
+    font-size: 11px;
+  }
+
+  .recently-used-item.disabled {
+    color: #888;
+    cursor: not-allowed;
+  }
+
+  .recently-used-item.disabled img {
+    opacity: 0.5;
+  }
+
+  .recently-used-item > img:first-child {
+    width: 16px;
+    height: 16px;
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .recently-used-item:not(.disabled):hover {
+    background-color: #2f71cd;
+    color: #fff;
   }
 `;

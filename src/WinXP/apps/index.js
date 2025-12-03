@@ -12,6 +12,7 @@ import CMD from './CMD';
 import MediaPlayer from './MediaPlayer';
 import ImageViewer from './ImageViewer';
 import Paint from './Paint';
+import Winamp from './Winamp';
 
 // Default apps open on startup (empty for now - user opens via desktop icons)
 export const defaultAppState = [];
@@ -87,6 +88,11 @@ export const desktopIconCatalog = {
     icon: '/icons/paint.webp',
     title: 'Paint',
     component: Paint,
+  },
+  winamp: {
+    icon: '/icons/winamp.png',
+    title: 'Winamp',
+    component: Winamp,
   },
 };
 
@@ -476,6 +482,26 @@ export const appSettings = {
     maximized: false,
     multiInstance: false,
   },
+  Winamp: {
+    header: {
+      icon: '/icons/winamp.png',
+      title: 'Winamp',
+      invisible: true,
+    },
+    component: Winamp,
+    defaultSize: {
+      width: 0,
+      height: 0,
+    },
+    defaultOffset: {
+      x: 0,
+      y: 0,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
 };
 
 export {
@@ -493,4 +519,5 @@ export {
   MediaPlayer,
   ImageViewer,
   Paint,
+  Winamp,
 };
