@@ -186,7 +186,7 @@ const DocumentSurface = styled.div`
   display: flex;
   flex-direction: column;
   background: #ece9d8;
-  padding: 6px;
+  padding: 0;
   overflow: hidden;
   min-height: 0;
 `;
@@ -194,10 +194,8 @@ const DocumentSurface = styled.div`
 const DocumentArea = styled.div`
   flex: 1;
   background: #ffffff;
-  border: 2px inset #ffffff;
-  box-shadow:
-    inset 1px 1px 0 #dfdfdf,
-    inset -1px -1px 0 #8c8c8c;
+  border: none;
+  box-shadow: none;
   overflow: hidden;
   min-height: 0;
 `;
