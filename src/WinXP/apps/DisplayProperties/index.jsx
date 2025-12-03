@@ -1,211 +1,589 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import styled from 'styled-components';
 import { ProgramLayout } from '../../../components';
 import { useConfig } from '../../../contexts/ConfigContext';
 
-const WALLPAPER_OPTIONS = [
+const WALLPAPERS = [
   { id: 'bliss', name: 'Bliss', path: '/bliss.jpg' },
-  { id: 'ahmadxp', name: 'Ahmad XP', path: '/Ahmadxp.png' },
+  { id: 'tulips', name: 'Tulips', path: '/bliss.jpg' },
+  { id: 'vortec', name: 'Vortec space', path: '/bliss.jpg' },
+  { id: 'wind', name: 'Wind', path: '/bliss.jpg' },
+  { id: 'xp', name: 'Windows XP', path: '/bliss.jpg' },
+  { id: 'custom', name: 'Ahmad XP', path: '/Ahmadxp.png' },
+];
+
+const TABS = [
+  { id: 'themes', label: 'Themes', enabled: false },
+  { id: 'desktop', label: 'Desktop', enabled: true },
+  { id: 'screensaver', label: 'Screen Saver', enabled: true },
+  { id: 'appearance', label: 'Appearance', enabled: false },
+  { id: 'settings', label: 'Settings', enabled: false },
+];
+
+const SCREENSAVERS = [
+  {
+    id: 'pipes',
+    name: '3D Pipes',
+    preview: '/screensavers/pipes/images/meta/screencap.gif',
+    embed: '/screensavers/pipes/index.html',
+  },
+  {
+    id: 'flowerbox',
+    name: '3D FlowerBox',
+    preview: '/screensavers/flowerbox/img/FlowerBox.PNG',
+    embed: '/screensavers/flowerbox/index.html',
+  },
+  { id: 'blank', name: 'Blank', preview: '/gui/display/sample.png' },
 ];
 
 function DisplayProperties({ onClose, onMinimize }) {
   const { getWallpaperPath, setWallpaperPath } = useConfig();
   const currentDesktop = getWallpaperPath(false);
   const [selected, setSelected] = useState(currentDesktop);
+  const [activeTab, setActiveTab] = useState('desktop');
   const [applyToMobile, setApplyToMobile] = useState(true);
+  const [screenSaver, setScreenSaver] = useState('pipes');
+  const [waitMinutes, setWaitMinutes] = useState(60);
+  const [requirePassword, setRequirePassword] = useState(true);
+  const [showPreview, setShowPreview] = useState(false);
+  const previewRef = useRef(null);
 
-  const menus = useMemo(() => [
-    {
-      id: 'file',
-      label: 'File',
-      items: [
-        { label: 'Apply', action: 'apply' },
-        { separator: true },
-        { label: 'Close', action: 'exitProgram' },
-      ],
-    },
-    {
-      id: 'help',
-      label: 'Help',
-      disabled: true,
-    },
-  ], []);
-
-  const handleAction = (action) => {
-    if (!action) return;
-    if (action === 'apply') {
-      applySelection();
+  useEffect(() => {
+    if (showPreview && previewRef.current) {
+      previewRef.current.focus();
     }
-  };
+  }, [showPreview]);
+
+  useEffect(() => {
+    if (!showPreview) return;
+    const handler = () => setShowPreview(false);
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [showPreview]);
 
   const applySelection = () => {
-    setWallpaperPath(selected, { isMobile: false });
+    setWallpaperPath(selected || '/bliss.jpg', { isMobile: false });
     if (applyToMobile) {
-      setWallpaperPath(selected, { isMobile: true });
+      setWallpaperPath(selected || '/bliss.jpg', { isMobile: true });
     }
     onClose?.();
   };
 
+  const handleTabClick = (tab) => {
+    if (!tab.enabled) return;
+    setActiveTab(tab.id);
+  };
+
   return (
     <ProgramLayout
-      menus={menus}
-      onMenuAction={handleAction}
+      menus={[]}
       windowActions={{ onClose, onMinimize }}
-      menuLogo="/gui/toolbar/barlogo.webp"
+      showMenuBar={false}
       showToolbar={false}
       showAddressBar={false}
       statusFields={null}
       showStatusBar={false}
     >
-      <Shell>
-        <Heading>Desktop Background</Heading>
-        <Content>
-          <PreviewPane>
-            <PreviewFrame>
-              <PreviewImage style={{ backgroundImage: `url(${selected})` }} />
-              <MonitorOverlay />
-            </PreviewFrame>
-          </PreviewPane>
-          <SelectionPane>
-            <Label>Backgrounds</Label>
-            <List>
-              {WALLPAPER_OPTIONS.map((option) => (
-                <ListItem key={option.id} onClick={() => setSelected(option.path)}>
-                  <input
-                    type="radio"
-                    name="wallpaper"
-                    checked={selected === option.path}
-                    onChange={() => setSelected(option.path)}
-                  />
-                  <span>{option.name}</span>
-                </ListItem>
-              ))}
-            </List>
-            <ApplyMobile>
-              <input
-                id="apply-mobile"
-                type="checkbox"
-                checked={applyToMobile}
-                onChange={(e) => setApplyToMobile(e.target.checked)}
-              />
-              <label htmlFor="apply-mobile">Use for mobile too</label>
-            </ApplyMobile>
-          </SelectionPane>
-        </Content>
+      <WindowSurface>
+        <section className="tabs" aria-label="Display Properties Tabs">
+          <menu role="tablist" aria-label="Display Properties">
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                role="tab"
+                aria-selected={activeTab === tab.id}
+                aria-controls={`tab-${tab.id}`}
+                disabled={!tab.enabled}
+                onClick={() => handleTabClick(tab)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </menu>
+
+          <article
+            role="tabpanel"
+            id="tab-desktop"
+            hidden={activeTab !== 'desktop'}
+          >
+            <DesktopPane>
+              <PreviewArea>
+                <MonitorShell>
+                  <MonitorFrame />
+                  <MonitorPreview style={{ backgroundImage: `url(${selected || '/bliss.jpg'})` }} />
+                </MonitorShell>
+              </PreviewArea>
+
+              <OptionsRow>
+                <ListArea>
+                  <Label>Background:</Label>
+                  <List role="listbox" aria-label="Wallpapers">
+                    {WALLPAPERS.map((item) => (
+                      <ListItem
+                        key={item.id}
+                        $active={selected === item.path}
+                        onClick={() => setSelected(item.path)}
+                      >
+                        <IconSquare />
+                        <span>{item.name}</span>
+                      </ListItem>
+                    ))}
+                  </List>
+                  <CustomizeButton type="button">Customize Desktop...</CustomizeButton>
+                </ListArea>
+
+                <SideControls>
+                  <SideRow>
+                    <SideLabel>Browse...</SideLabel>
+                    <SideButton type="button" disabled>
+                      Browse...
+                    </SideButton>
+                  </SideRow>
+                  <SideRow>
+                    <SideLabel>Position:</SideLabel>
+                    <SideSelect disabled defaultValue="stretch">
+                      <option value="stretch">Stretch</option>
+                      <option value="center">Center</option>
+                      <option value="tile">Tile</option>
+                    </SideSelect>
+                  </SideRow>
+                  <SideRow>
+                    <SideLabel>Color:</SideLabel>
+                    <ColorSwatch>
+                      <span />
+                    </ColorSwatch>
+                  </SideRow>
+                  <MobileRow>
+                    <input
+                      id="apply-mobile"
+                      type="checkbox"
+                      checked={applyToMobile}
+                      onChange={(e) => setApplyToMobile(e.target.checked)}
+                    />
+                    <label htmlFor="apply-mobile">Use for mobile too</label>
+                  </MobileRow>
+                </SideControls>
+              </OptionsRow>
+            </DesktopPane>
+          </article>
+
+          {TABS.filter(tab => tab.id !== 'desktop').map((tab) => (
+            <article
+              key={tab.id}
+              role="tabpanel"
+              id={`tab-${tab.id}`}
+              hidden={activeTab !== tab.id}
+            >
+              {tab.id === 'screensaver' ? (
+                <ScreensaverPane>
+                  <PreviewArea>
+                    <MonitorShell>
+                      <MonitorFrame />
+                      <MonitorPreview
+                        style={{
+                          backgroundImage: `url(${
+                            SCREENSAVERS.find(s => s.id === screenSaver)?.preview || '/gui/display/sample.png'
+                          })`,
+                        }}
+                      />
+                    </MonitorShell>
+                  </PreviewArea>
+
+                  <ScreensaverControls>
+                    <GroupBox>
+                      <GroupTitle>Screen saver</GroupTitle>
+                      <Row>
+                        <SideSelect
+                          value={screenSaver}
+                          onChange={(e) => setScreenSaver(e.target.value)}
+                        >
+                          {SCREENSAVERS.map((item) => (
+                            <option key={item.id} value={item.id}>{item.name}</option>
+                          ))}
+                        </SideSelect>
+                        <SideButton type="button" $disabled>Settings</SideButton>
+                        <SideButton type="button" onClick={() => setShowPreview(true)}>
+                          Preview
+                        </SideButton>
+                      </Row>
+                      <Row>
+                        <SideLabel>Wait:</SideLabel>
+                        <WaitInput
+                          type="number"
+                          min="1"
+                          value={waitMinutes}
+                          onChange={(e) => setWaitMinutes(Number(e.target.value) || 0)}
+                        />
+                        <span>minutes</span>
+                        <CheckboxRow>
+                          <input
+                            id="resume-password"
+                            type="checkbox"
+                            checked={requirePassword}
+                            onChange={(e) => setRequirePassword(e.target.checked)}
+                          />
+                          <label htmlFor="resume-password">On resume, password protect</label>
+                        </CheckboxRow>
+                      </Row>
+                    </GroupBox>
+
+                    <GroupBox>
+                      <GroupTitle>Monitor power</GroupTitle>
+                      <p>To adjust monitor power settings and save energy, click Power.</p>
+                      <SideButton type="button" disabled style={{ alignSelf: 'flex-start' }}>
+                        Power...
+                      </SideButton>
+                    </GroupBox>
+                  </ScreensaverControls>
+                </ScreensaverPane>
+              ) : (
+                <Placeholder>({tab.label} tab is unavailable)</Placeholder>
+              )}
+            </article>
+          ))}
+        </section>
+
         <Actions>
           <ActionButton onClick={applySelection}>OK</ActionButton>
           <ActionButton onClick={onClose}>Cancel</ActionButton>
         </Actions>
-      </Shell>
+
+        {showPreview && (
+          createPortal(
+            <PreviewOverlay
+              ref={previewRef}
+              tabIndex={-1}
+              onClick={() => setShowPreview(false)}
+              onKeyDown={(e) => {
+                e.preventDefault();
+                setShowPreview(false);
+              }}
+            >
+              {(() => {
+                const saver = SCREENSAVERS.find(s => s.id === screenSaver);
+                if (saver?.embed) {
+                  return (
+                    <PreviewFrame
+                      src={saver.embed}
+                      title={`${saver.name} screensaver preview`}
+                    />
+                  );
+                }
+                return (
+                  <PreviewImage
+                    style={{
+                      backgroundImage: `url(${saver?.preview || '/gui/display/sample.png'})`,
+                    }}
+                  />
+                );
+              })()}
+            </PreviewOverlay>,
+            document.body
+          )
+        )}
+      </WindowSurface>
     </ProgramLayout>
   );
 }
 
-const Shell = styled.div`
+const WindowSurface = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
+  position: relative;
   background: #ece9d8;
-  padding: 10px;
-  gap: 10px;
-  overflow: hidden;
-`;
-
-const Heading = styled.h2`
-  margin: 0;
-  font-size: 14px;
-  font-weight: 700;
-  color: #000;
-`;
-
-const Content = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  flex: 1;
+  padding: 6px;
+  gap: 8px;
   overflow: hidden;
 
-  @media (max-width: 640px) {
-    grid-template-columns: 1fr;
+  section.tabs {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding-top: 2px;
+  }
+
+  menu[role='tablist'] {
+    margin: 0;
+    padding: 2px 6px 0 6px;
+    display: flex;
+    gap: 2px;
+  }
+
+  menu[role='tablist'] button[role='tab'] {
+    min-width: 70px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  article[role='tabpanel'] {
+    flex: 1;
+    padding: 6px;
+    overflow: hidden;
+    background: #f7f7f7;
+    border: 1px solid #919b9c;
+    border-top: none;
+    box-shadow: none;
   }
 `;
 
-const PreviewPane = styled.div`
+const DesktopPane = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+  justify-content: flex-start;
+  padding-bottom: 6px;
+`;
+
+const PreviewArea = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f4f4f4;
+  background: #ffffff;
   border: 1px solid #b5b5b5;
   box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #9a9a9a;
-  padding: 12px;
+  padding: 10px;
+  min-height: 140px;
 `;
 
-const PreviewFrame = styled.div`
+const MonitorShell = styled.div`
   position: relative;
-  width: 220px;
-  height: 160px;
-  background: #000;
-  border: 1px solid #000;
+  width: 185px;
+  height: 163px;
   overflow: hidden;
 `;
 
-const PreviewImage = styled.div`
-  position: absolute;
-  inset: 8px 8px 24px 8px;
-  background-size: cover;
-  background-position: center;
-  border: 1px solid #000;
-`;
-
-const MonitorOverlay = styled.div`
+const MonitorFrame = styled.div`
   position: absolute;
   inset: 0;
-  border: 2px solid #4a4a4a;
-  pointer-events: none;
+  background: url('/gui/display/monitor.png') no-repeat center center;
+  background-size: contain;
 `;
 
-const SelectionPane = styled.div`
+const MonitorPreview = styled.div`
+  position: absolute;
+  top: 17px;
+  left: 16px;
+  width: 152px;
+  height: 112px;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid #6f6f6f;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+`;
+
+const ListArea = styled.div`
   display: flex;
   flex-direction: column;
   min-width: 0;
   gap: 6px;
+  flex: 1;
 `;
 
-const Label = styled.span`
+const Label = styled.div`
   font-size: 13px;
   font-weight: 600;
-  color: #000;
 `;
 
 const List = styled.div`
   flex: 1;
   border: 1px solid #7f7f7f;
   background: #fff;
-  padding: 6px;
   overflow-y: auto;
   overflow-x: hidden;
   box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #c6c6c6;
-`;
-
-const ListItem = styled.label`
-  display: flex;
-  align-items: center;
-  gap: 8px;
   padding: 4px;
-  border-radius: 2px;
-  cursor: pointer;
-
-  &:hover {
-    background: #cfe3ff;
-  }
+  min-height: 110px;
 `;
 
-const ApplyMobile = styled.div`
+const ListItem = styled.div`
   display: flex;
   align-items: center;
   gap: 6px;
+  padding: 4px 6px;
+  cursor: pointer;
+  background: ${({ $active }) => ($active ? '#316ac5' : 'transparent')};
+  color: ${({ $active }) => ($active ? '#fff' : '#000')};
+
+  &:hover {
+    background: ${({ $active }) => ($active ? '#316ac5' : '#cfe3ff')};
+  }
+`;
+
+const IconSquare = styled.div`
+  width: 14px;
+  height: 14px;
+  background: #f8c13a;
+  border: 1px solid #9a5c00;
+  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #b57b19;
+  flex-shrink: 0;
+`;
+
+const MobileRow = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  margin-top: 6px;
+`;
+
+const OptionsRow = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 190px;
+  gap: 12px;
+  align-items: start;
+  flex: 1;
+
+  @media (max-width: 760px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const SideControls = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-self: stretch;
+`;
+
+const SideRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+`;
+
+const SideLabel = styled.span`
   font-size: 12px;
   color: #000;
+`;
+
+const SideButton = styled.button`
+  padding: 4px 8px;
+  font-size: 12px;
+  min-width: 90px;
+  background: linear-gradient(#f3f3f3, #dcdcdc);
+  border: 1px solid #8a8a8a;
+  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #b5b5b5;
+  cursor: ${({ $disabled }) => ($disabled ? 'not-allowed' : 'pointer')};
+  color: ${({ $disabled }) => ($disabled ? '#666' : '#000')};
+  opacity: ${({ $disabled }) => ($disabled ? 0.6 : 1)};
+  pointer-events: ${({ $disabled }) => ($disabled ? 'none' : 'auto')};
+`;
+
+const SideSelect = styled.select`
+  font-size: 12px;
+  min-width: 90px;
+  padding: 3px 4px;
+`;
+
+const ColorSwatch = styled.div`
+  width: 100px;
+  height: 24px;
+  border: 1px solid #8a8a8a;
+  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #b5b5b5;
+  background: linear-gradient(90deg, #072c6c, #0a3f9a);
+`;
+
+const CustomizeButton = styled.button`
+  margin-top: 6px;
+  align-self: flex-start;
+  padding: 6px 10px;
+  font-size: 12px;
+  background: linear-gradient(#f3f3f3, #dcdcdc);
+  border: 1px solid #8a8a8a;
+  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #b5b5b5;
+  cursor: not-allowed;
+  color: #666;
+`;
+
+const Placeholder = styled.div`
+  font-size: 13px;
+  color: #555;
+`;
+
+const ScreensaverPane = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  padding-bottom: 6px;
+`;
+
+const ScreensaverControls = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+const GroupBox = styled.div`
+  border: 1px solid #b5b5b5;
+  background: #f6f6f6;
+  padding: 8px;
+  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #c6c6c6;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const GroupTitle = styled.div`
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 4px;
+`;
+
+const Row = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+`;
+
+const WaitInput = styled.input`
+  width: 50px;
+  padding: 2px 4px;
+  font-size: 12px;
+`;
+
+const CheckboxRow = styled.label`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+`;
+
+const PreviewOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  outline: none;
+  background-color: #000;
+  gap: 16px;
+`;
+
+const PreviewFrame = styled.iframe`
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border: none;
+  pointer-events: none;
+  background: #000;
+`;
+
+const PreviewImage = styled.div`
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: none;
 `;
 
 const Actions = styled.div`

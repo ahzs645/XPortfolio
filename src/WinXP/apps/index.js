@@ -252,12 +252,12 @@ export const appSettings = {
     header: {
       icon: '/icons/my-computer.png',
       title: 'Display Properties',
-      buttons: ['minimize', 'close'],
+      buttons: ['minimize', 'maximize', 'close'],
     },
     component: DisplayProperties,
     defaultSize: {
-      width: 480,
-      height: 420,
+      width: 500,
+      height: 640,
     },
     defaultOffset: {
       x: 200,
