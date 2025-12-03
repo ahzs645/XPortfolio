@@ -14,6 +14,22 @@ import MediaPlayer from './MediaPlayer';
 import ImageViewer from './ImageViewer';
 import Paint from './Paint';
 import Winamp from './Winamp';
+import MyComputer from './MyComputer';
+import RecycleBin from './RecycleBin';
+
+// XP Icons paths
+const XP_ICONS = {
+  myComputer: '/icons/xp/MyComputer.png',
+  notepad: '/icons/xp/Notepad.png',
+  displayProperties: '/icons/xp/DisplayProperties.png',
+  calculator: '/icons/xp/Calculator.png',
+  minesweeper: '/icons/xp/Minesweeper.png',
+  paint: '/icons/xp/Paint.png',
+  cmd: '/icons/xp/CommandPrompt.png',
+  mediaPlayer: '/icons/xp/WindowsMediaPlayer9.png',
+  recycleBinEmpty: '/icons/xp/RecycleBinempty.png',
+  recycleBinFull: '/icons/xp/RecycleBinfull.png',
+};
 
 // Default apps open on startup (empty for now - user opens via desktop icons)
 export const defaultAppState = [];
@@ -41,22 +57,22 @@ export const desktopIconCatalog = {
     component: Contact,
   },
   calculator: {
-    icon: '/icons/calculator.png',
+    icon: XP_ICONS.calculator,
     title: 'Calculator',
     component: Calculator,
   },
   notepad: {
-    icon: '/icons/notepad.png',
+    icon: XP_ICONS.notepad,
     title: 'Notepad',
     component: Notepad,
   },
   displayProperties: {
-    icon: '/icons/my-computer.png',
+    icon: XP_ICONS.displayProperties,
     title: 'Display Properties',
     component: DisplayProperties,
   },
   minesweeper: {
-    icon: '/icons/minesweeper.png',
+    icon: XP_ICONS.minesweeper,
     title: 'Minesweeper',
     component: Minesweeper,
   },
@@ -76,12 +92,12 @@ export const desktopIconCatalog = {
     component: Pinball,
   },
   cmd: {
-    icon: '/icons/cmd.png',
+    icon: XP_ICONS.cmd,
     title: 'Command Prompt',
     component: CMD,
   },
   mediaPlayer: {
-    icon: '/icons/media-player.png',
+    icon: XP_ICONS.mediaPlayer,
     title: 'Windows Media Player',
     component: MediaPlayer,
   },
@@ -91,7 +107,7 @@ export const desktopIconCatalog = {
     component: ImageViewer,
   },
   paint: {
-    icon: '/icons/paint.webp',
+    icon: XP_ICONS.paint,
     title: 'Paint',
     component: Paint,
   },
@@ -100,27 +116,72 @@ export const desktopIconCatalog = {
     title: 'Winamp',
     component: Winamp,
   },
+  myComputer: {
+    icon: '/icons/xp/MyComputer.png',
+    title: 'My Computer',
+    component: MyComputer,
+  },
+  recycleBin: {
+    icon: XP_ICONS.recycleBinEmpty,
+    title: 'Recycle Bin',
+    component: RecycleBin,
+  },
 };
+
+// Load saved icon positions from localStorage
+function loadIconPositions() {
+  try {
+    const saved = localStorage.getItem('desktopIconPositions');
+    return saved ? JSON.parse(saved) : {};
+  } catch {
+    return {};
+  }
+}
+
+// Save icon positions to localStorage
+export function saveIconPositions(icons) {
+  const positions = {};
+  icons.forEach((icon) => {
+    if (icon.x !== undefined && icon.y !== undefined) {
+      positions[icon.programId] = { x: icon.x, y: icon.y };
+    }
+  });
+  localStorage.setItem('desktopIconPositions', JSON.stringify(positions));
+}
 
 // Generate desktop icon state from program list
 export function generateIconState(programIds = ['about', 'resume', 'projects', 'contact']) {
+  const savedPositions = loadIconPositions();
+  const iconSize = 80; // Icon height including text
+  const iconGap = 10;
+  const startX = 10;
+  const startY = 10;
+
   return programIds
     .map((id, index) => {
       const catalogEntry = desktopIconCatalog[id];
       if (!catalogEntry) return null;
+
+      // Use saved position or calculate default grid position
+      const savedPos = savedPositions[id];
+      const defaultY = startY + index * (iconSize + iconGap);
+
       return {
         id: index,
+        programId: id, // Keep track of program ID for saving positions
         icon: catalogEntry.icon,
         title: catalogEntry.title,
         component: catalogEntry.component,
         isFocus: false,
+        x: savedPos?.x ?? startX,
+        y: savedPos?.y ?? defaultY,
       };
     })
     .filter(Boolean);
 }
 
 // Default desktop icons (fallback)
-export const defaultIconState = generateIconState(['about', 'resume', 'projects', 'contact', 'calculator', 'minesweeper']);
+export const defaultIconState = generateIconState(['myComputer', 'recycleBin', 'about', 'resume', 'projects', 'contact', 'calculator', 'minesweeper']);
 
 // App settings for launching from menu and icons
 export const appSettings = {
@@ -206,7 +267,7 @@ export const appSettings = {
   },
   Calculator: {
     header: {
-      icon: '/icons/calculator.png',
+      icon: XP_ICONS.calculator,
       title: 'Calculator',
       buttons: ['minimize', 'maximize', 'close'],
     },
@@ -230,7 +291,7 @@ export const appSettings = {
   },
   Notepad: {
     header: {
-      icon: '/icons/notepad.png',
+      icon: XP_ICONS.notepad,
       title: 'Untitled - Notepad',
       buttons: ['minimize', 'maximize', 'close'],
     },
@@ -250,7 +311,7 @@ export const appSettings = {
   },
   'Display Properties': {
     header: {
-      icon: '/icons/my-computer.png',
+      icon: XP_ICONS.displayProperties,
       title: 'Display Properties',
       buttons: ['minimize', 'maximize', 'close'],
     },
@@ -270,7 +331,7 @@ export const appSettings = {
   },
   Minesweeper: {
     header: {
-      icon: '/icons/minesweeper.png',
+      icon: XP_ICONS.minesweeper,
       title: 'Minesweeper',
       buttons: ['minimize', 'close'],
     },
@@ -290,7 +351,7 @@ export const appSettings = {
   },
   Paint: {
     header: {
-      icon: '/icons/paint.webp',
+      icon: XP_ICONS.paint,
       title: 'Paint',
       buttons: ['minimize', 'maximize', 'close'],
     },
@@ -370,7 +431,7 @@ export const appSettings = {
   },
   CMD: {
     header: {
-      icon: '/icons/cmd.png',
+      icon: XP_ICONS.cmd,
       title: 'Command Prompt',
       buttons: ['minimize', 'maximize', 'close'],
     },
@@ -390,7 +451,7 @@ export const appSettings = {
   },
   'Command Prompt': {
     header: {
-      icon: '/icons/cmd.png',
+      icon: XP_ICONS.cmd,
       title: 'Command Prompt',
       buttons: ['minimize', 'maximize', 'close'],
     },
@@ -410,7 +471,7 @@ export const appSettings = {
   },
   'Media Player': {
     header: {
-      icon: '/icons/media-player.png',
+      icon: XP_ICONS.mediaPlayer,
       title: 'Windows Media Player',
       buttons: ['minimize', 'maximize', 'close'],
     },
@@ -430,7 +491,7 @@ export const appSettings = {
   },
   'Windows Media Player': {
     header: {
-      icon: '/icons/media-player.png',
+      icon: XP_ICONS.mediaPlayer,
       title: 'Windows Media Player',
       buttons: ['minimize', 'maximize', 'close'],
     },
@@ -470,11 +531,11 @@ export const appSettings = {
   },
   'My Computer': {
     header: {
-      icon: '/icons/my-computer.png',
+      icon: '/icons/xp/MyComputer.png',
       title: 'My Computer',
       buttons: ['minimize', 'maximize', 'close'],
     },
-    component: () => null,
+    component: MyComputer,
     defaultSize: {
       width: 660,
       height: 500,
@@ -502,6 +563,26 @@ export const appSettings = {
     defaultOffset: {
       x: 120,
       y: 60,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'Recycle Bin': {
+    header: {
+      icon: XP_ICONS.recycleBinEmpty,
+      title: 'Recycle Bin',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: RecycleBin,
+    defaultSize: {
+      width: 660,
+      height: 500,
+    },
+    defaultOffset: {
+      x: 140,
+      y: 40,
     },
     resizable: true,
     minimized: false,
@@ -546,4 +627,6 @@ export {
   ImageViewer,
   Paint,
   Winamp,
+  MyComputer,
+  RecycleBin,
 };

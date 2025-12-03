@@ -5,11 +5,18 @@ import { ProgramLayout } from '../../../components';
 import { useConfig } from '../../../contexts/ConfigContext';
 
 const WALLPAPERS = [
-  { id: 'bliss', name: 'Bliss', path: '/bliss.jpg' },
-  { id: 'tulips', name: 'Tulips', path: '/bliss.jpg' },
-  { id: 'vortec', name: 'Vortec space', path: '/bliss.jpg' },
-  { id: 'wind', name: 'Wind', path: '/bliss.jpg' },
-  { id: 'xp', name: 'Windows XP', path: '/bliss.jpg' },
+  { id: 'none', name: '(None)', path: null },
+  { id: 'ascent', name: 'Ascent', path: '/wallpapers/Ascent.jpg' },
+  { id: 'autumn', name: 'Autumn', path: '/wallpapers/Autumn.jpg' },
+  { id: 'azul', name: 'Azul', path: '/wallpapers/Azul.jpg' },
+  { id: 'bliss', name: 'Bliss', path: '/wallpapers/Bliss.jpg' },
+  { id: 'follow', name: 'Follow', path: '/wallpapers/Follow.jpg' },
+  { id: 'friend', name: 'Friend', path: '/wallpapers/Friend.jpg' },
+  { id: 'moonflower', name: 'Moonflower', path: '/wallpapers/Moonflower.jpg' },
+  { id: 'radiance', name: 'Radiance', path: '/wallpapers/Radiance.jpg' },
+  { id: 'redmoon', name: 'Red Moon Desert', path: '/wallpapers/Redmoondesert.jpg' },
+  { id: 'tulips', name: 'Tulips', path: '/wallpapers/Tulips.jpg' },
+  { id: 'wind', name: 'Wind', path: '/wallpapers/Wind.jpg' },
   { id: 'custom', name: 'Ahmad XP', path: '/Ahmadxp.png' },
 ];
 
@@ -63,9 +70,10 @@ function DisplayProperties({ onClose, onMinimize }) {
   }, [showPreview]);
 
   const applySelection = () => {
-    setWallpaperPath(selected || '/bliss.jpg', { isMobile: false });
+    const wallpaperPath = selected || '';
+    setWallpaperPath(wallpaperPath, { isMobile: false });
     if (applyToMobile) {
-      setWallpaperPath(selected || '/bliss.jpg', { isMobile: true });
+      setWallpaperPath(wallpaperPath, { isMobile: true });
     }
     onClose?.();
   };
@@ -111,7 +119,10 @@ function DisplayProperties({ onClose, onMinimize }) {
               <PreviewArea>
                 <MonitorShell>
                   <MonitorFrame />
-                  <MonitorPreview style={{ backgroundImage: `url(${selected || '/bliss.jpg'})` }} />
+                  <MonitorPreview style={{
+                    backgroundImage: selected ? `url(${selected})` : 'none',
+                    backgroundColor: selected ? 'transparent' : '#3a6ea5'
+                  }} />
                 </MonitorShell>
               </PreviewArea>
 
@@ -124,8 +135,10 @@ function DisplayProperties({ onClose, onMinimize }) {
                         key={item.id}
                         $active={selected === item.path}
                         onClick={() => setSelected(item.path)}
+                        role="option"
+                        aria-selected={selected === item.path}
                       >
-                        <IconSquare />
+                        {item.path && <WallpaperIcon src="/icons/xp/JPG.png" alt="" />}
                         <span>{item.name}</span>
                       </ListItem>
                     ))}
@@ -394,31 +407,31 @@ const List = styled.div`
   background: #fff;
   overflow-y: auto;
   overflow-x: hidden;
-  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #c6c6c6;
-  padding: 4px;
-  min-height: 110px;
+  box-shadow: inset 1px 1px 0 #808080, inset -1px -1px 0 #fff;
+  padding: 2px;
+  min-height: 120px;
+  max-height: 180px;
 `;
 
 const ListItem = styled.div`
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 6px;
+  gap: 8px;
+  padding: 3px 6px;
   cursor: pointer;
   background: ${({ $active }) => ($active ? '#316ac5' : 'transparent')};
   color: ${({ $active }) => ($active ? '#fff' : '#000')};
+  font-size: 11px;
+  border-radius: 2px;
 
   &:hover {
-    background: ${({ $active }) => ($active ? '#316ac5' : '#cfe3ff')};
+    background: ${({ $active }) => ($active ? '#316ac5' : '#e8f4ff')};
   }
 `;
 
-const IconSquare = styled.div`
-  width: 14px;
-  height: 14px;
-  background: #f8c13a;
-  border: 1px solid #9a5c00;
-  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #b57b19;
+const WallpaperIcon = styled.img`
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
 `;
 

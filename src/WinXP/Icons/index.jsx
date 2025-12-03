@@ -9,25 +9,30 @@ function Icons({
   mouse,
   selecting,
   setSelectedIcons,
+  onUpdatePositions,
 }) {
   const [iconsRect, setIconsRect] = useState([]);
+  const [dragging, setDragging] = useState(null); // { id, startX, startY, iconStartX, iconStartY }
+  const [dragPositions, setDragPositions] = useState({}); // Temporary positions during drag
   const iconRefs = useRef([]);
+  const containerRef = useRef(null);
 
   // Update icon rectangles for selection detection
   useEffect(() => {
-    const rects = iconRefs.current.map((ref, i) => {
+    const rects = icons.map((icon, i) => {
+      const ref = iconRefs.current[i];
       if (!ref) return null;
       const rect = ref.getBoundingClientRect();
       return {
-        id: icons[i].id,
+        id: icon.id,
         x: rect.left,
         y: rect.top,
         w: rect.width,
         h: rect.height,
       };
-    }).filter(Boolean);
-    setIconsRect(rects);
-  }, [icons]);
+    });
+    setIconsRect(rects.filter(Boolean));
+  }, [icons, dragPositions]);
 
   // Handle bounding box selection
   useEffect(() => {
@@ -41,7 +46,6 @@ function Icons({
 
     const selectedIds = iconsRect.filter((rect) => {
       if (!rect) return false;
-      // Check if icon intersects with selection box
       return !(
         rect.x + rect.w < left ||
         rect.x > left + sw ||
@@ -53,54 +57,135 @@ function Icons({
     setSelectedIcons(selectedIds);
   }, [selecting, mouse.docX, mouse.docY, iconsRect, setSelectedIcons]);
 
-  const handleMouseDown = useCallback((e, id) => {
-    e.stopPropagation();
-    onMouseDown(id);
-  }, [onMouseDown]);
+  // Handle dragging
+  useEffect(() => {
+    if (!dragging) return;
 
-  const handleDoubleClick = useCallback((component) => {
-    onDoubleClick(component);
+    const handleMouseMove = (e) => {
+      const deltaX = e.clientX - dragging.startX;
+      const deltaY = e.clientY - dragging.startY;
+
+      // Get all selected icons or just the dragged one
+      const selectedIcons = icons.filter((icon) => icon.isFocus);
+      const iconsToMove = selectedIcons.length > 0 ? selectedIcons : [icons.find((i) => i.id === dragging.id)];
+
+      const newPositions = {};
+      iconsToMove.forEach((icon) => {
+        if (!icon) return;
+        const startPos = dragging.iconStartPositions[icon.id] || { x: icon.x, y: icon.y };
+        newPositions[icon.id] = {
+          x: Math.max(0, startPos.x + deltaX),
+          y: Math.max(0, startPos.y + deltaY),
+        };
+      });
+
+      setDragPositions(newPositions);
+    };
+
+    const handleMouseUp = () => {
+      // Commit the drag positions
+      if (Object.keys(dragPositions).length > 0) {
+        onUpdatePositions(dragPositions);
+      }
+      setDragging(null);
+      setDragPositions({});
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [dragging, dragPositions, icons, onUpdatePositions]);
+
+  const handleMouseDown = useCallback((e, icon) => {
+    e.stopPropagation();
+    onMouseDown(icon.id);
+
+    // Start drag
+    const selectedIcons = icons.filter((i) => i.isFocus);
+    const iconsToMove = selectedIcons.length > 0 && selectedIcons.some((i) => i.id === icon.id)
+      ? selectedIcons
+      : [icon];
+
+    const iconStartPositions = {};
+    iconsToMove.forEach((i) => {
+      iconStartPositions[i.id] = { x: i.x, y: i.y };
+    });
+
+    setDragging({
+      id: icon.id,
+      startX: e.clientX,
+      startY: e.clientY,
+      iconStartPositions,
+    });
+  }, [icons, onMouseDown]);
+
+  const handleDoubleClick = useCallback((icon) => {
+    onDoubleClick(icon);
   }, [onDoubleClick]);
 
+  // Get position for an icon (use drag position if dragging, otherwise use icon position)
+  const getIconPosition = (icon) => {
+    if (dragPositions[icon.id]) {
+      return dragPositions[icon.id];
+    }
+    return { x: icon.x, y: icon.y };
+  };
+
   return (
-    <Container>
-      {icons.map((icon, index) => (
-        <Icon
-          key={icon.id}
-          ref={(el) => (iconRefs.current[index] = el)}
-          onMouseDown={(e) => handleMouseDown(e, icon.id)}
-          onDoubleClick={() => handleDoubleClick(icon.component)}
-          $isFocus={icon.isFocus && displayFocus}
-        >
-          <IconImage src={icon.icon} alt={icon.title} draggable={false} />
-          <IconText $isFocus={icon.isFocus && displayFocus}>
-            {icon.title}
-          </IconText>
-        </Icon>
-      ))}
+    <Container ref={containerRef}>
+      {icons.map((icon, index) => {
+        const pos = getIconPosition(icon);
+        return (
+          <Icon
+            key={icon.id}
+            ref={(el) => (iconRefs.current[index] = el)}
+            onMouseDown={(e) => handleMouseDown(e, icon)}
+            onDoubleClick={() => handleDoubleClick(icon)}
+            $isFocus={icon.isFocus && displayFocus}
+            $isDragging={dragging && (dragging.id === icon.id || (icon.isFocus && dragging.iconStartPositions[icon.id]))}
+            style={{
+              left: pos.x,
+              top: pos.y,
+            }}
+          >
+            <IconImage src={icon.icon} alt={icon.title} draggable={false} />
+            <IconText $isFocus={icon.isFocus && displayFocus}>
+              {icon.title}
+            </IconText>
+          </Icon>
+        );
+      })}
     </Container>
   );
 }
 
 const Container = styled.div`
   position: absolute;
-  top: 10px;
-  left: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 0;
+  pointer-events: none;
 `;
 
 const Icon = styled.div`
+  position: absolute;
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 70px;
   padding: 5px;
   cursor: pointer;
+  pointer-events: auto;
   border: ${({ $isFocus }) => ($isFocus ? '1px dotted #aaa' : '1px solid transparent')};
   background: ${({ $isFocus }) => ($isFocus ? 'rgba(11, 97, 255, 0.3)' : 'transparent')};
+  opacity: ${({ $isDragging }) => ($isDragging ? 0.8 : 1)};
+  z-index: ${({ $isDragging }) => ($isDragging ? 10 : 1)};
 
   &:hover {
     background: rgba(11, 97, 255, 0.15);

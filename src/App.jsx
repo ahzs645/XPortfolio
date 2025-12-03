@@ -1,6 +1,7 @@
 import WinXP from './WinXP';
 import { createGlobalStyle } from 'styled-components';
 import { ConfigProvider } from './contexts/ConfigContext';
+import { FileSystemProvider } from './contexts/FileSystemContext';
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -34,8 +35,10 @@ const GlobalStyle = createGlobalStyle`
 function App() {
   return (
     <ConfigProvider>
-      <GlobalStyle />
-      <WinXP />
+      <FileSystemProvider>
+        <GlobalStyle />
+        <WinXP />
+      </FileSystemProvider>
     </ConfigProvider>
   );
 }

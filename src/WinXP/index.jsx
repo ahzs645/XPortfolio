@@ -3,6 +3,47 @@ import styled, { keyframes } from 'styled-components';
 import { useMouse, useWindowSize } from '../hooks';
 import useSystemSounds from '../hooks/useSystemSounds';
 import { useConfig } from '../contexts/ConfigContext';
+import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../contexts/FileSystemContext';
+import { parseDroppedFiles } from '../utils/fileDropParser';
+import FileUploadDialog from './FileUploadDialog';
+
+// Convert file system items to desktop icon format
+const convertToDesktopIcons = (items, appSettings, savedPositions = {}) => {
+  const iconSize = 80;
+  const iconGap = 10;
+  const startX = 10;
+  const startY = 10;
+
+  return items.map((item, index) => {
+    const savedPos = savedPositions[item.id];
+    const defaultY = startY + index * (iconSize + iconGap);
+
+    // For shortcuts, find the matching app component
+    let component = null;
+    if (item.type === 'shortcut' && item.target) {
+      const appSetting = appSettings[item.target];
+      if (appSetting) {
+        component = appSetting.component;
+      }
+    }
+
+    return {
+      id: item.id,
+      programId: item.id,
+      icon: item.icon || XP_ICONS.file,
+      title: item.name,
+      component: component,
+      isFocus: false,
+      x: savedPos?.x ?? startX,
+      y: savedPos?.y ?? defaultY,
+      // Extra info for file handling
+      type: item.type,
+      target: item.target,
+      data: item.data,
+      fileType: item.type === 'file' ? item.contentType : null,
+    };
+  });
+};
 
 import {
   ADD_APP,
@@ -19,9 +60,10 @@ import {
   POWER_OFF,
   CANCEL_POWER_OFF,
   SET_BOOT_STATE,
+  UPDATE_ICON_POSITIONS,
 } from './constants/actions';
 import { FOCUSING, POWER_STATE, BOOT_STATE } from './constants';
-import { defaultIconState, defaultAppState, appSettings, generateIconState } from './apps';
+import { defaultIconState, defaultAppState, appSettings, generateIconState, saveIconPositions } from './apps';
 import Modal from './Modal';
 import Footer from './Footer';
 import Windows from './Windows';
@@ -189,6 +231,21 @@ const reducer = (state, action = { type: '' }) => {
         ...state,
         icons: action.payload,
       };
+    case UPDATE_ICON_POSITIONS: {
+      const updatedIcons = state.icons.map((icon) => {
+        const newPos = action.payload[icon.id];
+        if (newPos) {
+          return { ...icon, x: newPos.x, y: newPos.y };
+        }
+        return icon;
+      });
+      // Save to localStorage
+      saveIconPositions(updatedIcons);
+      return {
+        ...state,
+        icons: updatedIcons,
+      };
+    }
     default:
       return state;
   }
@@ -197,25 +254,42 @@ const reducer = (state, action = { type: '' }) => {
 function WinXP() {
   const [state, dispatch] = useReducer(reducer, initState);
   const [crtEnabled, setCrtEnabled] = useState(true);
+  const [isDraggingFiles, setIsDraggingFiles] = useState(false);
+  const [droppedFiles, setDroppedFiles] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   const ref = useRef(null);
+  const dragCounterRef = useRef(0);
   const mouse = useMouse(ref);
   const { width } = useWindowSize();
   const focusedAppId = getFocusedAppId();
   const { playLogoff, playBalloon } = useSystemSounds();
-  const { getWallpaperPath, getDesktopPrograms, isLoading: configLoading } = useConfig();
+  const { getWallpaperPath, isLoading: configLoading } = useConfig();
+  const { createFile, getFolderContents, fileSystem, isLoading: fsLoading } = useFileSystem();
 
   // Determine if mobile based on viewport width
   const isMobile = width < 768;
   const wallpaperPath = getWallpaperPath(isMobile);
 
-  // Update desktop icons when config loads
+  // Get saved icon positions from localStorage
+  const getSavedPositions = useCallback(() => {
+    try {
+      const saved = localStorage.getItem('desktopIconPositions');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  }, []);
+
+  // Update desktop icons from file system Desktop folder
   useEffect(() => {
-    if (!configLoading) {
-      const programIds = getDesktopPrograms();
-      const icons = generateIconState(programIds);
+    if (!fsLoading && fileSystem) {
+      const desktopContents = getFolderContents(SYSTEM_IDS.DESKTOP);
+      const savedPositions = getSavedPositions();
+      const icons = convertToDesktopIcons(desktopContents, appSettings, savedPositions);
       dispatch({ type: SET_ICONS, payload: icons });
     }
-  }, [configLoading, getDesktopPrograms]);
+  }, [fsLoading, fileSystem, getFolderContents, getSavedPositions]);
 
   const handleToggleCRT = useCallback(() => {
     setCrtEnabled((prev) => !prev);
@@ -264,12 +338,45 @@ function WinXP() {
     dispatch({ type: FOCUS_ICON, payload: id });
   }
 
-  function onDoubleClickIcon(component) {
-    const appSetting = Object.values(appSettings).find(
-      (setting) => setting.component === component
-    );
-    if (appSetting) {
-      dispatch({ type: ADD_APP, payload: appSetting });
+  function onDoubleClickIcon(icon) {
+    // Handle shortcuts - launch the target app
+    if (icon.type === 'shortcut' && icon.target) {
+      const appSetting = appSettings[icon.target];
+      if (appSetting) {
+        dispatch({ type: ADD_APP, payload: appSetting });
+      }
+      return;
+    }
+
+    // Handle files - open with appropriate viewer
+    if (icon.type === 'file' && icon.data) {
+      // For images, open with Image Viewer
+      const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp'];
+      if (imageTypes.includes(icon.fileType)) {
+        const imageViewerSetting = {
+          ...appSettings['Image Viewer'],
+          initialData: { src: icon.data, title: icon.title },
+        };
+        dispatch({ type: ADD_APP, payload: imageViewerSetting });
+        return;
+      }
+
+      // For other files, try to open/download
+      const link = document.createElement('a');
+      link.href = icon.data;
+      link.download = icon.title;
+      link.click();
+      return;
+    }
+
+    // Fallback: if it has a component, launch it
+    if (icon.component) {
+      const appSetting = Object.values(appSettings).find(
+        (setting) => setting.component === icon.component
+      );
+      if (appSetting) {
+        dispatch({ type: ADD_APP, payload: appSetting });
+      }
     }
   }
 
@@ -317,6 +424,10 @@ function WinXP() {
     dispatch({ type: SELECT_ICONS, payload: iconIds });
   }, []);
 
+  const onUpdateIconPositions = useCallback((positions) => {
+    dispatch({ type: UPDATE_ICON_POSITIONS, payload: positions });
+  }, []);
+
   function onClickModalButton() {
     dispatch({ type: CANCEL_POWER_OFF });
   }
@@ -329,6 +440,101 @@ function WinXP() {
     dispatch({ type: SET_BOOT_STATE, payload: BOOT_STATE.DESKTOP });
   }
 
+  // Drag and drop file handlers
+  const handleDragEnter = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current++;
+    if (e.dataTransfer?.types?.includes('Files')) {
+      setIsDraggingFiles(true);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current--;
+    if (dragCounterRef.current === 0) {
+      setIsDraggingFiles(false);
+    }
+  }, []);
+
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback(async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingFiles(false);
+    dragCounterRef.current = 0;
+
+    try {
+      const files = await parseDroppedFiles(e);
+      if (files && files.length > 0) {
+        setDroppedFiles(files);
+      }
+    } catch (error) {
+      console.error('Error parsing dropped files:', error);
+    }
+  }, []);
+
+  const handleUploadConfirm = useCallback(async () => {
+    if (!droppedFiles || droppedFiles.length === 0) return;
+
+    setIsUploading(true);
+    setUploadProgress({ current: 0, total: droppedFiles.length });
+
+    // Initial delay to show animation
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    try {
+      for (let i = 0; i < droppedFiles.length; i++) {
+        const file = droppedFiles[i];
+        setUploadProgress({ current: i, total: droppedFiles.length });
+
+        // Small delay between files to show progress
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        // Read file as base64 for storage
+        const reader = new FileReader();
+        const fileData = await new Promise((resolve, reject) => {
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file.fileObject);
+        });
+
+        // Create file in Desktop folder
+        await createFile(SYSTEM_IDS.DESKTOP, file.name, {
+          data: fileData,
+          size: file.size,
+          type: file.type,
+          lastModified: file.lastModified,
+        });
+
+        // Update progress after file is saved
+        setUploadProgress({ current: i + 1, total: droppedFiles.length });
+      }
+
+      // Final delay to show completion
+      await new Promise(resolve => setTimeout(resolve, 800));
+    } catch (error) {
+      console.error('Error uploading files:', error);
+    } finally {
+      setIsUploading(false);
+      setDroppedFiles(null);
+      setUploadProgress(null);
+    }
+  }, [droppedFiles, createFile]);
+
+  const handleUploadCancel = useCallback(() => {
+    if (!isUploading) {
+      setDroppedFiles(null);
+      setUploadProgress(null);
+    }
+  }, [isUploading]);
+
   // Show boot screen during boot sequence
   if (state.bootState !== BOOT_STATE.DESKTOP) {
     return <BootScreen bootState={state.bootState} onComplete={onBootComplete} />;
@@ -339,10 +545,31 @@ function WinXP() {
       ref={ref}
       onMouseUp={onMouseUpDesktop}
       onMouseDown={onMouseDownDesktop}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
       $powerState={state.powerState}
       $crtEnabled={crtEnabled}
       $wallpaper={wallpaperPath}
     >
+      {isDraggingFiles && (
+        <DropOverlay>
+          <DropMessage>
+            <DropIcon src="/icons/xp/FolderOpened.png" alt="" />
+            <span>Drop files here to upload to My Documents</span>
+          </DropMessage>
+        </DropOverlay>
+      )}
+      {droppedFiles && (
+        <FileUploadDialog
+          files={droppedFiles}
+          onConfirm={handleUploadConfirm}
+          onCancel={handleUploadCancel}
+          uploading={isUploading}
+          progress={uploadProgress}
+        />
+      )}
       <Icons
         icons={state.icons}
         onMouseDown={onMouseDownIcon}
@@ -352,6 +579,7 @@ function WinXP() {
         mouse={mouse}
         selecting={state.selecting}
         setSelectedIcons={onIconsSelected}
+        onUpdatePositions={onUpdateIconPositions}
       />
       <DashedBox startPos={state.selecting} mouse={mouse} />
       <Windows
@@ -420,6 +648,41 @@ const Container = styled.div`
   *:not(input):not(textarea) {
     user-select: none;
   }
+`;
+
+const DropOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 84, 227, 0.3);
+  border: 3px dashed #0054e3;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+`;
+
+const DropMessage = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 32px 48px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid #0054e3;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+
+  span {
+    font-size: 16px;
+    font-weight: 600;
+    color: #0054e3;
+  }
+`;
+
+const DropIcon = styled.img`
+  width: 64px;
+  height: 64px;
 `;
 
 export default WinXP;
