@@ -102,6 +102,17 @@ export function ConfigProvider({ children }) {
   const [cvData, setCvData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [wallpaperOverrides, setWallpaperOverrides] = useState(() => {
+    const defaults = { desktop: null, mobile: null };
+    if (typeof window === 'undefined') return defaults;
+    try {
+      const saved = window.localStorage.getItem('wallpaperOverrides');
+      return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
+    } catch (err) {
+      console.warn('Failed to read wallpaper overrides', err);
+      return defaults;
+    }
+  });
 
   useEffect(() => {
     async function loadConfig() {
@@ -139,6 +150,17 @@ export function ConfigProvider({ children }) {
 
     loadConfig();
   }, []);
+
+  // Persist wallpaper overrides
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('wallpaperOverrides', JSON.stringify(wallpaperOverrides));
+      }
+    } catch (err) {
+      console.warn('Failed to persist wallpaper overrides', err);
+    }
+  }, [wallpaperOverrides]);
 
   // Get display name based on configuration
   const getDisplayName = () => {
@@ -297,6 +319,9 @@ export function ConfigProvider({ children }) {
 
   // Get wallpaper path (desktop or mobile)
   const getWallpaperPath = (isMobile = false) => {
+    const override = isMobile ? wallpaperOverrides.mobile : wallpaperOverrides.desktop;
+    if (override) return override;
+
     const key = isMobile ? 'WALLPAPER_MOBILE_PATH' : 'WALLPAPER_DESKTOP_PATH';
     if (config?.[key]) {
       let wallpaperPath = config[key];
@@ -306,6 +331,11 @@ export function ConfigProvider({ children }) {
       return wallpaperPath;
     }
     return '/bliss.jpg';
+  };
+
+  const setWallpaperPath = (path, options = {}) => {
+    const target = options.isMobile ? 'mobile' : 'desktop';
+    setWallpaperOverrides((prev) => ({ ...prev, [target]: path || null }));
   };
 
   // Get desktop programs list
@@ -409,6 +439,7 @@ export function ConfigProvider({ children }) {
     getProfilePhotoPath,
     getLoadingImagePath,
     getWallpaperPath,
+    setWallpaperPath,
     // Content
     getCVPDFUrl,
     getSocialLinks,

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { ProgramLayout } from '../../../components';
 import usageGuide from '../../../components/WindowBars/USAGE.md?raw';
@@ -11,27 +11,7 @@ function Notepad({ onClose, onMinimize }) {
 
   const [text, setText] = useState(initialDocument);
   const [wordWrap, setWordWrap] = useState(true);
-  const [cursor, setCursor] = useState({ line: 1, column: 1 });
   const textareaRef = useRef(null);
-
-  const updateCursorPosition = useCallback((target, valueOverride) => {
-    const node = target || textareaRef.current;
-    if (!node) return;
-
-    const value = valueOverride ?? node.value;
-    const selectionStart = node.selectionStart ?? 0;
-    const beforeCursor = value.slice(0, selectionStart);
-    const lines = beforeCursor.split('\n');
-
-    setCursor({
-      line: lines.length,
-      column: lines[lines.length - 1].length + 1,
-    });
-  }, []);
-
-  useEffect(() => {
-    updateCursorPosition(textareaRef.current, text);
-  }, [text, updateCursorPosition]);
 
   const insertTextAtCursor = useCallback((insertValue) => {
     const node = textareaRef.current;
@@ -47,16 +27,12 @@ function Notepad({ onClose, onMinimize }) {
       const nextCursor = selectionStart + insertValue.length;
       node.focus();
       node.setSelectionRange(nextCursor, nextCursor);
-      updateCursorPosition(node, nextText);
     });
-  }, [text, updateCursorPosition]);
+  }, [text]);
 
   const handleChange = (e) => {
     setText(e.target.value);
-    updateCursorPosition(e.target, e.target.value);
   };
-
-  const handleCursorEvent = (e) => updateCursorPosition(e.target);
 
   const handleMenuAction = useCallback((action) => {
     if (!action) return;
@@ -68,7 +44,6 @@ function Notepad({ onClose, onMinimize }) {
           if (!textareaRef.current) return;
           textareaRef.current.focus();
           textareaRef.current.setSelectionRange(0, 0);
-          updateCursorPosition(textareaRef.current, '');
         });
         break;
       }
@@ -78,7 +53,6 @@ function Notepad({ onClose, onMinimize }) {
           if (!textareaRef.current) return;
           textareaRef.current.focus();
           textareaRef.current.setSelectionRange(0, 0);
-          updateCursorPosition(textareaRef.current, initialDocument);
         });
         break;
       }
@@ -94,7 +68,6 @@ function Notepad({ onClose, onMinimize }) {
         if (!textareaRef.current) return;
         textareaRef.current.focus();
         textareaRef.current.select();
-        updateCursorPosition(textareaRef.current);
         break;
       }
       case 'help:about':
@@ -103,7 +76,7 @@ function Notepad({ onClose, onMinimize }) {
       default:
         break;
     }
-  }, [initialDocument, insertTextAtCursor, updateCursorPosition]);
+  }, [initialDocument, insertTextAtCursor]);
 
   const menus = useMemo(() => [
     {
@@ -147,34 +120,26 @@ function Notepad({ onClose, onMinimize }) {
     },
   ], [wordWrap]);
 
-  const statusFields = [
-    { text: `Ln ${cursor.line}, Col ${cursor.column}`, width: '140px' },
-    { text: wordWrap ? 'Word Wrap: On' : 'Word Wrap: Off', width: '130px' },
-    { text: 'WindowBars usage guide snapshot', flex: 1 },
-  ];
-
   return (
     <ProgramLayout
       menus={menus}
       onMenuAction={handleMenuAction}
       windowActions={{ onClose, onMinimize }}
-      statusFields={statusFields}
       showToolbar={false}
       showAddressBar={false}
-      showStatusGrip={false}
+      showStatusBar={false}
     >
       <DocumentSurface>
         <DocumentArea>
-          <StyledTextarea
-            ref={textareaRef}
-            value={text}
-            onChange={handleChange}
-            onClick={handleCursorEvent}
-            onKeyUp={handleCursorEvent}
-            onSelect={handleCursorEvent}
-            spellCheck={false}
-            $wordWrap={wordWrap}
-          />
+          <TextAreaWrapper>
+            <StyledTextarea
+              ref={textareaRef}
+              value={text}
+              onChange={handleChange}
+              spellCheck={false}
+              $wordWrap={wordWrap}
+            />
+          </TextAreaWrapper>
         </DocumentArea>
       </DocumentSurface>
     </ProgramLayout>
@@ -193,11 +158,18 @@ const DocumentSurface = styled.div`
 
 const DocumentArea = styled.div`
   flex: 1;
+  display: flex;
+  flex-direction: column;
   background: #ffffff;
   border: none;
   box-shadow: none;
   overflow: hidden;
   min-height: 0;
+`;
+
+const TextAreaWrapper = styled.div`
+  flex: 1;
+  overflow: hidden;
 `;
 
 const StyledTextarea = styled.textarea`

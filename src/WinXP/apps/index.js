@@ -4,6 +4,7 @@ import Projects from './Projects';
 import Contact from './Contact';
 import Calculator from './Calculator';
 import Notepad from './Notepad';
+import DisplayProperties from './DisplayProperties';
 import Minesweeper from './Minesweeper';
 import Solitaire from './Solitaire';
 import SpiderSolitaire from './SpiderSolitaire';
@@ -48,6 +49,11 @@ export const desktopIconCatalog = {
     icon: '/icons/notepad.png',
     title: 'Notepad',
     component: Notepad,
+  },
+  displayProperties: {
+    icon: '/icons/my-computer.png',
+    title: 'Display Properties',
+    component: DisplayProperties,
   },
   minesweeper: {
     icon: '/icons/minesweeper.png',
@@ -241,6 +247,26 @@ export const appSettings = {
     minimized: false,
     maximized: false,
     multiInstance: true,
+  },
+  'Display Properties': {
+    header: {
+      icon: '/icons/my-computer.png',
+      title: 'Display Properties',
+      buttons: ['minimize', 'close'],
+    },
+    component: DisplayProperties,
+    defaultSize: {
+      width: 480,
+      height: 420,
+    },
+    defaultOffset: {
+      x: 200,
+      y: 100,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
   },
   Minesweeper: {
     header: {

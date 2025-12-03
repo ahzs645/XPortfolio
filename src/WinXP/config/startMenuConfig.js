@@ -45,6 +45,13 @@ export const START_MENU_CATALOG = {
     title: 'Notepad',
     description: null,
   },
+  displayProperties: {
+    type: 'program',
+    appKey: 'Display Properties',
+    icon: '/icons/my-computer.png',
+    title: 'Display Properties',
+    description: 'Change desktop background',
+  },
   minesweeper: {
     type: 'program',
     appKey: 'Minesweeper',
@@ -138,6 +145,7 @@ export const PINNED_LEFT = [
   'about',
   'calculator',
   'notepad',
+  'displayProperties',
   'paint',
 ];
 
@@ -160,7 +168,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Accessories',
     icon: '/icons/folder-icon.png',
-    items: ['calculator', 'notepad', 'paint', 'cmd', 'imageViewer'],
+    items: ['calculator', 'notepad', 'displayProperties', 'paint', 'cmd', 'imageViewer'],
   },
   entertainment: {
     type: 'folder',
