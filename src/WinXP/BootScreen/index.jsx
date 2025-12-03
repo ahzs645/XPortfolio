@@ -143,10 +143,10 @@ const BootContent = styled.div`
 
 const BootLogo = styled.img`
   width: 350px;
+  max-width: 80vw;
+  max-height: 40vh;
   height: auto;
   margin-bottom: 40px;
-  position: relative;
-  left: 20px;
 `;
 
 const LoadingBoxes = styled.div`
@@ -211,7 +211,7 @@ const LoginScreen = styled.div`
   height: 100%;
   background-color: #002d99;
   color: #fff;
-  overflow: hidden;
+  overflow: visible;
   z-index: 99999;
   animation: ${fadeIn} 0.3s ease-in;
 `;
@@ -267,6 +267,9 @@ const LoginLeft = styled.div`
 const XPLogo = styled.img`
   display: block;
   height: 170px;
+  max-height: 28vh;
+  max-width: 80vw;
+  object-fit: contain;
   width: auto;
 `;
 

@@ -38,11 +38,16 @@ const IMAGE_VIEWER_MENUS = [
   },
 ];
 
-function ImageViewer({ onClose, onMinimize, onMaximize, isFocus, initialImages }) {
+function ImageViewer({ onClose, onMinimize, onMaximize, isFocus, initialImages, initialImage }) {
   const iframeRef = useRef(null);
+  const imgRef = useRef(null);
   const [statusText, setStatusText] = useState('Loading images...');
   const [isZoomed, setIsZoomed] = useState(false);
   const [addressPath, setAddressPath] = useState('C:\\Users\\User\\Assets');
+  const [zoom, setZoom] = useState(1);
+
+  // If we have a direct image passed, use it
+  const hasDirectImage = initialImage && initialImage.src;
 
   // Send action to iframe
   const sendToIframe = useCallback((action) => {
@@ -54,18 +59,36 @@ function ImageViewer({ onClose, onMinimize, onMaximize, isFocus, initialImages }
     }
   }, []);
 
+  // Handle zoom for direct images
+  const handleZoomToggle = useCallback(() => {
+    if (hasDirectImage) {
+      setIsZoomed(prev => !prev);
+      setZoom(prev => prev === 1 ? 2 : 1);
+    } else {
+      sendToIframe('toggleZoom');
+    }
+  }, [hasDirectImage, sendToIframe]);
+
   // Handle menu actions
   const handleMenuAction = useCallback((action) => {
     switch (action) {
       case 'zoomIn':
       case 'zoomOut':
       case 'bestFit':
-        sendToIframe('toggleZoom');
+        handleZoomToggle();
         break;
       default:
         break;
     }
-  }, [sendToIframe]);
+  }, [handleZoomToggle]);
+
+  // Set up direct image info
+  useEffect(() => {
+    if (hasDirectImage) {
+      setAddressPath(`C:\\Desktop\\${initialImage.title}`);
+      setStatusText('Ready');
+    }
+  }, [hasDirectImage, initialImage]);
 
   // Listen for messages from iframe
   useEffect(() => {
@@ -98,11 +121,23 @@ function ImageViewer({ onClose, onMinimize, onMaximize, isFocus, initialImages }
         icon="/icons/image-viewer.png"
       />
       <ContentArea>
-        <ViewerFrame
-          ref={iframeRef}
-          src="/apps/imageViewer/imageViewer.html"
-          title="Windows Picture and Fax Viewer"
-        />
+        {hasDirectImage ? (
+          <DirectImageContainer $isZoomed={isZoomed}>
+            <DirectImage
+              ref={imgRef}
+              src={initialImage.src}
+              alt={initialImage.title}
+              $zoom={zoom}
+              draggable={false}
+            />
+          </DirectImageContainer>
+        ) : (
+          <ViewerFrame
+            ref={iframeRef}
+            src="/apps/imageViewer/imageViewer.html"
+            title="Windows Picture and Fax Viewer"
+          />
+        )}
       </ContentArea>
       <BottomToolbar>
         <NavButton onClick={() => sendToIframe('nav:back')}>
@@ -119,7 +154,7 @@ function ImageViewer({ onClose, onMinimize, onMaximize, isFocus, initialImages }
         <SmallButton disabled title="Rotate counter-clockwise">
           <SmallIconImg src="/gui/image-viewer/rotate-ccw.svg" alt="" />
         </SmallButton>
-        <NavButton onClick={() => sendToIframe('toggleZoom')} className={isZoomed ? 'active' : ''}>
+        <NavButton onClick={handleZoomToggle} className={isZoomed ? 'active' : ''}>
           <ZoomIconImg src="/gui/image-viewer/zoom.svg" alt="" />
           <span>Zoom</span>
         </NavButton>
@@ -155,6 +190,27 @@ const ViewerFrame = styled.iframe`
   width: 100%;
   height: 100%;
   border: none;
+`;
+
+const DirectImageContainer = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: ${({ $isZoomed }) => ($isZoomed ? 'auto' : 'hidden')};
+  background: #808080;
+`;
+
+const DirectImage = styled.img`
+  max-width: ${({ $zoom }) => ($zoom === 1 ? '100%' : 'none')};
+  max-height: ${({ $zoom }) => ($zoom === 1 ? '100%' : 'none')};
+  width: ${({ $zoom }) => ($zoom === 1 ? 'auto' : 'auto')};
+  height: ${({ $zoom }) => ($zoom === 1 ? 'auto' : 'auto')};
+  transform: scale(${({ $zoom }) => $zoom});
+  transform-origin: center center;
+  object-fit: contain;
+  cursor: ${({ $zoom }) => ($zoom > 1 ? 'move' : 'default')};
 `;
 
 const BottomToolbar = styled.div`

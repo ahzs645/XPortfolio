@@ -18,7 +18,7 @@ export const SortOrders = Object.freeze({
 
 // File type icons mapping
 export const fileIcons = {
-  '.txt': '/icons/notepad.png',
+  '.txt': '/icons/xp/Notepad.png',
   '.mp3': '/icons/media-player.png',
   '.mp4': '/icons/media-player.png',
   '.jpg': '/icons/image-viewer.png',
@@ -44,7 +44,9 @@ export const XP_ICONS = {
   calculator: '/icons/xp/Calculator.png',
   minesweeper: '/icons/xp/Minesweeper.png',
   notepad: '/icons/xp/Notepad.png',
+  displayProperties: '/icons/xp/DisplayProperties.png',
   file: '/icons/xp/JPG.png',
+  rar: '/icons/xp/RAR.png',
 };
 
 // Special folder IDs
@@ -532,6 +534,92 @@ export function FileSystemProvider({ children }) {
     return null;
   }, [fileSystem]);
 
+  // Create a file with content (convenience wrapper)
+  const createFile = useCallback(async (parentId, name, fileContent) => {
+    const now = Date.now();
+    const id = uuidv4();
+    const ext = getExtension(name);
+    const baseName = getBasename(name);
+    const storageKey = uuidv4();
+
+    // Store file data in IndexedDB
+    await idb.set(storageKey, fileContent.data);
+
+    // Determine icon based on content type and extension
+    let icon = XP_ICONS.file;
+    const lowerExt = ext.toLowerCase();
+
+    // Check extension first for specific file types
+    if (['.zip', '.rar', '.7z', '.tar', '.gz'].includes(lowerExt)) {
+      icon = XP_ICONS.rar;
+    } else if (['.txt', '.log', '.md', '.json', '.js', '.jsx', '.ts', '.tsx', '.css', '.html'].includes(lowerExt)) {
+      icon = XP_ICONS.notepad;
+    } else if (fileContent.type) {
+      if (fileContent.type.startsWith('image/')) {
+        icon = '/icons/xp/JPG.png';
+      } else if (fileContent.type.startsWith('audio/')) {
+        icon = '/icons/media-player.png';
+      } else if (fileContent.type.startsWith('video/')) {
+        icon = '/icons/media-player.png';
+      } else if (fileContent.type === 'application/pdf') {
+        icon = '/icons/resume.webp';
+      } else if (fileContent.type === 'application/zip' || fileContent.type === 'application/x-rar-compressed') {
+        icon = XP_ICONS.rar;
+      } else if (fileContent.type === 'text/plain') {
+        icon = XP_ICONS.notepad;
+      }
+    }
+
+    // Use functional update to work with latest state
+    setFileSystem(prev => {
+      if (!prev || !prev[parentId]) {
+        console.error('Parent folder not found:', parentId);
+        return prev;
+      }
+
+      // Generate unique name based on current state
+      const siblings = prev[parentId].children
+        .map(cid => prev[cid]?.name)
+        .filter(Boolean);
+
+      let uniqueName = baseName + ext;
+      let counter = 2;
+      while (siblings.includes(uniqueName)) {
+        uniqueName = `${baseName} (${counter})${ext}`;
+        counter++;
+      }
+
+      const newItem = {
+        id,
+        type: 'file',
+        name: uniqueName,
+        basename: baseName,
+        ext,
+        icon,
+        parent: parentId,
+        size: fileContent.size ? Math.ceil(fileContent.size / 1024) : 0,
+        contentType: fileContent.type,
+        storageType: 'local',
+        storageKey,
+        data: fileContent.data,
+        dateCreated: now,
+        dateModified: now,
+      };
+
+      return {
+        ...prev,
+        [id]: newItem,
+        [parentId]: {
+          ...prev[parentId],
+          children: [...prev[parentId].children, id],
+          dateModified: now,
+        },
+      };
+    });
+
+    return id;
+  }, [getExtension, getBasename]);
+
   // Save file content
   const saveFileContent = useCallback(async (id, content) => {
     if (!fileSystem || !fileSystem[id]) return false;
@@ -609,6 +697,7 @@ export function FileSystemProvider({ children }) {
     clipboardOp,
     // Operations
     createItem,
+    createFile,
     deleteItem,
     moveToRecycleBin,
     restoreFromRecycleBin,

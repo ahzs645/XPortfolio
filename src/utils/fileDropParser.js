@@ -149,36 +149,29 @@ export const parseFileStructure = async (event) => {
     const pathParts = file.fullPath.split('/').filter(Boolean);
 
     if (pathParts.length === 1) {
-      // File in root
+      // File in root (no folder)
       result.files.push(file);
     } else {
-      // File in folder
-      const fileName = pathParts.pop();
-      let current = result.folders;
+      // File is inside folder(s)
+      // pathParts = ['folderName', 'subFolder', 'file.txt']
+      const fileName = pathParts[pathParts.length - 1];
+      const folderPath = pathParts.slice(0, -1); // All parts except the filename
 
-      for (const part of pathParts) {
-        if (!current[part]) {
-          current[part] = { files: [], folders: {} };
+      // Navigate/create folder structure
+      let currentLevel = result.folders;
+      for (let i = 0; i < folderPath.length; i++) {
+        const folderName = folderPath[i];
+
+        if (!currentLevel[folderName]) {
+          currentLevel[folderName] = { files: [], folders: {} };
         }
-        current = current[part].folders;
-      }
 
-      // Add file to the deepest folder
-      let folder = result.folders;
-      for (let i = 0; i < pathParts.length - 1; i++) {
-        folder = folder[pathParts[i]].folders;
-      }
-      if (pathParts.length > 0) {
-        folder = result.folders;
-        for (const part of pathParts) {
-          if (!folder[part]) {
-            folder[part] = { files: [], folders: {} };
-          }
-          if (pathParts.indexOf(part) === pathParts.length - 1) {
-            folder[part].files.push(file);
-          } else {
-            folder = folder[part].folders;
-          }
+        // If this is the last folder in the path, add the file here
+        if (i === folderPath.length - 1) {
+          currentLevel[folderName].files.push(file);
+        } else {
+          // Otherwise, go deeper
+          currentLevel = currentLevel[folderName].folders;
         }
       }
     }

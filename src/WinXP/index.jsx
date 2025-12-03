@@ -4,19 +4,28 @@ import { useMouse, useWindowSize } from '../hooks';
 import useSystemSounds from '../hooks/useSystemSounds';
 import { useConfig } from '../contexts/ConfigContext';
 import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../contexts/FileSystemContext';
-import { parseDroppedFiles } from '../utils/fileDropParser';
+import { parseFileStructure } from '../utils/fileDropParser';
 import FileUploadDialog from './FileUploadDialog';
 
 // Convert file system items to desktop icon format
 const convertToDesktopIcons = (items, appSettings, savedPositions = {}) => {
-  const iconSize = 80;
-  const iconGap = 10;
+  const iconWidth = 80;
+  const iconHeight = 90;
+  const iconGapX = 10;
+  const iconGapY = 10;
   const startX = 10;
   const startY = 10;
+  // Calculate max icons per column based on viewport (leave room for taskbar)
+  const maxHeight = window.innerHeight - 60; // 60px for taskbar
+  const iconsPerColumn = Math.floor((maxHeight - startY) / (iconHeight + iconGapY));
 
   return items.map((item, index) => {
     const savedPos = savedPositions[item.id];
-    const defaultY = startY + index * (iconSize + iconGap);
+    // Calculate column and row for grid layout
+    const column = Math.floor(index / iconsPerColumn);
+    const row = index % iconsPerColumn;
+    const defaultX = startX + column * (iconWidth + iconGapX);
+    const defaultY = startY + row * (iconHeight + iconGapY);
 
     // For shortcuts, find the matching app component
     let component = null;
@@ -34,7 +43,7 @@ const convertToDesktopIcons = (items, appSettings, savedPositions = {}) => {
       title: item.name,
       component: component,
       isFocus: false,
-      x: savedPos?.x ?? startX,
+      x: savedPos?.x ?? defaultX,
       y: savedPos?.y ?? defaultY,
       // Extra info for file handling
       type: item.type,
@@ -265,7 +274,7 @@ function WinXP() {
   const focusedAppId = getFocusedAppId();
   const { playLogoff, playBalloon } = useSystemSounds();
   const { getWallpaperPath, isLoading: configLoading } = useConfig();
-  const { createFile, getFolderContents, fileSystem, isLoading: fsLoading } = useFileSystem();
+  const { createFile, createItem, getFolderContents, fileSystem, isLoading: fsLoading } = useFileSystem();
 
   // Determine if mobile based on viewport width
   const isMobile = width < 768;
@@ -348,6 +357,18 @@ function WinXP() {
       return;
     }
 
+    // Handle folders - open in My Computer
+    if (icon.type === 'folder') {
+      const myComputerSetting = {
+        ...appSettings['My Computer'],
+        injectProps: {
+          initialPath: icon.id,
+        },
+      };
+      dispatch({ type: ADD_APP, payload: myComputerSetting });
+      return;
+    }
+
     // Handle files - open with appropriate viewer
     if (icon.type === 'file' && icon.data) {
       // For images, open with Image Viewer
@@ -355,9 +376,44 @@ function WinXP() {
       if (imageTypes.includes(icon.fileType)) {
         const imageViewerSetting = {
           ...appSettings['Image Viewer'],
-          initialData: { src: icon.data, title: icon.title },
+          header: {
+            ...appSettings['Image Viewer'].header,
+            title: `${icon.title} - Windows Picture and Fax Viewer`,
+          },
+          injectProps: {
+            initialImage: { src: icon.data, title: icon.title },
+          },
         };
         dispatch({ type: ADD_APP, payload: imageViewerSetting });
+        return;
+      }
+
+      // For text files, open with Notepad
+      const textTypes = ['text/plain'];
+      const textExtensions = ['.txt', '.log', '.md', '.json', '.js', '.jsx', '.ts', '.tsx', '.css', '.html'];
+      const ext = icon.title.substring(icon.title.lastIndexOf('.')).toLowerCase();
+      if (textTypes.includes(icon.fileType) || textExtensions.includes(ext)) {
+        // Decode base64 data to text
+        let textContent = '';
+        try {
+          const base64Data = icon.data.split(',')[1] || icon.data;
+          textContent = atob(base64Data);
+        } catch (e) {
+          textContent = icon.data;
+        }
+
+        const notepadSetting = {
+          ...appSettings['Notepad'],
+          header: {
+            ...appSettings['Notepad'].header,
+            title: `${icon.title} - Notepad`,
+          },
+          injectProps: {
+            initialContent: textContent,
+            fileName: icon.title,
+          },
+        };
+        dispatch({ type: ADD_APP, payload: notepadSetting });
         return;
       }
 
@@ -471,9 +527,9 @@ function WinXP() {
     dragCounterRef.current = 0;
 
     try {
-      const files = await parseDroppedFiles(e);
+      const { files, structure } = await parseFileStructure(e);
       if (files && files.length > 0) {
-        setDroppedFiles(files);
+        setDroppedFiles({ files, structure });
       }
     } catch (error) {
       console.error('Error parsing dropped files:', error);
@@ -481,40 +537,67 @@ function WinXP() {
   }, []);
 
   const handleUploadConfirm = useCallback(async () => {
-    if (!droppedFiles || droppedFiles.length === 0) return;
+    if (!droppedFiles) return;
+
+    const { files, structure } = droppedFiles;
+    if (!files || files.length === 0) return;
 
     setIsUploading(true);
-    setUploadProgress({ current: 0, total: droppedFiles.length });
+    setUploadProgress({ current: 0, total: files.length });
 
     // Initial delay to show animation
     await new Promise(resolve => setTimeout(resolve, 500));
 
+    // Helper to upload a single file
+    const uploadFile = async (file, parentId) => {
+      const reader = new FileReader();
+      const fileData = await new Promise((resolve, reject) => {
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file.fileObject);
+      });
+
+      await createFile(parentId, file.name, {
+        data: fileData,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+      });
+    };
+
+    // Helper to upload folder structure recursively
+    const uploadFolderStructure = async (folders, parentId) => {
+      for (const [folderName, folderContent] of Object.entries(folders)) {
+        // Create the folder
+        const folderId = await createItem(parentId, folderName, 'folder');
+
+        // Upload files in this folder
+        for (const file of folderContent.files || []) {
+          await uploadFile(file, folderId);
+        }
+
+        // Recursively upload subfolders
+        if (folderContent.folders && Object.keys(folderContent.folders).length > 0) {
+          await uploadFolderStructure(folderContent.folders, folderId);
+        }
+      }
+    };
+
     try {
-      for (let i = 0; i < droppedFiles.length; i++) {
-        const file = droppedFiles[i];
-        setUploadProgress({ current: i, total: droppedFiles.length });
+      let uploadedCount = 0;
 
-        // Small delay between files to show progress
-        await new Promise(resolve => setTimeout(resolve, 300));
+      // Upload root-level files
+      for (const file of structure.files || []) {
+        setUploadProgress({ current: uploadedCount, total: files.length });
+        await new Promise(resolve => setTimeout(resolve, 200));
+        await uploadFile(file, SYSTEM_IDS.DESKTOP);
+        uploadedCount++;
+        setUploadProgress({ current: uploadedCount, total: files.length });
+      }
 
-        // Read file as base64 for storage
-        const reader = new FileReader();
-        const fileData = await new Promise((resolve, reject) => {
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(file.fileObject);
-        });
-
-        // Create file in Desktop folder
-        await createFile(SYSTEM_IDS.DESKTOP, file.name, {
-          data: fileData,
-          size: file.size,
-          type: file.type,
-          lastModified: file.lastModified,
-        });
-
-        // Update progress after file is saved
-        setUploadProgress({ current: i + 1, total: droppedFiles.length });
+      // Upload folder structure
+      if (structure.folders && Object.keys(structure.folders).length > 0) {
+        await uploadFolderStructure(structure.folders, SYSTEM_IDS.DESKTOP);
       }
 
       // Final delay to show completion
@@ -526,7 +609,7 @@ function WinXP() {
       setDroppedFiles(null);
       setUploadProgress(null);
     }
-  }, [droppedFiles, createFile]);
+  }, [droppedFiles, createFile, createItem]);
 
   const handleUploadCancel = useCallback(() => {
     if (!isUploading) {

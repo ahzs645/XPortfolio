@@ -4,7 +4,7 @@ import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../../../contexts/FileSyste
 import { parseDroppedFiles } from '../../../utils/fileDropParser';
 import { ProgramLayout } from '../../../components';
 
-function MyComputer({ onClose, onMinimize, onMaximize }) {
+function MyComputer({ onClose, onMinimize, onMaximize, initialPath }) {
   const {
     fileSystem,
     isLoading,
@@ -21,7 +21,7 @@ function MyComputer({ onClose, onMinimize, onMaximize }) {
     clipboardOp,
   } = useFileSystem();
 
-  const [currentFolder, setCurrentFolder] = useState(SYSTEM_IDS.C_DRIVE);
+  const [currentFolder, setCurrentFolder] = useState(initialPath || SYSTEM_IDS.C_DRIVE);
   const [selectedItems, setSelectedItems] = useState([]);
   const [contextMenu, setContextMenu] = useState(null);
   const [renamingItem, setRenamingItem] = useState(null);

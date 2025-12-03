@@ -3,11 +3,14 @@ import styled from 'styled-components';
 import { ProgramLayout } from '../../../components';
 import usageGuide from '../../../components/WindowBars/USAGE.md?raw';
 
-function Notepad({ onClose, onMinimize }) {
-  const initialDocument = useMemo(
+function Notepad({ onClose, onMinimize, initialContent, fileName }) {
+  const defaultDocument = useMemo(
     () => usageGuide.replace(/\r\n/g, '\n'),
     []
   );
+
+  // Use initialContent if provided, otherwise use default usage guide
+  const initialDocument = initialContent !== undefined ? initialContent : defaultDocument;
 
   const [text, setText] = useState(initialDocument);
   const [wordWrap, setWordWrap] = useState(true);
