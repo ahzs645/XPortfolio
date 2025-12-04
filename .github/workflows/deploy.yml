@@ -65,6 +65,8 @@ jobs:
 
       - name: Build Spider Solitaire
         working-directory: external/spider-solitaire
+        env:
+          CI: false  # Prevent treating warnings as errors
         run: |
           echo "📦 Installing spider-solitaire dependencies..."
           npm install

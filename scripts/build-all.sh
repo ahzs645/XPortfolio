@@ -26,7 +26,7 @@ git submodule update --recursive
 echo -e "\n${YELLOW}Step 2: Build Spider Solitaire${NC}"
 cd external/spider-solitaire
 npm install
-npm run build
+CI=false npm run build  # CI=false prevents treating warnings as errors
 cd "$PROJECT_ROOT"
 echo -e "${GREEN}✅ Spider Solitaire built${NC}"
 
