@@ -150,8 +150,7 @@
       }
 
       .st62, .st63 {
-        font-family: FranklinGothicURW-Med, 'FranklinGothic URW', 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
-        font-weight: 500;
+        font-family: FranklinGothicURW-Med, 'FranklinGothic URW', Arial, sans-serif;
       }
 
       .st62, .st63, .st64 {
