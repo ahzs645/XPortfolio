@@ -295,24 +295,51 @@ const WelcomeBalloon = styled.div`
   }
 
   .balloon__close {
+    all: unset;
     position: absolute;
     top: 4px;
     right: 4px;
-    width: 16px;
-    height: 16px;
-    border: none;
-    background: transparent;
+    width: 14px;
+    height: 14px;
+    background-color: transparent;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+    box-sizing: border-box;
+    display: block;
     cursor: pointer;
-    font-size: 14px;
-    line-height: 1;
-    color: #666;
+
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      left: 5px;
+      top: 2px;
+      width: 2px;
+      height: 8px;
+      background-color: #aaa;
+    }
 
     &::before {
-      content: 'x';
+      transform: rotate(45deg);
+    }
+
+    &::after {
+      transform: rotate(-45deg);
     }
 
     &:hover {
-      color: #000;
+      background-color: #dd0f0f;
+      border-color: #fff;
+      box-shadow: 1px 1px rgba(0, 0, 0, 0.1);
+
+      &::before,
+      &::after {
+        background-color: #fff;
+      }
+    }
+
+    &:active {
+      background-color: #a00a0a;
     }
   }
 
