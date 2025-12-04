@@ -43,9 +43,14 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   const [uploadProgress, setUploadProgress] = useState(null);
   const [draggingItems, setDraggingItems] = useState(null); // Array of item IDs being dragged
   const [dropTargetId, setDropTargetId] = useState(null); // Folder being hovered during drag
+  const [selecting, setSelecting] = useState(null); // { startX, startY } for drag selection
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 }); // Current mouse position during selection
   const isDraggingInternalRef = useRef(false); // Sync ref for drag state (React state updates are async)
+  const justFinishedSelectingRef = useRef(false); // Prevent click from clearing selection after drag
   const containerRef = useRef(null);
+  const contentRef = useRef(null);
   const fileInputRef = useRef(null);
+  const itemRefs = useRef({});
 
   const currentFolderData = isMyComputerRoot ? null : fileSystem?.[currentFolder];
   const contents = isMyComputerRoot ? [] : getFolderContents(currentFolder);
@@ -254,9 +259,105 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   }, [renamingItem, renameValue, renameItem]);
 
   const handleContainerClick = useCallback(() => {
+    // Don't clear selection if we just finished a drag selection
+    if (justFinishedSelectingRef.current) {
+      justFinishedSelectingRef.current = false;
+      return;
+    }
     setSelectedItems([]);
     setContextMenu(null);
   }, []);
+
+  // Drag selection handlers
+  const handleContentMouseDown = useCallback((e) => {
+    // Only start selection if clicking on the content background (not on items)
+    if (e.target !== e.currentTarget) return;
+    // Don't start selection on right-click
+    if (e.button !== 0) return;
+
+    const contentRect = contentRef.current?.getBoundingClientRect();
+    if (!contentRect) return;
+
+    const startX = e.clientX - contentRect.left + (contentRef.current?.scrollLeft || 0);
+    const startY = e.clientY - contentRect.top + (contentRef.current?.scrollTop || 0);
+
+    setSelecting({ startX, startY });
+    setMousePos({ x: startX, y: startY });
+    setSelectedItems([]);
+  }, []);
+
+  // Handle mouse move and mouse up for selection
+  useEffect(() => {
+    if (!selecting) return;
+
+    const handleMouseMove = (e) => {
+      const contentRect = contentRef.current?.getBoundingClientRect();
+      if (!contentRect) return;
+
+      const x = e.clientX - contentRect.left + (contentRef.current?.scrollLeft || 0);
+      const y = e.clientY - contentRect.top + (contentRef.current?.scrollTop || 0);
+      setMousePos({ x, y });
+
+      // Calculate selection rectangle
+      const left = Math.min(selecting.startX, x);
+      const top = Math.min(selecting.startY, y);
+      const width = Math.abs(x - selecting.startX);
+      const height = Math.abs(y - selecting.startY);
+
+      // Check which items intersect with the selection rectangle
+      const selectedIds = [];
+      for (const item of contents) {
+        const itemEl = itemRefs.current[item.id];
+        if (!itemEl) continue;
+
+        const itemRect = itemEl.getBoundingClientRect();
+        const contentRect = contentRef.current?.getBoundingClientRect();
+        if (!contentRect) continue;
+
+        // Get item position relative to content (accounting for scroll)
+        const itemLeft = itemRect.left - contentRect.left + (contentRef.current?.scrollLeft || 0);
+        const itemTop = itemRect.top - contentRect.top + (contentRef.current?.scrollTop || 0);
+        const itemRight = itemLeft + itemRect.width;
+        const itemBottom = itemTop + itemRect.height;
+
+        // Check intersection
+        const intersects = !(
+          itemRight < left ||
+          itemLeft > left + width ||
+          itemBottom < top ||
+          itemTop > top + height
+        );
+
+        if (intersects) {
+          selectedIds.push(item.id);
+        }
+      }
+
+      setSelectedItems(selectedIds);
+    };
+
+    const handleMouseUp = () => {
+      // Mark that we just finished selecting to prevent click from clearing selection
+      justFinishedSelectingRef.current = true;
+      setSelecting(null);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [selecting, contents]);
+
+  // Calculate selection box dimensions
+  const selectionBox = selecting ? {
+    left: Math.min(selecting.startX, mousePos.x),
+    top: Math.min(selecting.startY, mousePos.y),
+    width: Math.abs(mousePos.x - selecting.startX),
+    height: Math.abs(mousePos.y - selecting.startY),
+  } : null;
 
   // File upload handlers (for external files dragged from computer or cross-window)
   const handleDragOver = useCallback((e) => {
@@ -764,7 +865,12 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
             </MyComputerContent>
           </MyComputerLayout>
         ) : (
-          <Content onContextMenu={(e) => handleContextMenu(e, null)} $isDragOver={isDragOver}>
+          <Content
+            ref={contentRef}
+            onContextMenu={(e) => handleContextMenu(e, null)}
+            onMouseDown={handleContentMouseDown}
+            $isDragOver={isDragOver}
+          >
             {contents.length === 0 ? (
               <EmptyMessage>
                 This folder is empty.
@@ -776,6 +882,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
               contents.map(item => (
                 <FileItem
                   key={item.id}
+                  ref={(el) => { itemRefs.current[item.id] = el; }}
                   $selected={selectedItems.includes(item.id)}
                   $isCut={clipboardOp === 'cut' && clipboard.includes(item.id)}
                   $isDragging={draggingItems?.includes(item.id)}
@@ -806,6 +913,16 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
                   )}
                 </FileItem>
               ))
+            )}
+            {selectionBox && (
+              <SelectionBox
+                style={{
+                  left: selectionBox.left,
+                  top: selectionBox.top,
+                  width: selectionBox.width,
+                  height: selectionBox.height,
+                }}
+              />
             )}
           </Content>
         )}
@@ -887,6 +1004,15 @@ const Content = styled.div`
   border: 1px solid #808080;
   border-top: 1px solid #404040;
   border-left: 1px solid #404040;
+  position: relative;
+`;
+
+const SelectionBox = styled.div`
+  position: absolute;
+  border: 1px dashed #0b61ff;
+  background: rgba(11, 97, 255, 0.1);
+  pointer-events: none;
+  z-index: 50;
 `;
 
 const EmptyMessage = styled.div`

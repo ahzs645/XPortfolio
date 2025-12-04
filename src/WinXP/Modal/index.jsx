@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import styled from 'styled-components';
 import { POWER_STATE } from '../constants';
 
-function Modal({ onClose, onClickButton, mode }) {
+function Modal({ onClose, onRestart, onLogOff, onShutDown, mode }) {
   const isLogOff = mode === POWER_STATE.LOG_OFF;
 
   return ReactDOM.createPortal(
@@ -22,22 +22,22 @@ function Modal({ onClose, onClickButton, mode }) {
           <DialogButtonContainer>
             {isLogOff ? (
               <>
-                <DialogButton onClick={onClickButton} role="button" tabIndex={0}>
+                <DialogButton onClick={onRestart} role="button" tabIndex={0}>
                   <img src="/assets/gui/start-menu/restart.webp" alt="" />
                   <span>Restart</span>
                 </DialogButton>
-                <DialogButton onClick={onClickButton} role="button" tabIndex={0}>
+                <DialogButton onClick={onLogOff} role="button" tabIndex={0}>
                   <img src="/assets/gui/start-menu/logoff.webp" alt="" />
                   <span>Log Off</span>
                 </DialogButton>
               </>
             ) : (
               <>
-                <DialogButton onClick={onClickButton} role="button" tabIndex={0}>
+                <DialogButton onClick={onRestart} role="button" tabIndex={0}>
                   <img src="/assets/gui/start-menu/restart.webp" alt="" />
                   <span>Restart</span>
                 </DialogButton>
-                <DialogButton onClick={onClickButton} role="button" tabIndex={0} $disabled>
+                <DialogButton onClick={onShutDown} role="button" tabIndex={0} $disabled>
                   <img src="/assets/gui/start-menu/shutdown.webp" alt="" />
                   <span>Shut Down</span>
                 </DialogButton>

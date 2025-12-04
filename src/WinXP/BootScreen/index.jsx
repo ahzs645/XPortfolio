@@ -16,6 +16,12 @@ function BootScreen({ bootState, onComplete }) {
   const bootLogo = getLoadingImagePath();
 
   useEffect(() => {
+    // If coming from log off, skip boot animation and show login directly
+    if (bootState === BOOT_STATE.LOGIN) {
+      setShowLogin(true);
+      return;
+    }
+
     if (bootState === BOOT_STATE.BOOTING && !isLoading) {
       // Boot sequence timing - wait for config to load first
       const bootTimer = setTimeout(() => {

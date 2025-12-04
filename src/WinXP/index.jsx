@@ -895,7 +895,22 @@ function WinXP() {
     }
   }, [moveItem]);
 
-  function onClickModalButton() {
+  function onModalRestart() {
+    // Restart: reload the page to show the boot sequence again
+    dispatch({ type: CANCEL_POWER_OFF });
+    window.location.reload();
+  }
+
+  function onModalLogOff() {
+    // Log off: play sound and go back to login screen
+    playLogoff();
+    dispatch({ type: CANCEL_POWER_OFF });
+    // Reset boot state to show login screen directly (skip boot animation)
+    dispatch({ type: SET_BOOT_STATE, payload: BOOT_STATE.LOGIN });
+  }
+
+  function onModalShutDown() {
+    // Shut down is disabled in the UI, but handle it just in case
     dispatch({ type: CANCEL_POWER_OFF });
   }
 
@@ -1138,7 +1153,9 @@ function WinXP() {
       {state.powerState !== POWER_STATE.START && (
         <Modal
           onClose={onModalClose}
-          onClickButton={onClickModalButton}
+          onRestart={onModalRestart}
+          onLogOff={onModalLogOff}
+          onShutDown={onModalShutDown}
           mode={state.powerState}
         />
       )}
