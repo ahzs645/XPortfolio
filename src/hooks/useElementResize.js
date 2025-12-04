@@ -1,4 +1,33 @@
 import { useEffect, useState } from 'react';
+import { isMobileDevice } from '../utils/deviceDetection';
+
+// Calculate mobile-friendly initial position and size
+function getMobileConstrainedValues(defaultOffset, defaultSize, minSize) {
+  if (!isMobileDevice()) {
+    return { offset: defaultOffset, size: defaultSize };
+  }
+
+  const screenWidth = window.innerWidth;
+  const screenHeight = window.innerHeight;
+  const taskbarHeight = 30;
+  const padding = 5;
+
+  // Constrain size to fit screen
+  const maxWidth = screenWidth - padding * 2;
+  const maxHeight = screenHeight - taskbarHeight - padding * 2;
+
+  const width = Math.min(defaultSize.width, maxWidth);
+  const height = Math.min(defaultSize.height, maxHeight);
+
+  // Center the window or constrain position
+  const x = Math.max(padding, Math.min(defaultOffset.x, screenWidth - width - padding));
+  const y = Math.max(padding, Math.min(defaultOffset.y, screenHeight - height - taskbarHeight - padding));
+
+  return {
+    offset: { x, y },
+    size: { width, height },
+  };
+}
 
 function useElementResize(ref, options) {
   const {
@@ -12,8 +41,11 @@ function useElementResize(ref, options) {
   } = options;
   const minWidth = minSize?.width || constraintSize;
   const minHeight = minSize?.height || constraintSize;
-  const [offset, setOffset] = useState(defaultOffset);
-  const [size, setSize] = useState(defaultSize);
+
+  // Get mobile-constrained initial values
+  const initialValues = getMobileConstrainedValues(defaultOffset, defaultSize, minSize);
+  const [offset, setOffset] = useState(initialValues.offset);
+  const [size, setSize] = useState(initialValues.size);
   const cursorPos = useCursor(ref, resizeThreshold, resizable);
 
   useEffect(() => {
