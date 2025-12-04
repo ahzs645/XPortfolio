@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../../../contexts/FileSystemContext';
 import { useApp } from '../../../contexts/AppContext';
+import { useConfig } from '../../../contexts/ConfigContext';
 import { parseDroppedFiles } from '../../../utils/fileDropParser';
 import { ProgramLayout, TaskPanel } from '../../../components';
 import { ContextMenu } from '../../components/ContextMenu';
@@ -29,6 +30,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   } = useFileSystem();
 
   const { openFile } = useApp();
+  const { isFileDropUploadEnabled } = useConfig();
 
   // null = My Computer root view, otherwise folder ID
   const [currentFolder, setCurrentFolder] = useState(initialPath || null);
@@ -256,19 +258,27 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     setContextMenu(null);
   }, []);
 
-  // File upload handlers (for external files dragged from computer)
+  // File upload handlers (for external files dragged from computer or cross-window)
   const handleDragOver = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
-    // Only show upload overlay for external file drags, not internal item drags
-    // Use ref for sync check since React state updates are async
+    // Don't show overlay for internal drags within this window
     if (isDraggingInternalRef.current) return;
 
+    // Allow cross-window file system item drops
+    const hasXPortfolioItems = e.dataTransfer?.types?.includes('application/x-xportfolio-items');
+    if (hasXPortfolioItems) {
+      e.dataTransfer.dropEffect = 'move';
+      return;
+    }
+
+    // Show upload overlay only for external file uploads
+    if (!isFileDropUploadEnabled()) return;
     const hasExternalFiles = e.dataTransfer?.types?.includes('Files');
     if (hasExternalFiles) {
       setIsDragOver(true);
     }
-  }, []);
+  }, [isFileDropUploadEnabled]);
 
   const handleDragLeave = useCallback((e) => {
     e.preventDefault();
@@ -283,10 +293,27 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     e.stopPropagation();
     setIsDragOver(false);
 
-    // If this is an internal drag, don't handle as external file upload
+    // If this is an internal drag within this window, don't handle here
     if (isDraggingInternalRef.current) return;
 
     if (currentFolderData?.type === 'file') return;
+
+    // Check for cross-window file system item drops (from desktop or other file explorer)
+    const xportfolioData = e.dataTransfer.getData('application/x-xportfolio-items');
+    if (xportfolioData && moveItem) {
+      try {
+        const itemIds = JSON.parse(xportfolioData);
+        for (const itemId of itemIds) {
+          moveItem(itemId, currentFolder);
+        }
+      } catch (error) {
+        console.error('Error moving items:', error);
+      }
+      return;
+    }
+
+    // Handle external file uploads
+    if (!isFileDropUploadEnabled()) return;
 
     try {
       const files = await parseDroppedFiles(e);
@@ -305,7 +332,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
       console.error('Error uploading files:', error);
       setUploadProgress(null);
     }
-  }, [currentFolder, currentFolderData, createItem]);
+  }, [currentFolder, currentFolderData, createItem, isFileDropUploadEnabled, moveItem]);
 
   const handleFileInputChange = useCallback(async (e) => {
     const files = Array.from(e.target.files || []);
@@ -339,9 +366,9 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
 
     setDraggingItems(itemsToDrag);
 
-    // Set drag data for visual feedback
+    // Set drag data with consistent MIME type for cross-window support
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('application/x-file-explorer-item', itemsToDrag.join(','));
+    e.dataTransfer.setData('application/x-xportfolio-items', JSON.stringify(itemsToDrag));
 
     // Create a custom drag image (optional)
     if (e.dataTransfer.setDragImage && e.target) {

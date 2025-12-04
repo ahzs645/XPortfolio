@@ -82,6 +82,9 @@ function getDefaultConfig() {
     // Media player
     MEDIA_PLAYER_PRIMARY_PLAYLIST: 'PLWoiCrWR5QfNd1s2WwJwjqBfWewzIszLb',
     MEDIA_PLAYER_ALT_PLAYLIST: 'PLgwcgfCVaMC1z5AqphnubDfIu_pp0Ok9O',
+
+    // File system
+    ENABLE_FILE_DROP_UPLOAD: true,
   };
 }
 
@@ -385,6 +388,11 @@ export function ConfigProvider({ children }) {
     return config?.SHOW_PROJECTS_WITHOUT_MARKDOWN !== false;
   };
 
+  // Check if file drop upload is enabled
+  const isFileDropUploadEnabled = () => {
+    return config?.ENABLE_FILE_DROP_UPLOAD !== false;
+  };
+
   // Get about content (load from markdown)
   const [aboutContent, setAboutContent] = useState(null);
 
@@ -459,6 +467,8 @@ export function ConfigProvider({ children }) {
     getProjectsDir,
     isProjectMarkdownEnabled,
     shouldShowProjectsWithoutMarkdown,
+    // File system
+    isFileDropUploadEnabled,
     // Feature checks
     isFeatureEnabled,
   };

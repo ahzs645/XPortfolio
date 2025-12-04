@@ -563,7 +563,7 @@ export const appSettings = {
     resizable: true,
     minimized: false,
     maximized: false,
-    multiInstance: false,
+    multiInstance: true,
   },
   'Help and Support': {
     header: {

@@ -446,8 +446,8 @@ const ControlsRow = styled.div`
 `;
 
 const CtrlBtn = styled.button`
-  width: 44px;
-  height: 22px;
+  width: 48px;
+  height: 24px;
   padding: 0;
   background: #c0c0c0;
   border: 2px outset #fff;
@@ -455,6 +455,7 @@ const CtrlBtn = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 
   &:active:not(:disabled) {
     border-style: inset;
@@ -466,12 +467,11 @@ const CtrlBtn = styled.button`
 `;
 
 const BtnIcon = styled.div`
-  width: 40px;
-  height: 18px;
+  width: 44px;
+  height: 20px;
   background-image: url('/icons/xp/sound-recorder-buttons.png');
   background-repeat: no-repeat;
-  background-position: ${props => -props.$index * 44}px center;
-  background-size: auto 18px;
+  background-position: ${props => -props.$index * 44}px 0;
   ${props => props.$disabled && 'opacity: 0.4; filter: grayscale(100%);'}
 `;
 

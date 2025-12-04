@@ -285,7 +285,7 @@ function WinXP() {
   const { width } = useWindowSize();
   const focusedAppId = getFocusedAppId();
   const { playLogoff, playBalloon } = useSystemSounds();
-  const { getWallpaperPath, isLoading: configLoading } = useConfig();
+  const { getWallpaperPath, isLoading: configLoading, isFileDropUploadEnabled } = useConfig();
   const {
     createFile,
     createItem,
@@ -881,10 +881,17 @@ function WinXP() {
     e.preventDefault();
     e.stopPropagation();
     dragCounterRef.current++;
+
+    // Allow cross-window file system item drops without showing overlay
+    if (e.dataTransfer?.types?.includes('application/x-xportfolio-items')) {
+      return;
+    }
+
+    if (!isFileDropUploadEnabled()) return;
     if (e.dataTransfer?.types?.includes('Files')) {
       setIsDraggingFiles(true);
     }
-  }, []);
+  }, [isFileDropUploadEnabled]);
 
   const handleDragLeave = useCallback((e) => {
     e.preventDefault();
@@ -898,6 +905,10 @@ function WinXP() {
   const handleDragOver = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
+    // Allow cross-window drops
+    if (e.dataTransfer?.types?.includes('application/x-xportfolio-items')) {
+      e.dataTransfer.dropEffect = 'move';
+    }
   }, []);
 
   const handleDrop = useCallback(async (e) => {
@@ -905,6 +916,23 @@ function WinXP() {
     e.stopPropagation();
     setIsDraggingFiles(false);
     dragCounterRef.current = 0;
+
+    // Check for cross-window file system item drops (from file explorer)
+    const xportfolioData = e.dataTransfer.getData('application/x-xportfolio-items');
+    if (xportfolioData && moveItem) {
+      try {
+        const itemIds = JSON.parse(xportfolioData);
+        for (const itemId of itemIds) {
+          // Move items to desktop folder
+          moveItem(itemId, SYSTEM_IDS.DESKTOP);
+        }
+      } catch (error) {
+        console.error('Error moving items to desktop:', error);
+      }
+      return;
+    }
+
+    if (!isFileDropUploadEnabled()) return;
 
     try {
       const { files, structure } = await parseFileStructure(e);
@@ -914,7 +942,7 @@ function WinXP() {
     } catch (error) {
       console.error('Error parsing dropped files:', error);
     }
-  }, []);
+  }, [isFileDropUploadEnabled, moveItem]);
 
   const handleUploadConfirm = useCallback(async () => {
     if (!droppedFiles) return;

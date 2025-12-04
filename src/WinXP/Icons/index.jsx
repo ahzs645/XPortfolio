@@ -213,6 +213,19 @@ function Icons({
     return { x: icon.x, y: icon.y };
   };
 
+  // Handle HTML5 drag start for cross-window support
+  const handleDragStart = useCallback((e, icon) => {
+    // Get all selected icons or just this one
+    const selectedIcons = icons.filter((i) => i.isFocus);
+    const itemsToDrag = selectedIcons.some(i => i.id === icon.id) && selectedIcons.length > 0
+      ? selectedIcons.map(i => i.id)
+      : [icon.id];
+
+    // Set data for cross-window drops
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('application/x-xportfolio-items', JSON.stringify(itemsToDrag));
+  }, [icons]);
+
   // Check if an icon is in the cut clipboard
   const isCutIcon = (iconId) => clipboardOp === 'cut' && clipboard?.includes(iconId);
 
@@ -228,6 +241,8 @@ function Icons({
           <Icon
             key={icon.id}
             ref={(el) => (iconRefs.current[index] = el)}
+            draggable={!isRenaming}
+            onDragStart={(e) => handleDragStart(e, icon)}
             onMouseDown={(e) => !isRenaming && handleMouseDown(e, icon)}
             onDoubleClick={() => !isRenaming && handleDoubleClick(icon)}
             onContextMenu={(e) => handleContextMenu(e, icon)}
