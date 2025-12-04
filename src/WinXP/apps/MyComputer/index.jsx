@@ -5,6 +5,7 @@ import { parseDroppedFiles } from '../../../utils/fileDropParser';
 import { ProgramLayout, TaskPanel } from '../../../components';
 import { ContextMenu } from '../../components/ContextMenu';
 import { useFileContextMenu, useBackgroundContextMenu } from '../../hooks/useFileContextMenu';
+import { createArchive, extractArchive } from '../../../utils/archiveUtils';
 
 function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPath }) {
   const {
@@ -13,6 +14,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     getFolderContents,
     getPath,
     createItem,
+    createFile,
     deleteItem,
     moveToRecycleBin,
     renameItem,
@@ -21,6 +23,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     paste,
     clipboard,
     clipboardOp,
+    getFileContent,
   } = useFileSystem();
 
   // null = My Computer root view, otherwise folder ID
@@ -310,6 +313,40 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     fileInputRef.current?.click();
   }, []);
 
+  // Archive handlers
+  const handleAddToArchive = useCallback(async () => {
+    if (selectedItems.length === 0) return;
+    try {
+      const { blob, filename } = await createArchive(fileSystem, selectedItems, getFileContent);
+      // Convert blob to data URL and save as file
+      const dataUrl = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
+      await createFile(currentFolder || SYSTEM_IDS.MY_DOCUMENTS, filename, {
+        data: dataUrl,
+        size: blob.size,
+        type: 'application/zip',
+      });
+    } catch (error) {
+      console.error('Failed to create archive:', error);
+    }
+  }, [selectedItems, fileSystem, getFileContent, createFile, currentFolder]);
+
+  const handleExtractHere = useCallback(async () => {
+    if (!selectedItem || selectedItems.length !== 1) return;
+    try {
+      const content = await getFileContent(selectedItem.id);
+      if (content) {
+        const targetFolder = currentFolder || SYSTEM_IDS.MY_DOCUMENTS;
+        await extractArchive(content, fileSystem, targetFolder, createItem, createFile);
+      }
+    } catch (error) {
+      console.error('Failed to extract archive:', error);
+    }
+  }, [selectedItem, selectedItems, getFileContent, fileSystem, currentFolder, createItem, createFile]);
+
   // Use the shared hook for file/folder context menu
   const itemMenuItems = useFileContextMenu({
     selectedItem: contextMenu?.isItem ? selectedItem : null,
@@ -323,6 +360,8 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     onDelete: withClose(handleDelete),
     onRename: withClose(handleRename),
     onProperties: withClose(() => console.log('Properties for', selectedItem?.name)),
+    onAddToArchive: withClose(handleAddToArchive),
+    onExtractHere: withClose(handleExtractHere),
   });
 
   // Use the shared hook for background context menu

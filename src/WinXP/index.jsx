@@ -8,6 +8,7 @@ import { ContextMenu } from './components/ContextMenu';
 import { parseFileStructure } from '../utils/fileDropParser';
 import FileUploadDialog from './FileUploadDialog';
 import { useFileContextMenu, useBackgroundContextMenu } from './hooks/useFileContextMenu';
+import { createArchive, extractArchive, isArchiveFile } from '../utils/archiveUtils';
 
 // Convert file system items to desktop icon format
 const convertToDesktopIcons = (items, appSettings, savedPositions = {}) => {
@@ -567,11 +568,15 @@ function WinXP() {
   }
 
   function onMouseDownDesktop(e) {
-    if (e.target === e.currentTarget) {
+    // Only start selection when clicking on the desktop background directly
+    // or on elements that don't handle their own clicks (pointer-events: none passes through)
+    if (e.target === e.currentTarget || e.target.closest('[data-desktop-area]')) {
       setDesktopContextMenu(null);
+      setIconContextMenu(null);
+      // Use event coordinates directly instead of mouse hook (which only updates on move)
       dispatch({
         type: START_SELECT,
-        payload: { x: mouse.docX, y: mouse.docY },
+        payload: { x: e.pageX, y: e.pageY },
       });
     }
   }
@@ -702,6 +707,43 @@ function WinXP() {
           setRenameValue(item.name);
         }
         break;
+      case 'addToArchive': {
+        // Create a zip archive from selected items
+        try {
+          const { blob, filename } = await createArchive(fileSystem, targetIds, getFileContent);
+          // Convert blob to data URL and save as file
+          const dataUrl = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+          });
+          await createFile(SYSTEM_IDS.DESKTOP, filename, {
+            data: dataUrl,
+            size: blob.size,
+            type: 'application/zip',
+          });
+        } catch (error) {
+          console.error('Failed to create archive:', error);
+        }
+        break;
+      }
+      case 'extractHere': {
+        // Extract archive to desktop
+        try {
+          const fileItem = fileSystem?.[icon.id];
+          if (fileItem) {
+            const content = await getFileContent(icon.id);
+            if (content) {
+              // Get parent folder (Desktop for desktop icons)
+              const parentFolder = fileItem.parent || SYSTEM_IDS.DESKTOP;
+              await extractArchive(content, fileSystem, parentFolder, createItem, createFile);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to extract archive:', error);
+        }
+        break;
+      }
       case 'properties': {
         // Open Properties dialog for the icon
         const propertiesSetting = {
@@ -730,7 +772,7 @@ function WinXP() {
       default:
         console.log('Icon action:', action);
     }
-  }, [iconContextMenu, state.icons, fileSystem, copy, cut, moveToRecycleBin]);
+  }, [iconContextMenu, state.icons, fileSystem, copy, cut, moveToRecycleBin, getFileContent, createFile, createItem]);
 
   const closeIconContextMenu = useCallback(() => setIconContextMenu(null), []);
 
@@ -776,6 +818,8 @@ function WinXP() {
     onDelete: () => handleIconMenuAction('delete'),
     onRename: () => handleIconMenuAction('rename'),
     onProperties: () => handleIconMenuAction('properties'),
+    onAddToArchive: () => handleIconMenuAction('addToArchive'),
+    onExtractHere: () => handleIconMenuAction('extractHere'),
   });
 
   // Use the shared hook for desktop background context menu

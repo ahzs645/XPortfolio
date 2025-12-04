@@ -19,6 +19,10 @@ export function useFileContextMenu({
   onRename,
   onProperties,
 
+  // Archive operations
+  onAddToArchive,
+  onExtractHere,
+
   // Clipboard state
   clipboard = [],
   clipboardOp = 'copy',
@@ -84,20 +88,22 @@ export function useFileContextMenu({
     items.push({ type: 'divider' });
 
     // Archive-specific options
-    if (isArchive) {
+    if (isArchive && onExtractHere) {
       items.push({
         label: 'Extract here...',
         icon: XP_ICONS.rar,
-        onClick: () => console.log('Extract here:', selectedItem.name),
+        onClick: onExtractHere,
       });
     }
 
     // Add to archive (for any file/folder)
-    items.push({
-      label: 'Add to archive...',
-      icon: XP_ICONS.rar,
-      onClick: () => console.log('Add to archive:', selectedItem.name),
-    });
+    if (onAddToArchive) {
+      items.push({
+        label: 'Add to archive...',
+        icon: XP_ICONS.rar,
+        onClick: onAddToArchive,
+      });
+    }
 
     items.push({ type: 'divider' });
 
@@ -165,6 +171,8 @@ export function useFileContextMenu({
     onDelete,
     onRename,
     onProperties,
+    onAddToArchive,
+    onExtractHere,
   ]);
 
   return menuItems;
