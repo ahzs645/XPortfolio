@@ -11,6 +11,7 @@ function Icons({
   selecting,
   setSelectedIcons,
   onUpdatePositions,
+  onMoveToFolder,
   renamingIconId,
   renameValue,
   onRenameChange,
@@ -23,6 +24,7 @@ function Icons({
   const [iconsRect, setIconsRect] = useState([]);
   const [dragging, setDragging] = useState(null); // { id, startX, startY, iconStartX, iconStartY }
   const [dragPositions, setDragPositions] = useState({}); // Temporary positions during drag
+  const [dropTargetId, setDropTargetId] = useState(null); // Folder being hovered during drag
   const iconRefs = useRef([]);
   const containerRef = useRef(null);
 
@@ -85,6 +87,7 @@ function Icons({
       // Get all selected icons or just the dragged one
       const selectedIcons = icons.filter((icon) => icon.isFocus);
       const iconsToMove = selectedIcons.length > 0 ? selectedIcons : [icons.find((i) => i.id === dragging.id)];
+      const draggedIds = iconsToMove.map(i => i?.id).filter(Boolean);
 
       const newPositions = {};
       iconsToMove.forEach((icon) => {
@@ -97,15 +100,54 @@ function Icons({
       });
 
       setDragPositions(newPositions);
+
+      // Check if hovering over a folder (for drop target)
+      const mouseX = e.clientX;
+      const mouseY = e.clientY;
+      let foundTarget = null;
+
+      for (const rect of iconsRect) {
+        if (!rect) continue;
+        // Skip if this icon is being dragged
+        if (draggedIds.includes(rect.id)) continue;
+
+        // Check if mouse is over this icon
+        if (
+          mouseX >= rect.x &&
+          mouseX <= rect.x + rect.w &&
+          mouseY >= rect.y &&
+          mouseY <= rect.y + rect.h
+        ) {
+          // Check if it's a folder
+          const icon = icons.find(i => i.id === rect.id);
+          if (icon && icon.type === 'folder') {
+            foundTarget = rect.id;
+            break;
+          }
+        }
+      }
+      setDropTargetId(foundTarget);
     };
 
     const handleMouseUp = () => {
-      // Commit the drag positions
-      if (Object.keys(dragPositions).length > 0) {
-        onUpdatePositions(dragPositions);
+      // Check if we're dropping on a folder
+      if (dropTargetId && onMoveToFolder) {
+        const selectedIcons = icons.filter((icon) => icon.isFocus);
+        const iconsToMove = selectedIcons.length > 0 ? selectedIcons : [icons.find((i) => i.id === dragging.id)];
+        const idsToMove = iconsToMove.map(i => i?.id).filter(Boolean);
+
+        // Move files to the folder
+        onMoveToFolder(idsToMove, dropTargetId);
+      } else {
+        // Commit the drag positions (normal reposition)
+        if (Object.keys(dragPositions).length > 0) {
+          onUpdatePositions(dragPositions);
+        }
       }
+
       setDragging(null);
       setDragPositions({});
+      setDropTargetId(null);
     };
 
     document.addEventListener('mousemove', handleMouseMove);
@@ -115,7 +157,7 @@ function Icons({
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [dragging, dragPositions, icons, onUpdatePositions]);
+  }, [dragging, dragPositions, icons, iconsRect, onUpdatePositions, onMoveToFolder, dropTargetId]);
 
   const handleMouseDown = useCallback((e, icon) => {
     e.stopPropagation();
@@ -173,6 +215,7 @@ function Icons({
         const pos = getIconPosition(icon);
         const isRenaming = renamingIconId === icon.id;
         const isCut = isCutIcon(icon.id);
+        const isDropTarget = dropTargetId === icon.id;
 
         return (
           <Icon
@@ -184,6 +227,7 @@ function Icons({
             $isFocus={icon.isFocus && displayFocus}
             $isDragging={dragging && (dragging.id === icon.id || (icon.isFocus && dragging.iconStartPositions[icon.id]))}
             $isCut={isCut}
+            $isDropTarget={isDropTarget}
             style={{
               left: pos.x,
               top: pos.y,
@@ -238,10 +282,22 @@ const Icon = styled.div`
   padding: 5px;
   cursor: pointer;
   pointer-events: auto;
-  border: ${({ $isFocus }) => ($isFocus ? '1px dotted #aaa' : '1px solid transparent')};
-  background: ${({ $isFocus }) => ($isFocus ? 'rgba(11, 97, 255, 0.3)' : 'transparent')};
+  border: ${({ $isFocus, $isDropTarget }) =>
+    $isDropTarget
+      ? '2px solid #0b61ff'
+      : $isFocus
+      ? '1px dotted #aaa'
+      : '1px solid transparent'};
+  background: ${({ $isFocus, $isDropTarget }) =>
+    $isDropTarget
+      ? 'rgba(11, 97, 255, 0.4)'
+      : $isFocus
+      ? 'rgba(11, 97, 255, 0.3)'
+      : 'transparent'};
   opacity: ${({ $isDragging, $isCut }) => ($isDragging ? 0.8 : $isCut ? 0.5 : 1)};
   z-index: ${({ $isDragging }) => ($isDragging ? 10 : 1)};
+  border-radius: ${({ $isDropTarget }) => ($isDropTarget ? '4px' : '0')};
+  transition: ${({ $isDropTarget }) => ($isDropTarget ? 'background 0.15s, border 0.15s' : 'none')};
 
   &:hover {
     background: rgba(11, 97, 255, 0.15);

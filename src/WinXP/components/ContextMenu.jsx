@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import styled from 'styled-components';
 
 /**
@@ -14,15 +15,58 @@ export function ContextMenu({
   overlayType = 'absolute',
   zIndex = 1000,
 }) {
+  const menuRef = useRef(null);
+  const [adjustedPosition, setAdjustedPosition] = useState(position);
+
+  // Adjust position to keep menu within viewport
+  useEffect(() => {
+    if (!menuRef.current || !position) return;
+
+    const menu = menuRef.current;
+    const rect = menu.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    let newX = position.x;
+    let newY = position.y;
+
+    // Adjust if menu goes off right edge
+    if (position.x + rect.width > viewportWidth) {
+      newX = Math.max(0, viewportWidth - rect.width - 5);
+    }
+
+    // Adjust if menu goes off bottom edge
+    if (position.y + rect.height > viewportHeight) {
+      newY = Math.max(0, viewportHeight - rect.height - 5);
+    }
+
+    if (newX !== position.x || newY !== position.y) {
+      setAdjustedPosition({ x: newX, y: newY });
+    } else {
+      setAdjustedPosition(position);
+    }
+  }, [position]);
+
   if (!position || !items?.length) return null;
 
-  return (
+  const menuContent = (
     <Overlay $type={overlayType} $zIndex={zIndex} onClick={onClose}>
-      <MenuBox style={{ left: position.x, top: position.y }} onClick={(e) => e.stopPropagation()}>
+      <MenuBox
+        ref={menuRef}
+        style={{ left: adjustedPosition.x, top: adjustedPosition.y }}
+        onClick={(e) => e.stopPropagation()}
+      >
         {renderItems(items)}
       </MenuBox>
     </Overlay>
   );
+
+  // Use portal for fixed positioning to escape any CSS transforms
+  if (overlayType === 'fixed') {
+    return createPortal(menuContent, document.body);
+  }
+
+  return menuContent;
 }
 
 function renderItems(items) {

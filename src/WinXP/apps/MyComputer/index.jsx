@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../../../contexts/FileSystemContext';
+import { useApp } from '../../../contexts/AppContext';
 import { parseDroppedFiles } from '../../../utils/fileDropParser';
 import { ProgramLayout, TaskPanel } from '../../../components';
 import { ContextMenu } from '../../components/ContextMenu';
@@ -25,6 +26,8 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     clipboardOp,
     getFileContent,
   } = useFileSystem();
+
+  const { openFile } = useApp();
 
   // null = My Computer root view, otherwise folder ID
   const [currentFolder, setCurrentFolder] = useState(initialPath || null);
@@ -169,10 +172,11 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   const handleItemDoubleClick = useCallback((item) => {
     if (item.type === 'folder' || item.type === 'drive') {
       navigateTo(item.id);
-    } else {
-      console.log('Open file:', item);
+    } else if (item.type === 'file') {
+      // Open file with appropriate application
+      openFile(item);
     }
-  }, [navigateTo]);
+  }, [navigateTo, openFile]);
 
   const handleContextMenu = useCallback((e, item = null) => {
     e.preventDefault();
@@ -182,15 +186,11 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
       setSelectedItems([item.id]);
     }
 
-    // Get the container's bounding rect to account for CSS transforms on parent elements
-    // (transforms create a new containing block for position:fixed children)
-    const rect = containerRef.current?.getBoundingClientRect();
-    const offsetX = rect ? rect.left : 0;
-    const offsetY = rect ? rect.top : 0;
-
+    // Use clientX/clientY directly for fixed positioning
+    // This ensures the menu appears at the cursor and isn't clipped by overflow:hidden
     setContextMenu({
-      x: e.clientX - offsetX,
-      y: e.clientY - offsetY,
+      x: e.clientX,
+      y: e.clientY,
       isItem: !!item,
       itemId: item?.id || null,
     });
@@ -691,8 +691,8 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
 
         {contextMenu && (
           <ContextMenu
-            overlayType="absolute"
-            zIndex={1000}
+            overlayType="fixed"
+            zIndex={10000}
             position={{ x: contextMenu.x, y: contextMenu.y }}
             items={contextMenu.isItem ? itemMenuItems : backgroundMenuItems}
             onClose={closeContextMenu}

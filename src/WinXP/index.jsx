@@ -4,6 +4,7 @@ import { useMouse, useWindowSize } from '../hooks';
 import useSystemSounds from '../hooks/useSystemSounds';
 import { useConfig } from '../contexts/ConfigContext';
 import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../contexts/FileSystemContext';
+import { AppProvider } from '../contexts/AppContext';
 import { ContextMenu } from './components/ContextMenu';
 import { parseFileStructure } from '../utils/fileDropParser';
 import FileUploadDialog from './FileUploadDialog';
@@ -990,6 +991,7 @@ function WinXP() {
   }
 
   return (
+    <AppProvider appSettings={appSettings} dispatch={dispatch} addAppAction={ADD_APP}>
     <Container
       ref={ref}
       onMouseUp={onMouseUpDesktop}
@@ -1086,6 +1088,7 @@ function WinXP() {
         />
       )}
     </Container>
+    </AppProvider>
   );
 }
 

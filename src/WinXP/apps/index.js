@@ -19,6 +19,7 @@ import RecycleBin from './RecycleBin';
 import WinRAR from './WinRAR';
 import InternetExplorer from './InternetExplorer';
 import Properties from './Properties';
+import SoundRecorder from './SoundRecorder';
 
 // XP Icons paths
 const XP_ICONS = {
@@ -33,6 +34,7 @@ const XP_ICONS = {
   recycleBinEmpty: '/icons/xp/RecycleBinempty.png',
   recycleBinFull: '/icons/xp/RecycleBinfull.png',
   internetExplorer: '/icons/xp/InternetExplorer6.png',
+  soundRecorder: '/icons/xp/SoundRecorder.webp',
 };
 
 // Default apps open on startup (empty for now - user opens via desktop icons)
@@ -134,6 +136,11 @@ export const desktopIconCatalog = {
     icon: XP_ICONS.internetExplorer,
     title: 'Internet Explorer',
     component: InternetExplorer,
+  },
+  soundRecorder: {
+    icon: XP_ICONS.soundRecorder,
+    title: 'Sound Recorder',
+    component: SoundRecorder,
   },
 };
 
@@ -678,6 +685,26 @@ export const appSettings = {
     maximized: false,
     multiInstance: true,
   },
+  'Sound Recorder': {
+    header: {
+      icon: XP_ICONS.soundRecorder,
+      title: 'Sound - Sound Recorder',
+      buttons: ['minimize', 'close'],
+    },
+    component: SoundRecorder,
+    defaultSize: {
+      width: 280,
+      height: 180,
+    },
+    defaultOffset: {
+      x: 200,
+      y: 150,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
+  },
 };
 
 export {
@@ -701,4 +728,5 @@ export {
   WinRAR,
   InternetExplorer,
   Properties,
+  SoundRecorder,
 };

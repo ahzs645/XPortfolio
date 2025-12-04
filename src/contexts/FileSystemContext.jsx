@@ -584,6 +584,54 @@ export function FileSystemProvider({ children }) {
     return true;
   }, [fileSystem, getExtension, getBasename]);
 
+  // Move item to a new parent folder
+  const moveItem = useCallback((id, newParentId) => {
+    if (!fileSystem || !fileSystem[id] || !fileSystem[newParentId]) return false;
+    if (PROTECTED_ITEMS.includes(id)) return false;
+
+    const item = fileSystem[id];
+    const oldParentId = item.parent;
+
+    // Can't move to same parent
+    if (oldParentId === newParentId) return false;
+
+    // Can't move into itself
+    if (id === newParentId) return false;
+
+    // Can't move into a file
+    if (fileSystem[newParentId].type === 'file') return false;
+
+    // Can't move a folder into its own descendant
+    let checkParent = fileSystem[newParentId];
+    while (checkParent) {
+      if (checkParent.id === id) return false;
+      checkParent = checkParent.parent ? fileSystem[checkParent.parent] : null;
+    }
+
+    const now = Date.now();
+
+    setFileSystem(prev => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        parent: newParentId,
+        dateModified: now,
+      },
+      [oldParentId]: {
+        ...prev[oldParentId],
+        children: prev[oldParentId].children.filter(cid => cid !== id),
+        dateModified: now,
+      },
+      [newParentId]: {
+        ...prev[newParentId],
+        children: [...prev[newParentId].children, id],
+        dateModified: now,
+      },
+    }));
+
+    return true;
+  }, [fileSystem]);
+
   // Get file content
   const getFileContent = useCallback(async (id) => {
     if (!fileSystem || !fileSystem[id]) return null;
@@ -770,6 +818,7 @@ export function FileSystemProvider({ children }) {
     moveToRecycleBin,
     restoreFromRecycleBin,
     renameItem,
+    moveItem,
     copy,
     cut,
     paste,

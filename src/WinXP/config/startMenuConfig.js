@@ -136,6 +136,13 @@ export const START_MENU_CATALOG = {
     title: 'Help and Support',
     description: null,
   },
+  soundRecorder: {
+    type: 'program',
+    appKey: 'Sound Recorder',
+    icon: '/icons/xp/SoundRecorder.webp',
+    title: 'Sound Recorder',
+    description: null,
+  },
   'divider-main': {
     type: 'separator',
   },
@@ -181,7 +188,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Entertainment',
     icon: '/icons/xp/FolderClosed.png',
-    items: ['mediaPlayer', 'winamp'],
+    items: ['mediaPlayer', 'winamp', 'soundRecorder'],
   },
 };
 
