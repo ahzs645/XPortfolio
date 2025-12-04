@@ -17,6 +17,23 @@
   font-display: swap;
 }
 
+/* Franklin Gothic font for XP logo SVG */
+@font-face {
+  font-family: "FranklinGothic URW";
+  src: url("/fonts/Franklin Gothic Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "FranklinGothicURW-Med";
+  src: url("/fonts/Franklin Gothic Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
 * {
   box-sizing: border-box;
 }
