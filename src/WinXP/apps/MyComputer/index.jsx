@@ -41,6 +41,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   const [uploadProgress, setUploadProgress] = useState(null);
   const [draggingItems, setDraggingItems] = useState(null); // Array of item IDs being dragged
   const [dropTargetId, setDropTargetId] = useState(null); // Folder being hovered during drag
+  const isDraggingInternalRef = useRef(false); // Sync ref for drag state (React state updates are async)
   const containerRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -255,11 +256,18 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     setContextMenu(null);
   }, []);
 
-  // File upload handlers
+  // File upload handlers (for external files dragged from computer)
   const handleDragOver = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragOver(true);
+    // Only show upload overlay for external file drags, not internal item drags
+    // Use ref for sync check since React state updates are async
+    if (isDraggingInternalRef.current) return;
+
+    const hasExternalFiles = e.dataTransfer?.types?.includes('Files');
+    if (hasExternalFiles) {
+      setIsDragOver(true);
+    }
   }, []);
 
   const handleDragLeave = useCallback((e) => {
@@ -274,6 +282,9 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
+
+    // If this is an internal drag, don't handle as external file upload
+    if (isDraggingInternalRef.current) return;
 
     if (currentFolderData?.type === 'file') return;
 
@@ -318,6 +329,9 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
 
   // Internal drag-and-drop handlers (moving files to folders)
   const handleItemDragStart = useCallback((e, item) => {
+    // Mark as internal drag immediately (sync, before React state update)
+    isDraggingInternalRef.current = true;
+
     // Determine which items to drag (selected items or just this one)
     const itemsToDrag = selectedItems.includes(item.id) && selectedItems.length > 0
       ? selectedItems
@@ -327,7 +341,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
 
     // Set drag data for visual feedback
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', itemsToDrag.join(','));
+    e.dataTransfer.setData('application/x-file-explorer-item', itemsToDrag.join(','));
 
     // Create a custom drag image (optional)
     if (e.dataTransfer.setDragImage && e.target) {
@@ -336,6 +350,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   }, [selectedItems]);
 
   const handleItemDragEnd = useCallback(() => {
+    isDraggingInternalRef.current = false;
     setDraggingItems(null);
     setDropTargetId(null);
   }, []);

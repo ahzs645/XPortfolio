@@ -161,11 +161,18 @@ function Icons({
 
   const handleMouseDown = useCallback((e, icon) => {
     e.stopPropagation();
-    onMouseDown(icon.id);
 
-    // Start drag
+    // Check if this icon is already part of a multi-selection
     const selectedIcons = icons.filter((i) => i.isFocus);
-    const iconsToMove = selectedIcons.length > 0 && selectedIcons.some((i) => i.id === icon.id)
+    const isPartOfSelection = selectedIcons.some((i) => i.id === icon.id);
+
+    // Only change selection if clicking on a non-selected icon
+    if (!isPartOfSelection) {
+      onMouseDown(icon.id);
+    }
+
+    // Start drag - use selected icons if clicking on one of them, otherwise just this icon
+    const iconsToMove = isPartOfSelection && selectedIcons.length > 0
       ? selectedIcons
       : [icon];
 
