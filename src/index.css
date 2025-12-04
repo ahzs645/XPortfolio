@@ -102,6 +102,33 @@ body {
    Mobile Device Styles
    ============================ */
 
+/* Prevent scrolling/bouncing on mobile */
+.mobile-device,
+.mobile-device body,
+.mobile-device #root {
+  position: fixed !important;
+  overflow: hidden !important;
+  width: 100% !important;
+  height: 100% !important;
+  height: calc(var(--real-vh, 1vh) * 100) !important;
+  overscroll-behavior: none !important;
+}
+
+/* Allow touch interactions on interactive elements */
+.mobile-device button,
+.mobile-device a,
+.mobile-device input,
+.mobile-device select,
+.mobile-device textarea,
+.mobile-device [role="button"],
+.mobile-device .title-bar,
+.mobile-device .window-body,
+.mobile-device .menu-item,
+.mobile-device .start-button,
+.mobile-device .taskbar-item {
+  touch-action: manipulation !important;
+}
+
 /* Disable tap highlight and user select on mobile */
 .mobile-device * {
   -webkit-tap-highlight-color: transparent !important;
