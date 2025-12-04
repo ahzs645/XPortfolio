@@ -455,82 +455,87 @@ const Container = styled.footer`
     text-overflow: ellipsis;
   }
 
-  /* Inactive/unfocused window - more muted appearance */
+  /* Inactive/unfocused window - raised button appearance */
   .footer__window.cover {
     background: linear-gradient(
       to bottom,
-      #3c8cf4 0%,
-      #3c8cf4 8%,
-      #3889ef 15%,
-      #2d7de8 30%,
-      #2775e4 50%,
-      #2670df 70%,
-      #246cda 85%,
-      #2367d5 100%
+      #4e9ef8 0%,
+      #4295f3 5%,
+      #3d8fee 10%,
+      #3888e8 20%,
+      #3482e3 40%,
+      #3180e1 60%,
+      #2e7dde 80%,
+      #2a79da 100%
     );
-    box-shadow: inset -1px 0px rgba(0, 0, 0, 0.25),
-      inset 1px 1px 1px rgba(255, 255, 255, 0.3),
-      inset 0 -1px 1px rgba(0, 0, 0, 0.1);
+    box-shadow:
+      inset 1px 1px 1px rgba(255, 255, 255, 0.4),
+      inset -1px -1px 1px rgba(0, 0, 0, 0.2);
   }
 
   .footer__window.cover:before {
     display: block;
     content: '';
     position: absolute;
-    left: -2px;
-    top: -2px;
-    width: 10px;
+    left: 2px;
+    top: 2px;
+    right: 2px;
     height: 1px;
-    border-bottom-right-radius: 50%;
-    box-shadow: 2px 2px 3px rgba(255, 255, 255, 0.5);
+    background: linear-gradient(to right, rgba(255,255,255,0.4), rgba(255,255,255,0.1));
   }
 
   .footer__window.cover:hover {
     background: linear-gradient(
       to bottom,
-      #53a3ff 0%,
-      #4a9bfa 15%,
-      #4293f4 50%,
-      #3c8cf0 100%
+      #5ca8ff 0%,
+      #53a1fa 10%,
+      #4a9af5 30%,
+      #4293f0 60%,
+      #3c8dec 100%
     );
-    box-shadow: inset -1px 0px rgba(0, 0, 0, 0.25),
-      inset 1px 1px 1px rgba(255, 255, 255, 0.35);
   }
 
   .footer__window.cover:hover:active {
-    background-color: #1e52b7;
-    box-shadow: inset 0 0 1px 1px rgba(0, 0, 0, 0.3),
-      inset 1px 0 1px rgba(0, 0, 0, 0.7);
+    background: #1e52b7;
+    box-shadow: inset 0 0 2px 1px rgba(0, 0, 0, 0.4),
+      inset 1px 1px 2px rgba(0, 0, 0, 0.5);
   }
 
-  /* Active/focused window - pressed/selected appearance */
+  /* Active/focused window - pressed/sunken appearance */
   .footer__window.focus {
     background: linear-gradient(
       to bottom,
-      #1c4fb8 0%,
-      #1a4db5 5%,
-      #1848ae 15%,
-      #1644a8 50%,
-      #1440a2 85%,
-      #123c9c 100%
+      #1a4aad 0%,
+      #1847a8 5%,
+      #1644a3 15%,
+      #14419e 30%,
+      #123e99 50%,
+      #103b94 70%,
+      #0e388f 85%,
+      #0c358a 100%
     );
-    box-shadow: inset 0 0 1px 1px rgba(0, 0, 0, 0.35),
-      inset 1px 0 2px rgba(0, 0, 0, 0.5),
-      inset 0 1px 1px rgba(0, 0, 0, 0.25);
+    box-shadow:
+      inset 1px 1px 2px rgba(0, 0, 0, 0.5),
+      inset -1px -1px 1px rgba(255, 255, 255, 0.1);
+  }
+
+  .footer__window.focus:before {
+    display: none;
   }
 
   .footer__window.focus:hover {
     background: linear-gradient(
       to bottom,
-      #2358c4 0%,
-      #2054bf 15%,
-      #1c4eb8 50%,
-      #1848ae 100%
+      #1f4fb2 0%,
+      #1c4cad 15%,
+      #1948a7 40%,
+      #1644a1 70%,
+      #14419c 100%
     );
   }
 
   .footer__window.focus:hover:active {
-    background-color: #1e52b7;
+    background: #0c358a;
   }
 
   .footer__time {

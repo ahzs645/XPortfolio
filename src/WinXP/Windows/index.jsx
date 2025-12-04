@@ -130,6 +130,7 @@ const Window = memo(function ({
     >
       {!currentHeader.invisible && (
         <div className="title-bar" ref={dragRef} onDoubleClick={onDoubleClickHeader}>
+          <div className="window-inactive-mask" />
           <div className="title-bar-text">
             {currentHeader.icon && (
               <img
