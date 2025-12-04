@@ -150,7 +150,7 @@
       }
 
       .st62, .st63 {
-        font-family: FranklinGothicURW-Med, 'FranklinGothic URW', Arial, sans-serif;
+        font-family: FranklinGothicURW-Med, 'FranklinGothic URW';
       }
 
       .st62, .st63, .st64 {
