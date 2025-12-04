@@ -131,18 +131,31 @@ body {
   overscroll-behavior: none !important;
 }
 
-/* Allow touch interactions on interactive elements */
+/* Allow touch interactions on all interactive elements */
 .mobile-device button,
 .mobile-device a,
 .mobile-device input,
 .mobile-device select,
 .mobile-device textarea,
+.mobile-device label,
 .mobile-device [role="button"],
+.mobile-device [role="menuitem"],
+.mobile-device [role="menu"],
+.mobile-device [role="menubar"],
 .mobile-device .title-bar,
+.mobile-device .title-bar-controls,
 .mobile-device .window-body,
+.mobile-device .window-body *,
 .mobile-device .menu-item,
+.mobile-device .menu-bar,
+.mobile-device .menu-bar *,
 .mobile-device .start-button,
-.mobile-device .taskbar-item {
+.mobile-device .taskbar-item,
+.mobile-device .calculator *,
+.mobile-device [class*="menu"],
+.mobile-device [class*="btn"],
+.mobile-device [class*="button"],
+.mobile-device [class*="Button"] {
   touch-action: manipulation !important;
 }
 
