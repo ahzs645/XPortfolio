@@ -58,10 +58,12 @@ function BootScreen({ bootState, onComplete }) {
             <LoginLeft $fadeOut={showWelcome}>
               <XPLogo src={bootLogo} alt="Windows XP" />
               <LoginInstruction>
-                To begin, click on <LoginInstructionName>{userName}</LoginInstructionName>
+                <DesktopText>To begin, click on <LoginInstructionName>{userName}</LoginInstructionName></DesktopText>
+                <MobileText>Tap on the user icon to begin</MobileText>
               </LoginInstruction>
             </LoginLeft>
             <LoginDivider $fadeOut={showWelcome} />
+            <MobileSeparator $fadeOut={showWelcome} />
             <LoginRight $fadeOut={showWelcome}>
               <UserCard onClick={handleLogin}>
                 <UserIcon src={userIcon} alt={userName} />
@@ -153,6 +155,12 @@ const BootLogo = styled.img`
   max-height: 40vh;
   height: auto;
   margin-bottom: 40px;
+
+  /* Mobile adjustments */
+  .mobile-device & {
+    width: 280px;
+    margin-bottom: 30px;
+  }
 `;
 
 const LoadingBoxes = styled.div`
@@ -194,6 +202,11 @@ const BootBottomLeft = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+
+  /* Hide on mobile */
+  .mobile-device & {
+    display: none !important;
+  }
 `;
 
 const BootBottomRight = styled.div`
@@ -205,6 +218,18 @@ const BootBottomRight = styled.div`
     display: block;
     height: 32px;
     width: auto;
+  }
+
+  /* Center on mobile */
+  .mobile-device & {
+    bottom: 30px;
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+
+    img {
+      height: 26px;
+    }
   }
 `;
 
@@ -246,6 +271,15 @@ const LoginScreenInner = styled.div`
     height: 3px;
     background: linear-gradient(90deg, transparent, #f8953d, transparent, transparent);
   }
+
+  /* Mobile adjustments */
+  .mobile-device & {
+    inset: 80px 0;
+
+    &::before, &::after {
+      height: 1.5px;
+    }
+  }
 `;
 
 const LoginContainer = styled.div`
@@ -256,6 +290,14 @@ const LoginContainer = styled.div`
   opacity: ${({ $fadeOut }) => ($fadeOut ? 0 : 1)};
   transition: opacity 0.3s ease;
   ${({ $fadeOut }) => $fadeOut && 'pointer-events: none;'}
+
+  /* Mobile: stack vertically */
+  .mobile-device & {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10vw;
+  }
 `;
 
 const LoginLeft = styled.div`
@@ -268,6 +310,14 @@ const LoginLeft = styled.div`
   align-items: flex-end;
   opacity: ${({ $fadeOut }) => ($fadeOut ? 0 : 1)};
   transition: opacity 0.3s ease;
+
+  /* Mobile: center and stack */
+  .mobile-device & {
+    position: static;
+    transform: none;
+    align-items: center;
+    margin: 0 auto 0 auto;
+  }
 `;
 
 const XPLogo = styled.img`
@@ -277,6 +327,12 @@ const XPLogo = styled.img`
   max-width: 100%;
   object-fit: contain;
   width: auto;
+
+  /* Mobile adjustments */
+  .mobile-device & {
+    height: 155px;
+    padding-left: 12px;
+  }
 `;
 
 const LoginInstruction = styled.div`
@@ -285,10 +341,34 @@ const LoginInstruction = styled.div`
   font-weight: 400;
   letter-spacing: 0.25px;
   margin-top: 24px;
+
+  /* Mobile adjustments */
+  .mobile-device & {
+    font-size: 15px;
+    margin-top: 8px;
+    padding: 0 10px;
+    text-align: center;
+  }
 `;
 
 const LoginInstructionName = styled.span`
   font-weight: 700;
+`;
+
+const DesktopText = styled.span`
+  display: inline;
+
+  .mobile-device & {
+    display: none;
+  }
+`;
+
+const MobileText = styled.span`
+  display: none;
+
+  .mobile-device & {
+    display: inline;
+  }
 `;
 
 const LoginDivider = styled.div`
@@ -309,6 +389,35 @@ const LoginDivider = styled.div`
   pointer-events: none;
   z-index: 0;
   transition: opacity 0.3s ease;
+
+  /* Hide on mobile */
+  .mobile-device & {
+    display: none;
+  }
+`;
+
+const MobileSeparator = styled.hr`
+  display: none;
+  border: none;
+  height: 2px;
+  max-width: 75%;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(88, 124, 219, 0) 0%,
+    #bad7f8 40%,
+    #bad7f8 60%,
+    rgba(88, 124, 219, 0) 100%
+  );
+  opacity: ${({ $fadeOut }) => ($fadeOut ? 0 : 0.35)};
+  margin: 0;
+  transition: opacity 0.4s ease;
+
+  /* Show only on mobile */
+  .mobile-device & {
+    display: block;
+    margin-top: 12px;
+  }
 `;
 
 const LoginRight = styled.div`
@@ -321,6 +430,14 @@ const LoginRight = styled.div`
   justify-content: flex-start;
   opacity: ${({ $fadeOut }) => ($fadeOut ? 0 : 1)};
   transition: opacity 0.3s ease;
+
+  /* Mobile: center and stack */
+  .mobile-device & {
+    position: static;
+    transform: none;
+    justify-content: center;
+    margin: 0 auto;
+  }
 `;
 
 const UserCard = styled.div`
@@ -359,6 +476,18 @@ const UserCard = styled.div`
   &:hover .user-title {
     color: #fdbd32;
   }
+
+  /* Mobile adjustments */
+  .mobile-device & {
+    flex-direction: column;
+    min-width: auto;
+    max-width: 280px;
+    min-height: 160px;
+    padding: 24px;
+    border-radius: 10px;
+    justify-content: center;
+    text-align: center;
+  }
 `;
 
 const UserIcon = styled.img`
@@ -372,6 +501,14 @@ const UserIcon = styled.img`
 const UserInfo = styled.div`
   margin-left: 20px;
   width: 200px;
+
+  /* Mobile adjustments */
+  .mobile-device & {
+    margin-left: 0;
+    margin-top: 12px;
+    width: auto;
+    text-align: center;
+  }
 `;
 
 const UserNameText = styled.div`
@@ -401,6 +538,11 @@ const TurnOffContainer = styled.div`
   align-items: center;
   opacity: ${({ $fadeOut }) => ($fadeOut ? 0 : 1)};
   transition: opacity 0.3s ease;
+
+  /* Hide on mobile */
+  .mobile-device & {
+    display: none;
+  }
 `;
 
 const TurnOffButton = styled.button`
@@ -440,6 +582,16 @@ const BottomRight = styled.div`
 
   span {
     margin-top: 1px;
+  }
+
+  /* Mobile: center and simplify */
+  .mobile-device & {
+    right: 0;
+    left: 0;
+    text-align: center;
+    align-items: center;
+    width: 100vw;
+    margin: 0 auto;
   }
 `;
 
