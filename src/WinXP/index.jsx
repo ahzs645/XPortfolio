@@ -550,6 +550,15 @@ function WinXP() {
     return focusedApp ? focusedApp.id : -1;
   }
 
+  // Get the "active" window for taskbar display (topmost non-minimized window)
+  // This differs from focusedAppId because it stays active even when desktop is focused
+  function getActiveAppIdForTaskbar() {
+    const activeApp = [...state.apps]
+      .sort((a, b) => b.zIndex - a.zIndex)
+      .find((app) => !app.minimized);
+    return activeApp ? activeApp.id : -1;
+  }
+
   function onMouseDownFooter() {
     dispatch({ type: FOCUS_DESKTOP });
   }
@@ -1096,7 +1105,7 @@ function WinXP() {
       <Footer
         apps={state.apps}
         onMouseDownApp={onMouseDownFooterApp}
-        focusedAppId={focusedAppId}
+        focusedAppId={getActiveAppIdForTaskbar()}
         onMouseDown={onMouseDownFooter}
         onClickMenuItem={onClickMenuItem}
         crtEnabled={crtEnabled}

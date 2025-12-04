@@ -67,16 +67,8 @@ function SoundRecorder({ onClose, isFocus }) {
     if (AudioContext) {
       audioContextRef.current = new AudioContext();
       analyserRef.current = audioContextRef.current.createAnalyser();
-      analyserRef.current.fftSize = 256;
+      analyserRef.current.fftSize = 2048;
     }
-
-    // Request microphone
-    navigator.mediaDevices.getUserMedia({ audio: true })
-      .then(stream => {
-        mediaStreamRef.current = stream;
-        setHasInput(true);
-      })
-      .catch(err => console.log('No mic access:', err));
 
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
@@ -86,78 +78,73 @@ function SoundRecorder({ onClose, isFocus }) {
     };
   }, []);
 
-  // Draw waveform
+  // Draw waveform (matching original 98-master style)
   const drawWaveform = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    const parent = canvas.parentElement;
+    if (parent) {
+      canvas.width = parent.clientWidth;
+      canvas.height = parent.clientHeight;
+    }
 
     const ctx = canvas.getContext('2d');
     const width = canvas.width;
     const height = canvas.height;
 
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, width, height);
+    // Clear canvas
+    ctx.clearRect(0, 0, width, height);
 
-    // Draw center line
-    ctx.strokeStyle = '#00ff00';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(0, height / 2);
-    ctx.lineTo(width, height / 2);
-    ctx.stroke();
+    const middle = Math.floor(height / 2);
+    const data = new Uint8Array(2048);
 
-    // Draw position indicator
-    if (length > 0) {
-      const posX = (position / length) * width;
-      ctx.strokeStyle = '#ff0000';
-      ctx.beginPath();
-      ctx.moveTo(posX, 0);
-      ctx.lineTo(posX, height);
-      ctx.stroke();
+    if (isRecording && analyserRef.current) {
+      // Get live audio data when recording
+      analyserRef.current.getByteTimeDomainData(data);
+    } else {
+      // Flat line when not recording
+      for (let i = 0; i < data.length; i++) {
+        data[i] = 128;
+      }
     }
 
-    // Draw live waveform when recording
-    if (isRecording && analyserRef.current) {
-      const bufferLength = analyserRef.current.frequencyBinCount;
-      const dataArray = new Uint8Array(bufferLength);
-      analyserRef.current.getByteTimeDomainData(dataArray);
-
-      ctx.strokeStyle = '#00ff00';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-
-      const sliceWidth = width / bufferLength;
-      let x = 0;
-
-      for (let i = 0; i < bufferLength; i++) {
-        const v = dataArray[i] / 128.0;
-        const y = (v * height) / 2;
-
-        if (i === 0) {
-          ctx.moveTo(x, y);
-        } else {
-          ctx.lineTo(x, y);
-        }
-        x += sliceWidth;
-      }
-      ctx.stroke();
+    // Draw vertical bars for each x position
+    ctx.fillStyle = 'lime';
+    for (let x = 0; x < width; x++) {
+      const loudness = data[Math.floor(data.length * x / width)] / 128.0 - 1;
+      const h = Math.floor(loudness * height / 2);
+      ctx.fillRect(x, middle - h, 1, h * 2 + 1);
     }
 
     animationRef.current = requestAnimationFrame(drawWaveform);
-  }, [isRecording, position, length]);
+  }, [isRecording]);
 
   useEffect(() => {
-    drawWaveform();
+    animationRef.current = requestAnimationFrame(drawWaveform);
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
   }, [drawWaveform]);
 
   // Record
-  const startRecording = useCallback(() => {
-    if (!mediaStreamRef.current || !audioContextRef.current) return;
+  const startRecording = useCallback(async () => {
+    if (!audioContextRef.current) return;
 
-    audioContextRef.current.resume();
+    // Request microphone permission on first record click
+    if (!mediaStreamRef.current) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaStreamRef.current = stream;
+        setHasInput(true);
+      } catch (err) {
+        console.error('Microphone access denied:', err);
+        alert('Please allow microphone access to record audio.');
+        return;
+      }
+    }
+
+    await audioContextRef.current.resume();
 
     const source = audioContextRef.current.createMediaStreamSource(mediaStreamRef.current);
     source.connect(analyserRef.current);
@@ -312,7 +299,7 @@ function SoundRecorder({ onClose, isFocus }) {
 
   const canPlay = length > 0 && !isPlaying && !isRecording;
   const canStop = isPlaying || isRecording;
-  const canRecord = hasInput && !isPlaying && !isRecording;
+  const canRecord = !isPlaying && !isRecording;
 
   return (
     <Container>
@@ -447,10 +434,13 @@ const ControlsRow = styled.div`
 
 const CtrlBtn = styled.button`
   width: 48px;
+  min-width: 48px;
+  min-height: unset;
   height: 24px;
   padding: 0;
   background: #c0c0c0;
   border: 2px outset #fff;
+  box-shadow: none;
   cursor: pointer;
   display: flex;
   align-items: center;

@@ -435,9 +435,6 @@ const Container = styled.footer`
     padding: 0 8px;
     height: 22px;
     font-size: 11px;
-    background-color: #3c81f3;
-    box-shadow: inset -1px 0px rgba(0, 0, 0, 0.3),
-      inset 1px 1px 1px rgba(255, 255, 255, 0.2);
     position: relative;
     display: flex;
     align-items: center;
@@ -458,10 +455,22 @@ const Container = styled.footer`
     text-overflow: ellipsis;
   }
 
-  .footer__window.cover:hover {
-    background-color: #53a3ff;
-    box-shadow: inset -1px 0px rgba(0, 0, 0, 0.3),
-      inset 1px 1px 1px rgba(255, 255, 255, 0.2);
+  /* Inactive/unfocused window - more muted appearance */
+  .footer__window.cover {
+    background: linear-gradient(
+      to bottom,
+      #3c8cf4 0%,
+      #3c8cf4 8%,
+      #3889ef 15%,
+      #2d7de8 30%,
+      #2775e4 50%,
+      #2670df 70%,
+      #246cda 85%,
+      #2367d5 100%
+    );
+    box-shadow: inset -1px 0px rgba(0, 0, 0, 0.25),
+      inset 1px 1px 1px rgba(255, 255, 255, 0.3),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.1);
   }
 
   .footer__window.cover:before {
@@ -476,24 +485,52 @@ const Container = styled.footer`
     box-shadow: 2px 2px 3px rgba(255, 255, 255, 0.5);
   }
 
+  .footer__window.cover:hover {
+    background: linear-gradient(
+      to bottom,
+      #53a3ff 0%,
+      #4a9bfa 15%,
+      #4293f4 50%,
+      #3c8cf0 100%
+    );
+    box-shadow: inset -1px 0px rgba(0, 0, 0, 0.25),
+      inset 1px 1px 1px rgba(255, 255, 255, 0.35);
+  }
+
   .footer__window.cover:hover:active {
     background-color: #1e52b7;
     box-shadow: inset 0 0 1px 1px rgba(0, 0, 0, 0.3),
       inset 1px 0 1px rgba(0, 0, 0, 0.7);
   }
 
+  /* Active/focused window - pressed/selected appearance */
+  .footer__window.focus {
+    background: linear-gradient(
+      to bottom,
+      #1c4fb8 0%,
+      #1a4db5 5%,
+      #1848ae 15%,
+      #1644a8 50%,
+      #1440a2 85%,
+      #123c9c 100%
+    );
+    box-shadow: inset 0 0 1px 1px rgba(0, 0, 0, 0.35),
+      inset 1px 0 2px rgba(0, 0, 0, 0.5),
+      inset 0 1px 1px rgba(0, 0, 0, 0.25);
+  }
+
   .footer__window.focus:hover {
-    background-color: #3576f3;
+    background: linear-gradient(
+      to bottom,
+      #2358c4 0%,
+      #2054bf 15%,
+      #1c4eb8 50%,
+      #1848ae 100%
+    );
   }
 
   .footer__window.focus:hover:active {
     background-color: #1e52b7;
-  }
-
-  .footer__window.focus {
-    background-color: #1e52b7;
-    box-shadow: inset 0 0 1px 1px rgba(0, 0, 0, 0.2),
-      inset 1px 0 1px rgba(0, 0, 0, 0.7);
   }
 
   .footer__time {
