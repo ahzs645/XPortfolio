@@ -2,6 +2,7 @@
 src/libs/.DS_Store
 /dist
 index.html
+.version
 
 # Auto-generated spider-solitaire build files
 src/apps/spider-solitaire/build/

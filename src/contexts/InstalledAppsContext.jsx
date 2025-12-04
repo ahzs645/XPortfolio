@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import * as idb from 'idb-keyval';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -125,7 +125,7 @@ function parseGitHubUrl(inputUrl) {
 export function InstalledAppsProvider({ children }) {
   const [installedApps, setInstalledApps] = useState({});
   const [isLoading, setIsLoading] = useState(true);
-  const [launchCallback, setLaunchCallback] = useState(null);
+  const launchCallbackRef = useRef(null);
 
   // Load installed apps from IndexedDB on mount
   useEffect(() => {
@@ -162,10 +162,11 @@ export function InstalledAppsProvider({ children }) {
 
     if (githubInfo.isGitHub) {
       // For GitHub repos, try multiple sources
+      // Try jsdelivr first (has CORS headers), then raw GitHub, then Pages last
       manifestBaseUrls = [
-        githubInfo.pagesUrl,
-        githubInfo.rawUrl,
         githubInfo.jsDelivrUrl,
+        githubInfo.rawUrl,
+        githubInfo.pagesUrl,
       ].filter(Boolean);
       url = githubInfo.pagesUrl; // Default to GitHub Pages for running the app
     } else {
@@ -362,8 +363,9 @@ export function InstalledAppsProvider({ children }) {
   }, [installedApps]);
 
   // Register a callback for launching apps (called by WinXP)
+  // Uses a ref to avoid triggering re-renders and infinite loops
   const registerLaunchCallback = useCallback((callback) => {
-    setLaunchCallback(() => callback);
+    launchCallbackRef.current = callback;
   }, []);
 
   // Launch an installed app
@@ -376,12 +378,12 @@ export function InstalledAppsProvider({ children }) {
 
     markAppRun(appId);
 
-    if (launchCallback) {
-      launchCallback(app);
+    if (launchCallbackRef.current) {
+      launchCallbackRef.current(app);
     } else {
       console.error('No launch callback registered');
     }
-  }, [installedApps, launchCallback, markAppRun]);
+  }, [installedApps, markAppRun]);
 
   const value = {
     installedApps,

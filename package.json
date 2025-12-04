@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "prebuild": "node scripts/generate-build-version.js",
+    "build": "node scripts/generate-build-version.js && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "version:bump": "node scripts/generate-build-version.js --bump"
   },
   "dependencies": {
     "idb-keyval": "^6.2.2",

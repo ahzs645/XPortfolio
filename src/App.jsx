@@ -3,6 +3,7 @@ import { createGlobalStyle } from 'styled-components';
 import { ConfigProvider } from './contexts/ConfigContext';
 import { FileSystemProvider } from './contexts/FileSystemContext';
 import { InstalledAppsProvider } from './contexts/InstalledAppsContext';
+import { UpdateToast } from './components/UpdateToast';
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -40,6 +41,7 @@ function App() {
         <InstalledAppsProvider>
           <GlobalStyle />
           <WinXP />
+          <UpdateToast />
         </InstalledAppsProvider>
       </FileSystemProvider>
     </ConfigProvider>
