@@ -1,15 +1,38 @@
 {
-  "name": "xportfolio",
-  "version": "1.0.0",
-  "description": "Windows XP-style interactive portfolio",
+  "name": "react-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "replace-templates": "./scripts/replace-templates.sh",
-    "build:spider": "./scripts/build-spider-solitaire.sh",
-    "build:solitaire": "./scripts/build-solitaire.sh",
-    "build:paint": "./scripts/build-jspaint.sh",
-    "build": "npm run build:spider && npm run build:solitaire && npm run build:paint && npm run replace-templates",
-    "build:local": "npm run replace-templates"
+    "dev": "vite",
+    "prebuild": "node scripts/generate-build-version.js",
+    "build": "node scripts/generate-build-version.js && vite build",
+    "build:all": "bash scripts/build-all.sh",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "version:bump": "node scripts/generate-build-version.js --bump"
   },
-  "author": "",
-  "license": "MIT"
+  "dependencies": {
+    "idb-keyval": "^6.2.2",
+    "js-yaml": "^4.1.1",
+    "jszip": "^3.10.1",
+    "marked": "^17.0.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "styled-components": "^6.1.19",
+    "uuid": "^13.0.0",
+    "webamp": "^2.2.0",
+    "xp.css": "^0.2.6"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "vite": "^7.2.4"
+  }
 }

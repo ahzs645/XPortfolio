@@ -1,0 +1,226 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
+import styled from 'styled-components';
+import { POWER_STATE } from '../constants';
+
+function Modal({ onClose, onRestart, onLogOff, onShutDown, mode }) {
+  const isLogOff = mode === POWER_STATE.LOG_OFF;
+
+  return ReactDOM.createPortal(
+    <Overlay>
+      <DialogContainer>
+        <DialogBody>
+          <DialogHeader>
+            <DialogHeaderText>
+              {isLogOff ? 'Log Off Windows' : 'Shut Down Windows'}
+            </DialogHeaderText>
+            <DialogHeaderIcon
+              src="/assets/gui/boot/favicon.png"
+              alt=""
+            />
+          </DialogHeader>
+          <DialogButtonContainer>
+            {isLogOff ? (
+              <>
+                <DialogButton onClick={onRestart} role="button" tabIndex={0}>
+                  <img src="/assets/gui/start-menu/restart.webp" alt="" />
+                  <span>Restart</span>
+                </DialogButton>
+                <DialogButton onClick={onLogOff} role="button" tabIndex={0}>
+                  <img src="/assets/gui/start-menu/logoff.webp" alt="" />
+                  <span>Log Off</span>
+                </DialogButton>
+              </>
+            ) : (
+              <>
+                <DialogButton onClick={onRestart} role="button" tabIndex={0}>
+                  <img src="/assets/gui/start-menu/restart.webp" alt="" />
+                  <span>Restart</span>
+                </DialogButton>
+                <DialogButton onClick={onShutDown} role="button" tabIndex={0} $disabled>
+                  <img src="/assets/gui/start-menu/shutdown.webp" alt="" />
+                  <span>Shut Down</span>
+                </DialogButton>
+              </>
+            )}
+          </DialogButtonContainer>
+          <DialogFooter>
+            <CancelButton onClick={onClose}>Cancel</CancelButton>
+          </DialogFooter>
+        </DialogBody>
+      </DialogContainer>
+    </Overlay>,
+    document.body
+  );
+}
+
+const Overlay = styled.div`
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  background: transparent;
+`;
+
+const DialogContainer = styled.div`
+  background-color: #ece9d8;
+  border: 1px solid #2b2b2b;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  color: #000;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 11px;
+  padding: 0;
+  position: relative;
+  width: 350px;
+  z-index: 2;
+`;
+
+const DialogBody = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0;
+`;
+
+const DialogHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(90deg, #002a8c, #0039a9 50%, #002a8c);
+  color: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  height: 50px;
+  padding: 4px 4px 4px 16px;
+  position: relative;
+  letter-spacing: 0.1px;
+  box-sizing: border-box;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      transparent 25%,
+      #bad7f8 45%,
+      #bad7f8 55%,
+      transparent 75%
+    );
+    pointer-events: none;
+  }
+`;
+
+const DialogHeaderText = styled.span`
+  flex-grow: 1;
+`;
+
+const DialogHeaderIcon = styled.img`
+  width: 36px;
+  height: 36px;
+  margin-right: 10px;
+`;
+
+const DialogButtonContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  background: linear-gradient(90deg, #587cdb, #688ceb 50%, #587cdb);
+  padding: 36px 0;
+  margin: 0;
+  flex-grow: 1;
+  width: auto;
+`;
+
+const DialogButton = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none !important;
+  border: none !important;
+  color: #fff;
+  text-align: center;
+  width: 80px;
+  cursor: pointer;
+  opacity: ${({ $disabled }) => ($disabled ? '0.6' : '1')};
+  pointer-events: ${({ $disabled }) => ($disabled ? 'none' : 'auto')};
+
+  &:hover img {
+    filter: brightness(1.06) drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.5));
+  }
+
+  img {
+    background: none !important;
+    border: none !important;
+    width: 40px;
+    height: 40px;
+    margin-bottom: 6px;
+    filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.4));
+    transition: filter 0.15s ease-in-out;
+  }
+
+  span {
+    color: #fff;
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 13.5px;
+    line-height: 1.2;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4);
+  }
+`;
+
+const DialogFooter = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  background: linear-gradient(90deg, #002a8c, #0039a9 50%, #002a8c);
+  height: 50px;
+  padding: 0 15px;
+  position: relative;
+`;
+
+const CancelButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f0f0;
+  border: 1.5px solid transparent;
+  border-top: 1.5px solid #fff;
+  border-left: 1.5px solid #fff;
+  border-right: 1.5px solid #6d6d6d;
+  border-bottom: 1.5px solid #6d6d6d;
+  border-radius: 3px;
+  box-shadow: 1px 1px 0 #6d6d6d;
+  color: #222;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 11px;
+  padding: 2px 12px;
+  cursor: pointer;
+  user-select: none;
+  transition: box-shadow 0.13s, border 0.13s, background 0.13s;
+
+  &:hover {
+    background: #fff;
+    border-top-color: #fff;
+    border-left-color: #fff;
+    border-right-color: #b0b0b0;
+    border-bottom-color: #b0b0b0;
+    box-shadow: 1px 1px 0 #b0b0b0;
+  }
+
+  &:active {
+    background: #d4d0c8;
+    border-top-color: #6d6d6d;
+    border-left-color: #6d6d6d;
+    border-right-color: #fff;
+    border-bottom-color: #fff;
+    box-shadow: inset 1px 1px 0 #6d6d6d;
+  }
+`;
+
+export default Modal;

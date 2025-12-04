@@ -1,0 +1,32 @@
+{
+  "name": "My Awesome App",
+  "short_name": "AwesomeApp",
+  "description": "A sample web application for XPortfolio",
+  "version": "1.0.0",
+  "author": "Your Name",
+  "icons": [
+    {
+      "src": "/icon-32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-64.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    }
+  ],
+  "window": {
+    "width": 800,
+    "height": 600,
+    "minWidth": 400,
+    "minHeight": 300,
+    "resizable": true
+  },
+  "permissions": [
+    "fileSystem.read",
+    "fileSystem.write"
+  ],
+  "start_url": "/",
+  "display": "standalone"
+}

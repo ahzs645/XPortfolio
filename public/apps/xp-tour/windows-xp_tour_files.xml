@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<files>
+  <file name="00_A.png" source="original">
+    <mtime>1695316040</mtime>
+    <size>11281</size>
+    <md5>8769aa0f8fd5bf516397b69174e64ec8</md5>
+    <crc32>37ce0a46</crc32>
+    <sha1>5ea50fe5a24fde0f9a42a998bbee65987e737c76</sha1>
+    <format>PNG</format>
+  </file>
+  <file name="00_A_thumb.jpg" source="derivative">
+    <format>JPEG Thumb</format>
+    <original>00_A.png</original>
+    <mtime>1695316059</mtime>
+    <size>5852</size>
+    <md5>cc0c7cb3a7dd5c72350934baf3322117</md5>
+    <crc32>0701ead3</crc32>
+    <sha1>38c9ea5073c4c22db4d9aee31d49bad291a7d7aa</sha1>
+  </file>
+  <file name="00_B.png" source="original">
+    <mtime>1695316042</mtime>
+    <size>34070</size>
+    <md5>8810615f5e1408e2007392f5eaa8c6bf</md5>
+    <crc32>2a64d18e</crc32>
+    <sha1>d07df748a7d5091262a3a94c5ef42b81af49b95e</sha1>
+    <format>Emulator Screenshot</format>
+  </file>
+  <file name="00_B_thumb.jpg" source="derivative">
+    <format>JPEG Thumb</format>
+    <original>00_B.png</original>
+    <mtime>1695316061</mtime>
+    <size>7476</size>
+    <md5>f9caf23a1bbf506c9886d5ef6a6a266e</md5>
+    <crc32>ec4425ab</crc32>
+    <sha1>74232e90d9898af4ae0c5a8b8475655aec1cdfb8</sha1>
+  </file>
+  <file name="A-tour.swf" source="original">
+    <mtime>1695315300</mtime>
+    <size>2997800</size>
+    <md5>4df253f404680be5d07899c3946e87bc</md5>
+    <crc32>edda0355</crc32>
+    <sha1>9347a7a2304db8c205edf6d14ce3ba7cfd4a60f0</sha1>
+    <format>Shockwave Flash</format>
+    <length>0.15</length>
+    <width>640</width>
+    <height>480</height>
+    <viruscheck>1695315707</viruscheck>
+  </file>
+  <file name="Segment1.txt" source="original">
+    <mtime>1695315339</mtime>
+    <size>747</size>
+    <md5>0bae972418f1ef549cd6f0ff6c56cdb2</md5>
+    <crc32>c0c7e8a7</crc32>
+    <sha1>4f9c0686d6e4c086bc455a31126d2fe4efed3584</sha1>
+    <format>Text</format>
+    <viruscheck>1695315707</viruscheck>
+  </file>
+  <file name="Segment2.txt" source="original">
+    <mtime>1695315344</mtime>
+    <size>772</size>
+    <md5>94b2f7bf1796a301a441aeeeee5d865c</md5>
+    <crc32>23500f55</crc32>
+    <sha1>f118eab50f5816ff9166bb531d41625825991e89</sha1>
+    <format>Text</format>
+    <viruscheck>1695315707</viruscheck>
+  </file>
+  <file name="__ia_thumb.jpg" source="original">
+    <mtime>1695316049</mtime>
+    <size>4581</size>
+    <md5>ebf3868f29f413d8ea0fe90595a51b11</md5>
+    <crc32>2968a96c</crc32>
+    <sha1>0820484b71272af095cc2b708632a17aebd5746e</sha1>
+    <format>Item Tile</format>
+    <rotation>0</rotation>
+  </file>
+  <file name="intro.swf" source="original">
+    <mtime>1695315325</mtime>
+    <size>757717</size>
+    <md5>5c602cec70571cdb0607296f80b2bc1f</md5>
+    <crc32>d9c3a798</crc32>
+    <sha1>297c12206ae25de3298005459c105eb9eb463c73</sha1>
+    <format>Shockwave Flash</format>
+    <length>39.07</length>
+    <width>640</width>
+    <height>480</height>
+    <viruscheck>1695315707</viruscheck>
+  </file>
+  <file name="intro.txt" source="original">
+    <mtime>1695315328</mtime>
+    <size>807</size>
+    <md5>a4afeab6eea54a5d08184d9130b57451</md5>
+    <crc32>da6a4c7a</crc32>
+    <sha1>8e35615da69cce1ee0fac8b31f3ee61b2a0e6502</sha1>
+    <format>Text</format>
+    <viruscheck>1695315707</viruscheck>
+  </file>
+  <file name="nav.swf" source="original">
+    <mtime>1695315330</mtime>
+    <size>175759</size>
+    <md5>6464bdff9b15ea2acc96d892d1694370</md5>
+    <crc32>31887a10</crc32>
+    <sha1>37bad8ebea530121673a0f51304f529620b1ebe6</sha1>
+    <format>Shockwave Flash</format>
+    <length>29.2</length>
+    <width>640</width>
+    <height>480</height>
+    <viruscheck>1695315707</viruscheck>
+  </file>
+  <file name="nav.txt" source="original">
+    <mtime>1695315333</mtime>
+    <size>407</size>
+    <md5>0a064293ab7db790ce5a5f22b8dfc228</md5>
+    <crc32>36142e9d</crc32>
+    <sha1>439a1243f951c3a9d6965a03a37707183be855ff</sha1>
+    <format>Text</format>
+    <viruscheck>1695315707</viruscheck>
+  </file>
+  <file name="segment1.swf" source="original">
+    <mtime>1695315336</mtime>
+    <size>2103945</size>
+    <md5>f132a2e95840028939217bb4649289da</md5>
+    <crc32>4ea806e1</crc32>
+    <sha1>a023310b30332f320873b17980ae0d29ad6d13c4</sha1>
+    <format>Shockwave Flash</format>
+    <length>6.75</length>
+    <width>640</width>
+    <height>480</height>
+    <viruscheck>1695315707</viruscheck>
+  </file>
+  <file name="segment2.swf" source="original">
+    <mtime>1695315341</mtime>
+    <size>1637375</size>
+    <md5>d31f5c186541704fec4a1949aecce0a1</md5>
+    <crc32>48d88096</crc32>
+    <sha1>46ce12c846dad7d4c0e164b5fed557696279f443</sha1>
+    <format>Shockwave Flash</format>
+    <length>8.8</length>
+    <width>640</width>
+    <height>480</height>
+    <viruscheck>1695315707</viruscheck>
+  </file>
+  <file name="segment3.swf" source="original">
+    <mtime>1695315347</mtime>
+    <size>1635503</size>
+    <md5>c41b697b736aff1d5c3a9d52331e0fb4</md5>
+    <crc32>eaa49ab0</crc32>
+    <sha1>0b2c35cbea6c21ae1fcc24eb9141f33dfa03ff30</sha1>
+    <format>Shockwave Flash</format>
+    <length>13.47</length>
+    <width>640</width>
+    <height>480</height>
+    <viruscheck>1695315707</viruscheck>
+  </file>
+  <file name="segment3.txt" source="original">
+    <mtime>1695315350</mtime>
+    <size>717</size>
+    <md5>9cba3a90014f8c5f3d270d2c0daa99f1</md5>
+    <crc32>ee5f4861</crc32>
+    <sha1>4672cf5e19c9bc24546f1de389ba91acdf42c0f3</sha1>
+    <format>Text</format>
+    <viruscheck>1695315707</viruscheck>
+  </file>
+  <file name="segment4.swf" source="original">
+    <mtime>1695315353</mtime>
+    <size>2794421</size>
+    <md5>994203f03d28adbf56870f0c0978b093</md5>
+    <crc32>a28b559e</crc32>
+    <sha1>4ad3eb4d25f0100d5d3445c2f0ce53c255bc387d</sha1>
+    <format>Shockwave Flash</format>
+    <length>9.47</length>
+    <width>640</width>
+    <height>480</height>
+    <viruscheck>1695315707</viruscheck>
+  </file>
+  <file name="segment4.txt" source="original">
+    <mtime>1695315355</mtime>
+    <size>633</size>
+    <md5>7be991f8629afd998f92fdfe495a0f24</md5>
+    <crc32>278af5bb</crc32>
+    <sha1>48e7825959ad5925229e481c1fa77bb4532939c9</sha1>
+    <format>Text</format>
+    <viruscheck>1695315707</viruscheck>
+  </file>
+  <file name="segment5.swf" source="original">
+    <mtime>1695315359</mtime>
+    <size>7679963</size>
+    <md5>8c4efd1bbd5ff6d10ad79b7f6b5d897b</md5>
+    <crc32>025e9d7b</crc32>
+    <sha1>6c3758dbb35c82d45af23df5bfc949f40b65007d</sha1>
+    <format>Shockwave Flash</format>
+    <length>4.2</length>
+    <width>640</width>
+    <height>480</height>
+    <viruscheck>1695315707</viruscheck>
+  </file>
+  <file name="segment5.txt" source="original">
+    <mtime>1695315362</mtime>
+    <size>799</size>
+    <md5>45b1ce88e25adae606bca0fc78d0df48</md5>
+    <crc32>d61643f1</crc32>
+    <sha1>bc10ab8775da122479db196e77be8aa997c5ad94</sha1>
+    <format>Text</format>
+    <viruscheck>1695315707</viruscheck>
+  </file>
+  <file name="windows-xp_tour_archive.torrent" source="metadata">
+    <btih>87572d0143d5d0290918f3a2a7e099a9eaac993d</btih>
+    <mtime>1731994955</mtime>
+    <size>5536</size>
+    <md5>8a3263e012ab00936dec5e6e1d23a04c</md5>
+    <crc32>eb0b41f2</crc32>
+    <sha1>583388e3d075d3e2c5a143e197336ebe5a56da90</sha1>
+    <format>Archive BitTorrent</format>
+  </file>
+  <file name="windows-xp_tour_files.xml" source="original">
+    <format>Metadata</format>
+    <md5>fcf2e0c5d2ac7ee9c6dcdc1dd2696529</md5>
+    <summation>md5</summation>
+  </file>
+  <file name="windows-xp_tour_meta.sqlite" source="original">
+    <mtime>1695316044</mtime>
+    <size>53248</size>
+    <md5>89925cdcad65a2bbc0d4cab5dd48c760</md5>
+    <crc32>db009519</crc32>
+    <sha1>d26276e1e6b0aaecfb8a56988dc476d5a646ddb6</sha1>
+    <format>Metadata</format>
+  </file>
+  <file name="windows-xp_tour_meta.xml" source="original">
+    <mtime>1695332688</mtime>
+    <size>800</size>
+    <md5>2d32e0ba1314ab2a9109e586f5d82aa1</md5>
+    <crc32>3f137241</crc32>
+    <sha1>a4bd55c25b6983567bb75716ffd2040e6f148dbb</sha1>
+    <format>Metadata</format>
+  </file>
+</files>

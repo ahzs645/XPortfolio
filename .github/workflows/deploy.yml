@@ -56,14 +56,81 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Enable Corepack
+      - name: Enable Corepack (for pnpm)
         run: corepack enable
 
-      - name: Install dependencies
+      # ============================================================================
+      # BUILD EXTERNAL APPS (Submodules)
+      # ============================================================================
+
+      - name: Build Spider Solitaire
+        working-directory: external/spider-solitaire
+        run: |
+          echo "📦 Installing spider-solitaire dependencies..."
+          npm install
+          echo "🔨 Building spider-solitaire..."
+          npm run build
+          echo "✅ Spider Solitaire built successfully"
+
+      - name: Build JS Solitaire
+        working-directory: external/js-solitaire
+        run: |
+          echo "📦 Installing js-solitaire dependencies..."
+          pnpm install
+          echo "🔨 Building js-solitaire..."
+          pnpm run build
+          echo "✅ JS Solitaire built successfully"
+
+      # ============================================================================
+      # COPY BUILT APPS TO PUBLIC FOLDER
+      # ============================================================================
+
+      - name: Copy Spider Solitaire build to public
+        run: |
+          rm -rf public/games/spider-solitaire
+          mkdir -p public/games/spider-solitaire
+          cp -r external/spider-solitaire/build/* public/games/spider-solitaire/
+          echo "✅ Spider Solitaire copied to public/games/spider-solitaire"
+
+      - name: Copy JS Solitaire build to public
+        run: |
+          rm -rf public/games/solitaire
+          mkdir -p public/games/solitaire
+          cp -r external/js-solitaire/dist/* public/games/solitaire/
+          echo "✅ JS Solitaire copied to public/games/solitaire"
+
+      - name: Copy JSPaint to public
+        run: |
+          # Remove symlink if exists and create actual copy for GitHub Pages
+          rm -rf public/apps/jspaint
+          mkdir -p public/apps/jspaint
+
+          # Copy necessary jspaint files (it's a static app, no build needed)
+          cp -r external/jspaint/index.html public/apps/jspaint/
+          cp -r external/jspaint/src public/apps/jspaint/
+          cp -r external/jspaint/lib public/apps/jspaint/
+          cp -r external/jspaint/images public/apps/jspaint/
+          cp -r external/jspaint/styles public/apps/jspaint/
+          cp -r external/jspaint/localization public/apps/jspaint/
+          cp -r external/jspaint/help public/apps/jspaint/ 2>/dev/null || true
+          cp -r external/jspaint/audio public/apps/jspaint/ 2>/dev/null || true
+          cp external/jspaint/favicon.ico public/apps/jspaint/ 2>/dev/null || true
+          cp external/jspaint/manifest.webmanifest public/apps/jspaint/ 2>/dev/null || true
+          echo "✅ JSPaint copied to public/apps/jspaint"
+
+      # ============================================================================
+      # BUILD MAIN APP
+      # ============================================================================
+
+      - name: Install main app dependencies
         run: npm install
 
-      - name: Build spider-solitaire and replace templates
+      - name: Build main app
         run: npm run build
+
+      # ============================================================================
+      # DEPLOY TO GITHUB PAGES
+      # ============================================================================
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -71,7 +138,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: 'dist'
 
       - name: Deploy to GitHub Pages
         id: deployment

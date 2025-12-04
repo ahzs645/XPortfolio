@@ -2,12 +2,22 @@
 src/libs/.DS_Store
 /dist
 index.html
+.version
 
-# Auto-generated spider-solitaire build files
-src/apps/spider-solitaire/build/
+# Node modules
+/node_modules
 
-# Auto-generated solitaire build files
-src/apps/solitaire/build/
+# External submodule build artifacts (built during CI)
+external/spider-solitaire/build/
+external/spider-solitaire/node_modules/
+external/js-solitaire/dist/
+external/js-solitaire/.parcel-cache/
+external/js-solitaire/node_modules/
+external/jspaint/node_modules/
+external/jspaint/out/
 
-# Auto-generated paint build files
-src/apps/paint/build/
+# CI-generated app copies in public (symlinks in dev, copies in CI)
+# Keep these tracked if you want local builds to work without running submodule builds
+# public/games/spider-solitaire/
+# public/games/solitaire/
+# public/apps/jspaint/
