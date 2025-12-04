@@ -20,6 +20,7 @@ import WinRAR from './WinRAR';
 import InternetExplorer from './InternetExplorer';
 import Properties from './Properties';
 import SoundRecorder from './SoundRecorder';
+import QQPenguin from './QQPenguin';
 
 // XP Icons paths
 const XP_ICONS = {
@@ -141,6 +142,11 @@ export const desktopIconCatalog = {
     icon: XP_ICONS.soundRecorder,
     title: 'Sound Recorder',
     component: SoundRecorder,
+  },
+  qqPenguin: {
+    icon: '/icons/qqpet.ico',
+    title: 'QQ Pet',
+    component: QQPenguin,
   },
 };
 
@@ -705,6 +711,26 @@ export const appSettings = {
     maximized: false,
     multiInstance: true,
   },
+  'QQ Penguin': {
+    header: {
+      icon: '/icons/qqpet.ico',
+      title: 'QQ Pet',
+      invisible: true,
+    },
+    component: QQPenguin,
+    defaultSize: {
+      width: 0,
+      height: 0,
+    },
+    defaultOffset: {
+      x: 0,
+      y: 0,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
 };
 
 export {
@@ -729,4 +755,5 @@ export {
   InternetExplorer,
   Properties,
   SoundRecorder,
+  QQPenguin,
 };

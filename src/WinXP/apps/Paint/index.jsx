@@ -5,7 +5,7 @@ function Paint({ onClose, isFocus }) {
   return (
     <Container>
       <PaintFrame
-        src="https://jspaint.app"
+        src="/apps/jspaint/index.html"
         title="Paint"
         allow="clipboard-read; clipboard-write"
       />

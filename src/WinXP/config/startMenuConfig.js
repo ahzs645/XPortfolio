@@ -143,6 +143,13 @@ export const START_MENU_CATALOG = {
     title: 'Sound Recorder',
     description: null,
   },
+  qqPenguin: {
+    type: 'program',
+    appKey: 'QQ Penguin',
+    icon: '/icons/qqpet.ico',
+    title: 'QQ Pet',
+    description: 'Virtual pet app',
+  },
   'divider-main': {
     type: 'separator',
   },
@@ -195,6 +202,7 @@ export const START_MENU_FOLDERS = {
 // All Programs menu order
 export const ALL_PROGRAMS_ORDER = [
   'internetExplorer',
+  'qqPenguin',
   'about',
   'projects',
   'resume',
