@@ -1,3 +1,22 @@
+/* Override xp.css fonts with font-display: swap for better mobile loading */
+@font-face {
+  font-family: "Pixelated MS Sans Serif";
+  src: url("xp.css/dist/ms_sans_serif.woff2") format("woff2"),
+       url("xp.css/dist/ms_sans_serif.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Pixelated MS Sans Serif";
+  src: url("xp.css/dist/ms_sans_serif_bold.woff2") format("woff2"),
+       url("xp.css/dist/ms_sans_serif_bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -8,6 +27,7 @@ body {
   min-height: 100vh;
   min-height: calc(var(--real-vh, 1vh) * 100);
   overflow: hidden;
+  font-family: "Pixelated MS Sans Serif", "Noto Sans", Tahoma, Arial, sans-serif;
 }
 
 #root {
