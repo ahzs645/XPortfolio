@@ -4,8 +4,10 @@ import { useMouse, useWindowSize } from '../hooks';
 import useSystemSounds from '../hooks/useSystemSounds';
 import { useConfig } from '../contexts/ConfigContext';
 import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../contexts/FileSystemContext';
+import { ContextMenu } from './components/ContextMenu';
 import { parseFileStructure } from '../utils/fileDropParser';
 import FileUploadDialog from './FileUploadDialog';
+import { useFileContextMenu, useBackgroundContextMenu } from './hooks/useFileContextMenu';
 
 // Convert file system items to desktop icon format
 const convertToDesktopIcons = (items, appSettings, savedPositions = {}) => {
@@ -273,6 +275,8 @@ function WinXP() {
   const [isUploading, setIsUploading] = useState(false);
   const [desktopContextMenu, setDesktopContextMenu] = useState(null);
   const [iconContextMenu, setIconContextMenu] = useState(null); // { x, y, icon }
+  const [renamingIconId, setRenamingIconId] = useState(null);
+  const [renameValue, setRenameValue] = useState('');
   const ref = useRef(null);
   const dragCounterRef = useRef(0);
   const mouse = useMouse(ref);
@@ -280,7 +284,21 @@ function WinXP() {
   const focusedAppId = getFocusedAppId();
   const { playLogoff, playBalloon } = useSystemSounds();
   const { getWallpaperPath, isLoading: configLoading } = useConfig();
-  const { createFile, createItem, getFolderContents, getFileContent, fileSystem, isLoading: fsLoading } = useFileSystem();
+  const {
+    createFile,
+    createItem,
+    getFolderContents,
+    getFileContent,
+    fileSystem,
+    isLoading: fsLoading,
+    moveToRecycleBin,
+    renameItem,
+    copy,
+    cut,
+    paste,
+    clipboard,
+    clipboardOp,
+  } = useFileSystem();
 
   // Determine if mobile based on viewport width
   const isMobile = width < 768;
@@ -574,11 +592,32 @@ function WinXP() {
     }
   }, []);
 
-  const handleDesktopMenuAction = useCallback((action) => {
+  const handleDesktopMenuAction = useCallback(async (action) => {
     setDesktopContextMenu(null);
     switch (action) {
-      case 'newFolder':
-        createItem(SYSTEM_IDS.DESKTOP, 'New Folder', 'folder');
+      case 'newFolder': {
+        const id = await createItem(SYSTEM_IDS.DESKTOP, 'New Folder', 'folder');
+        if (id) {
+          // Start renaming the new folder
+          setTimeout(() => {
+            setRenamingIconId(id);
+            setRenameValue('New Folder');
+          }, 100);
+        }
+        break;
+      }
+      case 'newTextDoc': {
+        const id = await createItem(SYSTEM_IDS.DESKTOP, 'New Text Document.txt', 'file');
+        if (id) {
+          setTimeout(() => {
+            setRenamingIconId(id);
+            setRenameValue('New Text Document.txt');
+          }, 100);
+        }
+        break;
+      }
+      case 'paste':
+        await paste(SYSTEM_IDS.DESKTOP);
         break;
       case 'refresh':
         // Trigger a re-render by updating icons
@@ -588,13 +627,13 @@ function WinXP() {
         dispatch({ type: SET_ICONS, payload: icons });
         break;
       case 'properties':
-        // Could open display properties dialog
-        console.log('Display properties');
+        // Open Display Properties dialog
+        dispatch({ type: ADD_APP, payload: appSettings['Display Properties'] });
         break;
       default:
         console.log('Desktop action:', action);
     }
-  }, [createItem, getFolderContents, getSavedPositions]);
+  }, [createItem, getFolderContents, getSavedPositions, paste]);
 
   // Close desktop context menu when clicking elsewhere
   useEffect(() => {
@@ -621,24 +660,134 @@ function WinXP() {
     setIconContextMenu(null);
     if (!icon) return;
 
+    // Get all selected icons or just the right-clicked one
+    const selectedIconIds = state.icons.filter(i => i.isFocus).map(i => i.id);
+    const targetIds = selectedIconIds.length > 0 ? selectedIconIds : [icon.id];
+
     switch (action) {
       case 'open':
         onDoubleClickIcon(icon);
         break;
+      case 'explore':
+        // For folders, open in My Computer
+        if (icon.type === 'folder') {
+          const myComputerSetting = {
+            ...appSettings['My Computer'],
+            injectProps: {
+              initialPath: icon.id,
+            },
+          };
+          dispatch({ type: ADD_APP, payload: myComputerSetting });
+        } else {
+          onDoubleClickIcon(icon);
+        }
+        break;
+      case 'cut':
+        cut(targetIds);
+        break;
+      case 'copy':
+        copy(targetIds);
+        break;
       case 'delete':
-        // Move to recycle bin - need to import moveToRecycleBin
-        console.log('Delete icon:', icon.id);
+        // Move to recycle bin
+        for (const id of targetIds) {
+          moveToRecycleBin(id);
+        }
         break;
       case 'rename':
-        console.log('Rename icon:', icon.id);
+        // Start inline rename
+        const item = fileSystem?.[icon.id];
+        if (item) {
+          setRenamingIconId(icon.id);
+          setRenameValue(item.name);
+        }
         break;
-      case 'properties':
-        console.log('Properties for:', icon.title);
+      case 'properties': {
+        // Open Properties dialog for the icon
+        const propertiesSetting = {
+          ...appSettings['Properties'],
+          header: {
+            ...appSettings['Properties'].header,
+            title: `${icon.title} Properties`,
+          },
+          injectProps: {
+            itemId: icon.id,
+            itemData: {
+              id: icon.id,
+              name: icon.title,
+              type: icon.type || 'shortcut',
+              icon: icon.icon,
+              target: icon.target,
+              size: icon.size || 0,
+              dateCreated: icon.dateCreated || Date.now(),
+              dateModified: icon.dateModified || Date.now(),
+            },
+          },
+        };
+        dispatch({ type: ADD_APP, payload: propertiesSetting });
         break;
+      }
       default:
         console.log('Icon action:', action);
     }
-  }, [iconContextMenu]);
+  }, [iconContextMenu, state.icons, fileSystem, copy, cut, moveToRecycleBin]);
+
+  const closeIconContextMenu = useCallback(() => setIconContextMenu(null), []);
+
+  // Handle rename submission for desktop icons
+  const handleIconRenameSubmit = useCallback((e) => {
+    if (e) e.preventDefault();
+    if (renamingIconId && renameValue.trim()) {
+      renameItem(renamingIconId, renameValue.trim());
+    }
+    setRenamingIconId(null);
+    setRenameValue('');
+  }, [renamingIconId, renameValue, renameItem]);
+
+  const handleIconRenameCancel = useCallback(() => {
+    setRenamingIconId(null);
+    setRenameValue('');
+  }, []);
+
+  // Get the selected item for context menu
+  const iconContextMenuItem = React.useMemo(() => {
+    if (!iconContextMenu?.icon) return null;
+    const icon = iconContextMenu.icon;
+    return {
+      id: icon.id,
+      name: icon.title,
+      type: icon.type,
+      icon: icon.icon,
+    };
+  }, [iconContextMenu?.icon]);
+
+  const selectedIconCount = state.icons.filter(i => i.isFocus).length;
+
+  // Use the shared hook for icon context menu
+  const iconMenuItems = useFileContextMenu({
+    selectedItem: iconContextMenuItem,
+    isMultiSelect: selectedIconCount > 1,
+    clipboard,
+    clipboardOp,
+    onOpen: () => handleIconMenuAction('open'),
+    onExplore: () => handleIconMenuAction('explore'),
+    onCut: () => handleIconMenuAction('cut'),
+    onCopy: () => handleIconMenuAction('copy'),
+    onDelete: () => handleIconMenuAction('delete'),
+    onRename: () => handleIconMenuAction('rename'),
+    onProperties: () => handleIconMenuAction('properties'),
+  });
+
+  // Use the shared hook for desktop background context menu
+  const desktopMenuItems = useBackgroundContextMenu({
+    clipboard,
+    onRefresh: () => handleDesktopMenuAction('refresh'),
+    onPaste: () => handleDesktopMenuAction('paste'),
+    onNewFolder: () => handleDesktopMenuAction('newFolder'),
+    onNewTextDoc: () => handleDesktopMenuAction('newTextDoc'),
+    onProperties: () => handleDesktopMenuAction('properties'),
+    // Note: Upload and SelectAll not available on desktop background
+  });
 
   // Close icon context menu when clicking elsewhere
   useEffect(() => {
@@ -838,6 +987,13 @@ function WinXP() {
         selecting={state.selecting}
         setSelectedIcons={onIconsSelected}
         onUpdatePositions={onUpdateIconPositions}
+        renamingIconId={renamingIconId}
+        renameValue={renameValue}
+        onRenameChange={setRenameValue}
+        onRenameSubmit={handleIconRenameSubmit}
+        onRenameCancel={handleIconRenameCancel}
+        clipboardOp={clipboardOp}
+        clipboard={clipboard}
       />
       <DashedBox startPos={state.selecting} mouse={mouse} />
       <Windows
@@ -868,41 +1024,22 @@ function WinXP() {
         />
       )}
       {iconContextMenu && (
-        <DesktopContextMenuOverlay>
-          <DesktopContextMenuBox style={{ left: iconContextMenu.x, top: iconContextMenu.y }}>
-            <DesktopMenuItem $bold onClick={() => handleIconMenuAction('open')}>
-              Open
-            </DesktopMenuItem>
-            <DesktopMenuDivider />
-            <DesktopMenuItem onClick={() => handleIconMenuAction('delete')}>
-              Delete
-            </DesktopMenuItem>
-            <DesktopMenuItem onClick={() => handleIconMenuAction('rename')}>
-              Rename
-            </DesktopMenuItem>
-            <DesktopMenuDivider />
-            <DesktopMenuItem onClick={() => handleIconMenuAction('properties')}>
-              Properties
-            </DesktopMenuItem>
-          </DesktopContextMenuBox>
-        </DesktopContextMenuOverlay>
+        <ContextMenu
+          overlayType="fixed"
+          zIndex={10000}
+          position={{ x: iconContextMenu.x, y: iconContextMenu.y }}
+          items={iconMenuItems}
+          onClose={closeIconContextMenu}
+        />
       )}
       {desktopContextMenu && (
-        <DesktopContextMenuOverlay>
-          <DesktopContextMenuBox style={{ left: desktopContextMenu.x, top: desktopContextMenu.y }}>
-            <DesktopMenuItem onClick={() => handleDesktopMenuAction('newFolder')}>
-              New Folder
-            </DesktopMenuItem>
-            <DesktopMenuDivider />
-            <DesktopMenuItem onClick={() => handleDesktopMenuAction('refresh')}>
-              Refresh
-            </DesktopMenuItem>
-            <DesktopMenuDivider />
-            <DesktopMenuItem onClick={() => handleDesktopMenuAction('properties')}>
-              Properties
-            </DesktopMenuItem>
-          </DesktopContextMenuBox>
-        </DesktopContextMenuOverlay>
+        <ContextMenu
+          overlayType="fixed"
+          zIndex={10000}
+          position={{ x: desktopContextMenu.x, y: desktopContextMenu.y }}
+          items={desktopMenuItems}
+          onClose={() => setDesktopContextMenu(null)}
+        />
       )}
     </Container>
   );
@@ -978,42 +1115,6 @@ const DropMessage = styled.div`
 const DropIcon = styled.img`
   width: 64px;
   height: 64px;
-`;
-
-const DesktopContextMenuOverlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 10000;
-`;
-
-const DesktopContextMenuBox = styled.div`
-  position: absolute;
-  background: #f5f5f5;
-  border: 1px solid #808080;
-  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-  min-width: 150px;
-  padding: 2px 0;
-`;
-
-const DesktopMenuItem = styled.div`
-  padding: 4px 20px;
-  font-size: 11px;
-  cursor: pointer;
-  font-weight: ${({ $bold }) => ($bold ? 'bold' : 'normal')};
-
-  &:hover {
-    background: #0b61ff;
-    color: white;
-  }
-`;
-
-const DesktopMenuDivider = styled.div`
-  height: 1px;
-  background: #c0c0c0;
-  margin: 2px 0;
 `;
 
 export default WinXP;

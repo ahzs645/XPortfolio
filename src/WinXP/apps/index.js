@@ -18,6 +18,7 @@ import MyComputer from './MyComputer';
 import RecycleBin from './RecycleBin';
 import WinRAR from './WinRAR';
 import InternetExplorer from './InternetExplorer';
+import Properties from './Properties';
 
 // XP Icons paths
 const XP_ICONS = {
@@ -657,6 +658,26 @@ export const appSettings = {
     maximized: false,
     multiInstance: true,
   },
+  Properties: {
+    header: {
+      icon: '/icons/xp/DisplayProperties.png',
+      title: 'Properties',
+      buttons: ['close'],
+    },
+    component: Properties,
+    defaultSize: {
+      width: 350,
+      height: 460,
+    },
+    defaultOffset: {
+      x: 200,
+      y: 100,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
+  },
 };
 
 export {
@@ -679,4 +700,5 @@ export {
   RecycleBin,
   WinRAR,
   InternetExplorer,
+  Properties,
 };

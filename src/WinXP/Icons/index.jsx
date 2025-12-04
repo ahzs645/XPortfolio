@@ -11,7 +11,15 @@ function Icons({
   selecting,
   setSelectedIcons,
   onUpdatePositions,
+  renamingIconId,
+  renameValue,
+  onRenameChange,
+  onRenameSubmit,
+  onRenameCancel,
+  clipboardOp,
+  clipboard,
 }) {
+  const renameInputRef = useRef(null);
   const [iconsRect, setIconsRect] = useState([]);
   const [dragging, setDragging] = useState(null); // { id, startX, startY, iconStartX, iconStartY }
   const [dragPositions, setDragPositions] = useState({}); // Temporary positions during drag
@@ -34,6 +42,14 @@ function Icons({
     });
     setIconsRect(rects.filter(Boolean));
   }, [icons, dragPositions]);
+
+  // Focus rename input when it appears
+  useEffect(() => {
+    if (renamingIconId && renameInputRef.current) {
+      renameInputRef.current.focus();
+      renameInputRef.current.select();
+    }
+  }, [renamingIconId]);
 
   // Handle bounding box selection
   useEffect(() => {
@@ -148,28 +164,54 @@ function Icons({
     return { x: icon.x, y: icon.y };
   };
 
+  // Check if an icon is in the cut clipboard
+  const isCutIcon = (iconId) => clipboardOp === 'cut' && clipboard?.includes(iconId);
+
   return (
     <Container ref={containerRef}>
       {icons.map((icon, index) => {
         const pos = getIconPosition(icon);
+        const isRenaming = renamingIconId === icon.id;
+        const isCut = isCutIcon(icon.id);
+
         return (
           <Icon
             key={icon.id}
             ref={(el) => (iconRefs.current[index] = el)}
-            onMouseDown={(e) => handleMouseDown(e, icon)}
-            onDoubleClick={() => handleDoubleClick(icon)}
+            onMouseDown={(e) => !isRenaming && handleMouseDown(e, icon)}
+            onDoubleClick={() => !isRenaming && handleDoubleClick(icon)}
             onContextMenu={(e) => handleContextMenu(e, icon)}
             $isFocus={icon.isFocus && displayFocus}
             $isDragging={dragging && (dragging.id === icon.id || (icon.isFocus && dragging.iconStartPositions[icon.id]))}
+            $isCut={isCut}
             style={{
               left: pos.x,
               top: pos.y,
             }}
           >
-            <IconImage src={icon.icon} alt={icon.title} draggable={false} />
-            <IconText $isFocus={icon.isFocus && displayFocus}>
-              {icon.title}
-            </IconText>
+            <IconImage src={icon.icon} alt={icon.title} draggable={false} $isCut={isCut} />
+            {isRenaming ? (
+              <RenameForm onSubmit={onRenameSubmit}>
+                <RenameInput
+                  ref={renameInputRef}
+                  value={renameValue}
+                  onChange={(e) => onRenameChange(e.target.value)}
+                  onBlur={onRenameSubmit}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                      e.preventDefault();
+                      onRenameCancel();
+                    }
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                />
+              </RenameForm>
+            ) : (
+              <IconText $isFocus={icon.isFocus && displayFocus}>
+                {icon.title}
+              </IconText>
+            )}
           </Icon>
         );
       })}
@@ -198,7 +240,7 @@ const Icon = styled.div`
   pointer-events: auto;
   border: ${({ $isFocus }) => ($isFocus ? '1px dotted #aaa' : '1px solid transparent')};
   background: ${({ $isFocus }) => ($isFocus ? 'rgba(11, 97, 255, 0.3)' : 'transparent')};
-  opacity: ${({ $isDragging }) => ($isDragging ? 0.8 : 1)};
+  opacity: ${({ $isDragging, $isCut }) => ($isDragging ? 0.8 : $isCut ? 0.5 : 1)};
   z-index: ${({ $isDragging }) => ($isDragging ? 10 : 1)};
 
   &:hover {
@@ -211,6 +253,7 @@ const IconImage = styled.img`
   height: 32px;
   margin-bottom: 5px;
   image-rendering: pixelated;
+  opacity: ${({ $isCut }) => ($isCut ? 0.5 : 1)};
 `;
 
 const IconText = styled.span`
@@ -222,6 +265,24 @@ const IconText = styled.span`
   background: ${({ $isFocus }) => ($isFocus ? '#0b61ff' : 'transparent')};
   padding: 1px 2px;
   line-height: 1.2;
+`;
+
+const RenameForm = styled.form`
+  width: 100%;
+`;
+
+const RenameInput = styled.input`
+  width: 100%;
+  font-size: 11px;
+  text-align: center;
+  border: 1px solid #000;
+  padding: 1px 2px;
+  background: white;
+  outline: none;
+
+  &:focus {
+    border-color: #0b61ff;
+  }
 `;
 
 export default Icons;

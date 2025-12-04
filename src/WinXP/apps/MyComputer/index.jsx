@@ -3,6 +3,8 @@ import styled from 'styled-components';
 import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../../../contexts/FileSystemContext';
 import { parseDroppedFiles } from '../../../utils/fileDropParser';
 import { ProgramLayout, TaskPanel } from '../../../components';
+import { ContextMenu } from '../../components/ContextMenu';
+import { useFileContextMenu, useBackgroundContextMenu } from '../../hooks/useFileContextMenu';
 
 function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPath }) {
   const {
@@ -36,6 +38,15 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   const currentFolderData = isMyComputerRoot ? null : fileSystem?.[currentFolder];
   const contents = isMyComputerRoot ? [] : getFolderContents(currentFolder);
   const pathString = isMyComputerRoot ? 'My Computer' : getPath(currentFolder);
+  const selectedItemId = contextMenu?.itemId || selectedItems[0];
+  const selectedItem = contextMenu?.isItem ? fileSystem?.[selectedItemId] : null;
+  const getFileExtension = useCallback((name) => {
+    if (!name) return '';
+    const dotIndex = name.lastIndexOf('.');
+    return dotIndex === -1 ? '' : name.slice(dotIndex).toLowerCase();
+  }, []);
+  const selectedExtension = selectedItem?.name ? getFileExtension(selectedItem.name) : '';
+  const isArchive = selectedExtension === '.rar' || selectedExtension === '.zip';
 
   // Get items for My Computer root view
   const myComputerItems = React.useMemo(() => {
@@ -63,6 +74,12 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   }, []);
 
   const shortPathString = formatShortPath(pathString);
+
+  const closeContextMenu = useCallback(() => setContextMenu(null), []);
+  const withClose = useCallback((fn) => () => {
+    if (fn) fn();
+    closeContextMenu();
+  }, [closeContextMenu]);
 
   // Update window header when folder changes
   useEffect(() => {
@@ -172,6 +189,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
       x: e.clientX - offsetX,
       y: e.clientY - offsetY,
       isItem: !!item,
+      itemId: item?.id || null,
     });
   }, [selectedItems]);
 
@@ -291,6 +309,34 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   const handleUploadClick = useCallback(() => {
     fileInputRef.current?.click();
   }, []);
+
+  // Use the shared hook for file/folder context menu
+  const itemMenuItems = useFileContextMenu({
+    selectedItem: contextMenu?.isItem ? selectedItem : null,
+    isMultiSelect: selectedItems.length > 1,
+    clipboard,
+    clipboardOp,
+    onOpen: withClose(() => handleItemDoubleClick(selectedItem)),
+    onExplore: withClose(() => handleItemDoubleClick(selectedItem)),
+    onCut: withClose(handleCut),
+    onCopy: withClose(handleCopy),
+    onDelete: withClose(handleDelete),
+    onRename: withClose(handleRename),
+    onProperties: withClose(() => console.log('Properties for', selectedItem?.name)),
+  });
+
+  // Use the shared hook for background context menu
+  const backgroundMenuItems = useBackgroundContextMenu({
+    clipboard,
+    onNewFolder: withClose(handleCreateFolder),
+    onPaste: withClose(handlePaste),
+    onUpload: withClose(handleUploadClick),
+    onSelectAll: () => {
+      setSelectedItems(contents.map(i => i.id));
+      closeContextMenu();
+    },
+    // Note: No Refresh or Properties in file explorer background
+  });
 
   // Toolbar action handler
   const handleToolbarAction = useCallback((action) => {
@@ -605,41 +651,13 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
         )}
 
         {contextMenu && (
-          <ContextMenuOverlay>
-            <ContextMenuBox style={{ left: contextMenu.x, top: contextMenu.y }}>
-              {contextMenu.isItem ? (
-                <>
-                  <MenuItem onClick={() => handleItemDoubleClick(fileSystem[selectedItems[0]])}>
-                    Open
-                  </MenuItem>
-                  <MenuDivider />
-                  <MenuItem onClick={handleCut}>Cut</MenuItem>
-                  <MenuItem onClick={handleCopy}>Copy</MenuItem>
-                  <MenuDivider />
-                  <MenuItem onClick={handleDelete}>Delete</MenuItem>
-                  <MenuItem onClick={handleRename} disabled={selectedItems.length !== 1}>
-                    Rename
-                  </MenuItem>
-                </>
-              ) : (
-                <>
-                  <MenuItem onClick={handleCreateFolder}>New Folder</MenuItem>
-                  <MenuDivider />
-                  <MenuItem onClick={handlePaste} disabled={clipboard.length === 0}>
-                    Paste
-                  </MenuItem>
-                  <MenuDivider />
-                  <MenuItem onClick={handleUploadClick}>
-                    Upload Files...
-                  </MenuItem>
-                  <MenuDivider />
-                  <MenuItem onClick={() => { setSelectedItems(contents.map(i => i.id)); setContextMenu(null); }}>
-                    Select All
-                  </MenuItem>
-                </>
-              )}
-            </ContextMenuBox>
-          </ContextMenuOverlay>
+          <ContextMenu
+            overlayType="absolute"
+            zIndex={1000}
+            position={{ x: contextMenu.x, y: contextMenu.y }}
+            items={contextMenu.isItem ? itemMenuItems : backgroundMenuItems}
+            onClose={closeContextMenu}
+          />
         )}
 
         {isDragOver && (
@@ -763,46 +781,6 @@ const RenameInput = styled.input`
   text-align: center;
   border: 1px solid #000;
   padding: 1px 2px;
-`;
-
-const ContextMenuOverlay = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1000;
-`;
-
-const ContextMenuBox = styled.div`
-  position: absolute;
-  background: #f5f5f5;
-  border: 1px solid #808080;
-  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-  min-width: 150px;
-  padding: 2px 0;
-`;
-
-const MenuItem = styled.div`
-  padding: 4px 20px;
-  font-size: 11px;
-  cursor: pointer;
-
-  &:hover {
-    background: #0b61ff;
-    color: white;
-  }
-
-  ${({ disabled }) => disabled && `
-    color: #808080;
-    pointer-events: none;
-  `}
-`;
-
-const MenuDivider = styled.div`
-  height: 1px;
-  background: #c0c0c0;
-  margin: 2px 0;
 `;
 
 const DragOverlay = styled.div`
