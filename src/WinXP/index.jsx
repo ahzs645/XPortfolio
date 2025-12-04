@@ -417,6 +417,28 @@ function WinXP() {
         }
       }
 
+      // Get file extension for handling empty files
+      const fileExt = icon.title.substring(icon.title.lastIndexOf('.')).toLowerCase();
+
+      // For text files with no data (newly created empty files), open with empty content
+      const emptyTextExtensions = ['.txt', '.log', '.md', '.json', '.js', '.jsx', '.ts', '.tsx', '.css'];
+      if (!fileData && emptyTextExtensions.includes(fileExt)) {
+        const notepadSetting = {
+          ...appSettings['Notepad'],
+          header: {
+            ...appSettings['Notepad'].header,
+            title: `${icon.title} - Notepad`,
+          },
+          injectProps: {
+            initialContent: '',
+            fileName: icon.title,
+            fileId: icon.id,
+          },
+        };
+        dispatch({ type: ADD_APP, payload: notepadSetting });
+        return;
+      }
+
       if (!fileData) {
         console.log('[DoubleClick] No file data available');
         return;

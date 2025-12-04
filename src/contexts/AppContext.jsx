@@ -24,14 +24,33 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
       }
     }
 
+    const name = fileItem.name || '';
+    const ext = name.substring(name.lastIndexOf('.')).toLowerCase();
+    const contentType = fileItem.contentType || '';
+
+    // For text files with no data (newly created empty files), open with empty content
+    const emptyTextExtensions = ['.txt', '.log', '.md', '.json', '.js', '.jsx', '.ts', '.tsx', '.css'];
+    if (!fileData && emptyTextExtensions.includes(ext)) {
+      const notepadSetting = {
+        ...appSettings['Notepad'],
+        header: {
+          ...appSettings['Notepad'].header,
+          title: `${name} - Notepad`,
+        },
+        injectProps: {
+          initialContent: '',
+          fileName: name,
+          fileId: fileItem.id,
+        },
+      };
+      dispatch({ type: addAppAction, payload: notepadSetting });
+      return;
+    }
+
     if (!fileData) {
       console.log('[openFile] No file data available');
       return;
     }
-
-    const name = fileItem.name || '';
-    const ext = name.substring(name.lastIndexOf('.')).toLowerCase();
-    const contentType = fileItem.contentType || '';
 
     // For images, open with Image Viewer
     const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp'];

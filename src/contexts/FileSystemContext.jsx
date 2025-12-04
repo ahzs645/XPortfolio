@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import * as idb from 'idb-keyval';
 import { v4 as uuidv4 } from 'uuid';
+import { useConfig } from './ConfigContext';
 
 // Sort options
 export const SortOptions = Object.freeze({
@@ -85,26 +86,48 @@ const PROTECTED_ITEMS = [
   SYSTEM_IDS.RECYCLE_BIN,
 ];
 
-// Desktop shortcut definitions
-const DESKTOP_SHORTCUTS = [
-  { id: 'shortcut-my-computer', name: 'My Computer', icon: XP_ICONS.myComputer, target: 'My Computer' },
-  { id: 'shortcut-recycle-bin', name: 'Recycle Bin', icon: XP_ICONS.recycleBinEmpty, target: 'Recycle Bin' },
-  { id: 'shortcut-about', name: 'About Me', icon: '/icons/about.webp', target: 'About Me' },
-  { id: 'shortcut-resume', name: 'Resume', icon: '/icons/resume.webp', target: 'Resume' },
-  { id: 'shortcut-projects', name: 'Projects', icon: '/icons/projects.webp', target: 'Projects' },
-  { id: 'shortcut-contact', name: 'Contact', icon: '/icons/contact.webp', target: 'Contact' },
-  { id: 'shortcut-calculator', name: 'Calculator', icon: XP_ICONS.calculator, target: 'Calculator' },
-  { id: 'shortcut-minesweeper', name: 'Minesweeper', icon: XP_ICONS.minesweeper, target: 'Minesweeper' },
-];
+// Full catalog of available desktop shortcuts (program ID -> shortcut definition)
+// These map to the appSettings keys in src/WinXP/apps/index.js
+export const DESKTOP_SHORTCUT_CATALOG = {
+  myComputer: { id: 'shortcut-my-computer', name: 'My Computer', icon: XP_ICONS.myComputer, target: 'My Computer' },
+  recycleBin: { id: 'shortcut-recycle-bin', name: 'Recycle Bin', icon: XP_ICONS.recycleBinEmpty, target: 'Recycle Bin' },
+  about: { id: 'shortcut-about', name: 'About Me', icon: '/icons/about.webp', target: 'About Me' },
+  resume: { id: 'shortcut-resume', name: 'Resume', icon: '/icons/resume.webp', target: 'Resume' },
+  projects: { id: 'shortcut-projects', name: 'Projects', icon: '/icons/projects.webp', target: 'Projects' },
+  contact: { id: 'shortcut-contact', name: 'Contact', icon: '/icons/contact.webp', target: 'Contact' },
+  calculator: { id: 'shortcut-calculator', name: 'Calculator', icon: XP_ICONS.calculator, target: 'Calculator' },
+  minesweeper: { id: 'shortcut-minesweeper', name: 'Minesweeper', icon: XP_ICONS.minesweeper, target: 'Minesweeper' },
+  notepad: { id: 'shortcut-notepad', name: 'Notepad', icon: XP_ICONS.notepad, target: 'Notepad' },
+  paint: { id: 'shortcut-paint', name: 'Paint', icon: '/icons/xp/Paint.png', target: 'Paint' },
+  cmd: { id: 'shortcut-cmd', name: 'Command Prompt', icon: '/icons/xp/CommandPrompt.png', target: 'Command Prompt' },
+  mediaPlayer: { id: 'shortcut-media-player', name: 'Windows Media Player', icon: '/icons/xp/WindowsMediaPlayer9.png', target: 'Windows Media Player' },
+  internetExplorer: { id: 'shortcut-ie', name: 'Internet Explorer', icon: '/icons/xp/InternetExplorer6.png', target: 'Internet Explorer' },
+  solitaire: { id: 'shortcut-solitaire', name: 'Solitaire', icon: '/icons/solitaire-icon.png', target: 'Solitaire' },
+  spiderSolitaire: { id: 'shortcut-spider-solitaire', name: 'Spider Solitaire', icon: '/icons/spider-solitaire-icon.webp', target: 'Spider Solitaire' },
+  pinball: { id: 'shortcut-pinball', name: '3D Pinball', icon: '/icons/pinball-icon.png', target: 'Pinball' },
+  soundRecorder: { id: 'shortcut-sound-recorder', name: 'Sound Recorder', icon: '/icons/xp/SoundRecorder.webp', target: 'Sound Recorder' },
+  winamp: { id: 'shortcut-winamp', name: 'Winamp', icon: '/icons/winamp.png', target: 'Winamp' },
+  displayProperties: { id: 'shortcut-display', name: 'Display Properties', icon: XP_ICONS.displayProperties, target: 'Display Properties' },
+};
+
+// Default desktop programs if not specified in config
+const DEFAULT_DESKTOP_PROGRAMS = ['myComputer', 'recycleBin', 'about', 'resume', 'projects', 'contact', 'calculator', 'minesweeper'];
+
+// Build desktop shortcuts array from program IDs
+const buildDesktopShortcuts = (programIds) => {
+  return programIds
+    .map(id => DESKTOP_SHORTCUT_CATALOG[id])
+    .filter(Boolean);
+};
 
 // Initial file system structure
-const createInitialFileSystem = () => {
+const createInitialFileSystem = (desktopShortcuts) => {
   const now = Date.now();
 
-  // Create shortcut entries
+  // Create shortcut entries from provided list
   const shortcuts = {};
   const shortcutIds = [];
-  DESKTOP_SHORTCUTS.forEach(shortcut => {
+  desktopShortcuts.forEach(shortcut => {
     shortcuts[shortcut.id] = {
       id: shortcut.id,
       type: 'shortcut',
@@ -186,13 +209,21 @@ const createInitialFileSystem = () => {
 const FileSystemContext = createContext(null);
 
 export function FileSystemProvider({ children }) {
+  const { getDesktopPrograms, isLoading: configLoading } = useConfig();
   const [fileSystem, setFileSystem] = useState(null);
   const [clipboard, setClipboard] = useState([]);
   const [clipboardOp, setClipboardOp] = useState('copy'); // 'copy' or 'cut'
   const [isLoading, setIsLoading] = useState(true);
 
+  // Build desktop shortcuts from config
+  const desktopShortcuts = useMemo(() => {
+    if (configLoading) return buildDesktopShortcuts(DEFAULT_DESKTOP_PROGRAMS);
+    const programIds = getDesktopPrograms();
+    return buildDesktopShortcuts(programIds);
+  }, [configLoading, getDesktopPrograms]);
+
   // Ensure desktop shortcuts exist in file system
-  const ensureDesktopShortcuts = (fs) => {
+  const ensureDesktopShortcuts = (fs, desktopShortcuts) => {
     const now = Date.now();
     let modified = false;
 
@@ -212,7 +243,7 @@ export function FileSystemProvider({ children }) {
     }
 
     // Ensure each shortcut exists
-    DESKTOP_SHORTCUTS.forEach(shortcut => {
+    desktopShortcuts.forEach(shortcut => {
       if (!fs[shortcut.id]) {
         fs[shortcut.id] = {
           id: shortcut.id,
@@ -239,26 +270,29 @@ export function FileSystemProvider({ children }) {
 
   // Load file system from IndexedDB on mount
   useEffect(() => {
+    // Wait for config to load before initializing file system
+    if (configLoading) return;
+
     const loadFileSystem = async () => {
       try {
         let fs = await idb.get('fileSystem');
         if (!fs) {
-          fs = createInitialFileSystem();
+          fs = createInitialFileSystem(desktopShortcuts);
         } else {
           // Ensure desktop shortcuts exist
-          ensureDesktopShortcuts(fs);
+          ensureDesktopShortcuts(fs, desktopShortcuts);
         }
         await idb.set('fileSystem', fs);
         setFileSystem(fs);
       } catch (error) {
         console.error('Failed to load file system:', error);
-        setFileSystem(createInitialFileSystem());
+        setFileSystem(createInitialFileSystem(desktopShortcuts));
       } finally {
         setIsLoading(false);
       }
     };
     loadFileSystem();
-  }, []);
+  }, [configLoading, desktopShortcuts]);
 
   // Save file system to IndexedDB whenever it changes
   useEffect(() => {

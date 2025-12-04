@@ -56,7 +56,7 @@ function getDefaultConfig() {
     WALLPAPER_MOBILE_PATH: '/bliss.jpg',
 
     // Desktop icons
-    DESKTOP_PROGRAMS: 'about,resume,projects,contact',
+    DESKTOP_PROGRAMS: 'myComputer,recycleBin,about,resume,projects,contact,calculator,minesweeper',
 
     // Feature toggles
     SHOW_SOCIAL_IN_START_MENU: true,
