@@ -150,6 +150,13 @@ export const START_MENU_CATALOG = {
     title: 'QQ Pet',
     description: 'Virtual pet app',
   },
+  installer: {
+    type: 'program',
+    appKey: 'App Installer',
+    icon: '/icons/xp/Programs.png',
+    title: 'App Installer',
+    description: 'Install web apps',
+  },
   'divider-main': {
     type: 'separator',
   },
@@ -189,7 +196,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Accessories',
     icon: '/icons/xp/FolderClosed.png',
-    items: ['calculator', 'notepad', 'displayProperties', 'paint', 'cmd', 'imageViewer'],
+    items: ['calculator', 'notepad', 'displayProperties', 'paint', 'cmd', 'imageViewer', 'installer'],
   },
   entertainment: {
     type: 'folder',

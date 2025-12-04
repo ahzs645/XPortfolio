@@ -330,7 +330,7 @@ function QQPenguin({ onClose, onMinimize }) {
   // Use portal to render outside the Window container's transform context
   return ReactDOM.createPortal(
     <div
-      style={{ position: 'fixed', left: 0, top: 0, right: 0, bottom: 0, zIndex: 10000 }}
+      style={{ position: 'fixed', left: 0, top: 0, right: 0, bottom: 0, zIndex: 10000, pointerEvents: 'none' }}
       onClick={handleOverlayClick}
     >
       {showLogin ? (
@@ -370,72 +370,52 @@ function QQPenguin({ onClose, onMinimize }) {
             </Bubble>
           )}
 
-          {/* Action Menu */}
+          {/* Action Menu - Original QQ Pet Context Menu Style */}
           {showMenu && (
-            <ActionMenu style={{
-              left: petPos.x + 125 - 80,
-              top: petPos.y - 180,
+            <ContextMenu style={{
+              left: petPos.x + 125 - 75,
+              top: petPos.y - 150,
             }}>
-              <MenuTitle>宠物操作</MenuTitle>
-              <MenuCloseBtn onClick={() => setShowMenu(false)}>×</MenuCloseBtn>
-              <MenuItems>
-                {MENU_ACTIONS.map(action => (
-                  <MenuItem key={action.id} onClick={() => handleMenuAction(action)}>
-                    <span>{action.icon}</span>
-                    <span>{action.label}</span>
-                  </MenuItem>
-                ))}
-              </MenuItems>
-              <MenuStats>
-                <StatRow>
-                  <StatLabel>饥饿</StatLabel>
-                  <StatBar><StatFill style={{ width: `${stats.hunger}%`, background: '#ff9800' }} /></StatBar>
-                </StatRow>
-                <StatRow>
-                  <StatLabel>清洁</StatLabel>
-                  <StatBar><StatFill style={{ width: `${stats.cleanliness}%`, background: '#2196f3' }} /></StatBar>
-                </StatRow>
-                <StatRow>
-                  <StatLabel>健康</StatLabel>
-                  <StatBar><StatFill style={{ width: `${stats.health}%`, background: '#4caf50' }} /></StatBar>
-                </StatRow>
-                <StatRow>
-                  <StatLabel>心情</StatLabel>
-                  <StatBar><StatFill style={{ width: `${stats.happiness}%`, background: '#e91e63' }} /></StatBar>
-                </StatRow>
-              </MenuStats>
-            </ActionMenu>
+              <ContextMenuStart />
+              {MENU_ACTIONS.map(action => (
+                <ContextMenuOption key={action.id} onClick={() => handleMenuAction(action)}>
+                  <MenuOptionIcon>{action.icon}</MenuOptionIcon>
+                  <MenuOptionText>{action.label}</MenuOptionText>
+                </ContextMenuOption>
+              ))}
+              <ContextMenuEnd />
+            </ContextMenu>
           )}
 
-          {/* Detail Menu */}
+          {/* Detail Menu - Original QQ Pet Style */}
           {showDetailMenu && (
             <DetailMenu style={{
-              left: petPos.x + 125 - 100,
-              top: petPos.y - 200,
+              left: petPos.x + 125 - 145,
+              top: petPos.y - 130,
             }}>
               <DetailTitle>
                 {detailMenuType === 'feed' ? '请选择食物:' : '请选择药品:'}
               </DetailTitle>
               <DetailCloseBtn onClick={handleDetailMenuClose}>×</DetailCloseBtn>
-              <DetailContent>
+              <ItemList>
                 {detailMenuType === 'feed' ? (
                   <>
-                    <DetailItem onClick={() => handleFeedItem({ name: '冰淇淋', value: 15 })}>
-                      <DetailItemIcon src="/games/qqpenguin/assets/icecream.png" />
-                      <DetailItemText>冰淇淋 (+15饱食)</DetailItemText>
-                    </DetailItem>
-                    <DetailItem onClick={() => handleFeedItem({ name: '月饼', value: 25 })}>
-                      <DetailItemIcon src="/games/qqpenguin/assets/mooncake.png" />
-                      <DetailItemText>月饼 (+25饱食)</DetailItemText>
-                    </DetailItem>
+                    <ItemCard onClick={() => handleFeedItem({ name: '冰淇淋', value: 15 })}>
+                      <ItemIcon src="/games/qqpenguin/assets/icecream.png" />
+                      <ItemText>冰淇淋 +15</ItemText>
+                    </ItemCard>
+                    <ItemCard onClick={() => handleFeedItem({ name: '月饼', value: 25 })}>
+                      <ItemIcon src="/games/qqpenguin/assets/mooncake.png" />
+                      <ItemText>月饼 +25</ItemText>
+                    </ItemCard>
                   </>
                 ) : (
-                  <DetailItem onClick={handleMedicineItem}>
-                    <DetailItemIcon src="/games/qqpenguin/assets/riyongping.png" />
-                    <DetailItemText>感冒药 (+20健康)</DetailItemText>
-                  </DetailItem>
+                  <ItemCard onClick={handleMedicineItem}>
+                    <ItemIcon src="/games/qqpenguin/assets/riyongping.png" />
+                    <ItemText>感冒药 +20</ItemText>
+                  </ItemCard>
                 )}
-              </DetailContent>
+              </ItemList>
               <DetailFooter>
                 <VipIcon>💎</VipIcon>
                 <span><a href="#" onClick={(e) => e.preventDefault()}>开通粉钻</a>,体验尊贵专属特权。</span>
@@ -472,7 +452,7 @@ const LoginOverlay = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: auto;
+  pointer-events: none;
 `;
 
 const LoginDialog = styled.div`
@@ -484,6 +464,7 @@ const LoginDialog = styled.div`
   left: 50%;
   top: 50%;
   user-select: none;
+  pointer-events: auto;
 `;
 
 const LoginHeader = styled.div`
@@ -606,6 +587,7 @@ const Bubble = styled.div`
   box-shadow: 0 2px 10px rgba(0,0,0,0.2);
   pointer-events: auto;
   min-width: 150px;
+  z-index: 10001;
 
   &::after {
     content: '';
@@ -644,162 +626,133 @@ const BubbleBtn = styled.button`
   &:hover { background: #7AC5E0; }
 `;
 
-// Action Menu Styles
-const ActionMenu = styled.div`
+// Context Menu Styles (original QQ Pet style - vertical layout)
+const ContextMenu = styled.div`
   position: absolute;
-  background: linear-gradient(180deg, #e8f4fc 0%, #c5e3f6 100%);
-  border: 2px solid #7cb8d9;
-  border-radius: 10px;
-  padding: 10px;
-  min-width: 160px;
+  width: 150px;
   pointer-events: auto;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-`;
-
-const MenuTitle = styled.div`
-  font-size: 13px;
-  font-weight: bold;
-  color: #2e6b8a;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #a8d4ea;
-  margin-bottom: 8px;
-`;
-
-const MenuCloseBtn = styled.div`
-  position: absolute;
-  top: 5px;
-  right: 8px;
-  font-size: 18px;
-  cursor: pointer;
-  color: #666;
-  &:hover { color: #333; }
-`;
-
-const MenuItems = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-bottom: 10px;
-`;
-
-const MenuItem = styled.div`
+  font-size: 12px;
+  line-height: 100%;
+  z-index: 10001;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 8px;
-  background: white;
-  border-radius: 8px;
-  cursor: pointer;
-  min-width: 45px;
-  font-size: 11px;
-  color: #333;
-  border: 1px solid #cde5f0;
-
-  &:hover {
-    background: #e8f4fc;
-    border-color: #7cb8d9;
-  }
-
-  span:first-child {
-    font-size: 18px;
-    margin-bottom: 3px;
-  }
 `;
 
-const MenuStats = styled.div`
-  background: white;
-  border-radius: 8px;
-  padding: 8px;
-  border: 1px solid #cde5f0;
+const ContextMenuStart = styled.div`
+  width: 100%;
+  height: 7px;
+  background-image: url(data:image/bmp;base64,Qk3wAAAAAAAAAEYAAAAoAAAAFgAAAAcAAAABAAgAAAAAAKoAAAASCwAAEgsAAAQAAAAEAAAA9v7/ABJ1owD3/v8AAAAAAAACAgICAgICAgICAgICAgICAgICAgIAAAACAgICAgICAgICAgICAgICAgICAgIAAAACAgICAgICAgICAgICAgICAgICAgIAAAACAgICAgICAgICAgICAgICAgICAgIAAAACAgICAgICAgICAgICAgICAgICAgIAAAACAgICAgICAgICAgICAgICAgICAgIAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEAAAAA);
+  background-repeat: repeat-x;
+  background-size: auto 100%;
 `;
 
-const StatRow = styled.div`
+const ContextMenuOption = styled.div`
+  width: 100%;
+  height: 22px;
+  background-image: url(data:image/bmp;base64,Qk2kAgAAAAAAAEIAAAAoAAAAHwAAABMAAAABAAgAAAAAAGICAAASCwAAEgsAAAMAAAADAAAA9v7/APf+/wAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEAAAABAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEAAAABAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEAAAABAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEAAAABAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEAAAABAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEAAAABAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAA==);
+  background-repeat: repeat-x;
+  background-size: auto 100%;
   display: flex;
   align-items: center;
-  margin-bottom: 4px;
-  &:last-child { margin-bottom: 0; }
+  cursor: pointer;
+  padding-left: 8px;
+
+  &:hover {
+    filter: brightness(0.92);
+    background-color: rgba(200, 230, 255, 0.3);
+  }
 `;
 
-const StatLabel = styled.span`
-  font-size: 10px;
-  color: #666;
-  width: 30px;
+const ContextMenuEnd = styled.div`
+  width: 100%;
+  height: 7px;
+  background-image: url(data:image/bmp;base64,Qk3wAAAAAAAAAEYAAAAoAAAAFgAAAAcAAAABAAgAAAAAAKoAAAASCwAAEgsAAAQAAAAEAAAA9v7/ABJ1owD3/v8AAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEAAAACAgICAgICAgICAgICAgICAgICAgIAAAACAgICAgICAgICAgICAgICAgICAgIAAAACAgICAgICAgICAgICAgICAgICAgIAAAACAgICAgICAgICAgICAgICAgICAgIAAAACAgICAgICAgICAgICAgICAgICAgIAAAACAgICAgICAgICAgICAgICAgICAgIAAAAA);
+  background-repeat: repeat-x;
+  background-size: auto 100%;
 `;
 
-const StatBar = styled.div`
-  flex: 1;
-  height: 8px;
-  background: #eee;
-  border-radius: 4px;
-  overflow: hidden;
+const MenuOptionText = styled.span`
+  color: #1775a3;
+  font-family: 'Times New Roman', serif;
+  font-weight: bold;
+  font-size: 12px;
+  margin-left: 5px;
 `;
 
-const StatFill = styled.div`
-  height: 100%;
-  border-radius: 4px;
-  transition: width 0.3s;
+const MenuOptionIcon = styled.span`
+  font-size: 14px;
 `;
 
-// Detail Menu Styles
+// Detail Menu Styles (original QQ Pet style)
 const DetailMenu = styled.div`
   position: absolute;
-  background: linear-gradient(180deg, #fff5e6 0%, #ffe4b8 100%);
-  border: 2px solid #d4a55a;
+  width: 290px;
+  height: auto;
+  min-height: 110px;
+  background-image: linear-gradient(rgba(231,247,254,.9), hsla(0,0%,100%,.9), rgba(216,228,234,.9));
+  box-shadow: 2px 2px 5px #3d3c3c;
   border-radius: 10px;
-  padding: 12px;
-  min-width: 200px;
   pointer-events: auto;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  z-index: 10001;
 `;
 
 const DetailTitle = styled.div`
-  font-size: 13px;
+  margin-top: 14px;
+  margin-left: 15px;
+  color: #4b616f;
+  font-family: 'Times New Roman', serif;
   font-weight: bold;
-  color: #8b6914;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #d4a55a;
-  margin-bottom: 10px;
+  font-size: 13px;
 `;
 
 const DetailCloseBtn = styled.div`
   position: absolute;
-  top: 5px;
-  right: 8px;
-  font-size: 18px;
+  top: 10px;
+  right: 12px;
+  width: 13px;
+  height: 13px;
   cursor: pointer;
-  color: #8b6914;
-  &:hover { color: #5a4510; }
+  filter: drop-shadow(0 1px 2px grey);
+  font-size: 14px;
+  color: #4b616f;
+  &:hover { color: #333; }
 `;
 
-const DetailContent = styled.div`
-  margin-bottom: 10px;
-`;
-
-const DetailItem = styled.div`
+const ItemList = styled.div`
+  height: 70px;
   display: flex;
   align-items: center;
-  padding: 8px;
-  background: white;
-  border-radius: 8px;
+  padding: 0 10px;
+`;
+
+const ItemCard = styled.div`
+  width: 130px;
+  height: 60px;
+  margin: 5px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  margin-bottom: 5px;
-  border: 1px solid #e6c88a;
+  border: 1px solid rgba(0,0,0,0.1);
 
   &:hover {
-    background: #fff8eb;
-    border-color: #d4a55a;
+    background: rgba(255,255,255,1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   }
 `;
 
-const DetailItemIcon = styled.img`
+const ItemIcon = styled.img`
   width: 32px;
   height: 32px;
-  margin-right: 10px;
 `;
 
-const DetailItemText = styled.span`
-  font-size: 12px;
-  color: #333;
+const ItemText = styled.span`
+  font-size: 11px;
+  color: #4b616f;
+  margin-top: 3px;
 `;
 
 const DetailFooter = styled.div`
@@ -807,8 +760,8 @@ const DetailFooter = styled.div`
   align-items: center;
   font-size: 11px;
   color: #666;
-  padding-top: 8px;
-  border-top: 1px solid #e6c88a;
+  padding: 8px 15px;
+  border-top: 1px solid rgba(0,0,0,0.1);
 
   a {
     color: #e91e63;
@@ -820,6 +773,7 @@ const DetailFooter = styled.div`
 const VipIcon = styled.span`
   margin-right: 5px;
 `;
+
 
 const PetContainer = styled.div`
   position: absolute;

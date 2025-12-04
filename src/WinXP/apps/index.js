@@ -21,6 +21,8 @@ import InternetExplorer from './InternetExplorer';
 import Properties from './Properties';
 import SoundRecorder from './SoundRecorder';
 import QQPenguin from './QQPenguin';
+import Installer from './Installer';
+import IframeApp from './IframeApp';
 
 // XP Icons paths
 const XP_ICONS = {
@@ -147,6 +149,11 @@ export const desktopIconCatalog = {
     icon: '/icons/qqpet.ico',
     title: 'QQ Pet',
     component: QQPenguin,
+  },
+  installer: {
+    icon: '/icons/xp/Programs.png',
+    title: 'App Installer',
+    component: Installer,
   },
 };
 
@@ -731,6 +738,46 @@ export const appSettings = {
     maximized: false,
     multiInstance: false,
   },
+  'App Installer': {
+    header: {
+      icon: '/icons/xp/Programs.png',
+      title: 'App Installer',
+      buttons: ['minimize', 'close'],
+    },
+    component: Installer,
+    defaultSize: {
+      width: 500,
+      height: 450,
+    },
+    defaultOffset: {
+      x: 150,
+      y: 80,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'Installed App': {
+    header: {
+      icon: '/icons/xp/Programs.png',
+      title: 'Web App',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: IframeApp,
+    defaultSize: {
+      width: 800,
+      height: 600,
+    },
+    defaultOffset: {
+      x: 100,
+      y: 50,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
+  },
 };
 
 export {
@@ -756,4 +803,6 @@ export {
   Properties,
   SoundRecorder,
   QQPenguin,
+  Installer,
+  IframeApp,
 };
