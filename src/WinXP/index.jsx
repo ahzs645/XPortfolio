@@ -300,6 +300,7 @@ function WinXP() {
     paste,
     clipboard,
     clipboardOp,
+    moveItem,
   } = useFileSystem();
 
   // Determine if mobile based on viewport width
@@ -851,6 +852,18 @@ function WinXP() {
     dispatch({ type: UPDATE_ICON_POSITIONS, payload: positions });
   }, []);
 
+  // Handle moving icons to a folder via drag-and-drop
+  const onMoveToFolder = useCallback((iconIds, targetFolderId) => {
+    if (!moveItem) return;
+    // Move each icon to the target folder
+    for (const id of iconIds) {
+      const success = moveItem(id, targetFolderId);
+      if (success) {
+        console.log(`Moved ${id} to folder ${targetFolderId}`);
+      }
+    }
+  }, [moveItem]);
+
   function onClickModalButton() {
     dispatch({ type: CANCEL_POWER_OFF });
   }
@@ -1033,6 +1046,7 @@ function WinXP() {
         selecting={state.selecting}
         setSelectedIcons={onIconsSelected}
         onUpdatePositions={onUpdateIconPositions}
+        onMoveToFolder={onMoveToFolder}
         renamingIconId={renamingIconId}
         renameValue={renameValue}
         onRenameChange={setRenameValue}

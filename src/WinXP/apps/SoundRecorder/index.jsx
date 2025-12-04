@@ -442,19 +442,23 @@ const Slider = styled.input`
 const ControlsRow = styled.div`
   display: flex;
   justify-content: center;
-  gap: 2px;
+  gap: 1px;
 `;
 
 const CtrlBtn = styled.button`
-  width: 40px;
-  height: 24px;
-  padding: 2px;
+  width: 34px;
+  min-width: 34px;
+  max-width: 34px;
+  height: 22px;
+  padding: 0;
   background: #c0c0c0;
   border: 2px outset #fff;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  flex-grow: 0;
 
   &:active:not(:disabled) {
     border-style: inset;
@@ -466,12 +470,12 @@ const CtrlBtn = styled.button`
 `;
 
 const BtnIcon = styled.div`
-  width: 32px;
-  height: 16px;
+  width: 28px;
+  height: 14px;
   background-image: url('/icons/xp/sound-recorder-buttons.png');
   background-repeat: no-repeat;
-  background-position: ${props => -props.$index * 44}px 0;
-  background-size: auto 20px;
+  background-position: ${props => -props.$index * 37}px center;
+  background-size: auto 16px;
   ${props => props.$disabled && 'opacity: 0.4; filter: grayscale(100%);'}
 `;
 

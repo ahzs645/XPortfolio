@@ -25,6 +25,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     clipboard,
     clipboardOp,
     getFileContent,
+    moveItem,
   } = useFileSystem();
 
   const { openFile } = useApp();
@@ -38,6 +39,8 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   const [renameValue, setRenameValue] = useState('');
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(null);
+  const [draggingItems, setDraggingItems] = useState(null); // Array of item IDs being dragged
+  const [dropTargetId, setDropTargetId] = useState(null); // Folder being hovered during drag
   const containerRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -312,6 +315,74 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   const handleUploadClick = useCallback(() => {
     fileInputRef.current?.click();
   }, []);
+
+  // Internal drag-and-drop handlers (moving files to folders)
+  const handleItemDragStart = useCallback((e, item) => {
+    // Determine which items to drag (selected items or just this one)
+    const itemsToDrag = selectedItems.includes(item.id) && selectedItems.length > 0
+      ? selectedItems
+      : [item.id];
+
+    setDraggingItems(itemsToDrag);
+
+    // Set drag data for visual feedback
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', itemsToDrag.join(','));
+
+    // Create a custom drag image (optional)
+    if (e.dataTransfer.setDragImage && e.target) {
+      e.dataTransfer.setDragImage(e.target, 40, 40);
+    }
+  }, [selectedItems]);
+
+  const handleItemDragEnd = useCallback(() => {
+    setDraggingItems(null);
+    setDropTargetId(null);
+  }, []);
+
+  const handleItemDragOver = useCallback((e, item) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Only allow dropping on folders
+    if (item.type !== 'folder') return;
+
+    // Don't allow dropping on itself or an item being dragged
+    if (draggingItems?.includes(item.id)) return;
+
+    e.dataTransfer.dropEffect = 'move';
+    setDropTargetId(item.id);
+  }, [draggingItems]);
+
+  const handleItemDragLeave = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only clear if we're actually leaving the item
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setDropTargetId(null);
+    }
+  }, []);
+
+  const handleItemDrop = useCallback((e, targetFolder) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Only allow dropping on folders
+    if (targetFolder.type !== 'folder') return;
+
+    // Don't allow dropping on an item being dragged
+    if (draggingItems?.includes(targetFolder.id)) return;
+
+    // Move all dragged items to the target folder
+    if (draggingItems && moveItem) {
+      for (const itemId of draggingItems) {
+        moveItem(itemId, targetFolder.id);
+      }
+    }
+
+    setDraggingItems(null);
+    setDropTargetId(null);
+  }, [draggingItems, moveItem]);
 
   // Archive handlers
   const handleAddToArchive = useCallback(async () => {
@@ -665,9 +736,17 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
                   key={item.id}
                   $selected={selectedItems.includes(item.id)}
                   $isCut={clipboardOp === 'cut' && clipboard.includes(item.id)}
+                  $isDragging={draggingItems?.includes(item.id)}
+                  $isDropTarget={dropTargetId === item.id && item.type === 'folder'}
+                  draggable={renamingItem !== item.id}
                   onClick={(e) => handleItemClick(e, item)}
                   onDoubleClick={() => handleItemDoubleClick(item)}
                   onContextMenu={(e) => handleContextMenu(e, item)}
+                  onDragStart={(e) => handleItemDragStart(e, item)}
+                  onDragEnd={handleItemDragEnd}
+                  onDragOver={(e) => handleItemDragOver(e, item)}
+                  onDragLeave={handleItemDragLeave}
+                  onDrop={(e) => handleItemDrop(e, item)}
                 >
                   <FileIcon src={item.icon || XP_ICONS.folder} alt="" />
                   {renamingItem === item.id ? (
@@ -784,14 +863,30 @@ const FileItem = styled.div`
   flex-direction: column;
   align-items: center;
   cursor: pointer;
-  border: 1px solid transparent;
-  border-radius: 2px;
-  background: ${({ $selected }) => $selected ? 'rgba(11, 97, 255, 0.2)' : 'transparent'};
-  border-color: ${({ $selected }) => $selected ? 'rgba(11, 97, 255, 0.5)' : 'transparent'};
-  opacity: ${({ $isCut }) => $isCut ? 0.5 : 1};
+  border: ${({ $isDropTarget }) => $isDropTarget ? '2px solid #0b61ff' : '1px solid transparent'};
+  border-radius: ${({ $isDropTarget }) => $isDropTarget ? '4px' : '2px'};
+  background: ${({ $selected, $isDropTarget }) =>
+    $isDropTarget
+      ? 'rgba(11, 97, 255, 0.4)'
+      : $selected
+      ? 'rgba(11, 97, 255, 0.2)'
+      : 'transparent'};
+  border-color: ${({ $selected, $isDropTarget }) =>
+    $isDropTarget
+      ? '#0b61ff'
+      : $selected
+      ? 'rgba(11, 97, 255, 0.5)'
+      : 'transparent'};
+  opacity: ${({ $isCut, $isDragging }) => ($isDragging ? 0.5 : $isCut ? 0.5 : 1)};
+  transition: ${({ $isDropTarget }) => ($isDropTarget ? 'background 0.15s, border 0.15s' : 'none')};
 
   &:hover {
-    background: ${({ $selected }) => $selected ? 'rgba(11, 97, 255, 0.3)' : 'rgba(11, 97, 255, 0.1)'};
+    background: ${({ $selected, $isDropTarget }) =>
+      $isDropTarget
+        ? 'rgba(11, 97, 255, 0.5)'
+        : $selected
+        ? 'rgba(11, 97, 255, 0.3)'
+        : 'rgba(11, 97, 255, 0.1)'};
   }
 `;
 
