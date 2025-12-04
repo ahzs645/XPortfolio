@@ -5,124 +5,156 @@ import { initUpdateChecker } from '../../utils/updateChecker';
 // For testing: window.triggerUpdate() or Ctrl+Shift+U
 const DEV_MODE = import.meta.env.DEV;
 
-const slideIn = keyframes`
+const fadeIn = keyframes`
   from {
-    transform: translateX(100%);
     opacity: 0;
+    transform: translateY(10px);
   }
   to {
-    transform: translateX(0);
     opacity: 1;
+    transform: translateY(0);
   }
 `;
 
-const slideOut = keyframes`
+const fadeOut = keyframes`
   from {
-    transform: translateX(0);
     opacity: 1;
+    transform: translateY(0);
   }
   to {
-    transform: translateX(100%);
     opacity: 0;
+    transform: translateY(10px);
   }
 `;
 
-const ToastContainer = styled.div`
+const UpdateBalloon = styled.div`
   position: fixed;
   bottom: 50px;
   right: 16px;
+  width: 280px;
+  background: #ffffcc;
+  border: 1px solid #000;
+  border-radius: 4px;
+  padding: 10px;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   z-index: 10000;
-  animation: ${props => props.$isClosing ? slideOut : slideIn} 0.3s ease-out forwards;
-`;
+  font-size: 11px;
+  animation: ${props => props.$isClosing ? fadeOut : fadeIn} 0.2s ease-out forwards;
 
-const ToastWindow = styled.div`
-  min-width: 280px;
-  max-width: 320px;
-  box-shadow:
-    2px 2px 10px rgba(0, 0, 0, 0.3),
-    inset 1px 1px 0 rgba(255, 255, 255, 0.8),
-    inset -1px -1px 0 rgba(0, 0, 0, 0.2);
-`;
-
-const TitleBar = styled.div`
-  background: linear-gradient(180deg, #0a246a 0%, #0a246a 3%, #0f3781 6%, #1457b1 10%, #1d6fd0 14%, #2488e4 20%, #2896ef 24%, #2ea0f7 34%, #32a7fb 45%, #33acfe 50%, #32a7fb 55%, #2f9efa 60%, #2895f2 66%, #238ae6 72%, #1d7ed5 78%, #1774c6 84%, #126bb8 90%, #0f64ac 96%, #0e60a5 100%);
-  padding: 3px 5px 3px 3px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-`;
-
-const TitleText = styled.span`
-  color: white;
-  font-weight: bold;
-  font-size: 12px;
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  gap: 4px;
-`;
-
-const UpdateIcon = styled.span`
-  font-size: 14px;
-`;
-
-const CloseButton = styled.button`
-  background: linear-gradient(180deg, #e47c7c 0%, #d65f5f 50%, #c94545 100%);
-  border: 1px solid #8b0000;
-  border-radius: 3px;
-  width: 21px;
-  height: 21px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: white;
-  font-size: 10px;
-  font-weight: bold;
-
-  &:hover {
-    background: linear-gradient(180deg, #f08888 0%, #e06a6a 50%, #d55050 100%);
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    right: 40px;
+    border-width: 10px 10px 0 10px;
+    border-style: solid;
+    border-color: #ffffcc transparent transparent transparent;
   }
 
-  &:active {
-    background: linear-gradient(180deg, #c94545 0%, #b53535 50%, #a02828 100%);
+  &::before {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    right: 39px;
+    border-width: 11px 11px 0 11px;
+    border-style: solid;
+    border-color: #000 transparent transparent transparent;
   }
-`;
 
-const Content = styled.div`
-  background: #ece9d8;
-  padding: 12px;
-  border: 1px solid #919b9c;
-  border-top: none;
-`;
+  .balloon__close {
+    all: unset;
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 14px;
+    height: 14px;
+    background-color: transparent;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+    box-sizing: border-box;
+    display: block;
+    cursor: pointer;
 
-const Message = styled.div`
-  font-size: 11px;
-  color: #000;
-  margin-bottom: 12px;
-  line-height: 1.4;
-`;
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      left: 5px;
+      top: 2px;
+      width: 2px;
+      height: 8px;
+      background-color: #aaa;
+    }
 
-const VersionInfo = styled.div`
-  font-size: 10px;
-  color: #666;
-  margin-bottom: 10px;
-  font-family: 'Lucida Console', Monaco, monospace;
-`;
+    &::before {
+      transform: rotate(45deg);
+    }
 
-const ButtonRow = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-`;
+    &::after {
+      transform: rotate(-45deg);
+    }
 
-const Button = styled.button`
-  min-width: 75px;
-  padding: 4px 12px;
-  font-size: 11px;
-  cursor: pointer;
+    &:hover {
+      background-color: #dd0f0f;
+      border-color: #fff;
+      box-shadow: 1px 1px rgba(0, 0, 0, 0.1);
+
+      &::before,
+      &::after {
+        background-color: #fff;
+      }
+    }
+
+    &:active {
+      background-color: #a00a0a;
+    }
+  }
+
+  .balloon__header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    padding-right: 16px;
+
+    img {
+      width: 32px;
+      height: 32px;
+      margin-right: 8px;
+    }
+
+    span {
+      font-weight: bold;
+      color: #000;
+    }
+  }
+
+  .balloon__text {
+    margin: 0 0 8px 0;
+    color: #000;
+    line-height: 1.4;
+  }
+
+  .balloon__version {
+    margin: 0 0 10px 0;
+    color: #666;
+    font-family: 'Lucida Console', Monaco, monospace;
+    font-size: 10px;
+  }
+
+  .balloon__links {
+    margin: 0;
+    color: #000;
+
+    a {
+      color: blue;
+      text-decoration: underline;
+      cursor: pointer;
+
+      &:hover {
+        color: red;
+      }
+    }
+  }
 `;
 
 export default function UpdateToast() {
@@ -179,10 +211,11 @@ export default function UpdateToast() {
     setIsClosing(true);
     setTimeout(() => {
       setUpdateInfo(null);
-    }, 300);
+    }, 200);
   };
 
-  const handleReboot = () => {
+  const handleReboot = (e) => {
+    e.preventDefault();
     if (updateInfo?.onReload) {
       updateInfo.onReload();
     }
@@ -193,28 +226,23 @@ export default function UpdateToast() {
   }
 
   return (
-    <ToastContainer $isClosing={isClosing}>
-      <ToastWindow className="window">
-        <TitleBar>
-          <TitleText>
-            <UpdateIcon>🔄</UpdateIcon>
-            Update Available
-          </TitleText>
-          <CloseButton onClick={handleClose}>✕</CloseButton>
-        </TitleBar>
-        <Content>
-          <Message>
-            A new version of XPortfolio is available and ready to install.
-          </Message>
-          <VersionInfo>
-            Version {updateInfo.version} ({updateInfo.buildNumber})
-          </VersionInfo>
-          <ButtonRow>
-            <Button onClick={handleClose}>Later</Button>
-            <Button onClick={handleReboot}>Reboot Now</Button>
-          </ButtonRow>
-        </Content>
-      </ToastWindow>
-    </ToastContainer>
+    <UpdateBalloon $isClosing={isClosing} className="update-balloon">
+      <button className="balloon__close" onClick={handleClose} />
+      <div className="balloon__header">
+        <img src="/gui/taskbar/welcome.webp" alt="update" />
+        <span>Update Available</span>
+      </div>
+      <p className="balloon__text">
+        A new version of XPortfolio is ready to install.
+      </p>
+      <p className="balloon__version">
+        Version {updateInfo.version} ({updateInfo.buildNumber})
+      </p>
+      <p className="balloon__links">
+        <a href="#" onClick={handleReboot}>Reboot Now</a>
+        {' | '}
+        <a href="#" onClick={(e) => { e.preventDefault(); handleClose(); }}>Later</a>
+      </p>
+    </UpdateBalloon>
   );
 }
