@@ -114,6 +114,7 @@ const Window = memo(function ({
       ref={ref}
       className={currentHeader.invisible ? 'frameless' : `window ${isFocus ? '' : 'inactive'}`}
       onMouseDown={_onMouseDown}
+      onTouchStart={_onMouseDown}
       style={{
         transform: `translate(${x}px,${y}px)`,
         ...(width && { width: `${width}px` }),
@@ -145,17 +146,26 @@ const Window = memo(function ({
           </div>
           <div className="title-bar-controls">
             {(!currentHeader.buttons || currentHeader.buttons.includes('minimize')) && (
-              <button aria-label="Minimize" onMouseUp={_onMouseUpMinimize} />
+              <button
+                aria-label="Minimize"
+                onClick={_onMouseUpMinimize}
+                onTouchEnd={(e) => { e.stopPropagation(); _onMouseUpMinimize(); }}
+              />
             )}
             {(!currentHeader.buttons || currentHeader.buttons.includes('maximize')) && (
               <button
                 aria-label={maximized ? 'Restore' : 'Maximize'}
-                onMouseUp={_onMouseUpMaximize}
+                onClick={_onMouseUpMaximize}
+                onTouchEnd={(e) => { e.stopPropagation(); if (resizable) _onMouseUpMaximize(); }}
                 disabled={!resizable}
               />
             )}
             {(!currentHeader.buttons || currentHeader.buttons.includes('close')) && (
-              <button aria-label="Close" onMouseUp={_onMouseUpClose} />
+              <button
+                aria-label="Close"
+                onClick={_onMouseUpClose}
+                onTouchEnd={(e) => { e.stopPropagation(); _onMouseUpClose(); }}
+              />
             )}
           </div>
         </div>

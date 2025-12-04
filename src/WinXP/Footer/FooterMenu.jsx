@@ -749,6 +749,19 @@ export default styled(FooterMenu)`
     padding: 4px 0;
   }
 
+  /* Mobile: position submenu from right edge of screen */
+  .mobile-device & .folder-submenu {
+    position: fixed;
+    left: auto;
+    right: 10px;
+    top: auto;
+    bottom: 40px;
+    min-width: 180px;
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
+    z-index: 20;
+  }
+
   .folder-submenu-item {
     display: flex;
     align-items: center;
