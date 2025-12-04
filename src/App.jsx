@@ -1,9 +1,11 @@
+import { useEffect } from 'react';
 import WinXP from './WinXP';
 import { createGlobalStyle } from 'styled-components';
 import { ConfigProvider } from './contexts/ConfigContext';
 import { FileSystemProvider } from './contexts/FileSystemContext';
 import { InstalledAppsProvider } from './contexts/InstalledAppsContext';
 import { UpdateToast } from './components/UpdateToast';
+import { initializeDeviceDetection } from './utils/deviceDetection';
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -35,6 +37,11 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 function App() {
+  // Initialize device detection early to add mobile-device class
+  useEffect(() => {
+    initializeDeviceDetection();
+  }, []);
+
   return (
     <ConfigProvider>
       <FileSystemProvider>

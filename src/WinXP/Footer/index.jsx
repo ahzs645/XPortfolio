@@ -260,6 +260,14 @@ const TrayIcon = styled.img`
   &:active {
     filter: brightness(0.9);
   }
+
+  /* Larger touch targets on mobile */
+  .mobile-device & {
+    width: 20px;
+    height: 20px;
+    margin: 0 6px;
+    padding: 2px;
+  }
 `;
 
 const WelcomeBalloon = styled.div`

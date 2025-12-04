@@ -1,8 +1,9 @@
 import React, { useReducer, useRef, useCallback, useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { useMouse, useWindowSize } from '../hooks';
+import { useMouse, useWindowSize, useMobileRestriction } from '../hooks';
 import useSystemSounds from '../hooks/useSystemSounds';
 import { useConfig } from '../contexts/ConfigContext';
+import MobileRestrictionPopup from '../components/MobileRestrictionPopup';
 import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../contexts/FileSystemContext';
 import { useInstalledApps } from '../contexts/InstalledAppsContext';
 import { AppProvider } from '../contexts/AppContext';
@@ -306,6 +307,14 @@ function WinXP() {
 
   const { registerLaunchCallback, launchInstalledApp } = useInstalledApps();
 
+  // Mobile restriction handling
+  const {
+    isRestrictionPopupOpen,
+    restrictionPopupData,
+    checkMobileRestriction,
+    closePopup: closeMobileRestrictionPopup,
+  } = useMobileRestriction();
+
   // Register callback to launch installed apps
   useEffect(() => {
     const handleLaunchApp = (app) => {
@@ -413,6 +422,11 @@ function WinXP() {
 
     // Handle shortcuts - launch the target app
     if (icon.type === 'shortcut' && icon.target) {
+      // Check for mobile restrictions before launching
+      if (!checkMobileRestriction(icon.target)) {
+        return; // Blocked on mobile, popup will be shown
+      }
+
       const appSetting = appSettings[icon.target];
       if (appSetting) {
         dispatch({ type: ADD_APP, payload: appSetting });
@@ -620,6 +634,11 @@ function WinXP() {
   }
 
   function onClickMenuItem(appName) {
+    // Check for mobile restrictions before launching
+    if (!checkMobileRestriction(appName)) {
+      return; // Blocked on mobile, popup will be shown
+    }
+
     const appSetting = appSettings[appName];
     if (appSetting) {
       dispatch({ type: ADD_APP, payload: appSetting });
@@ -1212,6 +1231,12 @@ function WinXP() {
           onClose={() => setDesktopContextMenu(null)}
         />
       )}
+      <MobileRestrictionPopup
+        isOpen={isRestrictionPopupOpen}
+        title={restrictionPopupData?.title}
+        icon={restrictionPopupData?.icon}
+        onClose={closeMobileRestrictionPopup}
+      />
     </Container>
     </AppProvider>
   );

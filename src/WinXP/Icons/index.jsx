@@ -1,5 +1,11 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import styled from 'styled-components';
+import { isMobileDevice } from '../../utils/deviceDetection';
+
+// Different drag thresholds for desktop vs mobile
+const DRAG_THRESHOLD_DESKTOP = 4;
+const DRAG_THRESHOLD_MOBILE = 10;
+const DOUBLE_TAP_DELAY = 400; // ms for double-tap detection on touch
 
 function Icons({
   icons,
@@ -25,8 +31,13 @@ function Icons({
   const [dragging, setDragging] = useState(null); // { id, startX, startY, iconStartX, iconStartY }
   const [dragPositions, setDragPositions] = useState({}); // Temporary positions during drag
   const [dropTargetId, setDropTargetId] = useState(null); // Folder being hovered during drag
+  const [touchState, setTouchState] = useState(null); // { id, startX, startY, startTime }
+  const [hasDragStarted, setHasDragStarted] = useState(false); // Track if drag has exceeded threshold
+  const lastTapRef = useRef(null); // For double-tap detection
   const iconRefs = useRef([]);
   const containerRef = useRef(null);
+  const isMobile = isMobileDevice();
+  const dragThreshold = isMobile ? DRAG_THRESHOLD_MOBILE : DRAG_THRESHOLD_DESKTOP;
 
   // Update icon rectangles for selection detection
   useEffect(() => {
@@ -205,6 +216,143 @@ function Icons({
     }
   }, [onContextMenu, onMouseDown]);
 
+  // Touch event handlers for mobile
+  const handleTouchStart = useCallback((e, icon) => {
+    if (e.touches.length !== 1) return; // Only handle single touch
+
+    const touch = e.touches[0];
+    const now = Date.now();
+
+    // Check for double-tap
+    if (lastTapRef.current &&
+        lastTapRef.current.id === icon.id &&
+        now - lastTapRef.current.time < DOUBLE_TAP_DELAY) {
+      // Double-tap detected
+      e.preventDefault();
+      lastTapRef.current = null;
+      onDoubleClick(icon);
+      return;
+    }
+
+    // Record this tap for potential double-tap
+    lastTapRef.current = { id: icon.id, time: now };
+
+    // Select the icon
+    const selectedIcons = icons.filter((i) => i.isFocus);
+    const isPartOfSelection = selectedIcons.some((i) => i.id === icon.id);
+    if (!isPartOfSelection) {
+      onMouseDown(icon.id);
+    }
+
+    // Start tracking touch for potential drag
+    setTouchState({
+      id: icon.id,
+      startX: touch.clientX,
+      startY: touch.clientY,
+      startTime: now,
+    });
+    setHasDragStarted(false);
+  }, [icons, onMouseDown, onDoubleClick]);
+
+  const handleTouchMove = useCallback((e, icon) => {
+    if (!touchState || touchState.id !== icon.id) return;
+    if (e.touches.length !== 1) return;
+
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - touchState.startX;
+    const deltaY = touch.clientY - touchState.startY;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+    // Check if drag threshold exceeded
+    if (!hasDragStarted && distance > dragThreshold) {
+      setHasDragStarted(true);
+      // Clear the double-tap timer since we're dragging
+      lastTapRef.current = null;
+
+      // Start the actual drag
+      const selectedIcons = icons.filter((i) => i.isFocus);
+      const isPartOfSelection = selectedIcons.some((i) => i.id === icon.id);
+      const iconsToMove = isPartOfSelection && selectedIcons.length > 0
+        ? selectedIcons
+        : [icon];
+
+      const iconStartPositions = {};
+      iconsToMove.forEach((i) => {
+        iconStartPositions[i.id] = { x: i.x, y: i.y };
+      });
+
+      setDragging({
+        id: icon.id,
+        startX: touchState.startX,
+        startY: touchState.startY,
+        iconStartPositions,
+      });
+    }
+
+    // If dragging, update positions
+    if (hasDragStarted || distance > dragThreshold) {
+      e.preventDefault(); // Prevent scrolling while dragging
+
+      const selectedIcons = icons.filter((i) => i.isFocus);
+      const iconsToMove = selectedIcons.length > 0 ? selectedIcons : [icons.find((i) => i.id === icon.id)];
+      const draggedIds = iconsToMove.map(i => i?.id).filter(Boolean);
+
+      const newPositions = {};
+      iconsToMove.forEach((i) => {
+        if (!i) return;
+        const startPos = dragging?.iconStartPositions?.[i.id] || { x: i.x, y: i.y };
+        newPositions[i.id] = {
+          x: Math.max(0, startPos.x + deltaX),
+          y: Math.max(0, startPos.y + deltaY),
+        };
+      });
+
+      setDragPositions(newPositions);
+
+      // Check for drop target
+      let foundTarget = null;
+      for (const rect of iconsRect) {
+        if (!rect || draggedIds.includes(rect.id)) continue;
+        if (
+          touch.clientX >= rect.x &&
+          touch.clientX <= rect.x + rect.w &&
+          touch.clientY >= rect.y &&
+          touch.clientY <= rect.y + rect.h
+        ) {
+          const targetIcon = icons.find(i => i.id === rect.id);
+          if (targetIcon && targetIcon.type === 'folder') {
+            foundTarget = rect.id;
+            break;
+          }
+        }
+      }
+      setDropTargetId(foundTarget);
+    }
+  }, [touchState, hasDragStarted, dragThreshold, icons, dragging, iconsRect]);
+
+  const handleTouchEnd = useCallback((e, icon) => {
+    if (!touchState || touchState.id !== icon.id) return;
+
+    // If we were dragging, finalize the drag
+    if (hasDragStarted) {
+      if (dropTargetId && onMoveToFolder) {
+        const selectedIcons = icons.filter((i) => i.isFocus);
+        const iconsToMove = selectedIcons.length > 0 ? selectedIcons : [icons.find((i) => i.id === icon.id)];
+        const idsToMove = iconsToMove.map(i => i?.id).filter(Boolean);
+        onMoveToFolder(idsToMove, dropTargetId);
+      } else if (Object.keys(dragPositions).length > 0) {
+        onUpdatePositions(dragPositions);
+      }
+    }
+
+    // Clean up
+    setTouchState(null);
+    setHasDragStarted(false);
+    setDragging(null);
+    setDragPositions({});
+    setDropTargetId(null);
+  }, [touchState, hasDragStarted, dropTargetId, onMoveToFolder, icons, dragPositions, onUpdatePositions]);
+
   // Get position for an icon (use drag position if dragging, otherwise use icon position)
   const getIconPosition = (icon) => {
     if (dragPositions[icon.id]) {
@@ -241,11 +389,15 @@ function Icons({
           <Icon
             key={icon.id}
             ref={(el) => (iconRefs.current[index] = el)}
-            draggable={!isRenaming}
+            draggable={!isRenaming && !isMobile}
             onDragStart={(e) => handleDragStart(e, icon)}
             onMouseDown={(e) => !isRenaming && handleMouseDown(e, icon)}
             onDoubleClick={() => !isRenaming && handleDoubleClick(icon)}
             onContextMenu={(e) => handleContextMenu(e, icon)}
+            onTouchStart={(e) => !isRenaming && handleTouchStart(e, icon)}
+            onTouchMove={(e) => !isRenaming && handleTouchMove(e, icon)}
+            onTouchEnd={(e) => !isRenaming && handleTouchEnd(e, icon)}
+            onTouchCancel={(e) => handleTouchEnd(e, icon)}
             $isFocus={icon.isFocus && displayFocus}
             $isDragging={dragging && (dragging.id === icon.id || (icon.isFocus && dragging.iconStartPositions[icon.id]))}
             $isCut={isCut}

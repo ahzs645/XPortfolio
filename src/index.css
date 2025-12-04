@@ -65,3 +65,94 @@ body {
   opacity: 0.85;
   filter: saturate(0.85);
 }
+
+/* ============================
+   Mobile Device Styles
+   ============================ */
+
+/* Disable tap highlight and user select on mobile */
+.mobile-device * {
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-focus-ring-color: transparent !important;
+  outline: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Prevent image/canvas dragging on mobile */
+.mobile-device canvas,
+.mobile-device img,
+.mobile-device video {
+  -webkit-user-drag: none !important;
+  touch-action: none !important;
+}
+
+/* Mobile visibility utilities */
+.mobile-device .desktop-only {
+  display: none !important;
+}
+
+html:not(.mobile-device) .mobile-only {
+  display: none !important;
+}
+
+.mobile-device .mobile-only {
+  display: initial !important;
+}
+
+/* Hide specific items on mobile */
+.mobile-device .hide-mobile {
+  display: none !important;
+}
+
+/* Show only on desktop */
+html:not(.mobile-device) .hide-desktop {
+  display: none !important;
+}
+
+/* Mobile window sizing */
+.mobile-device .app-window,
+.mobile-device .window-body.iframe-container {
+  max-height: calc(100vh - 40px);
+}
+
+.mobile-device .app-window .window-body {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Mobile-optimized scrollbars */
+.mobile-device ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.mobile-device ::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+}
+
+/* Firefox scrollbar handling */
+.firefox-browser * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.firefox-browser ::-webkit-scrollbar {
+  display: none !important;
+  height: 0 !important;
+  width: 0 !important;
+}
+
+/* Screen reader only class */
+.sr-only {
+  height: 1px !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  position: absolute !important;
+  width: 1px !important;
+  clip: rect(0, 0, 0, 0) !important;
+  border: 0 !important;
+  white-space: nowrap !important;
+}
