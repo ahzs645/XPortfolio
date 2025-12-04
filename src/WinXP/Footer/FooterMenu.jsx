@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useConfig } from '../../contexts/ConfigContext';
+import { useInstalledApps } from '../../contexts/InstalledAppsContext';
 import {
   START_MENU_CATALOG,
   PINNED_LEFT,
@@ -24,11 +25,15 @@ const RECENTLY_USED_ITEMS = [
   { key: 'copilot', title: 'GitHub Copilot', icon: '/icons/vanity/copilot.webp', disabled: true },
 ];
 
-function FooterMenu({ className, onClick }) {
+function FooterMenu({ className, onClick, onLaunchInstalledApp }) {
   const [showAllPrograms, setShowAllPrograms] = useState(false);
   const [activeFolder, setActiveFolder] = useState(null);
   const [showRecentlyUsed, setShowRecentlyUsed] = useState(false);
+  const [showInstalledApps, setShowInstalledApps] = useState(false);
   const { getDisplayName, getStartMenuIcon } = useConfig();
+  const { getInstalledAppsList } = useInstalledApps();
+
+  const installedApps = getInstalledAppsList();
 
   function handleItemClick(item) {
     if (item.type === 'folder') {
@@ -120,6 +125,31 @@ function FooterMenu({ className, onClick }) {
             )
           )}
           <div className="menu__separator" />
+          {installedApps.length > 0 && (
+            <div
+              className="installed-apps-container"
+              onMouseEnter={() => setShowInstalledApps(true)}
+              onMouseLeave={() => setShowInstalledApps(false)}
+            >
+              <div className={`menu__item menu__item--with-arrow ${showInstalledApps ? 'active' : ''}`}>
+                <img className="menu__item__img" src="/icons/xp/Programs.png" alt="Installed Apps" />
+                <div className="menu__item__texts">
+                  <div className="menu__item__text">Installed Apps</div>
+                </div>
+                <span className="menu__item__arrow">►</span>
+              </div>
+              {showInstalledApps && (
+                <InstalledAppsMenu
+                  apps={installedApps}
+                  onAppClick={(app) => {
+                    if (onLaunchInstalledApp) {
+                      onLaunchInstalledApp(app.id);
+                    }
+                  }}
+                />
+              )}
+            </div>
+          )}
           <div
             className="recently-used-container"
             onMouseEnter={() => setShowRecentlyUsed(true)}
@@ -255,6 +285,26 @@ function RecentlyUsedMenu({ items }) {
           >
             <img src={item.icon} alt="" />
             <span>{item.title}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function InstalledAppsMenu({ apps, onAppClick }) {
+  return (
+    <div className="installed-apps-menu">
+      <div className="installed-apps-sidebar" />
+      <ul className="installed-apps-items">
+        {apps.map((app) => (
+          <li
+            key={app.id}
+            className="installed-apps-item"
+            onClick={() => onAppClick(app)}
+          >
+            <img src={app.icon || '/icons/xp/Programs.png'} alt="" onError={(e) => { e.target.src = '/icons/xp/Programs.png'; }} />
+            <span>{app.name}</span>
           </li>
         ))}
       </ul>
@@ -808,5 +858,71 @@ export default styled(FooterMenu)`
   .recently-used-item:not(.disabled):hover {
     background-color: #2f71cd;
     color: #fff;
+  }
+
+  /* Installed Apps Container */
+  .installed-apps-container {
+    position: relative;
+  }
+
+  /* Installed Apps Flyout Menu */
+  .installed-apps-menu {
+    position: absolute;
+    left: 100%;
+    bottom: 0;
+    background: #f2f2f2;
+    border: 1px solid #d0d0d0;
+    box-shadow: 2px -2px 5px rgba(0, 0, 0, 0.15);
+    min-width: 180px;
+    max-width: 280px;
+    z-index: 10;
+  }
+
+  .installed-apps-sidebar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, #1c57ad 0%, #2a70ce 50%, #5b9fe2 100%);
+    z-index: 1;
+  }
+
+  .installed-apps-items {
+    list-style: none;
+    margin: 0;
+    padding: 4px 0;
+  }
+
+  .installed-apps-item {
+    display: flex;
+    align-items: center;
+    padding: 4px 20px 4px 30px;
+    cursor: pointer;
+    color: #000;
+    position: relative;
+    white-space: nowrap;
+    font-size: 11px;
+  }
+
+  .installed-apps-item > img:first-child {
+    width: 16px;
+    height: 16px;
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    object-fit: contain;
+  }
+
+  .installed-apps-item:hover {
+    background-color: #2f71cd;
+    color: #fff;
+  }
+
+  .installed-apps-item span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
   }
 `;

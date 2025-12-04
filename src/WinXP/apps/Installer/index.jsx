@@ -236,7 +236,7 @@ const Tab = styled.button`
 `;
 
 function Installer({ onClose }) {
-  const { fetchManifest, installApp, uninstallApp, getInstalledAppsList, isInstalled } = useInstalledApps();
+  const { fetchManifest, installApp, uninstallApp, getInstalledAppsList, isInstalled, launchInstalledApp } = useInstalledApps();
   const [activeTab, setActiveTab] = useState('install');
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
@@ -324,6 +324,11 @@ function Installer({ onClose }) {
       uninstallApp(appId);
     }
   }, [uninstallApp]);
+
+  const handleRun = useCallback((appId) => {
+    launchInstalledApp(appId);
+    onClose?.();
+  }, [launchInstalledApp, onClose]);
 
   const handleKeyPress = useCallback((e) => {
     if (e.key === 'Enter' && url.trim() && !loading) {
@@ -467,6 +472,9 @@ function Installer({ onClose }) {
                       Installed: {new Date(app.installedAt).toLocaleDateString()}
                     </div>
                   </AppDetails>
+                  <SmallButton onClick={() => handleRun(app.id)} style={{ marginRight: '4px' }}>
+                    Run
+                  </SmallButton>
                   <SmallButton onClick={() => handleUninstall(app.id)}>
                     Uninstall
                   </SmallButton>

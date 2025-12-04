@@ -26,6 +26,7 @@ function Footer({
   focusedAppId,
   onMouseDown,
   onClickMenuItem,
+  onLaunchInstalledApp,
   crtEnabled,
   onToggleCRT,
   playBalloonSound,
@@ -139,7 +140,7 @@ function Footer({
     <Container onMouseDown={_onMouseDown}>
       <div className="footer__items left">
         <div ref={menuRef} className="footer__start__menu">
-          {menuOn && <FooterMenu onClick={_onClickMenuItem} />}
+          {menuOn && <FooterMenu onClick={_onClickMenuItem} onLaunchInstalledApp={onLaunchInstalledApp} />}
         </div>
         <StartButton
           ref={startButtonRef}

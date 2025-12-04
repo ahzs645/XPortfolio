@@ -4,6 +4,7 @@ import { useMouse, useWindowSize } from '../hooks';
 import useSystemSounds from '../hooks/useSystemSounds';
 import { useConfig } from '../contexts/ConfigContext';
 import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../contexts/FileSystemContext';
+import { useInstalledApps } from '../contexts/InstalledAppsContext';
 import { AppProvider } from '../contexts/AppContext';
 import { ContextMenu } from './components/ContextMenu';
 import { parseFileStructure } from '../utils/fileDropParser';
@@ -302,6 +303,39 @@ function WinXP() {
     clipboardOp,
     moveItem,
   } = useFileSystem();
+
+  const { registerLaunchCallback, launchInstalledApp } = useInstalledApps();
+
+  // Register callback to launch installed apps
+  useEffect(() => {
+    const handleLaunchApp = (app) => {
+      // Launch the IframeApp with the installed app's settings
+      const iframeAppSetting = {
+        ...appSettings['Installed App'],
+        header: {
+          ...appSettings['Installed App'].header,
+          icon: app.icon || '/icons/xp/Programs.png',
+          title: app.name,
+        },
+        defaultSize: {
+          width: app.windowSettings?.width || 800,
+          height: app.windowSettings?.height || 600,
+        },
+        minSize: {
+          width: app.windowSettings?.minWidth || 400,
+          height: app.windowSettings?.minHeight || 300,
+        },
+        resizable: app.windowSettings?.resizable ?? true,
+        injectProps: {
+          appId: app.id,
+          url: app.url,
+        },
+      };
+      dispatch({ type: ADD_APP, payload: iframeAppSetting });
+    };
+
+    registerLaunchCallback(handleLaunchApp);
+  }, [registerLaunchCallback]);
 
   // Determine if mobile based on viewport width
   const isMobile = width < 768;
@@ -1145,6 +1179,7 @@ function WinXP() {
         focusedAppId={getActiveAppIdForTaskbar()}
         onMouseDown={onMouseDownFooter}
         onClickMenuItem={onClickMenuItem}
+        onLaunchInstalledApp={launchInstalledApp}
         crtEnabled={crtEnabled}
         onToggleCRT={handleToggleCRT}
         playBalloonSound={playBalloon}

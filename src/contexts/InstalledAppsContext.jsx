@@ -125,6 +125,7 @@ function parseGitHubUrl(inputUrl) {
 export function InstalledAppsProvider({ children }) {
   const [installedApps, setInstalledApps] = useState({});
   const [isLoading, setIsLoading] = useState(true);
+  const [launchCallback, setLaunchCallback] = useState(null);
 
   // Load installed apps from IndexedDB on mount
   useEffect(() => {
@@ -360,6 +361,28 @@ export function InstalledAppsProvider({ children }) {
     );
   }, [installedApps]);
 
+  // Register a callback for launching apps (called by WinXP)
+  const registerLaunchCallback = useCallback((callback) => {
+    setLaunchCallback(() => callback);
+  }, []);
+
+  // Launch an installed app
+  const launchInstalledApp = useCallback((appId) => {
+    const app = installedApps[appId];
+    if (!app) {
+      console.error('App not found:', appId);
+      return;
+    }
+
+    markAppRun(appId);
+
+    if (launchCallback) {
+      launchCallback(app);
+    } else {
+      console.error('No launch callback registered');
+    }
+  }, [installedApps, launchCallback, markAppRun]);
+
   const value = {
     installedApps,
     isLoading,
@@ -371,6 +394,8 @@ export function InstalledAppsProvider({ children }) {
     getInstalledAppsList,
     getApp,
     isInstalled,
+    registerLaunchCallback,
+    launchInstalledApp,
   };
 
   return (
