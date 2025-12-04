@@ -201,8 +201,10 @@ function Icons({
   }, [icons, onMouseDown]);
 
   const handleDoubleClick = useCallback((icon) => {
+    // On mobile, double-click is handled by touch events to avoid duplicate firing
+    if (isMobile) return;
     onDoubleClick(icon);
-  }, [onDoubleClick]);
+  }, [onDoubleClick, isMobile]);
 
   const handleContextMenu = useCallback((e, icon) => {
     e.preventDefault();
@@ -227,10 +229,12 @@ function Icons({
     if (lastTapRef.current &&
         lastTapRef.current.id === icon.id &&
         now - lastTapRef.current.time < DOUBLE_TAP_DELAY) {
-      // Double-tap detected
+      // Double-tap detected - prevent default to stop synthetic click
       e.preventDefault();
+      e.stopPropagation();
       lastTapRef.current = null;
-      onDoubleClick(icon);
+      // Use setTimeout to avoid firing during the same event cycle
+      setTimeout(() => onDoubleClick(icon), 0);
       return;
     }
 

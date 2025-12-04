@@ -76,7 +76,7 @@ function BootScreen({ bootState, onComplete }) {
           </LoginContainer>
           {showWelcome && (
             <WelcomeMessage>
-              <WelcomeText>Welcome</WelcomeText>
+              <WelcomeText>welcome</WelcomeText>
             </WelcomeMessage>
           )}
         </LoginScreenInner>
