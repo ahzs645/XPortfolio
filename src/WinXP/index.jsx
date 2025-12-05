@@ -12,6 +12,7 @@ import { parseFileStructure } from '../utils/fileDropParser';
 import FileUploadDialog from './FileUploadDialog';
 import { useFileContextMenu, useBackgroundContextMenu } from './hooks/useFileContextMenu';
 import { createArchive, extractArchive, isArchiveFile } from '../utils/archiveUtils';
+import { getDefaultProgramForFile } from './apps/Installer/components/SetProgramDefaults';
 
 // Convert file system items to desktop icon format
 const convertToDesktopIcons = (items, appSettings, savedPositions = {}) => {
@@ -467,6 +468,92 @@ function WinXP() {
 
       // Get file extension for handling empty files
       const fileExt = icon.title.substring(icon.title.lastIndexOf('.')).toLowerCase();
+
+      // Check for user-configured default program
+      const defaultProgram = getDefaultProgramForFile(icon.title);
+      if (defaultProgram && fileData) {
+        let handled = false;
+
+        if (defaultProgram === 'Notepad') {
+          let textContent = '';
+          try {
+            const base64Data = fileData.split(',')[1] || fileData;
+            textContent = atob(base64Data);
+          } catch (e) {
+            textContent = fileData;
+          }
+          dispatch({
+            type: ADD_APP,
+            payload: {
+              ...appSettings['Notepad'],
+              header: { ...appSettings['Notepad'].header, title: `${icon.title} - Notepad` },
+              injectProps: { initialContent: textContent, fileName: icon.title, fileId: icon.id },
+            },
+          });
+          handled = true;
+        } else if (defaultProgram === 'Image Viewer' || defaultProgram === 'Paint') {
+          const viewerKey = defaultProgram === 'Paint' ? 'Paint' : 'Image Viewer';
+          if (appSettings[viewerKey]) {
+            dispatch({
+              type: ADD_APP,
+              payload: {
+                ...appSettings[viewerKey],
+                header: { ...appSettings[viewerKey].header, title: `${icon.title} - ${defaultProgram === 'Paint' ? 'Paint' : 'Windows Picture and Fax Viewer'}` },
+                injectProps: { initialImage: { src: fileData, title: icon.title } },
+              },
+            });
+            handled = true;
+          }
+        } else if (defaultProgram === 'Internet Explorer') {
+          let blobUrl = fileData;
+          try {
+            const base64Data = fileData.split(',')[1] || fileData;
+            const binaryString = atob(base64Data);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+              bytes[i] = binaryString.charCodeAt(i);
+            }
+            const blob = new Blob([bytes], { type: 'text/html' });
+            blobUrl = URL.createObjectURL(blob);
+          } catch (e) {
+            console.error('Failed to create blob URL:', e);
+          }
+          dispatch({
+            type: ADD_APP,
+            payload: {
+              ...appSettings['Internet Explorer'],
+              header: { ...appSettings['Internet Explorer'].header, title: `${icon.title} - Internet Explorer` },
+              injectProps: { initialUrl: blobUrl, filePath: `C:\\Desktop\\${icon.title}` },
+            },
+          });
+          handled = true;
+        } else if (defaultProgram === 'WinRAR') {
+          dispatch({
+            type: ADD_APP,
+            payload: {
+              ...appSettings['WinRAR'],
+              header: { ...appSettings['WinRAR'].header, title: `Extracting ${icon.title}` },
+              injectProps: { fileData: fileData, fileName: icon.title, parentFolderId: null },
+            },
+          });
+          handled = true;
+        } else if (defaultProgram === 'Windows Media Player' || defaultProgram === 'Winamp') {
+          const playerKey = defaultProgram === 'Winamp' ? 'Winamp' : 'Media Player';
+          if (appSettings[playerKey]) {
+            dispatch({
+              type: ADD_APP,
+              payload: {
+                ...appSettings[playerKey],
+                header: { ...appSettings[playerKey].header, title: `${icon.title} - ${defaultProgram}` },
+                injectProps: { initialTrack: { src: fileData, title: icon.title } },
+              },
+            });
+            handled = true;
+          }
+        }
+
+        if (handled) return;
+      }
 
       // For text files with no data (newly created empty files), open with empty content
       const emptyTextExtensions = ['.txt', '.log', '.md', '.json', '.js', '.jsx', '.ts', '.tsx', '.css'];

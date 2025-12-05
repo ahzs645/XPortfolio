@@ -830,18 +830,59 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     ? `${filteredContents.length} of ${contents.length} object(s)`
     : `${itemCount} object(s)`;
 
-  // Render item for My Computer root view (larger icons)
-  const renderMyComputerItem = (item) => (
-    <MyComputerFileItem
-      key={item.id}
-      $selected={selectedItems.includes(item.id)}
-      onClick={(e) => handleItemClick(e, item)}
-      onDoubleClick={() => handleItemDoubleClick(item)}
-    >
-      <MyComputerFileIcon src={item.icon || XP_ICONS.folder} alt="" />
-      <MyComputerFileName>{item.name}</MyComputerFileName>
-    </MyComputerFileItem>
-  );
+  // Render item for My Computer root view based on viewMode
+  const renderMyComputerItem = (item) => {
+    const commonProps = {
+      key: item.id,
+      $selected: selectedItems.includes(item.id),
+      onClick: (e) => handleItemClick(e, item),
+      onDoubleClick: () => handleItemDoubleClick(item),
+    };
+
+    switch (viewMode) {
+      case 'details':
+        return (
+          <MyComputerDetailsRow {...commonProps}>
+            <MyComputerDetailsCell $width="50%">
+              <MyComputerDetailsIcon src={item.icon || XP_ICONS.folder} alt="" />
+              <span>{item.name}</span>
+            </MyComputerDetailsCell>
+            <MyComputerDetailsCell $width="25%">
+              {item.type === 'drive' ? 'Local Disk' : 'File Folder'}
+            </MyComputerDetailsCell>
+            <MyComputerDetailsCell $width="25%">
+              {item.type === 'drive' ? '' : ''}
+            </MyComputerDetailsCell>
+          </MyComputerDetailsRow>
+        );
+      case 'list':
+        return (
+          <MyComputerListItem {...commonProps}>
+            <MyComputerListIcon src={item.icon || XP_ICONS.folder} alt="" />
+            <MyComputerListName>{item.name}</MyComputerListName>
+          </MyComputerListItem>
+        );
+      case 'tiles':
+        return (
+          <MyComputerTileItem {...commonProps}>
+            <MyComputerTileIcon src={item.icon || XP_ICONS.folder} alt="" />
+            <MyComputerTileInfo>
+              <MyComputerTileName>{item.name}</MyComputerTileName>
+              <MyComputerTileType>
+                {item.type === 'drive' ? 'Local Disk' : 'File Folder'}
+              </MyComputerTileType>
+            </MyComputerTileInfo>
+          </MyComputerTileItem>
+        );
+      default: // icons
+        return (
+          <MyComputerFileItem {...commonProps}>
+            <MyComputerFileIcon src={item.icon || XP_ICONS.folder} alt="" />
+            <MyComputerFileName>{item.name}</MyComputerFileName>
+          </MyComputerFileItem>
+        );
+    }
+  };
 
   return (
     <ProgramLayout
@@ -930,7 +971,14 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
                     <CategoryTitle>Files Stored on This Computer</CategoryTitle>
                   </CategoryHeader>
                   <CategoryDivider />
-                  <CategoryItems>
+                  {viewMode === 'details' && (
+                    <MyComputerDetailsHeader>
+                      <MyComputerDetailsHeaderCell $width="50%">Name</MyComputerDetailsHeaderCell>
+                      <MyComputerDetailsHeaderCell $width="25%">Type</MyComputerDetailsHeaderCell>
+                      <MyComputerDetailsHeaderCell $width="25%">Total Size</MyComputerDetailsHeaderCell>
+                    </MyComputerDetailsHeader>
+                  )}
+                  <CategoryItems $viewMode={viewMode}>
                     {myComputerItems.folders.map(renderMyComputerItem)}
                   </CategoryItems>
                 </CategorySection>
@@ -942,7 +990,14 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
                     <CategoryTitle>Hard Disk Drives</CategoryTitle>
                   </CategoryHeader>
                   <CategoryDivider />
-                  <CategoryItems>
+                  {viewMode === 'details' && (
+                    <MyComputerDetailsHeader>
+                      <MyComputerDetailsHeaderCell $width="50%">Name</MyComputerDetailsHeaderCell>
+                      <MyComputerDetailsHeaderCell $width="25%">Type</MyComputerDetailsHeaderCell>
+                      <MyComputerDetailsHeaderCell $width="25%">Total Size</MyComputerDetailsHeaderCell>
+                    </MyComputerDetailsHeader>
+                  )}
+                  <CategoryItems $viewMode={viewMode}>
                     {myComputerItems.drives.map(renderMyComputerItem)}
                   </CategoryItems>
                 </CategorySection>
@@ -1208,11 +1263,13 @@ const CategoryDivider = styled.div`
 
 const CategoryItems = styled.div`
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding-left: 4px;
+  flex-wrap: ${({ $viewMode }) => $viewMode === 'details' || $viewMode === 'list' ? 'nowrap' : 'wrap'};
+  flex-direction: ${({ $viewMode }) => $viewMode === 'details' || $viewMode === 'list' ? 'column' : 'row'};
+  gap: ${({ $viewMode }) => $viewMode === 'details' ? '0' : '8px'};
+  padding-left: ${({ $viewMode }) => $viewMode === 'details' ? '0' : '4px'};
 `;
 
+// Icons view
 const MyComputerFileItem = styled.div`
   width: 100px;
   padding: 8px;
@@ -1241,6 +1298,126 @@ const MyComputerFileName = styled.span`
   text-align: center;
   word-break: break-word;
   line-height: 1.3;
+`;
+
+// List view
+const MyComputerListItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  width: 200px;
+  cursor: pointer;
+  background: ${({ $selected }) => $selected ? '#316ac5' : 'transparent'};
+  color: ${({ $selected }) => $selected ? 'white' : 'black'};
+  &:hover {
+    background: ${({ $selected }) => $selected ? '#316ac5' : 'rgba(11, 97, 255, 0.1)'};
+  }
+`;
+
+const MyComputerListIcon = styled.img`
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+`;
+
+const MyComputerListName = styled.span`
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+// Details view
+const MyComputerDetailsHeader = styled.div`
+  display: flex;
+  background: #ece9d8;
+  border-bottom: 1px solid #808080;
+  margin-bottom: 2px;
+`;
+
+const MyComputerDetailsHeaderCell = styled.div`
+  width: ${({ $width }) => $width || 'auto'};
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: normal;
+  border-right: 1px solid #808080;
+  &:last-child {
+    border-right: none;
+  }
+`;
+
+const MyComputerDetailsRow = styled.div`
+  display: flex;
+  width: 100%;
+  padding: 2px 0;
+  cursor: pointer;
+  background: ${({ $selected }) => $selected ? '#316ac5' : 'transparent'};
+  color: ${({ $selected }) => $selected ? 'white' : 'black'};
+  &:hover {
+    background: ${({ $selected }) => $selected ? '#316ac5' : 'rgba(11, 97, 255, 0.1)'};
+  }
+`;
+
+const MyComputerDetailsCell = styled.div`
+  width: ${({ $width }) => $width || 'auto'};
+  padding: 2px 8px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const MyComputerDetailsIcon = styled.img`
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+`;
+
+// Tiles view
+const MyComputerTileItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  width: 200px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: ${({ $selected }) => $selected ? 'rgba(11, 97, 255, 0.2)' : 'transparent'};
+  border-color: ${({ $selected }) => $selected ? 'rgba(11, 97, 255, 0.5)' : 'transparent'};
+  &:hover {
+    background: ${({ $selected }) => $selected ? 'rgba(11, 97, 255, 0.3)' : 'rgba(11, 97, 255, 0.1)'};
+  }
+`;
+
+const MyComputerTileIcon = styled.img`
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+`;
+
+const MyComputerTileInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+`;
+
+const MyComputerTileName = styled.span`
+  font-size: 11px;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const MyComputerTileType = styled.span`
+  font-size: 10px;
+  color: #666;
 `;
 
 export default MyComputer;

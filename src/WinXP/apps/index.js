@@ -742,16 +742,16 @@ export const appSettings = {
     header: {
       icon: '/icons/xp/programs/add.png',
       title: 'Add or Remove Programs',
-      buttons: ['minimize', 'close'],
+      buttons: ['minimize', 'maximize', 'close'],
     },
     component: Installer,
     defaultSize: {
-      width: 580,
-      height: 480,
+      width: 620,
+      height: 520,
     },
     defaultOffset: {
-      x: 100,
-      y: 60,
+      x: 80,
+      y: 40,
     },
     resizable: true,
     minimized: false,
@@ -763,16 +763,16 @@ export const appSettings = {
     header: {
       icon: '/icons/xp/programs/add.png',
       title: 'Add or Remove Programs',
-      buttons: ['minimize', 'close'],
+      buttons: ['minimize', 'maximize', 'close'],
     },
     component: Installer,
     defaultSize: {
-      width: 580,
-      height: 480,
+      width: 620,
+      height: 520,
     },
     defaultOffset: {
-      x: 100,
-      y: 60,
+      x: 80,
+      y: 40,
     },
     resizable: true,
     minimized: false,

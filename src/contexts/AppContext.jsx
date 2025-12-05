@@ -1,10 +1,156 @@
 import React, { createContext, useContext, useCallback } from 'react';
 import { useFileSystem } from './FileSystemContext';
+import { getDefaultProgramForFile } from '../WinXP/apps/Installer/components/SetProgramDefaults';
 
 const AppContext = createContext(null);
 
+// Map user-friendly program names to appSettings keys
+const PROGRAM_NAME_TO_APP_KEY = {
+  'Internet Explorer': 'Internet Explorer',
+  'Notepad': 'Notepad',
+  'Windows Media Player': 'Media Player',
+  'Winamp': 'Winamp',
+  'Image Viewer': 'Image Viewer',
+  'Paint': 'Paint',
+  'WinRAR': 'WinRAR',
+};
+
 export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
   const { fileSystem, getFileContent } = useFileSystem();
+
+  // Helper to open a file with a specific program
+  const openWithProgram = useCallback((programName, fileItem, fileData) => {
+    const name = fileItem.name || '';
+    const ext = name.substring(name.lastIndexOf('.')).toLowerCase();
+    const appKey = PROGRAM_NAME_TO_APP_KEY[programName];
+
+    if (!appKey || !appSettings[appKey]) {
+      return false; // Program not available
+    }
+
+    // Handle each program type
+    switch (programName) {
+      case 'Notepad': {
+        let textContent = '';
+        if (fileData) {
+          try {
+            const base64Data = fileData.split(',')[1] || fileData;
+            textContent = atob(base64Data);
+          } catch (e) {
+            textContent = fileData;
+          }
+        }
+        dispatch({
+          type: addAppAction,
+          payload: {
+            ...appSettings['Notepad'],
+            header: {
+              ...appSettings['Notepad'].header,
+              title: `${name} - Notepad`,
+            },
+            injectProps: {
+              initialContent: textContent,
+              fileName: name,
+              fileId: fileItem.id,
+            },
+          },
+        });
+        return true;
+      }
+
+      case 'Image Viewer':
+      case 'Paint': {
+        const viewerKey = programName === 'Paint' ? 'Paint' : 'Image Viewer';
+        dispatch({
+          type: addAppAction,
+          payload: {
+            ...appSettings[viewerKey],
+            header: {
+              ...appSettings[viewerKey].header,
+              title: `${name} - ${programName === 'Paint' ? 'Paint' : 'Windows Picture and Fax Viewer'}`,
+            },
+            injectProps: {
+              initialImage: { src: fileData, title: name },
+            },
+          },
+        });
+        return true;
+      }
+
+      case 'Internet Explorer': {
+        let blobUrl = fileData;
+        try {
+          const base64Data = fileData.split(',')[1] || fileData;
+          const binaryString = atob(base64Data);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          const blob = new Blob([bytes], { type: 'text/html' });
+          blobUrl = URL.createObjectURL(blob);
+        } catch (e) {
+          console.error('Failed to create blob URL for HTML file:', e);
+        }
+        dispatch({
+          type: addAppAction,
+          payload: {
+            ...appSettings['Internet Explorer'],
+            header: {
+              ...appSettings['Internet Explorer'].header,
+              title: `${name} - Internet Explorer`,
+            },
+            injectProps: {
+              initialUrl: blobUrl,
+              filePath: name,
+            },
+          },
+        });
+        return true;
+      }
+
+      case 'WinRAR': {
+        dispatch({
+          type: addAppAction,
+          payload: {
+            ...appSettings['WinRAR'],
+            header: {
+              ...appSettings['WinRAR'].header,
+              title: `Extracting ${name}`,
+            },
+            injectProps: {
+              fileData: fileData,
+              fileName: name,
+              parentFolderId: fileItem.parent,
+            },
+          },
+        });
+        return true;
+      }
+
+      case 'Windows Media Player':
+      case 'Winamp': {
+        const playerKey = programName === 'Winamp' ? 'Winamp' : 'Media Player';
+        if (!appSettings[playerKey]) return false;
+        dispatch({
+          type: addAppAction,
+          payload: {
+            ...appSettings[playerKey],
+            header: {
+              ...appSettings[playerKey].header,
+              title: `${name} - ${programName}`,
+            },
+            injectProps: {
+              initialTrack: { src: fileData, title: name },
+            },
+          },
+        });
+        return true;
+      }
+
+      default:
+        return false;
+    }
+  }, [appSettings, dispatch, addAppAction]);
 
   // Open a file with the appropriate application
   const openFile = useCallback(async (fileItem) => {
@@ -27,6 +173,14 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
     const name = fileItem.name || '';
     const ext = name.substring(name.lastIndexOf('.')).toLowerCase();
     const contentType = fileItem.contentType || '';
+
+    // Check for user-configured default program
+    const defaultProgram = getDefaultProgramForFile(name);
+    if (defaultProgram) {
+      const opened = openWithProgram(defaultProgram, fileItem, fileData);
+      if (opened) return;
+      // If the default program couldn't open the file, fall through to default behavior
+    }
 
     // For text files with no data (newly created empty files), open with empty content
     const emptyTextExtensions = ['.txt', '.log', '.md', '.json', '.js', '.jsx', '.ts', '.tsx', '.css'];
