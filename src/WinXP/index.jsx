@@ -918,28 +918,33 @@ function WinXP() {
         break;
       }
       case 'properties': {
-        // Open Properties dialog for the icon
-        const propertiesSetting = {
-          ...appSettings['Properties'],
-          header: {
-            ...appSettings['Properties'].header,
-            title: `${icon.title} Properties`,
-          },
-          injectProps: {
-            itemId: icon.id,
-            itemData: {
-              id: icon.id,
-              name: icon.title,
-              type: icon.type || 'shortcut',
-              icon: icon.icon,
-              target: icon.target,
-              size: icon.size || 0,
-              dateCreated: icon.dateCreated || Date.now(),
-              dateModified: icon.dateModified || Date.now(),
+        // Check if this is My Computer - if so, open System Properties
+        if (icon.target === 'My Computer' || icon.title === 'My Computer') {
+          dispatch({ type: ADD_APP, payload: appSettings['System Properties'] });
+        } else {
+          // Open Properties dialog for the icon
+          const propertiesSetting = {
+            ...appSettings['Properties'],
+            header: {
+              ...appSettings['Properties'].header,
+              title: `${icon.title} Properties`,
             },
-          },
-        };
-        dispatch({ type: ADD_APP, payload: propertiesSetting });
+            injectProps: {
+              itemId: icon.id,
+              itemData: {
+                id: icon.id,
+                name: icon.title,
+                type: icon.type || 'shortcut',
+                icon: icon.icon,
+                target: icon.target,
+                size: icon.size || 0,
+                dateCreated: icon.dateCreated || Date.now(),
+                dateModified: icon.dateModified || Date.now(),
+              },
+            },
+          };
+          dispatch({ type: ADD_APP, payload: propertiesSetting });
+        }
         break;
       }
       default:
@@ -973,15 +978,22 @@ function WinXP() {
       name: icon.title,
       type: icon.type,
       icon: icon.icon,
+      target: icon.target,
     };
   }, [iconContextMenu?.icon]);
 
   const selectedIconCount = state.icons.filter(i => i.isFocus).length;
 
+  // Check if the selected icon is My Computer or Recycle Bin
+  const isMyComputerIcon = iconContextMenuItem?.target === 'My Computer' || iconContextMenuItem?.name === 'My Computer';
+  const isRecycleBinIcon = iconContextMenuItem?.target === 'Recycle Bin' || iconContextMenuItem?.name === 'Recycle Bin';
+
   // Use the shared hook for icon context menu
   const iconMenuItems = useFileContextMenu({
     selectedItem: iconContextMenuItem,
     isMultiSelect: selectedIconCount > 1,
+    isMyComputer: isMyComputerIcon,
+    isRecycleBin: isRecycleBinIcon,
     clipboard,
     clipboardOp,
     onOpen: () => handleIconMenuAction('open'),

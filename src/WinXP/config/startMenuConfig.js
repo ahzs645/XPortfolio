@@ -178,6 +178,13 @@ export const START_MENU_CATALOG = {
     title: 'System Properties',
     description: 'View system information',
   },
+  systemRecovery: {
+    type: 'program',
+    appKey: 'System Recovery',
+    icon: '/icons/xp/Recovery.png',
+    title: 'System Recovery',
+    description: 'Reset all settings',
+  },
   'divider-main': {
     type: 'separator',
   },
@@ -217,7 +224,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Accessories',
     icon: '/icons/xp/FolderClosed.png',
-    items: ['calculator', 'notepad', 'displayProperties', 'speechProperties', 'systemProperties', 'paint', 'cmd', 'imageViewer', 'installer'],
+    items: ['calculator', 'notepad', 'displayProperties', 'speechProperties', 'systemProperties', 'systemRecovery', 'paint', 'cmd', 'imageViewer', 'installer'],
   },
   entertainment: {
     type: 'folder',

@@ -2,30 +2,19 @@ import React, { useState, useMemo } from 'react';
 import styled from 'styled-components';
 import { useFileSystem, XP_ICONS } from '../../../contexts/FileSystemContext';
 
-// Helper function to format bytes
-const formatBytes = (bytes, decimals = 2) => {
+// Helper function to format bytes with both readable and raw bytes
+const formatBytes = (bytes) => {
   if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(2)} KB (${bytes.toLocaleString()} bytes)`;
+  }
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB (${bytes.toLocaleString()} bytes)`;
 };
 
 // Helper function to format date
 const formatDate = (timestamp) => {
   if (!timestamp) return 'N/A';
-  const date = new Date(timestamp);
-  return date.toLocaleString('en-US', {
-    weekday: 'short',
-    year: 'numeric',
-    month: 'short',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    timeZoneName: 'short',
-  });
+  return new Date(timestamp).toLocaleString();
 };
 
 function Properties({ onClose, itemId, itemData }) {
@@ -33,6 +22,7 @@ function Properties({ onClose, itemId, itemData }) {
   const [activeTab, setActiveTab] = useState('General');
   const [readOnly, setReadOnly] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
 
   // Get item from file system or use provided itemData
   const item = useMemo(() => {
@@ -60,31 +50,9 @@ function Properties({ onClose, itemId, itemData }) {
     return totalSize;
   };
 
-  // Count files and folders in a folder
-  const countContents = (folderId) => {
-    if (!fileSystem || !fileSystem[folderId]) return { files: 0, folders: 0 };
-    const folder = fileSystem[folderId];
-    if (!folder.children) return { files: 0, folders: 0 };
-
-    let files = 0;
-    let folders = 0;
-    for (const childId of folder.children) {
-      const child = fileSystem[childId];
-      if (!child) continue;
-      if (child.type === 'file') {
-        files++;
-      } else if (child.type === 'folder') {
-        folders++;
-      }
-    }
-    return { files, folders };
-  };
-
   // Get item details
   const details = useMemo(() => {
-    if (!item) return [];
-
-    const result = [];
+    if (!item) return {};
 
     // Type
     const typeMap = {
@@ -93,12 +61,10 @@ function Properties({ onClose, itemId, itemData }) {
       drive: 'Local Disk',
       shortcut: 'Shortcut',
     };
-    result.push(['Type', typeMap[item.type] || 'Unknown']);
 
     // Location
     const path = getPath ? getPath(item.id) : item.name;
-    const location = path ? `C:\\${path.split('\\').slice(0, -1).join('\\')}` : 'C:\\';
-    result.push(['Location', location || 'C:\\']);
+    const location = path ? `C:/${path.split('\\').slice(0, -1).join('/')}` : 'C:/';
 
     // Size
     let sizeBytes;
@@ -109,25 +75,17 @@ function Properties({ onClose, itemId, itemData }) {
     } else {
       sizeBytes = 0;
     }
-    result.push(['Size', formatBytes(sizeBytes)]);
 
     // Size on disk (rounded to 4KB clusters)
     const sizeOnDisk = Math.ceil(sizeBytes / 4096) * 4096;
-    result.push(['Size on disk', formatBytes(sizeOnDisk)]);
 
-    // Contains (for folders)
-    if (item.type === 'folder' || item.type === 'drive') {
-      const { files, folders } = countContents(item.id);
-      result.push(['Contains', `${files} Files, ${folders} Folders`]);
-    }
-
-    // Date Created
-    result.push(['Created', formatDate(item.dateCreated)]);
-
-    // Date Modified
-    result.push(['Modified', formatDate(item.dateModified)]);
-
-    return result;
+    return {
+      type: typeMap[item.type] || 'Unknown',
+      location: location || 'C:/',
+      size: formatBytes(sizeBytes),
+      sizeOnDisk: formatBytes(sizeOnDisk),
+      created: formatDate(item.dateCreated),
+    };
   }, [item, fileSystem, getPath]);
 
   // Get icon for the item
@@ -137,6 +95,15 @@ function Properties({ onClose, itemId, itemData }) {
     if (item.type === 'folder') return XP_ICONS.folder;
     if (item.type === 'drive') return XP_ICONS.localDisk;
     return XP_ICONS.default;
+  };
+
+  const handleCheckboxChange = (setter) => (e) => {
+    setter(e.target.checked);
+    setHasChanges(true);
+  };
+
+  const handleApply = () => {
+    setHasChanges(false);
   };
 
   if (!item) {
@@ -154,85 +121,161 @@ function Properties({ onClose, itemId, itemData }) {
     <Container>
       <TabContainer>
         <TabList>
-          {['General', 'Sharing', 'Customize'].map((tab) => (
-            <Tab
-              key={tab}
-              $active={activeTab === tab}
-              $enabled={tab === 'General'}
-              onClick={() => tab === 'General' && setActiveTab(tab)}
-            >
-              {tab}
-            </Tab>
-          ))}
+          <Tab
+            $active={activeTab === 'General'}
+            onClick={() => setActiveTab('General')}
+          >
+            General
+          </Tab>
+          <Tab
+            $active={activeTab === 'Sharing'}
+            onClick={() => setActiveTab('Sharing')}
+          >
+            Sharing
+          </Tab>
         </TabList>
 
-        <TabContent>
+        <TabPanel>
           {activeTab === 'General' && (
-            <GeneralTab>
+            <PanelContent>
               {/* Header with icon and name */}
-              <HeaderSection>
-                <IconWrapper>
+              <SplitRow>
+                <LeftCol>
                   <ItemIcon src={getItemIcon()} alt="" />
-                </IconWrapper>
-                <NameInput
-                  type="text"
-                  value={item.name}
-                  disabled
-                  readOnly
-                />
-              </HeaderSection>
+                </LeftCol>
+                <RightCol>
+                  <NameInput
+                    type="text"
+                    value={item.name}
+                    disabled
+                    readOnly
+                  />
+                </RightCol>
+              </SplitRow>
 
               <Divider />
 
-              {/* Details list */}
-              <DetailsList>
-                {details.map(([label, value]) => (
-                  <DetailRow key={label}>
-                    <DetailLabel>{label}</DetailLabel>
-                    <DetailValue $breakAll={label === 'Location'}>
-                      {value}
-                    </DetailValue>
-                  </DetailRow>
-                ))}
-              </DetailsList>
+              <SplitRow>
+                <LeftCol>Type:</LeftCol>
+                <RightCol>{details.type}</RightCol>
+              </SplitRow>
+
+              <SplitRow>
+                <LeftCol>Location:</LeftCol>
+                <RightCol>{details.location}</RightCol>
+              </SplitRow>
+
+              <SplitRow>
+                <LeftCol>Size:</LeftCol>
+                <RightCol>{details.size}</RightCol>
+              </SplitRow>
+
+              <SplitRow>
+                <LeftCol>Size on disk:</LeftCol>
+                <RightCol>{details.sizeOnDisk}</RightCol>
+              </SplitRow>
 
               <Divider />
 
-              {/* Attributes */}
-              <AttributesSection>
-                <DetailLabel>Attributes</DetailLabel>
-                <AttributesContent>
-                  <CheckboxGroup>
-                    <CheckboxRow>
-                      <Checkbox
+              <SplitRow>
+                <LeftCol>Created:</LeftCol>
+                <RightCol>{details.created}</RightCol>
+              </SplitRow>
+
+              <Divider />
+
+              <SplitRow>
+                <LeftCol>Attributes:</LeftCol>
+                <RightCol>
+                  <CheckboxWrapper>
+                    <label>
+                      <input
                         type="checkbox"
                         checked={readOnly}
-                        onChange={(e) => setReadOnly(e.target.checked)}
+                        onChange={handleCheckboxChange(setReadOnly)}
                       />
-                      <CheckboxLabel>Read-only</CheckboxLabel>
-                    </CheckboxRow>
-                    <CheckboxRow>
-                      <Checkbox
+                      Read-only
+                    </label>
+                  </CheckboxWrapper>
+                  <CheckboxWrapper>
+                    <label>
+                      <input
                         type="checkbox"
                         checked={hidden}
-                        onChange={(e) => setHidden(e.target.checked)}
+                        onChange={handleCheckboxChange(setHidden)}
                       />
-                      <CheckboxLabel>Hidden</CheckboxLabel>
-                    </CheckboxRow>
-                  </CheckboxGroup>
-                  <AdvancedButton type="button" disabled>
-                    Advanced...
-                  </AdvancedButton>
-                </AttributesContent>
-              </AttributesSection>
-            </GeneralTab>
+                      Hidden
+                    </label>
+                  </CheckboxWrapper>
+                </RightCol>
+                <AdvancedButton disabled>Advanced...</AdvancedButton>
+              </SplitRow>
+            </PanelContent>
           )}
-        </TabContent>
+
+          {activeTab === 'Sharing' && (
+            <PanelContent>
+              <GroupBox>
+                <GroupPane>
+                  <GroupTitle>Local sharing and security</GroupTitle>
+                  <GroupContent>
+                    <GroupIcon src="/icons/xp/MyComputer.png" alt="" />
+                    <GroupText>
+                      <p>
+                        To share this folder with other users of this computer
+                        only, drag it to the <LinkText>Shared Documents</LinkText> folder.
+                      </p>
+                      <p>
+                        To make this folder and its subfolders private so that
+                        only you have access, select the following check box.
+                      </p>
+                      <CheckboxWrapper $disabled>
+                        <label>
+                          <input type="checkbox" disabled />
+                          Make this folder private
+                        </label>
+                      </CheckboxWrapper>
+                    </GroupText>
+                  </GroupContent>
+                </GroupPane>
+              </GroupBox>
+
+              <GroupBox>
+                <GroupPane>
+                  <GroupTitle>Network sharing and security</GroupTitle>
+                  <GroupContent>
+                    <GroupIcon src="/icons/xp/MyComputer.png" alt="" />
+                    <GroupText>
+                      <p>
+                        As a security measure, Windows has disabled remote access
+                        to this computer. However, you can enable remote access
+                        and safely share files by running the{' '}
+                        <LinkText>Network Setup Wizard</LinkText>.
+                      </p>
+                      <p>
+                        <LinkText>
+                          If you understand the security risks but want to share
+                          files without running the wizard, click here.
+                        </LinkText>
+                      </p>
+                      <p>
+                        Learn more about <LinkText>sharing and security</LinkText>.
+                      </p>
+                    </GroupText>
+                  </GroupContent>
+                </GroupPane>
+              </GroupBox>
+            </PanelContent>
+          )}
+        </TabPanel>
       </TabContainer>
 
       <Actions>
-        <ActionButton onClick={onClose}>OK</ActionButton>
+        <ActionButton onClick={() => { handleApply(); onClose(); }}>OK</ActionButton>
         <ActionButton onClick={onClose}>Cancel</ActionButton>
+        <ActionButton disabled={!hasChanges} onClick={handleApply}>
+          Apply
+        </ActionButton>
       </Actions>
     </Container>
   );
@@ -244,7 +287,6 @@ const Container = styled.div`
   flex-direction: column;
   background: #ece9d8;
   padding: 8px;
-  gap: 8px;
   overflow: hidden;
   font-family: Tahoma, 'Noto Sans', sans-serif;
   font-size: 11px;
@@ -262,36 +304,34 @@ const TabContainer = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  min-height: 0;
 `;
 
 const TabList = styled.div`
   display: flex;
-  gap: 0;
-  padding: 0 2px;
+  position: relative;
+  z-index: 2;
 `;
 
 const Tab = styled.button`
   padding: 4px 12px;
   font-size: 11px;
-  background: ${({ $active }) => ($active ? '#fafaf9' : '#d4d0c8')};
+  font-family: Tahoma, 'Noto Sans', sans-serif;
+  background: ${({ $active }) => ($active ? '#fafaf9' : '#ece9d8')};
   border: 1px solid #919b9c;
-  border-bottom: ${({ $active }) => ($active ? 'none' : '1px solid #919b9c')};
+  border-bottom: ${({ $active }) => ($active ? '1px solid #fafaf9' : '1px solid #919b9c')};
   border-radius: 3px 3px 0 0;
-  cursor: ${({ $enabled }) => ($enabled ? 'pointer' : 'default')};
-  color: ${({ $enabled }) => ($enabled ? '#000' : '#888')};
+  cursor: pointer;
   position: relative;
-  z-index: ${({ $active }) => ($active ? 2 : 1)};
   margin-bottom: -1px;
   min-width: 70px;
 
   &:hover {
-    background: ${({ $active, $enabled }) =>
-      $enabled ? ($active ? '#fafaf9' : '#e8e8e8') : '#d4d0c8'};
+    background: ${({ $active }) => ($active ? '#fafaf9' : '#f5f5f0')};
   }
 `;
 
-const TabContent = styled.div`
+const TabPanel = styled.div`
   flex: 1;
   background: #fafaf9;
   border: 1px solid #919b9c;
@@ -300,40 +340,41 @@ const TabContent = styled.div`
   overflow-x: hidden;
 `;
 
-const GeneralTab = styled.div`
+const PanelContent = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 8px;
 `;
 
-const HeaderSection = styled.div`
+const SplitRow = styled.div`
   display: flex;
+  width: 100%;
+  margin: 5px 0;
   align-items: center;
-  gap: 12px;
-  padding: 8px;
-  border-bottom: 1px solid #d4d0c8;
-  margin-bottom: 8px;
 `;
 
-const IconWrapper = styled.div`
-  width: 50px;
-  height: 50px;
+const LeftCol = styled.div`
+  width: 75px;
   flex-shrink: 0;
+`;
+
+const RightCol = styled.div`
+  flex: 1;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 10px;
 `;
 
 const ItemIcon = styled.img`
-  width: 48px;
-  height: 48px;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
 `;
 
 const NameInput = styled.input`
-  flex: 1;
-  padding: 4px 6px;
+  width: 100%;
+  padding: 2px 4px;
   font-size: 11px;
+  font-family: Tahoma, 'Noto Sans', sans-serif;
   border: 1px solid #7f9db9;
   background: #fff;
 
@@ -343,85 +384,37 @@ const NameInput = styled.input`
   }
 `;
 
-const Divider = styled.div`
-  height: 1px;
-  background: #d4d0c8;
-  margin: 4px 0;
+const Divider = styled.hr`
+  border: none;
+  border-top: 1px solid #d4d0c8;
+  margin: 8px 0;
 `;
 
-const DetailsList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-`;
+const CheckboxWrapper = styled.div`
+  display: inline-block;
+  margin-right: 15px;
+  color: ${({ $disabled }) => ($disabled ? '#888' : '#000')};
 
-const DetailRow = styled.div`
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 2px 4px;
-`;
+  label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: ${({ $disabled }) => ($disabled ? 'default' : 'pointer')};
+  }
 
-const DetailLabel = styled.div`
-  width: 70px;
-  flex-shrink: 0;
-  color: #000;
-  font-size: 11px;
-`;
-
-const DetailValue = styled.div`
-  flex: 1;
-  color: #000;
-  font-size: 11px;
-  word-break: ${({ $breakAll }) => ($breakAll ? 'break-all' : 'break-word')};
-`;
-
-const AttributesSection = styled.div`
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 8px 4px;
-`;
-
-const AttributesContent = styled.div`
-  flex: 1;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-`;
-
-const CheckboxGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-`;
-
-const CheckboxRow = styled.label`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-`;
-
-const Checkbox = styled.input`
-  width: 13px;
-  height: 13px;
-  margin: 0;
-  cursor: pointer;
-`;
-
-const CheckboxLabel = styled.span`
-  font-size: 11px;
-  color: #000;
+  input[type="checkbox"] {
+    margin: 0;
+  }
 `;
 
 const AdvancedButton = styled.button`
-  padding: 4px 12px;
+  padding: 3px 10px;
   font-size: 11px;
-  min-width: 75px;
+  font-family: Tahoma, 'Noto Sans', sans-serif;
   background: linear-gradient(#fff, #ece9d8);
   border: 1px solid #919b9c;
   cursor: pointer;
+  margin-left: auto;
 
   &:disabled {
     cursor: default;
@@ -433,22 +426,80 @@ const AdvancedButton = styled.button`
   }
 `;
 
+const GroupBox = styled.div`
+  margin-bottom: 12px;
+`;
+
+const GroupPane = styled.div`
+  border: 1px solid #d4d0c8;
+  padding: 10px;
+  position: relative;
+`;
+
+const GroupTitle = styled.div`
+  position: absolute;
+  top: -8px;
+  left: 8px;
+  background: #fafaf9;
+  padding: 0 4px;
+  font-weight: bold;
+  font-size: 11px;
+`;
+
+const GroupContent = styled.div`
+  display: flex;
+  padding-top: 8px;
+`;
+
+const GroupIcon = styled.img`
+  width: 30px;
+  height: 30px;
+  margin-right: 10px;
+  flex-shrink: 0;
+`;
+
+const GroupText = styled.div`
+  flex: 1;
+  font-size: 11px;
+  line-height: 1.4;
+
+  p {
+    margin: 0 0 10px 0;
+  }
+`;
+
+const LinkText = styled.a`
+  color: #0066cc;
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:hover {
+    color: #0033cc;
+  }
+`;
+
 const Actions = styled.div`
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  padding-top: 4px;
+  margin-top: 10px;
 `;
 
 const ActionButton = styled.button`
   min-width: 72px;
   padding: 5px 12px;
   font-size: 11px;
+  font-family: Tahoma, 'Noto Sans', sans-serif;
   background: linear-gradient(#fff, #ece9d8);
   border: 1px solid #919b9c;
   cursor: pointer;
 
-  &:active {
+  &:disabled {
+    cursor: default;
+    color: #888;
+  }
+
+  &:active:not(:disabled) {
     background: linear-gradient(#ece9d8, #d4d0c8);
   }
 

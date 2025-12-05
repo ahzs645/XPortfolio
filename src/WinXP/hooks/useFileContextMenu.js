@@ -13,6 +13,7 @@ export function useFileContextMenu({
   // Available operations from FileSystemContext
   onOpen,
   onExplore,
+  onSearch,
   onCut,
   onCopy,
   onDelete,
@@ -29,6 +30,8 @@ export function useFileContextMenu({
 
   // Optional: additional context
   isMultiSelect = false,
+  isMyComputer = false,
+  isRecycleBin = false,
 }) {
   // Get file extension
   const getFileExtension = useCallback((name) => {
@@ -40,44 +43,312 @@ export function useFileContextMenu({
   const extension = selectedItem?.name ? getFileExtension(selectedItem.name) : '';
   const isArchive = extension === '.rar' || extension === '.zip' || extension === '.7z';
   const isFolder = selectedItem?.type === 'folder' || selectedItem?.type === 'drive';
+  const isFile = selectedItem?.type === 'file';
 
   const menuItems = useMemo(() => {
     if (!selectedItem) return [];
 
-    // Send To submenu items
-    const sendToItems = [
-      {
-        label: 'Compressed (Zipped) Folder',
-        icon: XP_ICONS.zipFolder,
-        onClick: () => console.log('Send to: Compressed folder', selectedItem.name),
-      },
-      {
-        label: 'Desktop (create shortcut)',
-        icon: XP_ICONS.desktop,
-        onClick: () => console.log('Send to: Desktop shortcut', selectedItem.name),
-      },
-      {
-        label: 'Mail Recipient',
-        icon: XP_ICONS.email,
-        onClick: () => console.log('Send to: Mail', selectedItem.name),
-      },
-      {
-        label: 'Floppy (A:)',
-        icon: XP_ICONS.floppy,
-        onClick: () => console.log('Send to: Floppy', selectedItem.name),
-      },
-    ];
-
     const items = [];
 
-    // Open (always first, always bold)
+    // My Computer specific menu
+    if (isMyComputer) {
+      items.push({
+        label: 'Open',
+        bold: true,
+        onClick: onOpen,
+      });
+
+      items.push({
+        label: 'Explore',
+        onClick: onExplore || onOpen,
+      });
+
+      items.push({
+        label: 'Search...',
+        disabled: true,
+      });
+
+      items.push({ type: 'divider' });
+
+      items.push({
+        label: 'Manage',
+        disabled: true,
+      });
+
+      items.push({ type: 'divider' });
+
+      items.push({
+        label: 'Map Network Drive...',
+        disabled: true,
+      });
+
+      items.push({
+        label: 'Disconnect Network Drive...',
+        disabled: true,
+      });
+
+      items.push({ type: 'divider' });
+
+      if (onProperties) {
+        items.push({
+          label: 'Properties',
+          onClick: onProperties,
+        });
+      }
+
+      return items;
+    }
+
+    // Recycle Bin specific menu
+    if (isRecycleBin) {
+      items.push({
+        label: 'Open',
+        bold: true,
+        onClick: onOpen,
+      });
+
+      items.push({
+        label: 'Explore',
+        onClick: onExplore || onOpen,
+      });
+
+      items.push({ type: 'divider' });
+
+      items.push({
+        label: 'Empty Recycle Bin',
+        disabled: true,
+      });
+
+      items.push({ type: 'divider' });
+
+      if (onProperties) {
+        items.push({
+          label: 'Properties',
+          onClick: onProperties,
+        });
+      }
+
+      return items;
+    }
+
+    // Folder context menu
+    if (isFolder) {
+      items.push({
+        label: 'Open',
+        bold: true,
+        onClick: onOpen,
+      });
+
+      if (onExplore) {
+        items.push({
+          label: 'Explore',
+          onClick: onExplore,
+        });
+      }
+
+      items.push({
+        label: 'Search...',
+        disabled: true,
+      });
+
+      items.push({ type: 'divider' });
+
+      items.push({
+        label: 'Sharing and Security...',
+        disabled: true,
+      });
+
+      items.push({ type: 'divider' });
+
+      // Send To submenu
+      const sendToItems = [
+        {
+          label: 'Desktop (create shortcut)',
+          onClick: () => console.log('Send to: Desktop shortcut', selectedItem.name),
+        },
+        {
+          label: 'My Documents',
+          disabled: true,
+        },
+        {
+          label: '3½ Floppy (A:)',
+          disabled: true,
+        },
+        {
+          label: 'Mail Recipient',
+          disabled: true,
+        },
+        {
+          label: 'Compressed (zipped) Folder',
+          icon: XP_ICONS.zipFolder,
+          onClick: onAddToArchive,
+        },
+      ];
+
+      items.push({
+        label: 'Send To',
+        submenu: sendToItems,
+      });
+
+      items.push({ type: 'divider' });
+
+      if (onCut) {
+        items.push({
+          label: 'Cut',
+          onClick: onCut,
+        });
+      }
+
+      if (onCopy) {
+        items.push({
+          label: 'Copy',
+          onClick: onCopy,
+        });
+      }
+
+      items.push({ type: 'divider' });
+
+      if (onDelete) {
+        items.push({
+          label: 'Delete',
+          onClick: onDelete,
+        });
+      }
+
+      if (onRename) {
+        items.push({
+          label: 'Rename',
+          onClick: onRename,
+          disabled: isMultiSelect,
+        });
+      }
+
+      items.push({ type: 'divider' });
+
+      if (onProperties) {
+        items.push({
+          label: 'Properties',
+          onClick: onProperties,
+        });
+      }
+
+      return items;
+    }
+
+    // File context menu
+    if (isFile) {
+      items.push({
+        label: 'Open',
+        bold: true,
+        onClick: onOpen,
+      });
+
+      items.push({
+        label: 'Open Containing Folder',
+        disabled: true,
+      });
+
+      items.push({ type: 'divider' });
+
+      // Archive-specific options
+      if (isArchive && onExtractHere) {
+        items.push({
+          label: 'Extract Here',
+          icon: XP_ICONS.rar,
+          onClick: onExtractHere,
+        });
+
+        items.push({
+          label: 'Extract to folder...',
+          icon: XP_ICONS.rar,
+          disabled: true,
+        });
+
+        items.push({ type: 'divider' });
+      }
+
+      // Send To submenu for files
+      const sendToItems = [
+        {
+          label: 'Desktop (create shortcut)',
+          onClick: () => console.log('Send to: Desktop shortcut', selectedItem.name),
+        },
+        {
+          label: 'My Documents',
+          disabled: true,
+        },
+        {
+          label: '3½ Floppy (A:)',
+          disabled: true,
+        },
+        {
+          label: 'Mail Recipient',
+          disabled: true,
+        },
+        {
+          label: 'Compressed (zipped) Folder',
+          icon: XP_ICONS.zipFolder,
+          onClick: onAddToArchive,
+        },
+      ];
+
+      items.push({
+        label: 'Send To',
+        submenu: sendToItems,
+      });
+
+      items.push({ type: 'divider' });
+
+      if (onCut) {
+        items.push({
+          label: 'Cut',
+          onClick: onCut,
+        });
+      }
+
+      if (onCopy) {
+        items.push({
+          label: 'Copy',
+          onClick: onCopy,
+        });
+      }
+
+      items.push({ type: 'divider' });
+
+      if (onDelete) {
+        items.push({
+          label: 'Delete',
+          onClick: onDelete,
+        });
+      }
+
+      if (onRename) {
+        items.push({
+          label: 'Rename',
+          onClick: onRename,
+          disabled: isMultiSelect,
+        });
+      }
+
+      items.push({ type: 'divider' });
+
+      if (onProperties) {
+        items.push({
+          label: 'Properties',
+          onClick: onProperties,
+        });
+      }
+
+      return items;
+    }
+
+    // Default/shortcut context menu (for desktop shortcuts)
     items.push({
       label: 'Open',
       bold: true,
       onClick: onOpen,
     });
 
-    // Explore (for folders)
     if (isFolder && onExplore) {
       items.push({
         label: 'Explore',
@@ -87,27 +358,19 @@ export function useFileContextMenu({
 
     items.push({ type: 'divider' });
 
-    // Archive-specific options
-    if (isArchive && onExtractHere) {
-      items.push({
-        label: 'Extract here...',
-        icon: XP_ICONS.rar,
-        onClick: onExtractHere,
-      });
-    }
-
-    // Add to archive (for any file/folder)
-    if (onAddToArchive) {
-      items.push({
-        label: 'Add to archive...',
-        icon: XP_ICONS.rar,
-        onClick: onAddToArchive,
-      });
-    }
-
-    items.push({ type: 'divider' });
-
     // Send To submenu
+    const sendToItems = [
+      {
+        label: 'Desktop (create shortcut)',
+        onClick: () => console.log('Send to: Desktop shortcut', selectedItem.name),
+      },
+      {
+        label: 'Compressed (zipped) Folder',
+        icon: XP_ICONS.zipFolder,
+        onClick: onAddToArchive,
+      },
+    ];
+
     items.push({
       label: 'Send To',
       submenu: sendToItems,
@@ -115,13 +378,13 @@ export function useFileContextMenu({
 
     items.push({ type: 'divider' });
 
-    // Cut/Copy
     if (onCut) {
       items.push({
         label: 'Cut',
         onClick: onCut,
       });
     }
+
     if (onCopy) {
       items.push({
         label: 'Copy',
@@ -131,7 +394,6 @@ export function useFileContextMenu({
 
     items.push({ type: 'divider' });
 
-    // Delete
     if (onDelete) {
       items.push({
         label: 'Delete',
@@ -139,7 +401,6 @@ export function useFileContextMenu({
       });
     }
 
-    // Rename (disabled for multi-select)
     if (onRename) {
       items.push({
         label: 'Rename',
@@ -150,7 +411,6 @@ export function useFileContextMenu({
 
     items.push({ type: 'divider' });
 
-    // Properties (always last)
     if (onProperties) {
       items.push({
         label: 'Properties',
@@ -162,8 +422,11 @@ export function useFileContextMenu({
   }, [
     selectedItem,
     isFolder,
+    isFile,
     isArchive,
     isMultiSelect,
+    isMyComputer,
+    isRecycleBin,
     onOpen,
     onExplore,
     onCut,
@@ -184,6 +447,8 @@ export function useFileContextMenu({
 export function useBackgroundContextMenu({
   onNewFolder,
   onNewTextDoc,
+  onNewRichTextDoc,
+  onNewBitmapImage,
   onPaste,
   onRefresh,
   onUpload,
@@ -198,14 +463,49 @@ export function useBackgroundContextMenu({
   const menuItems = useMemo(() => {
     const items = [];
 
+    // Arrange Icons By submenu
+    const arrangeIconsSubmenu = [
+      {
+        label: 'Name',
+        disabled: true,
+      },
+      {
+        label: 'Size',
+        disabled: true,
+      },
+      {
+        label: 'Type',
+        disabled: true,
+      },
+      {
+        label: 'Modified',
+        disabled: true,
+      },
+      { type: 'divider' },
+      {
+        label: 'Auto Arrange',
+        disabled: true,
+      },
+      {
+        label: 'Align to Grid',
+        disabled: true,
+      },
+    ];
+
+    items.push({
+      label: 'Arrange Icons By',
+      submenu: arrangeIconsSubmenu,
+    });
+
     // Refresh
     if (onRefresh) {
       items.push({
         label: 'Refresh',
         onClick: onRefresh,
       });
-      items.push({ type: 'divider' });
     }
+
+    items.push({ type: 'divider' });
 
     // Paste
     if (onPaste) {
@@ -234,23 +534,7 @@ export function useBackgroundContextMenu({
       });
     }
 
-    newSubmenu.push({
-      label: 'Shortcut',
-      icon: XP_ICONS.shortcut,
-      onClick: () => console.log('Create shortcut'),
-    });
-
-    newSubmenu.push({
-      label: 'Briefcase',
-      icon: XP_ICONS.briefcase,
-      onClick: () => console.log('Create briefcase'),
-    });
-
-    newSubmenu.push({
-      label: 'Bitmap Image',
-      icon: XP_ICONS.bitmap,
-      onClick: () => console.log('Create bitmap image'),
-    });
+    newSubmenu.push({ type: 'divider' });
 
     if (onNewTextDoc) {
       newSubmenu.push({
@@ -261,16 +545,28 @@ export function useBackgroundContextMenu({
     }
 
     newSubmenu.push({
-      label: 'Wave Sound',
-      icon: XP_ICONS.wav,
-      onClick: () => console.log('Create wave sound'),
+      label: 'Rich Text Document',
+      icon: XP_ICONS.textDoc,
+      onClick: onNewRichTextDoc,
+      disabled: !onNewRichTextDoc,
     });
 
     newSubmenu.push({
-      label: 'Compressed (zipped) Folder',
-      icon: XP_ICONS.zipFolder,
-      onClick: () => console.log('Create compressed folder'),
+      label: 'Bitmap Image',
+      icon: XP_ICONS.bitmap,
+      onClick: onNewBitmapImage,
+      disabled: !onNewBitmapImage,
     });
+
+    newSubmenu.push({ type: 'divider' });
+
+    // Upload (file explorer only)
+    if (onUpload) {
+      newSubmenu.push({
+        label: 'Upload',
+        onClick: onUpload,
+      });
+    }
 
     items.push({
       label: 'New',
@@ -279,27 +575,8 @@ export function useBackgroundContextMenu({
 
     items.push({ type: 'divider' });
 
-    // Upload (file explorer only)
-    if (onUpload) {
-      items.push({
-        label: 'Upload Files...',
-        onClick: onUpload,
-      });
-    }
-
-    // Select All (file explorer only)
-    if (onSelectAll) {
-      items.push({
-        label: 'Select All',
-        onClick: onSelectAll,
-      });
-    }
-
     // Properties
     if (onProperties) {
-      if (onUpload || onSelectAll) {
-        items.push({ type: 'divider' });
-      }
       items.push({
         label: 'Properties',
         onClick: onProperties,
@@ -311,6 +588,8 @@ export function useBackgroundContextMenu({
     hasClipboard,
     onNewFolder,
     onNewTextDoc,
+    onNewRichTextDoc,
+    onNewBitmapImage,
     onPaste,
     onRefresh,
     onUpload,
