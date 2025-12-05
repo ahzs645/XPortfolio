@@ -113,15 +113,15 @@ function Messenger({ onClose, onMinimize, onMaximize, isFocus, onResize }) {
       setActiveContact(null);
       setChatOpen(false);
       setMessages([]);
-      // Trigger resize to narrow
-      onResize?.({ width: 230, height: 434 });
+      // Trigger resize to narrow (218px like original)
+      onResize?.(218, 434);
     } else {
       // Open chat
       setActiveContact({ ...contact, group });
       setChatOpen(true);
       setMessages(SAMPLE_MESSAGES[contact.hash] || []);
       // Trigger resize to wide
-      onResize?.({ width: 700, height: 434 });
+      onResize?.(700, 434);
     }
   }, [activeContact, onResize]);
 
@@ -129,7 +129,7 @@ function Messenger({ onClose, onMinimize, onMaximize, isFocus, onResize }) {
     setActiveContact(null);
     setChatOpen(false);
     setMessages([]);
-    onResize?.({ width: 230, height: 434 });
+    onResize?.(218, 434);
   }, [onResize]);
 
   const handleEmojiClick = useCallback((emoji) => {
@@ -183,13 +183,13 @@ function Messenger({ onClose, onMinimize, onMaximize, isFocus, onResize }) {
 
   // Set initial size on mount
   useEffect(() => {
-    onResize?.({ width: 230, height: 434 });
+    onResize?.(218, 434);
   }, []);
 
   return (
     <MessengerContainer>
       {/* Contacts Panel */}
-      <ContactsPanel>
+      <ContactsPanel $chatOpen={chatOpen}>
         <StatusSection>
           <StatusLabel>My Status:</StatusLabel>
           <StatusValue>
@@ -339,7 +339,7 @@ const MessengerContainer = styled.div`
 `;
 
 const ContactsPanel = styled.div`
-  width: 200px;
+  width: ${props => props.$chatOpen ? '200px' : '100%'};
   background: #fff;
   border-radius: 5px;
   flex-shrink: 0;

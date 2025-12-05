@@ -5,6 +5,7 @@ import Contact from './Contact';
 import Calculator from './Calculator';
 import Notepad from './Notepad';
 import DisplayProperties from './DisplayProperties';
+import DateTimeProperties from './DateTimeProperties';
 import Minesweeper from './Minesweeper';
 import Solitaire from './Solitaire';
 import SpiderSolitaire from './SpiderSolitaire';
@@ -24,6 +25,9 @@ import QQPenguin from './QQPenguin';
 import Installer from './Installer';
 import IframeApp from './IframeApp';
 import Messenger from './Messenger';
+import SpeechProperties from './SpeechProperties';
+import SystemProperties from './SystemProperties';
+import SystemRecovery from './SystemRecovery';
 
 // XP Icons paths
 const XP_ICONS = {
@@ -39,6 +43,8 @@ const XP_ICONS = {
   recycleBinFull: '/icons/xp/RecycleBinfull.png',
   internetExplorer: '/icons/xp/InternetExplorer6.png',
   soundRecorder: '/icons/xp/SoundRecorder.webp',
+  speechProperties: '/icons/xp/speech.png',
+  systemProperties: '/icons/xp/system.png',
 };
 
 // Default apps open on startup (empty for now - user opens via desktop icons)
@@ -160,6 +166,16 @@ export const desktopIconCatalog = {
     icon: '/icons/xp/messenger.png',
     title: 'Windows Messenger',
     component: Messenger,
+  },
+  speechProperties: {
+    icon: XP_ICONS.speechProperties,
+    title: 'Speech Properties',
+    component: SpeechProperties,
+  },
+  systemProperties: {
+    icon: XP_ICONS.systemProperties,
+    title: 'System Properties',
+    component: SystemProperties,
   },
 };
 
@@ -354,6 +370,26 @@ export const appSettings = {
     defaultSize: {
       width: 500,
       height: 640,
+    },
+    defaultOffset: {
+      x: 200,
+      y: 100,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'Date and Time Properties': {
+    header: {
+      icon: '/icons/xp/DateTime.png',
+      title: 'Date and Time Properties',
+      buttons: ['close'],
+    },
+    component: DateTimeProperties,
+    defaultSize: {
+      width: 400,
+      height: 380,
     },
     defaultOffset: {
       x: 200,
@@ -813,7 +849,7 @@ export const appSettings = {
     },
     component: Messenger,
     defaultSize: {
-      width: 230,
+      width: 218,
       height: 434,
     },
     defaultOffset: {
@@ -821,6 +857,66 @@ export const appSettings = {
       y: 110,
     },
     resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'Speech Properties': {
+    header: {
+      icon: XP_ICONS.speechProperties,
+      title: 'Speech Properties',
+      buttons: ['close'],
+    },
+    component: SpeechProperties,
+    defaultSize: {
+      width: 408,
+      height: 540,
+    },
+    defaultOffset: {
+      x: 200,
+      y: 100,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'System Properties': {
+    header: {
+      icon: XP_ICONS.systemProperties,
+      title: 'System Properties',
+      buttons: ['close'],
+    },
+    component: SystemProperties,
+    defaultSize: {
+      width: 408,
+      height: 435,
+    },
+    defaultOffset: {
+      x: 200,
+      y: 100,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'System Recovery': {
+    header: {
+      icon: '/icons/xp/Recovery.png',
+      title: 'System Recovery',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: SystemRecovery,
+    defaultSize: {
+      width: 508,
+      height: 334,
+    },
+    defaultOffset: {
+      x: 140,
+      y: 140,
+    },
+    resizable: true,
     minimized: false,
     maximized: false,
     multiInstance: false,
@@ -834,6 +930,7 @@ export {
   Contact,
   Calculator,
   Notepad,
+  DateTimeProperties,
   Minesweeper,
   Solitaire,
   SpiderSolitaire,
@@ -853,4 +950,6 @@ export {
   Installer,
   IframeApp,
   Messenger,
+  SpeechProperties,
+  SystemProperties,
 };

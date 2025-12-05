@@ -249,7 +249,13 @@ function Footer({
           title="Toggle Fullscreen"
           onClick={handleFullscreenClick}
         />
-        <div className="footer__time">{time}</div>
+        <div
+          className="footer__time"
+          onClick={() => onClickMenuItem('Date and Time Properties')}
+          title="Click to change date and time settings"
+        >
+          {time}
+        </div>
       </div>
     </Container>
   );
