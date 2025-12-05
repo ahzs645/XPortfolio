@@ -2,20 +2,31 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 
 const UserAccountsContext = createContext(null);
 
-// Default user pictures available in XP
+// Default user pictures available in XP (matching OpenLair)
 const DEFAULT_USER_PICTURES = [
+  { id: 'airplane', name: 'Airplane', path: '/icons/users/airplane.png' },
   { id: 'astronaut', name: 'Astronaut', path: '/icons/users/astronaut.png' },
   { id: 'ball', name: 'Ball', path: '/icons/users/ball.png' },
+  { id: 'beach', name: 'Beach', path: '/icons/users/beach.png' },
+  { id: 'bike', name: 'Bike', path: '/icons/users/bike.png' },
   { id: 'butterfly', name: 'Butterfly', path: '/icons/users/butterfly.png' },
+  { id: 'car', name: 'Car', path: '/icons/users/car.png' },
   { id: 'cat', name: 'Cat', path: '/icons/users/cat.png' },
   { id: 'chess', name: 'Chess', path: '/icons/users/chess.png' },
   { id: 'dog', name: 'Dog', path: '/icons/users/dog.png' },
+  { id: 'drip', name: 'Drip', path: '/icons/users/drip.png' },
   { id: 'duck', name: 'Duck', path: '/icons/users/duck.png' },
   { id: 'fish', name: 'Fish', path: '/icons/users/fish.png' },
   { id: 'flower', name: 'Flower', path: '/icons/users/flower.png' },
   { id: 'frog', name: 'Frog', path: '/icons/users/frog.png' },
   { id: 'guitar', name: 'Guitar', path: '/icons/users/guitar.png' },
+  { id: 'horses', name: 'Horses', path: '/icons/users/horses.png' },
+  { id: 'kick', name: 'Kick', path: '/icons/users/kick.png' },
+  { id: 'pink', name: 'Pink', path: '/icons/users/pink.png' },
+  { id: 'rocket', name: 'Rocket', path: '/icons/users/rocket.png' },
+  { id: 'skater', name: 'Skater', path: '/icons/users/skater.png' },
   { id: 'snowflake', name: 'Snowflake', path: '/icons/users/snowflake.png' },
+  { id: 'trees', name: 'Trees', path: '/icons/users/trees.png' },
 ];
 
 // Simple hash function using Web Crypto API
@@ -34,7 +45,7 @@ function generateId() {
 }
 
 // Default user based on config (will be set on first load)
-function createDefaultUser(name = 'User', picture = '/favicon.png') {
+function createDefaultUser(name = 'User', picture = '/icons/users/astronaut.png') {
   return {
     id: 'default-user',
     name,

@@ -2,6 +2,7 @@ import React, { useLayoutEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { useConfig } from '../../contexts/ConfigContext';
 import { useInstalledApps } from '../../contexts/InstalledAppsContext';
+import { useUserAccounts } from '../../contexts/UserAccountsContext';
 import { isAppDisabled } from '../apps/Installer';
 import {
   START_MENU_CATALOG,
@@ -33,8 +34,14 @@ function FooterMenu({ className, onClick, onLaunchInstalledApp }) {
   const [showInstalledApps, setShowInstalledApps] = useState(false);
   const { getDisplayName, getStartMenuIcon } = useConfig();
   const { getInstalledAppsList } = useInstalledApps();
+  const { getCurrentUser, isLoggedIn } = useUserAccounts();
 
   const installedApps = getInstalledAppsList();
+  const currentUser = getCurrentUser();
+
+  // Use user's profile picture if logged in, otherwise fall back to config
+  const userPicture = isLoggedIn && currentUser?.picture ? currentUser.picture : getStartMenuIcon();
+  const userName = isLoggedIn && currentUser?.name ? currentUser.name : getDisplayName();
 
   function handleItemClick(item) {
     if (item.type === 'folder') {
@@ -84,8 +91,8 @@ function FooterMenu({ className, onClick, onLaunchInstalledApp }) {
   return (
     <div className={className}>
       <header>
-        <img className="header__img" src={getStartMenuIcon()} alt="avatar" />
-        <span className="header__text">{getDisplayName()}</span>
+        <img className="header__img" src={userPicture} alt="avatar" />
+        <span className="header__text">{userName}</span>
       </header>
       <section className="menu">
         <hr className="orange-hr" />
@@ -810,9 +817,22 @@ export default styled(FooterMenu)`
     background: #f2f2f2;
     border: 1px solid #d0d0d0;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15);
-    min-width: 150px;
+    min-width: 180px;
     z-index: 11;
     padding: 4px 0;
+    overflow: hidden;
+  }
+
+  .folder-submenu::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, #1c57ad 0%, #2a70ce 50%, #5b9fe2 100%);
+    z-index: 1;
+    pointer-events: none;
   }
 
   /* Mobile: position submenu from right edge of screen */
@@ -835,6 +855,7 @@ export default styled(FooterMenu)`
     cursor: pointer;
     color: #000;
     position: relative;
+    z-index: 2;
     white-space: nowrap;
     font-size: 11px;
   }

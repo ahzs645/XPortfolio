@@ -348,10 +348,20 @@ function UserAccounts({ onClose, onMinimize, onOpenWindow }) {
               {availablePictures.map(pic => (
                 <PictureOption
                   key={pic.id}
-                  onClick={() => handleChangePicture(pic.path)}
                   $selected={selectedUser?.picture === pic.path}
                 >
-                  <img src={pic.path} alt={pic.name} />
+                  <input
+                    type="radio"
+                    name="UserPicture"
+                    value={pic.id}
+                    checked={selectedUser?.picture === pic.path}
+                    onChange={() => handleChangePicture(pic.path)}
+                  />
+                  <img
+                    src={pic.path}
+                    alt={pic.name}
+                    className={selectedUser?.picture === pic.path ? 'active' : ''}
+                  />
                 </PictureOption>
               ))}
             </PicturesGrid>
@@ -743,11 +753,11 @@ const ContentPane = styled.div`
 const PageTitle = styled.h1`
   margin: 0 0 20px 0;
   padding: 10px 0;
-  font-size: 20px;
+  font-size: 24px;
   font-weight: normal;
-  color: #0054e3;
+  color: #7294DF;
   border-bottom: none;
-  font-family: 'Franklin Gothic Medium', Tahoma, sans-serif;
+  font-family: sans-serif;
 `;
 
 const UsersGrid = styled.div`
@@ -822,8 +832,8 @@ const TasksList = styled.div`
 const TaskLink = styled.a`
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  color: #0054e3;
+  gap: 5px;
+  color: #7294DF;
   text-decoration: none;
   cursor: pointer;
   font-size: 12px;
@@ -831,14 +841,26 @@ const TaskLink = styled.a`
   &:hover {
     text-decoration: underline;
   }
+
+  img {
+    width: 16px;
+    height: 16px;
+  }
 `;
 
 const UserPreview = styled.div`
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  color: #0054e3;
+  gap: 10px;
+  color: #7294DF;
   font-size: 12px;
+
+  img {
+    width: 55px;
+    height: 55px;
+    object-fit: cover;
+    border-radius: 3px;
+  }
 `;
 
 const FormGroup = styled.div`
@@ -919,30 +941,40 @@ const CurrentPictureRow = styled.div`
 `;
 
 const PicturesGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 16px;
   max-width: 400px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 4px;
+  border: 1px solid #ccc;
+  background: #fff;
 `;
 
-const PictureOption = styled.div`
-  width: 52px;
-  height: 52px;
-  border: 2px solid ${({ $selected }) => $selected ? '#316ac5' : 'transparent'};
-  border-radius: 3px;
+const PictureOption = styled.label`
+  display: block;
+  width: 48px;
+  height: 48px;
   cursor: pointer;
   overflow: hidden;
-  background: #f0f0f0;
 
-  &:hover {
-    border-color: #7eb4ea;
+  input {
+    display: none;
   }
 
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    border: 2px solid ${({ $selected }) => $selected ? '#316ac5' : '#ccc'};
+    border-radius: 2px;
+    transition: border-color 0.1s;
+
+    &:hover {
+      border-color: #7eb4ea;
+    }
   }
 `;
 
