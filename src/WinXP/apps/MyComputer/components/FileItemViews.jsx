@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { XP_ICONS } from '../../../../contexts/FileSystemContext';
-import { getFileType, formatFileSize, formatDate } from '../utils';
+import { getFileType, formatFileSize, formatDate, calculateFolderSize } from '../utils';
 
 // Icon View Item
 export function IconItem({
@@ -135,7 +135,12 @@ export function DetailsRow({
   onDragLeave,
   onDrop,
   itemRef,
+  fileSystem,
 }) {
+  const size = item.type === 'folder'
+    ? calculateFolderSize(item.id, fileSystem)
+    : item.size;
+
   return (
     <DetailsRowContainer
       ref={itemRef}
@@ -170,10 +175,10 @@ export function DetailsRow({
         )}
       </DetailsCell>
       <DetailsCell $width="15%" $align="right">
-        {item.type === 'folder' ? '' : formatFileSize(item.size)}
+        {formatFileSize(size)}
       </DetailsCell>
       <DetailsCell $width="20%">{getFileType(item)}</DetailsCell>
-      <DetailsCell $width="25%">{formatDate(item.modified)}</DetailsCell>
+      <DetailsCell $width="25%">{formatDate(item.dateModified || item.dateCreated)}</DetailsCell>
     </DetailsRowContainer>
   );
 }

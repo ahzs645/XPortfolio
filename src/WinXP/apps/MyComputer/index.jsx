@@ -9,7 +9,7 @@ import { ContextMenu } from '../../components/ContextMenu';
 import { useFileContextMenu, useBackgroundContextMenu } from '../../hooks/useFileContextMenu';
 import { createArchive, extractArchive } from '../../../utils/archiveUtils';
 import { ExplorerContent, ViewMenu } from './components';
-import { getFileExtension, getFileType, sortItems, filterItems } from './utils';
+import { getFileExtension, getFileType, getSimpleFileType, sortItems, filterItems, formatDetailDate, formatFileSize } from './utils';
 import { VIEW_MODES } from './constants';
 
 function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPath }) {
@@ -954,13 +954,34 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
                   Control Panel
                 </TaskPanel.Item>
               </TaskPanel.Section>
-              <TaskPanel.Section title="Details" defaultExpanded={false}>
-                <TaskPanel.Text icon={XP_ICONS.myComputer}>
-                  My Computer
-                </TaskPanel.Text>
-                <TaskPanel.Text>
-                  System Folder
-                </TaskPanel.Text>
+              <TaskPanel.Section title="Details" defaultExpanded={true}>
+                {selectedItems.length === 0 ? (
+                  <>
+                    <TaskPanel.Text>
+                      <strong>My Computer</strong>
+                    </TaskPanel.Text>
+                    <TaskPanel.Text>
+                      System Folder
+                    </TaskPanel.Text>
+                  </>
+                ) : selectedItems.length === 1 ? (
+                  <>
+                    <TaskPanel.Text>
+                      <strong>{fileSystem[selectedItems[0]]?.name}</strong>
+                    </TaskPanel.Text>
+                    <TaskPanel.Text>
+                      {fileSystem[selectedItems[0]]?.type === 'drive' ? 'Local Disk' : 'System Folder'}
+                    </TaskPanel.Text>
+                    <DetailsSpacer />
+                    <TaskPanel.Text>
+                      Date Modified: {formatDetailDate(fileSystem[selectedItems[0]]?.dateModified || fileSystem[selectedItems[0]]?.dateCreated || Date.now())}
+                    </TaskPanel.Text>
+                  </>
+                ) : (
+                  <TaskPanel.Text>
+                    <strong>{selectedItems.length} objects selected</strong>
+                  </TaskPanel.Text>
+                )}
               </TaskPanel.Section>
             </TaskPanel>
             <MyComputerContent>
@@ -1005,40 +1026,132 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
             </MyComputerContent>
           </MyComputerLayout>
         ) : (
-          <ExplorerContent
-            items={filteredContents}
-            viewMode={viewMode}
-            sortBy={sortBy}
-            sortOrder={sortOrder}
-            searchQuery={searchQuery}
-            isSearching={isSearching}
-            selectedItems={selectedItems}
-            clipboard={clipboard}
-            clipboardOp={clipboardOp}
-            renamingItem={renamingItem}
-            renameValue={renameValue}
-            draggingItems={draggingItems}
-            dropTargetId={dropTargetId}
-            selectionBox={selectionBox}
-            isDragOver={isDragOver}
-            itemRefs={itemRefs}
-            contentRef={contentRef}
-            onSortChange={handleColumnSort}
-            onSearchChange={setSearchQuery}
-            onSearchClear={() => setSearchQuery('')}
-            onRenameChange={setRenameValue}
-            onRenameSubmit={handleRenameSubmit}
-            onItemClick={handleItemClick}
-            onItemDoubleClick={handleItemDoubleClick}
-            onContextMenu={handleContextMenu}
-            onItemDragStart={handleItemDragStart}
-            onItemDragEnd={handleItemDragEnd}
-            onItemDragOver={handleItemDragOver}
-            onItemDragLeave={handleItemDragLeave}
-            onItemDrop={handleItemDrop}
-            onContentMouseDown={handleContentMouseDown}
-            onBackgroundContextMenu={(e) => handleContextMenu(e, null)}
-          />
+          <FolderLayout>
+            <TaskPanel width={180}>
+              <TaskPanel.Section title="File and Folder Tasks" variant="primary">
+                <TaskPanel.Item
+                  icon={XP_ICONS.folder}
+                  onClick={handleCreateFolder}
+                >
+                  Make a new folder
+                </TaskPanel.Item>
+                {selectedItems.length > 0 && (
+                  <>
+                    <TaskPanel.Item
+                      icon={XP_ICONS.rename || XP_ICONS.file}
+                      onClick={handleRename}
+                      disabled={selectedItems.length !== 1}
+                    >
+                      Rename this {selectedItems.length === 1 && fileSystem[selectedItems[0]]?.type === 'folder' ? 'folder' : 'file'}
+                    </TaskPanel.Item>
+                    <TaskPanel.Item
+                      icon={XP_ICONS.copy || XP_ICONS.file}
+                      onClick={handleCopy}
+                    >
+                      Copy {selectedItems.length > 1 ? 'these items' : 'this item'}
+                    </TaskPanel.Item>
+                    <TaskPanel.Item
+                      icon={XP_ICONS.delete || XP_ICONS.recycleBin}
+                      onClick={handleDelete}
+                    >
+                      Delete {selectedItems.length > 1 ? 'these items' : 'this item'}
+                    </TaskPanel.Item>
+                  </>
+                )}
+              </TaskPanel.Section>
+              <TaskPanel.Section title="Other Places">
+                <TaskPanel.Item
+                  icon={XP_ICONS.myComputer}
+                  onClick={() => {
+                    setCurrentFolder(null);
+                    setSelectedItems([]);
+                  }}
+                >
+                  My Computer
+                </TaskPanel.Item>
+                <TaskPanel.Item
+                  icon={XP_ICONS.myDocuments}
+                  onClick={() => navigateTo(SYSTEM_IDS.MY_DOCUMENTS)}
+                >
+                  My Documents
+                </TaskPanel.Item>
+                <TaskPanel.Item
+                  icon={XP_ICONS.desktop || XP_ICONS.folder}
+                  onClick={() => navigateTo(SYSTEM_IDS.DESKTOP)}
+                >
+                  Desktop
+                </TaskPanel.Item>
+              </TaskPanel.Section>
+              <TaskPanel.Section title="Details" defaultExpanded={true}>
+                {selectedItems.length === 0 ? (
+                  <>
+                    <TaskPanel.Text>
+                      <strong>{currentFolderData?.name || 'Folder'}</strong>
+                    </TaskPanel.Text>
+                    <TaskPanel.Text>
+                      File Folder
+                    </TaskPanel.Text>
+                    <DetailsSpacer />
+                    <TaskPanel.Text>
+                      Date Modified: {formatDetailDate(currentFolderData?.dateModified || currentFolderData?.dateCreated || Date.now())}
+                    </TaskPanel.Text>
+                  </>
+                ) : selectedItems.length === 1 ? (
+                  <>
+                    <TaskPanel.Text>
+                      <strong>{fileSystem[selectedItems[0]]?.name}</strong>
+                    </TaskPanel.Text>
+                    <TaskPanel.Text>
+                      {getSimpleFileType(fileSystem[selectedItems[0]])}
+                    </TaskPanel.Text>
+                    <DetailsSpacer />
+                    <TaskPanel.Text>
+                      Date Modified: {formatDetailDate(fileSystem[selectedItems[0]]?.dateModified || fileSystem[selectedItems[0]]?.dateCreated || Date.now())}
+                    </TaskPanel.Text>
+                  </>
+                ) : (
+                  <TaskPanel.Text>
+                    <strong>{selectedItems.length} objects selected</strong>
+                  </TaskPanel.Text>
+                )}
+              </TaskPanel.Section>
+            </TaskPanel>
+            <ExplorerContent
+              items={filteredContents}
+              viewMode={viewMode}
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              searchQuery={searchQuery}
+              isSearching={isSearching}
+              selectedItems={selectedItems}
+              clipboard={clipboard}
+              clipboardOp={clipboardOp}
+              renamingItem={renamingItem}
+              renameValue={renameValue}
+              draggingItems={draggingItems}
+              dropTargetId={dropTargetId}
+              selectionBox={selectionBox}
+              isDragOver={isDragOver}
+              itemRefs={itemRefs}
+              contentRef={contentRef}
+              fileSystem={fileSystem}
+              onSortChange={handleColumnSort}
+              onSearchChange={setSearchQuery}
+              onSearchClear={() => setSearchQuery('')}
+              onRenameChange={setRenameValue}
+              onRenameSubmit={handleRenameSubmit}
+              onItemClick={handleItemClick}
+              onItemDoubleClick={handleItemDoubleClick}
+              onContextMenu={handleContextMenu}
+              onItemDragStart={handleItemDragStart}
+              onItemDragEnd={handleItemDragEnd}
+              onItemDragOver={handleItemDragOver}
+              onItemDragLeave={handleItemDragLeave}
+              onItemDrop={handleItemDrop}
+              onContentMouseDown={handleContentMouseDown}
+              onBackgroundContextMenu={(e) => handleContextMenu(e, null)}
+            />
+          </FolderLayout>
         )}
 
         {contextMenu && (
@@ -1213,6 +1326,18 @@ const UploadProgressText = styled.div`
   font-size: 11px;
   text-align: center;
   color: #808080;
+`;
+
+// Details pane spacer
+const DetailsSpacer = styled.div`
+  padding: 2px 0;
+`;
+
+// Folder view layout with TaskPanel
+const FolderLayout = styled.div`
+  display: flex;
+  flex: 1;
+  overflow: hidden;
 `;
 
 // My Computer root view styles

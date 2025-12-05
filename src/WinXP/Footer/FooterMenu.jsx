@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useConfig } from '../../contexts/ConfigContext';
 import { useInstalledApps } from '../../contexts/InstalledAppsContext';
+import { isAppDisabled } from '../apps/Installer';
 import {
   START_MENU_CATALOG,
   PINNED_LEFT,
@@ -52,23 +53,33 @@ function FooterMenu({ className, onClick, onLaunchInstalledApp }) {
     }
   }
 
-  // Build left column items
+  // Helper to check if an item should be shown (not disabled)
+  const isItemEnabled = (item) => {
+    if (item.type === 'separator') return true;
+    if (item.type === 'folder') return true; // Folders are always shown
+    if (item.type === 'program' && item.appKey) {
+      return !isAppDisabled(item.appKey);
+    }
+    return true;
+  };
+
+  // Build left column items (filter out disabled apps)
   const leftItems = PINNED_LEFT.map((key) => ({
     key,
     ...getMenuItem(key),
-  })).filter((item) => item.type);
+  })).filter((item) => item.type && isItemEnabled(item));
 
-  // Build right column items
+  // Build right column items (filter out disabled apps)
   const rightItems = PINNED_RIGHT.map((key) => ({
     key,
     ...getMenuItem(key),
-  })).filter((item) => item.type);
+  })).filter((item) => item.type && isItemEnabled(item));
 
-  // Build all programs items
+  // Build all programs items (filter out disabled apps)
   const allProgramsItems = ALL_PROGRAMS_ORDER.map((key) => ({
     key,
     ...getMenuItem(key),
-  })).filter((item) => item.type);
+  })).filter((item) => item.type && isItemEnabled(item));
 
   return (
     <div className={className}>
@@ -211,10 +222,22 @@ function AllProgramsMenu({ items, activeFolder, onItemClick, onFolderHover }) {
             return <li key={`sep-all-${index}`} className="all-programs-separator" />;
           }
           if (item.type === 'folder') {
-            const folderItems = item.items.map((itemKey) => ({
-              key: itemKey,
-              ...START_MENU_CATALOG[itemKey],
-            }));
+            // Filter out disabled apps from folder items
+            const folderItems = item.items
+              .map((itemKey) => ({
+                key: itemKey,
+                ...START_MENU_CATALOG[itemKey],
+              }))
+              .filter((subItem) => {
+                if (subItem.type === 'program' && subItem.appKey) {
+                  return !isAppDisabled(subItem.appKey);
+                }
+                return true;
+              });
+
+            // Don't show empty folders
+            if (folderItems.length === 0) return null;
+
             return (
               <FolderMenuItem
                 key={item.key}

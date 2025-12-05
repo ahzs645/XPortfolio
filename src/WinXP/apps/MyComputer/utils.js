@@ -10,7 +10,7 @@ export const getFileExtension = (name) => {
 };
 
 /**
- * Get file type description for an item
+ * Get file type description for an item (detailed version for column views)
  */
 export const getFileType = (item) => {
   if (!item) return 'Unknown';
@@ -18,6 +18,18 @@ export const getFileType = (item) => {
   if (item.type === 'drive') return 'Local Disk';
   const ext = getFileExtension(item.name).replace('.', '');
   return FILE_TYPES[ext] || `${ext.toUpperCase()} File` || 'File';
+};
+
+/**
+ * Get simple file type for Details pane (e.g., "JPG File", "RAR File")
+ */
+export const getSimpleFileType = (item) => {
+  if (!item) return 'Unknown';
+  if (item.type === 'folder') return 'File Folder';
+  if (item.type === 'drive') return 'Local Disk';
+  const ext = getFileExtension(item.name).replace('.', '');
+  if (!ext) return 'File';
+  return `${ext.toUpperCase()} File`;
 };
 
 /**
@@ -33,7 +45,31 @@ export const formatFileSize = (bytes) => {
 };
 
 /**
- * Format date for display
+ * Calculate folder size recursively (sum of all files inside)
+ */
+export const calculateFolderSize = (folderId, fileSystem) => {
+  if (!fileSystem || !fileSystem[folderId]) return 0;
+
+  const folder = fileSystem[folderId];
+  if (folder.type !== 'folder' || !folder.children) return folder.size || 0;
+
+  let totalSize = 0;
+  for (const childId of folder.children) {
+    const child = fileSystem[childId];
+    if (!child) continue;
+
+    if (child.type === 'folder') {
+      totalSize += calculateFolderSize(childId, fileSystem);
+    } else {
+      totalSize += child.size || 0;
+    }
+  }
+
+  return totalSize;
+};
+
+/**
+ * Format date for display (short format for details view)
  */
 export const formatDate = (timestamp) => {
   if (!timestamp) return '';
@@ -42,6 +78,23 @@ export const formatDate = (timestamp) => {
     month: 'numeric',
     day: 'numeric',
     year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+};
+
+/**
+ * Format date for Details pane (long format with day name)
+ */
+export const formatDetailDate = (timestamp) => {
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  return date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,

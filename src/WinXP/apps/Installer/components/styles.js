@@ -209,14 +209,45 @@ export const Input = styled.input`
 
 export const Select = styled.select`
   font-size: 11px;
-  padding: 4px 8px;
-  border: 1px solid #7f9db9;
+  font-family: 'Trebuchet MS', Tahoma, sans-serif;
+  padding: 3px 18px 3px 4px;
+  min-height: 21px;
   background: #fff;
-  border-radius: 2px;
+  border: none;
+  box-shadow:
+    inset -1px -1px 0 #fff,
+    inset 1px 1px 0 #7f9db9,
+    inset -2px -2px 0 #f0f0f0,
+    inset 2px 2px 0 #a0a0a0;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='17' viewBox='0 0 16 17'%3E%3Crect x='0' y='0' width='16' height='17' fill='%23f0f0f0'/%3E%3Crect x='0' y='0' width='15' height='16' fill='%23fff'/%3E%3Crect x='1' y='1' width='14' height='15' fill='%23dfdfdf'/%3E%3Crect x='1' y='1' width='13' height='14' fill='%23f0f0f0'/%3E%3Cpolygon points='4,6 12,6 8,11' fill='%23000'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0 top 0;
+  cursor: pointer;
 
   &:focus {
-    outline: none;
-    border-color: #316ac5;
+    outline: 1px dotted #000;
+    outline-offset: -4px;
+  }
+
+  &:disabled {
+    background-color: #f0f0f0;
+    color: #888;
+    cursor: not-allowed;
+  }
+
+  option {
+    padding: 2px 4px;
+    background: #fff;
+    color: #000;
+  }
+
+  option:hover,
+  option:checked {
+    background: #316ac5;
+    color: #fff;
   }
 `;
 

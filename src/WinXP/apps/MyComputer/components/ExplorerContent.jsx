@@ -22,6 +22,7 @@ function ExplorerContent({
   isDragOver,
   itemRefs,
   contentRef,
+  fileSystem,
   onSortChange,
   onSearchChange,
   onSearchClear,
@@ -63,7 +64,7 @@ function ExplorerContent({
 
     switch (viewMode) {
       case VIEW_MODES.DETAILS:
-        return <DetailsRow {...commonProps} />;
+        return <DetailsRow {...commonProps} fileSystem={fileSystem} />;
       case VIEW_MODES.LIST:
         return <ListItem {...commonProps} />;
       case VIEW_MODES.TILES:
