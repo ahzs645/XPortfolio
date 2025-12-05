@@ -339,51 +339,49 @@ function DisplayProperties({ onClose, onMinimize }) {
                     )}
                   </ScreensaverMonitor>
 
-                  <GroupBox>
-                    <GroupPane>
-                      <GroupTitle>Screen saver</GroupTitle>
-                      <ScreensaverRow>
-                        <SideSelect
-                          value={screenSaver}
-                          onChange={(e) => setScreenSaver(e.target.value)}
-                          style={{ flex: 1, minWidth: 0 }}
-                        >
-                          <option value="">(None)</option>
-                          {SCREENSAVERS.map((item) => (
-                            <option key={item.id} value={item.id}>{item.name}</option>
-                          ))}
-                        </SideSelect>
-                        <SideButton type="button" disabled $disabled style={{ flexShrink: 0 }}>Settings</SideButton>
-                        <SideButton type="button" onClick={() => setShowPreview(true)} style={{ flexShrink: 0 }}>
-                          Preview
-                        </SideButton>
-                      </ScreensaverRow>
-                      <WaitRow>
-                        Wait: <WaitInput
-                          type="number"
-                          min="1"
-                          max="60"
-                          value={waitMinutes}
-                          onChange={(e) => setWaitMinutes(Number(e.target.value) || 1)}
-                        /> minutes
-                      </WaitRow>
-                    </GroupPane>
-                  </GroupBox>
+                  <Fieldset>
+                    <Legend>Screen saver</Legend>
+                    <ScreensaverRow>
+                      <SideSelect
+                        value={screenSaver}
+                        onChange={(e) => setScreenSaver(e.target.value)}
+                        style={{ flex: 1, minWidth: 0 }}
+                      >
+                        <option value="">(None)</option>
+                        {SCREENSAVERS.map((item) => (
+                          <option key={item.id} value={item.id}>{item.name}</option>
+                        ))}
+                      </SideSelect>
+                      <SideButton type="button" disabled $disabled style={{ flexShrink: 0 }}>Settings</SideButton>
+                      <SideButton type="button" onClick={() => setShowPreview(true)} style={{ flexShrink: 0 }}>
+                        Preview
+                      </SideButton>
+                    </ScreensaverRow>
+                    <FieldRow>
+                      <span>Wait:</span>
+                      <WaitInput
+                        type="number"
+                        min="1"
+                        max="60"
+                        value={waitMinutes}
+                        onChange={(e) => setWaitMinutes(Number(e.target.value) || 1)}
+                      />
+                      <span>minutes</span>
+                    </FieldRow>
+                  </Fieldset>
 
-                  <GroupBox>
-                    <GroupPane>
-                      <GroupTitle>Monitor power</GroupTitle>
-                      <MonitorPowerContent>
-                        <EnergyStarLogo src="/gui/display/energystar.png" alt="Energy Star" />
-                        <MonitorPowerText>
-                          <p>To adjust monitor power settings and save energy, click Power.</p>
-                          <MonitorPowerButton>
-                            <SideButton type="button" disabled $disabled>Power...</SideButton>
-                          </MonitorPowerButton>
-                        </MonitorPowerText>
-                      </MonitorPowerContent>
-                    </GroupPane>
-                  </GroupBox>
+                  <Fieldset>
+                    <Legend>Monitor power</Legend>
+                    <MonitorPowerContent>
+                      <EnergyStarLogo src="/gui/display/energystar.png" alt="Energy Star" />
+                      <MonitorPowerText>
+                        <p>To adjust monitor power settings and save energy, click Power.</p>
+                        <MonitorPowerButton>
+                          <SideButton type="button" disabled $disabled>Power...</SideButton>
+                        </MonitorPowerButton>
+                      </MonitorPowerText>
+                    </MonitorPowerContent>
+                  </Fieldset>
                 </ScreensaverPane>
               )}
 
@@ -392,33 +390,38 @@ function DisplayProperties({ onClose, onMinimize }) {
                   <AppearancePreview>
                     <img src="/gui/display/reference/appearance.png" alt="Appearance preview" />
                   </AppearancePreview>
-                  <AppearanceControls>
-                    <GroupBox>
-                      <GroupTitle>Windows and buttons</GroupTitle>
-                      <SideSelect value={windowStyle} onChange={(e) => setWindowStyle(e.target.value)}>
-                        {WINDOW_STYLES.map(option => (
-                          <option key={option.id} value={option.id}>{option.label}</option>
-                        ))}
-                      </SideSelect>
-                    </GroupBox>
-                    <GroupBox>
-                      <GroupTitle>Color scheme</GroupTitle>
-                      <SideSelect value={colorScheme} onChange={(e) => setColorScheme(e.target.value)}>
-                        {COLOR_SCHEMES.map(option => (
-                          <option key={option.id} value={option.id}>{option.label}</option>
-                        ))}
-                      </SideSelect>
-                    </GroupBox>
-                    <GroupBox>
-                      <GroupTitle>Font size</GroupTitle>
-                      <SideSelect value={fontSize} onChange={(e) => setFontSize(e.target.value)}>
-                        {FONT_SIZES.map(option => (
-                          <option key={option.id} value={option.id}>{option.label}</option>
-                        ))}
-                      </SideSelect>
-                      <SideButton type="button" disabled $disabled style={{ marginTop: 6 }}>Effects...</SideButton>
-                    </GroupBox>
-                  </AppearanceControls>
+                  <AppearanceControlsRow>
+                    <AppearanceSelects>
+                      <div>
+                        <ControlLabel>Windows and buttons:</ControlLabel>
+                        <SideSelect value={windowStyle} onChange={(e) => setWindowStyle(e.target.value)} style={{ width: '200px' }}>
+                          {WINDOW_STYLES.map(option => (
+                            <option key={option.id} value={option.id}>{option.label}</option>
+                          ))}
+                        </SideSelect>
+                      </div>
+                      <div>
+                        <ControlLabel>Color scheme:</ControlLabel>
+                        <SideSelect value={colorScheme} onChange={(e) => setColorScheme(e.target.value)} style={{ width: '200px' }}>
+                          {COLOR_SCHEMES.map(option => (
+                            <option key={option.id} value={option.id}>{option.label}</option>
+                          ))}
+                        </SideSelect>
+                      </div>
+                      <div>
+                        <ControlLabel>Font size:</ControlLabel>
+                        <SideSelect value={fontSize} onChange={(e) => setFontSize(e.target.value)} style={{ width: '200px' }}>
+                          {FONT_SIZES.map(option => (
+                            <option key={option.id} value={option.id}>{option.label}</option>
+                          ))}
+                        </SideSelect>
+                      </div>
+                    </AppearanceSelects>
+                    <AppearanceButtons>
+                      <SideButton type="button" disabled $disabled>Effects...</SideButton>
+                      <SideButton type="button" disabled $disabled>Advanced</SideButton>
+                    </AppearanceButtons>
+                  </AppearanceControlsRow>
                 </AppearancePane>
               )}
 
@@ -428,8 +431,8 @@ function DisplayProperties({ onClose, onMinimize }) {
                     <img src="/gui/display/reference/displaysettings.png" alt="Display settings preview" />
                   </SettingsPreview>
                   <SettingsControls>
-                    <GroupBox>
-                      <GroupTitle>Screen resolution</GroupTitle>
+                    <Fieldset>
+                      <Legend>Screen resolution</Legend>
                       <ResolutionRow>
                         <SideLabel>Less</SideLabel>
                         <ResolutionSlider
@@ -442,16 +445,16 @@ function DisplayProperties({ onClose, onMinimize }) {
                         <SideLabel>More</SideLabel>
                       </ResolutionRow>
                       <SmallText>{RESOLUTIONS[resolutionIndex]} pixels</SmallText>
-                    </GroupBox>
+                    </Fieldset>
 
-                    <GroupBox>
-                      <GroupTitle>Color quality</GroupTitle>
+                    <Fieldset>
+                      <Legend>Color quality</Legend>
                       <SideSelect value={colorQuality} onChange={(e) => setColorQuality(e.target.value)}>
                         <option value="32">Highest (32 bit)</option>
                         <option value="24">24 bit</option>
                         <option value="16">Medium (16 bit)</option>
                       </SideSelect>
-                    </GroupBox>
+                    </Fieldset>
 
                     <SettingsActions>
                       <SideButton type="button" disabled $disabled>Identify</SideButton>
@@ -824,6 +827,27 @@ const ScreensaverRow = styled.div`
   gap: 8px;
 `;
 
+const Fieldset = styled.fieldset`
+  margin: 0;
+  padding: 8px 10px 10px 10px;
+  border: 1px solid #919b9c;
+`;
+
+const Legend = styled.legend`
+  background: #fbfbfc;
+  padding: 0 4px;
+  font-size: 12px;
+  color: #003399;
+`;
+
+const FieldRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 12px;
+`;
+
 const WaitRow = styled.div`
   margin-top: 10px;
   font-size: 12px;
@@ -839,8 +863,9 @@ const MonitorPowerContent = styled.div`
 `;
 
 const EnergyStarLogo = styled.img`
-  width: 54px;
-  height: 42px;
+  width: auto;
+  height: auto;
+  max-width: 80px;
   margin-right: 10px;
   flex-shrink: 0;
 `;
@@ -964,32 +989,42 @@ const AppearancePane = styled.div`
 `;
 
 const AppearancePreview = styled.div`
-  border: 1px solid #b5b5b5;
-  background: linear-gradient(180deg, #ffffff 0%, #f2f2f2 100%);
-  padding: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #9a9a9a;
-  border-radius: 3px;
-  max-width: 520px;
-  width: 100%;
-  align-self: center;
-
   img {
-    max-width: 100%;
-    height: auto;
-    object-fit: contain;
-    border-radius: 3px;
+    width: 100%;
+    border: 2px solid;
+    border-color: #716f64 #f1efe2 #f1efe2 #716f64;
+    box-sizing: border-box;
   }
 `;
 
-const AppearanceControls = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+const AppearanceControlsRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 16px;
+`;
+
+const AppearanceSelects = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`;
+
+const AppearanceButtons = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
   gap: 10px;
-  align-content: start;
-  font-family: "MS Sans Serif", "Tahoma", sans-serif;
+`;
+
+const ControlLabel = styled.div`
+  margin-top: 10px;
+  margin-bottom: 4px;
+  font-size: 12px;
+
+  &:first-child {
+    margin-top: 0;
+  }
 `;
 
 const SettingsPane = styled.div`
