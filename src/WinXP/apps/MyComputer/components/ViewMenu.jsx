@@ -21,7 +21,7 @@ function ViewMenu({ viewMode, onViewChange, onClose, position }) {
   };
 
   return (
-    <Container ref={menuRef}>
+    <Container ref={menuRef} $top={position?.top} $left={position?.left}>
       <MenuItem
         $active={viewMode === VIEW_MODES.TILES}
         onClick={() => handleSelect(VIEW_MODES.TILES)}
@@ -56,8 +56,9 @@ function ViewMenu({ viewMode, onViewChange, onClose, position }) {
 
 const Container = styled.div`
   position: absolute;
-  top: 2px;
-  right: 4px;
+  top: ${({ $top }) => $top != null ? `${$top}px` : '2px'};
+  left: ${({ $left }) => $left != null ? `${$left}px` : 'auto'};
+  right: ${({ $left }) => $left != null ? 'auto' : '4px'};
   background: white;
   border: 1px solid #808080;
   box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);

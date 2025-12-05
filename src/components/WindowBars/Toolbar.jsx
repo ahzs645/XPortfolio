@@ -8,7 +8,7 @@ import styled from 'styled-components';
  * @param {Array} props.items - Array of toolbar items (buttons, separators)
  *   Button: { type: 'button', id: string, icon: string, label?: string, disabled?: boolean, action: string }
  *   Separator: { type: 'separator' }
- * @param {Function} props.onAction - Callback when button is clicked: (action, itemId) => void
+ * @param {Function} props.onAction - Callback when button is clicked: (action, event) => void
  * @param {boolean} props.bottomBorder - Whether to show bottom border (default: true)
  * @param {boolean} props.topBorder - Whether to show top border (default: false)
  *
@@ -21,7 +21,7 @@ import styled from 'styled-components';
  *     { type: 'button', id: 'projects', icon: '/icons/projects.webp', label: 'My Projects', action: 'openProjects' },
  *     { type: 'button', id: 'resume', icon: '/icons/resume.svg', label: 'My Resume', action: 'openResume' },
  *   ]}
- *   onAction={(action, id) => handleAction(action, id)}
+ *   onAction={(action, e) => handleAction(action, e)}
  * />
  */
 function Toolbar({ items = [], onAction, bottomBorder = true, topBorder = false }) {
@@ -33,10 +33,10 @@ function Toolbar({ items = [], onAction, bottomBorder = true, topBorder = false 
     }
   }, []);
 
-  const handleMouseUp = useCallback((action, id, disabled) => {
+  const handleMouseUp = useCallback((e, action, id, disabled) => {
     setPressedButton(null);
     if (!disabled && onAction) {
-      onAction(action, id);
+      onAction(action, e);
     }
   }, [onAction]);
 
@@ -60,7 +60,7 @@ function Toolbar({ items = [], onAction, bottomBorder = true, topBorder = false 
               key={item.id}
               className={`${isDisabled ? 'disabled' : ''} ${isPressed ? 'pressed' : ''}`}
               onMouseDown={() => handleMouseDown(item.id, isDisabled)}
-              onMouseUp={() => handleMouseUp(item.action, item.id, isDisabled)}
+              onMouseUp={(e) => handleMouseUp(e, item.action, item.id, isDisabled)}
               onMouseLeave={handleMouseLeave}
             >
               <img

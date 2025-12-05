@@ -990,6 +990,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
             viewMode={viewMode}
             onViewChange={setViewMode}
             onClose={() => setShowViewMenu(false)}
+            position={viewMenuPosition}
           />
         )}
 
