@@ -8,6 +8,9 @@ import { ProgramLayout, TaskPanel } from '../../../components';
 import { ContextMenu } from '../../components/ContextMenu';
 import { useFileContextMenu, useBackgroundContextMenu } from '../../hooks/useFileContextMenu';
 import { createArchive, extractArchive } from '../../../utils/archiveUtils';
+import { ExplorerContent, ViewMenu } from './components';
+import { getFileExtension, getFileType, sortItems, filterItems } from './utils';
+import { VIEW_MODES } from './constants';
 
 function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPath }) {
   const {
@@ -45,6 +48,13 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   const [dropTargetId, setDropTargetId] = useState(null); // Folder being hovered during drag
   const [selecting, setSelecting] = useState(null); // { startX, startY } for drag selection
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 }); // Current mouse position during selection
+  const [viewMode, setViewMode] = useState('icons'); // icons, list, details, tiles
+  const [sortBy, setSortBy] = useState('name'); // name, size, type, modified
+  const [sortOrder, setSortOrder] = useState('asc'); // asc, desc
+  const [showViewMenu, setShowViewMenu] = useState(false);
+  const [viewMenuPosition, setViewMenuPosition] = useState({ top: 0, left: 0 });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   const isDraggingInternalRef = useRef(false); // Sync ref for drag state (React state updates are async)
   const justFinishedSelectingRef = useRef(false); // Prevent click from clearing selection after drag
   const containerRef = useRef(null);
@@ -57,13 +67,22 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   const pathString = isMyComputerRoot ? 'My Computer' : getPath(currentFolder);
   const selectedItemId = contextMenu?.itemId || selectedItems[0];
   const selectedItem = contextMenu?.isItem ? fileSystem?.[selectedItemId] : null;
-  const getFileExtension = useCallback((name) => {
-    if (!name) return '';
-    const dotIndex = name.lastIndexOf('.');
-    return dotIndex === -1 ? '' : name.slice(dotIndex).toLowerCase();
-  }, []);
   const selectedExtension = selectedItem?.name ? getFileExtension(selectedItem.name) : '';
   const isArchive = selectedExtension === '.rar' || selectedExtension === '.zip';
+
+  // Sort and filter contents using imported utilities
+  const sortedContents = React.useMemo(() => sortItems(contents, sortBy, sortOrder), [contents, sortBy, sortOrder]);
+  const filteredContents = React.useMemo(() => filterItems(sortedContents, searchQuery), [sortedContents, searchQuery]);
+
+  // Handle column header click for sorting
+  const handleColumnSort = useCallback((column) => {
+    if (sortBy === column) {
+      setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortOrder('asc');
+    }
+  }, [sortBy]);
 
   // Get items for My Computer root view
   const myComputerItems = React.useMemo(() => {
@@ -592,7 +611,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   });
 
   // Toolbar action handler
-  const handleToolbarAction = useCallback((action) => {
+  const handleToolbarAction = useCallback((action, event) => {
     switch (action) {
       case 'back':
         goBack();
@@ -604,12 +623,24 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
         goUp();
         break;
       case 'views':
-        // Could toggle view modes
+        if (event?.currentTarget) {
+          const rect = event.currentTarget.getBoundingClientRect();
+          const containerRect = containerRef.current?.getBoundingClientRect() || { top: 0, left: 0 };
+          setViewMenuPosition({
+            top: rect.bottom - containerRect.top,
+            left: rect.left - containerRect.left,
+          });
+        }
+        setShowViewMenu(prev => !prev);
+        break;
+      case 'search':
+        setIsSearching(prev => !prev);
+        if (isSearching) setSearchQuery(''); // Clear search when toggling off
         break;
       default:
         console.log('Toolbar action:', action);
     }
-  }, [goBack, goForward, goUp]);
+  }, [goBack, goForward, goUp, isSearching]);
 
   // Menu action handler
   const handleMenuAction = useCallback((action) => {
@@ -632,10 +663,45 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
       case 'selectAll':
         setSelectedItems(contents.map(i => i.id));
         break;
+      case 'refresh':
+        // Refresh is a no-op for now, filesystem updates automatically
+        break;
+      case 'exitProgram':
+        onClose();
+        break;
+      case 'rename':
+        handleRename();
+        break;
+      // View mode actions
+      case 'viewTiles':
+        setViewMode('tiles');
+        break;
+      case 'viewIcons':
+        setViewMode('icons');
+        break;
+      case 'viewList':
+        setViewMode('list');
+        break;
+      case 'viewDetails':
+        setViewMode('details');
+        break;
+      // Sort actions
+      case 'sortByName':
+        setSortBy('name');
+        break;
+      case 'sortBySize':
+        setSortBy('size');
+        break;
+      case 'sortByType':
+        setSortBy('type');
+        break;
+      case 'sortByModified':
+        setSortBy('modified');
+        break;
       default:
         console.log('Menu action:', action);
     }
-  }, [handleCreateFolder, handleDelete, handleCopy, handleCut, handlePaste, contents]);
+  }, [handleCreateFolder, handleDelete, handleCopy, handleCut, handlePaste, handleRename, contents, onClose]);
 
   // Close context menu when clicking outside
   useEffect(() => {
@@ -722,6 +788,21 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
       id: 'view',
       label: 'View',
       items: [
+        { label: 'Tiles', action: 'viewTiles', checked: viewMode === 'tiles' },
+        { label: 'Icons', action: 'viewIcons', checked: viewMode === 'icons' },
+        { label: 'List', action: 'viewList', checked: viewMode === 'list' },
+        { label: 'Details', action: 'viewDetails', checked: viewMode === 'details' },
+        { separator: true },
+        {
+          label: 'Arrange Icons by',
+          submenu: [
+            { label: 'Name', action: 'sortByName', checked: sortBy === 'name' },
+            { label: 'Size', action: 'sortBySize', checked: sortBy === 'size' },
+            { label: 'Type', action: 'sortByType', checked: sortBy === 'type' },
+            { label: 'Modified', action: 'sortByModified', checked: sortBy === 'modified' },
+          ],
+        },
+        { separator: true },
         { label: 'Refresh', action: 'refresh' },
       ],
     },
@@ -733,17 +814,19 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     { type: 'button', id: 'forward', icon: '/gui/toolbar/forward.webp', label: 'Forward', action: 'forward', disabled: historyIndex >= history.length - 1 },
     { type: 'button', id: 'up', icon: '/gui/toolbar/up.webp', label: 'Up', action: 'up', disabled: isMyComputerRoot },
     { type: 'separator' },
-    { type: 'button', id: 'search', icon: '/gui/toolbar/search.webp', label: 'Search', disabled: true },
+    { type: 'button', id: 'search', icon: '/gui/toolbar/search.webp', label: 'Search', action: 'search', disabled: isMyComputerRoot },
     { type: 'button', id: 'folders', icon: '/gui/toolbar/favorites.webp', label: 'Folders', disabled: true },
     { type: 'separator' },
-    { type: 'button', id: 'views', icon: '/gui/toolbar/views.webp', label: 'Views', action: 'views' },
+    { type: 'button', id: 'views', icon: '/gui/toolbar/views.webp', label: 'Views', action: 'views', hasDropdown: true },
   ];
 
   const itemCount = isMyComputerRoot
     ? myComputerItems.folders.length + myComputerItems.drives.length
-    : contents.length;
+    : filteredContents.length;
   const statusText = selectedItems.length > 0
     ? `${selectedItems.length} object(s) selected`
+    : searchQuery.trim()
+    ? `${filteredContents.length} of ${contents.length} object(s)`
     : `${itemCount} object(s)`;
 
   // Render item for My Computer root view (larger icons)
@@ -865,66 +948,49 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
             </MyComputerContent>
           </MyComputerLayout>
         ) : (
-          <Content
-            ref={contentRef}
-            onContextMenu={(e) => handleContextMenu(e, null)}
-            onMouseDown={handleContentMouseDown}
-            $isDragOver={isDragOver}
-          >
-            {contents.length === 0 ? (
-              <EmptyMessage>
-                This folder is empty.
-                <br />
-                <br />
-                Drag files here to upload them.
-              </EmptyMessage>
-            ) : (
-              contents.map(item => (
-                <FileItem
-                  key={item.id}
-                  ref={(el) => { itemRefs.current[item.id] = el; }}
-                  $selected={selectedItems.includes(item.id)}
-                  $isCut={clipboardOp === 'cut' && clipboard.includes(item.id)}
-                  $isDragging={draggingItems?.includes(item.id)}
-                  $isDropTarget={dropTargetId === item.id && item.type === 'folder'}
-                  draggable={renamingItem !== item.id}
-                  onClick={(e) => handleItemClick(e, item)}
-                  onDoubleClick={() => handleItemDoubleClick(item)}
-                  onContextMenu={(e) => handleContextMenu(e, item)}
-                  onDragStart={(e) => handleItemDragStart(e, item)}
-                  onDragEnd={handleItemDragEnd}
-                  onDragOver={(e) => handleItemDragOver(e, item)}
-                  onDragLeave={handleItemDragLeave}
-                  onDrop={(e) => handleItemDrop(e, item)}
-                >
-                  <FileIcon src={item.icon || XP_ICONS.folder} alt="" />
-                  {renamingItem === item.id ? (
-                    <RenameForm onSubmit={handleRenameSubmit}>
-                      <RenameInput
-                        value={renameValue}
-                        onChange={(e) => setRenameValue(e.target.value)}
-                        onBlur={handleRenameSubmit}
-                        autoFocus
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </RenameForm>
-                  ) : (
-                    <FileName>{item.name}</FileName>
-                  )}
-                </FileItem>
-              ))
-            )}
-            {selectionBox && (
-              <SelectionBox
-                style={{
-                  left: selectionBox.left,
-                  top: selectionBox.top,
-                  width: selectionBox.width,
-                  height: selectionBox.height,
-                }}
-              />
-            )}
-          </Content>
+          <ExplorerContent
+            items={filteredContents}
+            viewMode={viewMode}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            searchQuery={searchQuery}
+            isSearching={isSearching}
+            selectedItems={selectedItems}
+            clipboard={clipboard}
+            clipboardOp={clipboardOp}
+            renamingItem={renamingItem}
+            renameValue={renameValue}
+            draggingItems={draggingItems}
+            dropTargetId={dropTargetId}
+            selectionBox={selectionBox}
+            isDragOver={isDragOver}
+            itemRefs={itemRefs}
+            contentRef={contentRef}
+            onSortChange={handleColumnSort}
+            onSearchChange={setSearchQuery}
+            onSearchClear={() => setSearchQuery('')}
+            onRenameChange={setRenameValue}
+            onRenameSubmit={handleRenameSubmit}
+            onItemClick={handleItemClick}
+            onItemDoubleClick={handleItemDoubleClick}
+            onContextMenu={handleContextMenu}
+            onItemDragStart={handleItemDragStart}
+            onItemDragEnd={handleItemDragEnd}
+            onItemDragOver={handleItemDragOver}
+            onItemDragLeave={handleItemDragLeave}
+            onItemDrop={handleItemDrop}
+            onContentMouseDown={handleContentMouseDown}
+            onBackgroundContextMenu={(e) => handleContextMenu(e, null)}
+          />
+        )}
+
+        {/* View Menu Dropdown - positioned below toolbar */}
+        {showViewMenu && (
+          <ViewMenu
+            viewMode={viewMode}
+            onViewChange={setViewMode}
+            onClose={() => setShowViewMenu(false)}
+          />
         )}
 
         {contextMenu && (
@@ -990,99 +1056,6 @@ const Container = styled.div`
 
 const HiddenFileInput = styled.input`
   display: none;
-`;
-
-const Content = styled.div`
-  flex: 1;
-  padding: 8px;
-  overflow: auto;
-  display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  gap: 4px;
-  background: ${({ $isDragOver }) => $isDragOver ? 'rgba(11, 97, 255, 0.05)' : 'white'};
-  border: 1px solid #808080;
-  border-top: 1px solid #404040;
-  border-left: 1px solid #404040;
-  position: relative;
-`;
-
-const SelectionBox = styled.div`
-  position: absolute;
-  border: 1px dashed #0b61ff;
-  background: rgba(11, 97, 255, 0.1);
-  pointer-events: none;
-  z-index: 50;
-`;
-
-const EmptyMessage = styled.div`
-  width: 100%;
-  text-align: center;
-  color: #808080;
-  margin-top: 60px;
-  font-size: 11px;
-  line-height: 1.5;
-`;
-
-const FileItem = styled.div`
-  width: 80px;
-  padding: 4px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-  border: ${({ $isDropTarget }) => $isDropTarget ? '2px solid #0b61ff' : '1px solid transparent'};
-  border-radius: ${({ $isDropTarget }) => $isDropTarget ? '4px' : '2px'};
-  background: ${({ $selected, $isDropTarget }) =>
-    $isDropTarget
-      ? 'rgba(11, 97, 255, 0.4)'
-      : $selected
-      ? 'rgba(11, 97, 255, 0.2)'
-      : 'transparent'};
-  border-color: ${({ $selected, $isDropTarget }) =>
-    $isDropTarget
-      ? '#0b61ff'
-      : $selected
-      ? 'rgba(11, 97, 255, 0.5)'
-      : 'transparent'};
-  opacity: ${({ $isCut, $isDragging }) => ($isDragging ? 0.5 : $isCut ? 0.5 : 1)};
-  transition: ${({ $isDropTarget }) => ($isDropTarget ? 'background 0.15s, border 0.15s' : 'none')};
-
-  &:hover {
-    background: ${({ $selected, $isDropTarget }) =>
-      $isDropTarget
-        ? 'rgba(11, 97, 255, 0.5)'
-        : $selected
-        ? 'rgba(11, 97, 255, 0.3)'
-        : 'rgba(11, 97, 255, 0.1)'};
-  }
-`;
-
-const FileIcon = styled.img`
-  width: 32px;
-  height: 32px;
-  margin-bottom: 4px;
-`;
-
-const FileName = styled.span`
-  font-size: 11px;
-  text-align: center;
-  word-break: break-word;
-  line-height: 1.2;
-  max-height: 2.4em;
-  overflow: hidden;
-`;
-
-const RenameForm = styled.form`
-  width: 100%;
-`;
-
-const RenameInput = styled.input`
-  width: 100%;
-  font-size: 11px;
-  text-align: center;
-  border: 1px solid #000;
-  padding: 1px 2px;
 `;
 
 const DragOverlay = styled.div`
