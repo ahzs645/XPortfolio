@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import styled from 'styled-components';
 import { ProgramLayout, FileChooser } from '../../../components';
 import { useConfig } from '../../../contexts/ConfigContext';
+import { useScreensaver } from '../../../contexts/ScreensaverContext';
 
 const WALLPAPERS = [
   { id: 'none', name: '(None)', path: null },
@@ -112,14 +113,18 @@ const SCREENSAVERS = [
 
 function DisplayProperties({ onClose, onMinimize }) {
   const { getWallpaperPath, setWallpaperPath } = useConfig();
+  const {
+    screensaverName,
+    setScreensaverName,
+    waitMinutes,
+    setWaitMinutes,
+    previewScreensaver,
+  } = useScreensaver();
   const currentDesktop = getWallpaperPath(false);
   const [selected, setSelected] = useState(currentDesktop);
   const [activeTab, setActiveTab] = useState('desktop');
   const [applyToMobile, setApplyToMobile] = useState(true);
-  const [screenSaver, setScreenSaver] = useState('windows');
-  const [waitMinutes, setWaitMinutes] = useState(60);
   const [requirePassword, setRequirePassword] = useState(true);
-  const [showPreview, setShowPreview] = useState(false);
   const [showBrowse, setShowBrowse] = useState(false);
   const [customWallpapers, setCustomWallpapers] = useState([]);
   const [theme, setTheme] = useState('xp');
@@ -128,20 +133,6 @@ function DisplayProperties({ onClose, onMinimize }) {
   const [fontSize, setFontSize] = useState('normal');
   const [resolutionIndex, setResolutionIndex] = useState(2);
   const [colorQuality, setColorQuality] = useState('32');
-  const previewRef = useRef(null);
-
-  useEffect(() => {
-    if (showPreview && previewRef.current) {
-      previewRef.current.focus();
-    }
-  }, [showPreview]);
-
-  useEffect(() => {
-    if (!showPreview) return;
-    const handler = () => setShowPreview(false);
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [showPreview]);
 
   const applySelection = () => {
     const wallpaperPath = selected || '';
@@ -206,80 +197,48 @@ function DisplayProperties({ onClose, onMinimize }) {
             $active={activeTab === 'desktop'}
           >
             <DesktopPane>
-              <PreviewArea>
-                <MonitorShell>
-                  <MonitorFrame />
-                  <MonitorPreview style={{
+              <DesktopMonitor>
+                <DesktopWallpaperPreview
+                  style={{
                     backgroundImage: selected ? `url(${selected})` : 'none',
-                    backgroundColor: selected ? 'transparent' : '#3a6ea5'
-                  }} />
-                </MonitorShell>
-              </PreviewArea>
+                    backgroundColor: selected ? 'transparent' : '#004e98'
+                  }}
+                />
+              </DesktopMonitor>
 
-              <OptionsRow>
-                <ListArea>
-                  <Label>Background:</Label>
-                  <List role="listbox" aria-label="Wallpapers">
-                    {WALLPAPERS.map((item) => (
-                      <ListItem
-                        key={item.id}
-                        $active={selected === item.path}
-                        onClick={() => setSelected(item.path)}
-                        role="option"
-                        aria-selected={selected === item.path}
-                      >
-                        {item.path && <WallpaperIcon src="/icons/xp/JPG.png" alt="" />}
-                        <span>{item.name}</span>
-                      </ListItem>
+              <ControlLabel style={{ marginTop: 0 }}>Background:</ControlLabel>
+              <DesktopOptionsRow>
+                <DesktopListArea>
+                  <WallpaperSelect
+                    size={8}
+                    value={selected || ''}
+                    onChange={(e) => setSelected(e.target.value || null)}
+                  >
+                    <option value="">🚫 (None)</option>
+                    {WALLPAPERS.filter(w => w.path).map((item) => (
+                      <option key={item.id} value={item.path}>🖼️ {item.name}</option>
                     ))}
                     {customWallpapers.map((item) => (
-                      <ListItem
-                        key={item.id}
-                        $active={selected === item.path}
-                        onClick={() => setSelected(item.path)}
-                        role="option"
-                        aria-selected={selected === item.path}
-                      >
-                        <WallpaperIcon src="/icons/xp/JPG.png" alt="" />
-                        <span>{item.name}</span>
-                      </ListItem>
+                      <option key={item.id} value={item.path}>🖼️ {item.name}</option>
                     ))}
-                  </List>
-                  <CustomizeButton type="button">Customize Desktop...</CustomizeButton>
-                </ListArea>
+                  </WallpaperSelect>
+                </DesktopListArea>
 
-                <SideControls>
-                  <SideRow>
-                    <SideLabel>Browse...</SideLabel>
-                    <SideButton type="button" onClick={() => setShowBrowse(true)}>
-                      Browse...
-                    </SideButton>
-                  </SideRow>
-                  <SideRow>
-                    <SideLabel>Position:</SideLabel>
-                    <SideSelect disabled defaultValue="stretch">
-                      <option value="stretch">Stretch</option>
-                      <option value="center">Center</option>
-                      <option value="tile">Tile</option>
-                    </SideSelect>
-                  </SideRow>
-                  <SideRow>
-                    <SideLabel>Color:</SideLabel>
-                    <ColorSwatch>
-                      <span />
-                    </ColorSwatch>
-                  </SideRow>
-                  <MobileRow>
-                    <input
-                      id="apply-mobile"
-                      type="checkbox"
-                      checked={applyToMobile}
-                      onChange={(e) => setApplyToMobile(e.target.checked)}
-                    />
-                    <label htmlFor="apply-mobile">Use for mobile too</label>
-                  </MobileRow>
-                </SideControls>
-              </OptionsRow>
+                <DesktopSideControls>
+                  <SideButton type="button" onClick={() => setShowBrowse(true)}>
+                    Browse...
+                  </SideButton>
+                  <ControlLabel>Position:</ControlLabel>
+                  <SideSelect defaultValue="stretch" style={{ width: '100%' }}>
+                    <option value="center">Center</option>
+                    <option value="tile">Tile</option>
+                    <option value="stretch">Stretch</option>
+                  </SideSelect>
+                  <ControlLabel>Color:</ControlLabel>
+                  <ColorInput type="color" defaultValue="#004e98" />
+                </DesktopSideControls>
+              </DesktopOptionsRow>
+              <CustomizeButton type="button">Customize Desktop...</CustomizeButton>
             </DesktopPane>
           </TabPanel>
 
@@ -323,16 +282,16 @@ function DisplayProperties({ onClose, onMinimize }) {
                 <ScreensaverPane>
                   <ScreensaverMonitor>
                     <ScreensaverMonitorFrame />
-                    {SCREENSAVERS.find(s => s.id === screenSaver)?.embed ? (
+                    {SCREENSAVERS.find(s => s.id === screensaverName)?.embed ? (
                       <ScreensaverIframe
-                        src={SCREENSAVERS.find(s => s.id === screenSaver)?.embed}
+                        src={SCREENSAVERS.find(s => s.id === screensaverName)?.embed}
                         title="Screensaver preview"
                       />
                     ) : (
                       <ScreensaverPreviewImg
                         style={{
                           backgroundImage: `url(${
-                            SCREENSAVERS.find(s => s.id === screenSaver)?.preview || '/gui/display/sample.png'
+                            SCREENSAVERS.find(s => s.id === screensaverName)?.preview || '/gui/display/sample.png'
                           })`,
                         }}
                       />
@@ -343,8 +302,8 @@ function DisplayProperties({ onClose, onMinimize }) {
                     <Legend>Screen saver</Legend>
                     <ScreensaverRow>
                       <SideSelect
-                        value={screenSaver}
-                        onChange={(e) => setScreenSaver(e.target.value)}
+                        value={screensaverName}
+                        onChange={(e) => setScreensaverName(e.target.value)}
                         style={{ flex: 1, minWidth: 0 }}
                       >
                         <option value="">(None)</option>
@@ -353,7 +312,7 @@ function DisplayProperties({ onClose, onMinimize }) {
                         ))}
                       </SideSelect>
                       <SideButton type="button" disabled $disabled style={{ flexShrink: 0 }}>Settings</SideButton>
-                      <SideButton type="button" onClick={() => setShowPreview(true)} style={{ flexShrink: 0 }}>
+                      <SideButton type="button" onClick={previewScreensaver} style={{ flexShrink: 0 }}>
                         Preview
                       </SideButton>
                     </ScreensaverRow>
@@ -427,41 +386,43 @@ function DisplayProperties({ onClose, onMinimize }) {
 
               {tab.id === 'settings' && (
                 <SettingsPane>
-                  <SettingsPreview>
-                    <img src="/gui/display/reference/displaysettings.png" alt="Display settings preview" />
-                  </SettingsPreview>
-                  <SettingsControls>
+                  <SettingsMonitor>
+                    <SettingsMonitorImg src="/gui/display/reference/resolutionsetting.png" alt="Resolution" />
+                  </SettingsMonitor>
+                  <SettingsDisplayInfo>Display:<br />Default Monitor on Standard VGA Graphics Adapter</SettingsDisplayInfo>
+                  <SettingsGroup>
                     <Fieldset>
-                      <Legend>Screen resolution</Legend>
-                      <ResolutionRow>
-                        <SideLabel>Less</SideLabel>
-                        <ResolutionSlider
-                          type="range"
-                          min="0"
-                          max={RESOLUTIONS.length - 1}
-                          value={resolutionIndex}
-                          onChange={(e) => setResolutionIndex(Number(e.target.value))}
-                        />
-                        <SideLabel>More</SideLabel>
-                      </ResolutionRow>
-                      <SmallText>{RESOLUTIONS[resolutionIndex]} pixels</SmallText>
+                      <Legend>Screen zoom</Legend>
+                      <ZoomSlider
+                        type="range"
+                        min="50"
+                        max="150"
+                        step="10"
+                        value={resolutionIndex * 25 + 50}
+                        onChange={(e) => setResolutionIndex(Math.round((Number(e.target.value) - 50) / 25))}
+                      />
+                      <ZoomLabel>{resolutionIndex * 25 + 50}%</ZoomLabel>
                     </Fieldset>
-
                     <Fieldset>
                       <Legend>Color quality</Legend>
-                      <SideSelect value={colorQuality} onChange={(e) => setColorQuality(e.target.value)}>
+                      <SideSelect value={colorQuality} onChange={(e) => setColorQuality(e.target.value)} style={{ width: '100%' }}>
+                        <option value="2col">Monochrome</option>
+                        <option value="8col">8 Colors</option>
+                        <option value="8+col">8 Colors (Enhanced)</option>
+                        <option value="16col">16 Colors</option>
+                        <option value="16+col">16 Colors (Enhanced)</option>
+                        <option value="256col">256 Colors</option>
+                        <option value="256+col">256 Colors (Enhanced)</option>
+                        <option value="16bit">Medium (16 bit)</option>
                         <option value="32">Highest (32 bit)</option>
-                        <option value="24">24 bit</option>
-                        <option value="16">Medium (16 bit)</option>
                       </SideSelect>
+                      <ColorStrip />
                     </Fieldset>
-
-                    <SettingsActions>
-                      <SideButton type="button" disabled $disabled>Identify</SideButton>
-                      <SideButton type="button" disabled $disabled>Troubleshoot...</SideButton>
-                      <SideButton type="button" disabled $disabled>Advanced...</SideButton>
-                    </SettingsActions>
-                  </SettingsControls>
+                  </SettingsGroup>
+                  <SettingsButtonRow>
+                    <SideButton type="button" disabled $disabled>Troubleshoot...</SideButton>
+                    <SideButton type="button" disabled $disabled>Advanced</SideButton>
+                  </SettingsButtonRow>
                 </SettingsPane>
               )}
             </TabPanel>
@@ -473,41 +434,7 @@ function DisplayProperties({ onClose, onMinimize }) {
           <ActionButton onClick={onClose}>Cancel</ActionButton>
         </Actions>
 
-        {showPreview && (
-          createPortal(
-            <PreviewOverlay
-              ref={previewRef}
-              tabIndex={-1}
-              onClick={() => setShowPreview(false)}
-              onKeyDown={(e) => {
-                e.preventDefault();
-                setShowPreview(false);
-              }}
-            >
-              {(() => {
-                const saver = SCREENSAVERS.find(s => s.id === screenSaver);
-                if (saver?.embed) {
-                  return (
-                    <PreviewFrame
-                      src={saver.embed}
-                      title={`${saver.name} screensaver preview`}
-                    />
-                  );
-                }
-                return (
-                  <PreviewImage
-                    style={{
-                      backgroundImage: `url(${saver?.preview || '/gui/display/sample.png'})`,
-                    }}
-                  />
-                );
-              })()}
-            </PreviewOverlay>,
-            document.body
-          )
-        )}
-
-      </WindowSurface>
+              </WindowSurface>
 
       {showBrowse && createPortal(
         <FileChooser
@@ -596,8 +523,54 @@ const DesktopPane = styled.div`
   flex-direction: column;
   gap: 6px;
   height: 100%;
-  justify-content: flex-start;
-  padding-bottom: 6px;
+  overflow-y: auto;
+`;
+
+const DesktopMonitor = styled.div`
+  position: relative;
+  text-align: center;
+  width: 177px;
+  height: 159px;
+  margin: 0 auto;
+  background: url('/gui/display/monitor.png') no-repeat center center;
+  background-size: contain;
+  flex-shrink: 0;
+`;
+
+const DesktopWallpaperPreview = styled.div`
+  position: absolute;
+  top: 15px;
+  left: 12px;
+  width: 152px;
+  height: 112px;
+  background-size: cover;
+  background-position: center;
+`;
+
+const DesktopOptionsRow = styled.div`
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+`;
+
+const DesktopListArea = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+const WallpaperSelect = styled.select`
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+  height: 100px;
+`;
+
+const DesktopSideControls = styled.div``;
+
+const ColorInput = styled.input`
+  width: 100%;
 `;
 
 const PreviewArea = styled.div`
@@ -762,15 +735,17 @@ const ColorSwatch = styled.div`
 `;
 
 const CustomizeButton = styled.button`
-  margin-top: 6px;
-  align-self: flex-start;
-  padding: 6px 10px;
-  font-size: 12px;
-  background: linear-gradient(#f3f3f3, #dcdcdc);
-  border: 1px solid #8a8a8a;
-  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #b5b5b5;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-family: "MS Sans Serif", "Tahoma", sans-serif;
+  background: linear-gradient(180deg, #fff, #ecebe5 86%, #d8d0c4);
+  border: 1px solid #003c74;
+  border-radius: 3px;
   cursor: not-allowed;
   color: #666;
+  opacity: 0.6;
+  flex-shrink: 0;
+  align-self: flex-start;
 `;
 
 const Placeholder = styled.div`
@@ -1030,107 +1005,69 @@ const ControlLabel = styled.div`
 const SettingsPane = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  height: 100%;
-`;
-
-const SettingsPreview = styled.div`
-  border: 1px solid #b5b5b5;
-  background: linear-gradient(180deg, #ffffff 0%, #f2f2f2 100%);
-  padding: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #9a9a9a;
-  border-radius: 3px;
-  max-width: 520px;
-  width: 100%;
-  align-self: center;
-
-  img {
-    max-width: 100%;
-    height: auto;
-    object-fit: contain;
-  }
-`;
-
-const SettingsControls = styled.div`
-  display: flex;
-  flex-direction: column;
   gap: 10px;
+  height: 100%;
+  overflow-y: auto;
 `;
 
-const ResolutionRow = styled.div`
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 8px;
-`;
-
-const ResolutionSlider = styled.input`
-  width: 100%;
-  height: 6px;
-  appearance: none;
-  background: linear-gradient(180deg, #e6e6e6, #cfcfcf);
-  border: 1px solid #7f9db9;
-  box-shadow: inset 1px 1px 0 #fff;
-  border-radius: 2px;
-
-  &::-webkit-slider-thumb {
-    appearance: none;
-    width: 14px;
-    height: 22px;
-    background: linear-gradient(#fefefe, #d9d9d9);
-    border: 1px solid #7f9db9;
-    box-shadow: inset -1px 1px #fff0cf, inset 1px 2px #fdd889, inset -2px 2px #fbc761, inset 2px -2px #e5a01a;
-    cursor: pointer;
-  }
-
-  &::-moz-range-thumb {
-    width: 14px;
-    height: 22px;
-    background: linear-gradient(#fefefe, #d9d9d9);
-    border: 1px solid #7f9db9;
-    box-shadow: inset -1px 1px #fff0cf, inset 1px 2px #fdd889, inset -2px 2px #fbc761, inset 2px -2px #e5a01a;
-    cursor: pointer;
-  }
-`;
-
-const SettingsActions = styled.div`
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-`;
-
-const PreviewOverlay = styled.div`
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  outline: none;
-  background-color: #000;
-  gap: 16px;
-`;
-
-const PreviewFrame = styled.iframe`
+const SettingsMonitor = styled.div`
   position: relative;
-  width: 100%;
-  height: 100%;
-  border: none;
-  pointer-events: none;
-  background: #000;
+  text-align: center;
+  width: 177px;
+  height: 159px;
+  margin: 0 auto 10px auto;
+  background: url('/gui/display/reference/displaysettings.png') no-repeat center center;
+  background-size: contain;
 `;
 
-const PreviewImage = styled.div`
+const SettingsMonitorImg = styled.img`
+  position: absolute;
+  top: 15px;
+  left: 11px;
+  width: 152px;
+  height: 112px;
+`;
+
+const SettingsDisplayInfo = styled.div`
+  margin-bottom: 10px;
+  font-size: 12px;
+`;
+
+const SettingsGroup = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+
+  ${Fieldset} {
+    flex: 1;
+  }
+`;
+
+const ZoomSlider = styled.input`
   width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  border: none;
+  padding: 12px 0;
+  margin: 0;
+`;
+
+const ZoomLabel = styled.div`
+  text-align: center;
+  font-size: 12px;
+`;
+
+const ColorStrip = styled.div`
+  height: 16px;
+  margin-top: 8px;
+  background: linear-gradient(to right,
+    #000000, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ffffff
+  );
+  border: 1px solid #7f9db9;
+`;
+
+const SettingsButtonRow = styled.div`
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 `;
 
 const Actions = styled.div`

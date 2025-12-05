@@ -4,6 +4,7 @@ import { createGlobalStyle } from 'styled-components';
 import { ConfigProvider } from './contexts/ConfigContext';
 import { FileSystemProvider } from './contexts/FileSystemContext';
 import { InstalledAppsProvider } from './contexts/InstalledAppsContext';
+import { ScreensaverProvider } from './contexts/ScreensaverContext';
 import { UpdateToast } from './components/UpdateToast';
 import { initializeDeviceDetection } from './utils/deviceDetection';
 
@@ -46,9 +47,11 @@ function App() {
     <ConfigProvider>
       <FileSystemProvider>
         <InstalledAppsProvider>
-          <GlobalStyle />
-          <WinXP />
-          <UpdateToast />
+          <ScreensaverProvider>
+            <GlobalStyle />
+            <WinXP />
+            <UpdateToast />
+          </ScreensaverProvider>
         </InstalledAppsProvider>
       </FileSystemProvider>
     </ConfigProvider>

@@ -157,6 +157,13 @@ export const START_MENU_CATALOG = {
     title: 'App Installer',
     description: 'Install web apps',
   },
+  messenger: {
+    type: 'program',
+    appKey: 'Windows Messenger',
+    icon: '/icons/xp/messenger.png',
+    title: 'Windows Messenger',
+    description: 'Instant messaging',
+  },
   'divider-main': {
     type: 'separator',
   },
@@ -209,6 +216,7 @@ export const START_MENU_FOLDERS = {
 // All Programs menu order
 export const ALL_PROGRAMS_ORDER = [
   'internetExplorer',
+  'messenger',
   'qqPenguin',
   'about',
   'projects',

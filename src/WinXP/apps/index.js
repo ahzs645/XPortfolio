@@ -23,6 +23,7 @@ import SoundRecorder from './SoundRecorder';
 import QQPenguin from './QQPenguin';
 import Installer from './Installer';
 import IframeApp from './IframeApp';
+import Messenger from './Messenger';
 
 // XP Icons paths
 const XP_ICONS = {
@@ -154,6 +155,11 @@ export const desktopIconCatalog = {
     icon: '/icons/xp/programs/add.png',
     title: 'Add or Remove Programs',
     component: Installer,
+  },
+  messenger: {
+    icon: '/icons/xp/messenger.png',
+    title: 'Windows Messenger',
+    component: Messenger,
   },
 };
 
@@ -799,6 +805,26 @@ export const appSettings = {
     maximized: false,
     multiInstance: true,
   },
+  'Windows Messenger': {
+    header: {
+      icon: '/icons/xp/messenger.png',
+      title: 'Windows Messenger',
+      buttons: ['minimize', 'close'],
+    },
+    component: Messenger,
+    defaultSize: {
+      width: 230,
+      height: 434,
+    },
+    defaultOffset: {
+      x: 110,
+      y: 110,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
 };
 
 export {
@@ -826,4 +852,5 @@ export {
   QQPenguin,
   Installer,
   IframeApp,
+  Messenger,
 };

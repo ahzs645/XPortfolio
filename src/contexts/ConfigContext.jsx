@@ -117,6 +117,18 @@ export function ConfigProvider({ children }) {
     }
   });
 
+  const [screensaverSettings, setScreensaverSettingsState] = useState(() => {
+    const defaults = { name: 'windows', waitMinutes: 5, enabled: true };
+    if (typeof window === 'undefined') return defaults;
+    try {
+      const saved = window.localStorage.getItem('screensaverSettings');
+      return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
+    } catch (err) {
+      console.warn('Failed to read screensaver settings', err);
+      return defaults;
+    }
+  });
+
   useEffect(() => {
     async function loadConfig() {
       try {
@@ -164,6 +176,25 @@ export function ConfigProvider({ children }) {
       console.warn('Failed to persist wallpaper overrides', err);
     }
   }, [wallpaperOverrides]);
+
+  // Persist screensaver settings
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('screensaverSettings', JSON.stringify(screensaverSettings));
+      }
+    } catch (err) {
+      console.warn('Failed to persist screensaver settings', err);
+    }
+  }, [screensaverSettings]);
+
+  // Get screensaver settings
+  const getScreensaverSettings = () => screensaverSettings;
+
+  // Update screensaver settings
+  const setScreensaverSettings = (updates) => {
+    setScreensaverSettingsState((prev) => ({ ...prev, ...updates }));
+  };
 
   // Get display name based on configuration
   const getDisplayName = () => {
@@ -448,6 +479,9 @@ export function ConfigProvider({ children }) {
     getLoadingImagePath,
     getWallpaperPath,
     setWallpaperPath,
+    // Screensaver
+    getScreensaverSettings,
+    setScreensaverSettings,
     // Content
     getCVPDFUrl,
     getSocialLinks,
