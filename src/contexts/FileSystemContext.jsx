@@ -268,6 +268,25 @@ export function FileSystemProvider({ children }) {
     return modified;
   };
 
+  // Migrate old file sizes from KB to bytes
+  const migrateFileSizes = (fs) => {
+    if (!fs || fs._sizesMigrated) return fs;
+
+    const migrated = { ...fs, _sizesMigrated: true };
+    for (const id of Object.keys(migrated)) {
+      if (id.startsWith('_')) continue; // Skip metadata keys
+      const item = migrated[id];
+      if (item && item.type === 'file' && typeof item.size === 'number' && item.size > 0) {
+        // If size is small (likely stored in KB), convert to bytes
+        // Heuristic: if size < 10000, it was probably stored in KB
+        if (item.size < 10000) {
+          migrated[id] = { ...item, size: item.size * 1024 };
+        }
+      }
+    }
+    return migrated;
+  };
+
   // Load file system from IndexedDB on mount
   useEffect(() => {
     // Wait for config to load before initializing file system
@@ -281,6 +300,8 @@ export function FileSystemProvider({ children }) {
         } else {
           // Ensure desktop shortcuts exist
           ensureDesktopShortcuts(fs, desktopShortcuts);
+          // Migrate old file sizes from KB to bytes
+          fs = migrateFileSizes(fs);
         }
         await idb.set('fileSystem', fs);
         setFileSystem(fs);

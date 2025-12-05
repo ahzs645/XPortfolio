@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Matrix Screensaver</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+    canvas { display: block; width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    let drops = [];
+    let fontSize = 14;
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      const scale = Math.min(canvas.width / 1024, canvas.height / 768);
+      fontSize = Math.max(14 * scale, 8);
+      const cols = Math.floor(canvas.width / fontSize);
+      drops = Array(cols).fill(0);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    function animate() {
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.fillStyle = 'rgba(0,0,0,0.05)';
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = '#0F0';
+      ctx.font = `${fontSize}px monospace`;
+
+      drops.forEach((y, i) => {
+        const text = String.fromCharCode(33 + Math.random() * 94);
+        ctx.fillText(text, i * fontSize, y * fontSize);
+        drops[i] = y * fontSize > h && Math.random() > 0.975 ? 0 : y + 1;
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
+</body>
+</html>

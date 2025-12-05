@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Windows Logo Screensaver</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+    #logo {
+      position: absolute;
+      width: 120px;
+      height: auto;
+      image-rendering: pixelated;
+    }
+  </style>
+</head>
+<body>
+  <img id="logo" src="/icons/xp/windowsxp.png" alt="">
+  <script>
+    const img = document.getElementById('logo');
+    let x = 50, y = 50;
+    let dx = 2, dy = 1.5;
+
+    function animate() {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const scale = Math.min(w / 1024, h / 768);
+
+      img.style.width = Math.max(120 * scale, 60) + 'px';
+
+      const imgW = img.offsetWidth;
+      const imgH = img.offsetHeight;
+
+      x += dx * scale;
+      y += dy * scale;
+
+      if (x <= 0 || x + imgW >= w) dx *= -1;
+      if (y <= 0 || y + imgH >= h) dy *= -1;
+
+      img.style.left = x + 'px';
+      img.style.top = y + 'px';
+
+      requestAnimationFrame(animate);
+    }
+
+    img.onload = () => {
+      x = (window.innerWidth - img.offsetWidth) / 2;
+      y = (window.innerHeight - img.offsetHeight) / 2;
+      animate();
+    };
+
+    if (img.complete) {
+      x = (window.innerWidth - img.offsetWidth) / 2;
+      y = (window.innerHeight - img.offsetHeight) / 2;
+      animate();
+    }
+  </script>
+</body>
+</html>

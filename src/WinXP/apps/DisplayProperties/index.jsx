@@ -68,14 +68,46 @@ const SCREENSAVERS = [
     preview: '/screensavers/flowerbox/img/FlowerBox.PNG',
     embed: '/screensavers/flowerbox/index.html',
   },
-  { id: 'windows', name: 'Windows Logo', preview: '/gui/display/reference/systemmonitor.png' },
-  { id: 'starfield', name: 'Starfield', preview: '/gui/display/reference/displaysettings.png' },
-  { id: 'mystify', name: 'Mystify', preview: '/gui/display/reference/appearance.png' },
-  { id: 'ribbons', name: 'Ribbons', preview: '/gui/display/reference/resolutionsetting.png' },
-  { id: 'balls', name: 'Bouncing Balls', preview: '/gui/display/reference/displaysettings.png' },
-  { id: 'matrix', name: 'Matrix', preview: '/gui/display/reference/preview.png' },
-  { id: 'rain', name: 'Digital Rain', preview: '/gui/display/reference/appearance.png' },
-  { id: 'blank', name: 'Blank', preview: '/gui/display/sample.png' },
+  {
+    id: 'windows',
+    name: 'Windows Logo',
+    embed: '/screensavers/canvas/windows.html',
+  },
+  {
+    id: 'starfield',
+    name: 'Starfield',
+    embed: '/screensavers/canvas/starfield.html',
+  },
+  {
+    id: 'mystify',
+    name: 'Mystify',
+    embed: '/screensavers/canvas/mystify.html',
+  },
+  {
+    id: 'ribbons',
+    name: 'Ribbons',
+    embed: '/screensavers/canvas/ribbons.html',
+  },
+  {
+    id: 'balls',
+    name: 'Bouncing Balls',
+    embed: '/screensavers/canvas/balls.html',
+  },
+  {
+    id: 'matrix',
+    name: 'Matrix',
+    embed: '/screensavers/canvas/matrix.html',
+  },
+  {
+    id: 'rain',
+    name: 'Digital Rain',
+    embed: '/screensavers/canvas/rain.html',
+  },
+  {
+    id: 'blank',
+    name: 'Blank',
+    embed: '/screensavers/canvas/blank.html',
+  },
 ];
 
 function DisplayProperties({ onClose, onMinimize }) {
@@ -289,65 +321,69 @@ function DisplayProperties({ onClose, onMinimize }) {
 
               {tab.id === 'screensaver' && (
                 <ScreensaverPane>
-                  <PreviewArea>
-                    <MonitorShell>
-                      <MonitorFrame />
-                      <MonitorPreview
+                  <ScreensaverMonitor>
+                    <ScreensaverMonitorFrame />
+                    {SCREENSAVERS.find(s => s.id === screenSaver)?.embed ? (
+                      <ScreensaverIframe
+                        src={SCREENSAVERS.find(s => s.id === screenSaver)?.embed}
+                        title="Screensaver preview"
+                      />
+                    ) : (
+                      <ScreensaverPreviewImg
                         style={{
                           backgroundImage: `url(${
                             SCREENSAVERS.find(s => s.id === screenSaver)?.preview || '/gui/display/sample.png'
                           })`,
                         }}
                       />
-                    </MonitorShell>
-                  </PreviewArea>
+                    )}
+                  </ScreensaverMonitor>
 
-                  <ScreensaverControls>
-                    <GroupBox>
+                  <GroupBox>
+                    <GroupPane>
                       <GroupTitle>Screen saver</GroupTitle>
-                      <Row>
+                      <ScreensaverRow>
                         <SideSelect
                           value={screenSaver}
                           onChange={(e) => setScreenSaver(e.target.value)}
+                          style={{ flex: 1, minWidth: 0 }}
                         >
+                          <option value="">(None)</option>
                           {SCREENSAVERS.map((item) => (
                             <option key={item.id} value={item.id}>{item.name}</option>
                           ))}
                         </SideSelect>
-                        <SideButton type="button" disabled $disabled>Settings</SideButton>
-                        <SideButton type="button" onClick={() => setShowPreview(true)}>
+                        <SideButton type="button" disabled $disabled style={{ flexShrink: 0 }}>Settings</SideButton>
+                        <SideButton type="button" onClick={() => setShowPreview(true)} style={{ flexShrink: 0 }}>
                           Preview
                         </SideButton>
-                      </Row>
-                      <Row>
-                        <SideLabel>Wait:</SideLabel>
-                        <WaitInput
+                      </ScreensaverRow>
+                      <WaitRow>
+                        Wait: <WaitInput
                           type="number"
                           min="1"
+                          max="60"
                           value={waitMinutes}
-                          onChange={(e) => setWaitMinutes(Number(e.target.value) || 0)}
-                        />
-                        <span>minutes</span>
-                        <CheckboxRow>
-                          <input
-                            id="resume-password"
-                            type="checkbox"
-                            checked={requirePassword}
-                            onChange={(e) => setRequirePassword(e.target.checked)}
-                          />
-                          <label htmlFor="resume-password">On resume, password protect</label>
-                        </CheckboxRow>
-                      </Row>
-                    </GroupBox>
+                          onChange={(e) => setWaitMinutes(Number(e.target.value) || 1)}
+                        /> minutes
+                      </WaitRow>
+                    </GroupPane>
+                  </GroupBox>
 
-                    <GroupBox>
+                  <GroupBox>
+                    <GroupPane>
                       <GroupTitle>Monitor power</GroupTitle>
-                      <p>To adjust monitor power settings and save energy, click Power.</p>
-                      <SideButton type="button" disabled $disabled style={{ alignSelf: 'flex-start' }}>
-                        Power...
-                      </SideButton>
-                    </GroupBox>
-                  </ScreensaverControls>
+                      <MonitorPowerContent>
+                        <EnergyStarLogo src="/gui/display/energystar.png" alt="Energy Star" />
+                        <MonitorPowerText>
+                          <p>To adjust monitor power settings and save energy, click Power.</p>
+                          <MonitorPowerButton>
+                            <SideButton type="button" disabled $disabled>Power...</SideButton>
+                          </MonitorPowerButton>
+                        </MonitorPowerText>
+                      </MonitorPowerContent>
+                    </GroupPane>
+                  </GroupBox>
                 </ScreensaverPane>
               )}
 
@@ -510,8 +546,6 @@ const TabsBar = styled.menu`
   padding: 6px 6px 0 6px;
   display: flex;
   gap: 2px;
-  background: linear-gradient(180deg, #f8f8f4 0%, #eae7d9 100%);
-  border: 1px solid #919b9c;
   border-radius: 4px 4px 0 0;
   border-bottom: none;
   margin-bottom: -1px;
@@ -746,7 +780,83 @@ const ScreensaverPane = styled.div`
   flex-direction: column;
   gap: 10px;
   height: 100%;
-  padding-bottom: 6px;
+  overflow-y: auto;
+`;
+
+const ScreensaverMonitor = styled.div`
+  position: relative;
+  text-align: center;
+  width: 177px;
+  height: 159px;
+  margin: 0 auto 10px auto;
+  background: url('/gui/display/monitor.png') no-repeat center center;
+  background-size: contain;
+`;
+
+const ScreensaverMonitorFrame = styled.div`
+  position: absolute;
+  inset: 0;
+`;
+
+const ScreensaverIframe = styled.iframe`
+  position: absolute;
+  top: 15px;
+  left: 12px;
+  width: 152px;
+  height: 112px;
+  border: none;
+  background: #000;
+`;
+
+const ScreensaverPreviewImg = styled.div`
+  position: absolute;
+  top: 15px;
+  left: 12px;
+  width: 152px;
+  height: 112px;
+  background-size: cover;
+  background-position: center;
+  background-color: #000;
+`;
+
+const ScreensaverRow = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+const WaitRow = styled.div`
+  margin-top: 10px;
+  font-size: 12px;
+`;
+
+const GroupPane = styled.div`
+  padding: 8px;
+`;
+
+const MonitorPowerContent = styled.div`
+  display: flex;
+  align-items: flex-start;
+`;
+
+const EnergyStarLogo = styled.img`
+  width: 54px;
+  height: 42px;
+  margin-right: 10px;
+  flex-shrink: 0;
+`;
+
+const MonitorPowerText = styled.div`
+  flex: 1;
+  text-align: left;
+  font-size: 12px;
+
+  p {
+    margin: 0 0 8px 0;
+  }
+`;
+
+const MonitorPowerButton = styled.div`
+  text-align: right;
 `;
 
 const ScreensaverControls = styled.div`

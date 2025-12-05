@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Digital Rain Screensaver</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+    canvas { display: block; width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const width = () => canvas.width;
+    const height = () => canvas.height;
+
+    const pixels = Array.from({ length: 100 }, () => ({
+      x: Math.random() * width(),
+      y: Math.random() * height(),
+      dy: 2 + Math.random() * 4,
+      color: `hsl(${Math.random() * 360}, 80%, 50%)`
+    }));
+
+    function animate() {
+      const w = width();
+      const h = height();
+      const scale = Math.min(w / 1024, h / 768);
+
+      ctx.fillStyle = 'rgba(0,0,0,0.1)';
+      ctx.fillRect(0, 0, w, h);
+
+      pixels.forEach(p => {
+        p.y += p.dy * scale;
+        if (p.y > h) {
+          p.y = 0;
+          p.x = Math.random() * w;
+        }
+        const pixelSize = Math.max(2 * scale, 1);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, pixelSize, pixelSize);
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
+</body>
+</html>

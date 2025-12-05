@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Ribbons Screensaver</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+    canvas { display: block; width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const width = () => canvas.width;
+    const height = () => canvas.height;
+
+    const ribbons = Array.from({ length: 20 }, () => ({
+      x: Math.random() * width(),
+      y: Math.random() * height(),
+      dx: (Math.random() - 0.5) * 2,
+      dy: (Math.random() - 0.5) * 2,
+      color: `hsl(${Math.random() * 360},80%,50%)`
+    }));
+
+    function animate() {
+      const w = width();
+      const h = height();
+      const scale = Math.min(w / 1024, h / 768);
+
+      ctx.fillStyle = 'rgba(0,0,0,0.1)';
+      ctx.fillRect(0, 0, w, h);
+
+      ribbons.forEach(r => {
+        r.x += r.dx * scale;
+        r.y += r.dy * scale;
+        if (r.x < 0 || r.x > w) r.dx *= -1;
+        if (r.y < 0 || r.y > h) r.dy *= -1;
+
+        ctx.strokeStyle = r.color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        const lineLength = Math.max(20 * scale, 1);
+        ctx.moveTo(r.x, r.y);
+        ctx.lineTo(r.x + r.dx * lineLength, r.y + r.dy * lineLength);
+        ctx.stroke();
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
+</body>
+</html>
