@@ -120,22 +120,24 @@ function Properties({ onClose, itemId, itemData }) {
   return (
     <Container>
       <TabContainer>
-        <TabList>
-          <Tab
-            $active={activeTab === 'General'}
+        <menu role="tablist">
+          <button
+            aria-selected={activeTab === 'General'}
+            aria-controls="tab-general"
             onClick={() => setActiveTab('General')}
           >
             General
-          </Tab>
-          <Tab
-            $active={activeTab === 'Sharing'}
+          </button>
+          <button
+            aria-selected={activeTab === 'Sharing'}
+            aria-controls="tab-sharing"
             onClick={() => setActiveTab('Sharing')}
           >
             Sharing
-          </Tab>
-        </TabList>
+          </button>
+        </menu>
 
-        <TabPanel>
+        <article role="tabpanel" id={activeTab === 'General' ? 'tab-general' : 'tab-sharing'}>
           {activeTab === 'General' && (
             <PanelContent>
               {/* Header with icon and name */}
@@ -188,24 +190,22 @@ function Properties({ onClose, itemId, itemData }) {
                 <LeftCol>Attributes:</LeftCol>
                 <RightCol>
                   <CheckboxWrapper>
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={readOnly}
-                        onChange={handleCheckboxChange(setReadOnly)}
-                      />
-                      Read-only
-                    </label>
+                    <input
+                      type="checkbox"
+                      id="attr-readonly"
+                      checked={readOnly}
+                      onChange={handleCheckboxChange(setReadOnly)}
+                    />
+                    <label htmlFor="attr-readonly">Read-only</label>
                   </CheckboxWrapper>
                   <CheckboxWrapper>
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={hidden}
-                        onChange={handleCheckboxChange(setHidden)}
-                      />
-                      Hidden
-                    </label>
+                    <input
+                      type="checkbox"
+                      id="attr-hidden"
+                      checked={hidden}
+                      onChange={handleCheckboxChange(setHidden)}
+                    />
+                    <label htmlFor="attr-hidden">Hidden</label>
                   </CheckboxWrapper>
                 </RightCol>
                 <AdvancedButton disabled>Advanced...</AdvancedButton>
@@ -230,10 +230,8 @@ function Properties({ onClose, itemId, itemData }) {
                         only you have access, select the following check box.
                       </p>
                       <CheckboxWrapper $disabled>
-                        <label>
-                          <input type="checkbox" disabled />
-                          Make this folder private
-                        </label>
+                        <input type="checkbox" id="folder-private" disabled />
+                        <label htmlFor="folder-private">Make this folder private</label>
                       </CheckboxWrapper>
                     </GroupText>
                   </GroupContent>
@@ -267,7 +265,7 @@ function Properties({ onClose, itemId, itemData }) {
               </GroupBox>
             </PanelContent>
           )}
-        </TabPanel>
+        </article>
       </TabContainer>
 
       <Actions>
@@ -305,39 +303,31 @@ const TabContainer = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 0;
-`;
 
-const TabList = styled.div`
-  display: flex;
-  position: relative;
-  z-index: 2;
-`;
+  menu[role="tablist"] {
+    position: relative;
+    margin: 0;
+    padding: 0;
+    z-index: 2;
 
-const Tab = styled.button`
-  padding: 4px 12px;
-  font-size: 11px;
-  font-family: Tahoma, 'Noto Sans', sans-serif;
-  background: ${({ $active }) => ($active ? '#fafaf9' : '#ece9d8')};
-  border: 1px solid #919b9c;
-  border-bottom: ${({ $active }) => ($active ? '1px solid #fafaf9' : '1px solid #919b9c')};
-  border-radius: 3px 3px 0 0;
-  cursor: pointer;
-  position: relative;
-  margin-bottom: -1px;
-  min-width: 70px;
+    button {
+      position: relative;
+      margin-bottom: -2px;
 
-  &:hover {
-    background: ${({ $active }) => ($active ? '#fafaf9' : '#f5f5f0')};
+      &[aria-selected="true"] {
+        z-index: 3;
+      }
+    }
   }
-`;
 
-const TabPanel = styled.div`
-  flex: 1;
-  background: #fafaf9;
-  border: 1px solid #919b9c;
-  padding: 12px;
-  overflow-y: auto;
-  overflow-x: hidden;
+  article[role="tabpanel"] {
+    flex: 1;
+    padding: 12px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    z-index: 1;
+  }
 `;
 
 const PanelContent = styled.div`

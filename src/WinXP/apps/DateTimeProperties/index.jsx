@@ -219,21 +219,23 @@ function DateTimeProperties({ onClose, onMinimize }) {
     >
       <WindowSurface>
         <TabContainer>
-          <TabsBar>
-            <TabButton
-              $active={activeTab === 'datetime'}
+          <menu role="tablist">
+            <button
+              aria-selected={activeTab === 'datetime'}
+              aria-controls="tab-datetime"
               onClick={() => setActiveTab('datetime')}
             >
               Date &amp; Time
-            </TabButton>
-            <TabButton
-              $active={activeTab === 'timezone'}
+            </button>
+            <button
+              aria-selected={activeTab === 'timezone'}
+              aria-controls="tab-timezone"
               onClick={() => setActiveTab('timezone')}
             >
               Time Zone
-            </TabButton>
-          </TabsBar>
-          <TabPanel>
+            </button>
+          </menu>
+          <article role="tabpanel" id={activeTab === 'datetime' ? 'tab-datetime' : 'tab-timezone'}>
           {activeTab === 'datetime' && (
             <DateTimePane>
               <GroupRow>
@@ -315,7 +317,7 @@ function DateTimeProperties({ onClose, onMinimize }) {
               <MapImage src="/gui/datetime/map.png" alt="World Time Zones" />
             </TimezonePane>
           )}
-          </TabPanel>
+          </article>
         </TabContainer>
 
         <Actions>
@@ -344,41 +346,30 @@ const TabContainer = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 0;
-`;
 
-const TabsBar = styled.div`
-  display: flex;
-  gap: 2px;
-  position: relative;
-  z-index: 2;
-`;
+  menu[role="tablist"] {
+    position: relative;
+    margin: 0;
+    padding: 0;
+    z-index: 2;
 
-const TabButton = styled.button`
-  min-width: 76px;
-  padding: 5px 10px 6px 10px;
-  font-size: 12px;
-  font-family: 'MS Sans Serif', 'Tahoma', sans-serif;
-  border: 1px solid #919b9c;
-  border-bottom: ${({ $active }) => ($active ? '1px solid #fbfbfc' : '1px solid #919b9c')};
-  border-radius: 3px 3px 0 0;
-  background: ${({ $active }) =>
-    $active
-      ? '#fbfbfc'
-      : 'linear-gradient(180deg, #f7f7f7, #ededeb 40%, #e7e7e0 95%, #e2e2d8)'};
-  color: ${({ $active }) => ($active ? '#000' : '#222')};
-  box-shadow: ${({ $active }) => ($active ? 'inset 0 2px 0 #ffc73c' : 'none')};
-  cursor: pointer;
-  position: relative;
-  margin-bottom: -1px;
-`;
+    button {
+      position: relative;
+      margin-bottom: -2px;
 
-const TabPanel = styled.div`
-  flex: 1;
-  padding: 12px;
-  background: #fbfbfc;
-  border: 1px solid #919b9c;
-  box-shadow: inset 1px 1px #fcfcfe, inset -1px -1px #fcfcfe;
-  overflow: hidden;
+      &[aria-selected="true"] {
+        z-index: 3;
+      }
+    }
+  }
+
+  article[role="tabpanel"] {
+    flex: 1;
+    padding: 12px;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+  }
 `;
 
 const DateTimePane = styled.div`
