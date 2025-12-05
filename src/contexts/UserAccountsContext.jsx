@@ -1,0 +1,375 @@
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+
+const UserAccountsContext = createContext(null);
+
+// Default user pictures available in XP
+const DEFAULT_USER_PICTURES = [
+  { id: 'astronaut', name: 'Astronaut', path: '/icons/users/astronaut.png' },
+  { id: 'ball', name: 'Ball', path: '/icons/users/ball.png' },
+  { id: 'butterfly', name: 'Butterfly', path: '/icons/users/butterfly.png' },
+  { id: 'cat', name: 'Cat', path: '/icons/users/cat.png' },
+  { id: 'chess', name: 'Chess', path: '/icons/users/chess.png' },
+  { id: 'dog', name: 'Dog', path: '/icons/users/dog.png' },
+  { id: 'duck', name: 'Duck', path: '/icons/users/duck.png' },
+  { id: 'fish', name: 'Fish', path: '/icons/users/fish.png' },
+  { id: 'flower', name: 'Flower', path: '/icons/users/flower.png' },
+  { id: 'frog', name: 'Frog', path: '/icons/users/frog.png' },
+  { id: 'guitar', name: 'Guitar', path: '/icons/users/guitar.png' },
+  { id: 'snowflake', name: 'Snowflake', path: '/icons/users/snowflake.png' },
+];
+
+// Simple hash function using Web Crypto API
+async function hashPassword(password) {
+  if (!password) return null;
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Generate unique ID
+function generateId() {
+  return `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
+// Default user based on config (will be set on first load)
+function createDefaultUser(name = 'User', picture = '/favicon.png') {
+  return {
+    id: 'default-user',
+    name,
+    picture,
+    accountType: 'admin',
+    hasPassword: false,
+    passwordHash: null,
+    createdAt: Date.now(),
+    settings: {
+      wallpaper: null,
+      screensaver: { name: 'windows', waitMinutes: 5, enabled: true },
+      desktopIconPositions: {},
+    },
+  };
+}
+
+export function UserAccountsProvider({ children, defaultUserName, defaultUserPicture }) {
+  const [users, setUsers] = useState([]);
+  const [activeUserId, setActiveUserId] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Load users from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedUsers = localStorage.getItem('userAccounts');
+      const savedActiveId = localStorage.getItem('activeUserId');
+
+      if (savedUsers) {
+        const parsedUsers = JSON.parse(savedUsers);
+        setUsers(parsedUsers);
+
+        // Check if there's a valid active user
+        if (savedActiveId && parsedUsers.find(u => u.id === savedActiveId)) {
+          setActiveUserId(savedActiveId);
+        }
+      } else {
+        // Create default user on first run
+        const defaultUser = createDefaultUser(
+          defaultUserName || 'User',
+          defaultUserPicture || '/favicon.png'
+        );
+        setUsers([defaultUser]);
+        localStorage.setItem('userAccounts', JSON.stringify([defaultUser]));
+      }
+    } catch (err) {
+      console.error('Failed to load user accounts:', err);
+      const defaultUser = createDefaultUser(defaultUserName, defaultUserPicture);
+      setUsers([defaultUser]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [defaultUserName, defaultUserPicture]);
+
+  // Persist users to localStorage
+  useEffect(() => {
+    if (!isLoading && users.length > 0) {
+      localStorage.setItem('userAccounts', JSON.stringify(users));
+    }
+  }, [users, isLoading]);
+
+  // Persist active user ID
+  useEffect(() => {
+    if (activeUserId) {
+      localStorage.setItem('activeUserId', activeUserId);
+    }
+  }, [activeUserId]);
+
+  // Get current active user
+  const getCurrentUser = useCallback(() => {
+    return users.find(u => u.id === activeUserId) || null;
+  }, [users, activeUserId]);
+
+  // Login user (verify password if needed)
+  const loginUser = useCallback(async (userId, password = null) => {
+    const user = users.find(u => u.id === userId);
+    if (!user) {
+      return { success: false, error: 'User not found' };
+    }
+
+    if (user.hasPassword && user.passwordHash) {
+      if (!password) {
+        return { success: false, error: 'Password required', requiresPassword: true };
+      }
+      const inputHash = await hashPassword(password);
+      if (inputHash !== user.passwordHash) {
+        return { success: false, error: 'Incorrect password' };
+      }
+    }
+
+    setActiveUserId(userId);
+    setIsLoggedIn(true);
+    return { success: true };
+  }, [users]);
+
+  // Logout current user
+  const logoutUser = useCallback(() => {
+    setIsLoggedIn(false);
+    // Keep activeUserId for "switch user" functionality
+  }, []);
+
+  // Switch user (log out and go to login screen)
+  const switchUser = useCallback(() => {
+    setIsLoggedIn(false);
+    setActiveUserId(null);
+  }, []);
+
+  // Create new user account
+  const createUser = useCallback(async ({ name, picture, password = null, accountType = 'limited' }) => {
+    const passwordHash = password ? await hashPassword(password) : null;
+
+    const newUser = {
+      id: generateId(),
+      name,
+      picture: picture || DEFAULT_USER_PICTURES[Math.floor(Math.random() * DEFAULT_USER_PICTURES.length)].path,
+      accountType,
+      hasPassword: !!password,
+      passwordHash,
+      createdAt: Date.now(),
+      settings: {
+        wallpaper: null,
+        screensaver: { name: 'windows', waitMinutes: 5, enabled: true },
+        desktopIconPositions: {},
+      },
+    };
+
+    setUsers(prev => [...prev, newUser]);
+    return newUser;
+  }, []);
+
+  // Update user account
+  const updateUser = useCallback((userId, updates) => {
+    setUsers(prev => prev.map(user => {
+      if (user.id === userId) {
+        return { ...user, ...updates };
+      }
+      return user;
+    }));
+  }, []);
+
+  // Change user name
+  const changeUserName = useCallback((userId, newName) => {
+    updateUser(userId, { name: newName });
+  }, [updateUser]);
+
+  // Change user picture
+  const changeUserPicture = useCallback((userId, newPicture) => {
+    updateUser(userId, { picture: newPicture });
+  }, [updateUser]);
+
+  // Change user password
+  const changeUserPassword = useCallback(async (userId, currentPassword, newPassword) => {
+    const user = users.find(u => u.id === userId);
+    if (!user) {
+      return { success: false, error: 'User not found' };
+    }
+
+    // Verify current password if user has one
+    if (user.hasPassword && user.passwordHash) {
+      const currentHash = await hashPassword(currentPassword);
+      if (currentHash !== user.passwordHash) {
+        return { success: false, error: 'Current password is incorrect' };
+      }
+    }
+
+    const newHash = newPassword ? await hashPassword(newPassword) : null;
+    updateUser(userId, {
+      hasPassword: !!newPassword,
+      passwordHash: newHash,
+    });
+
+    return { success: true };
+  }, [users, updateUser]);
+
+  // Create password for user without one
+  const createUserPassword = useCallback(async (userId, newPassword) => {
+    const user = users.find(u => u.id === userId);
+    if (!user) {
+      return { success: false, error: 'User not found' };
+    }
+
+    if (user.hasPassword) {
+      return { success: false, error: 'User already has a password' };
+    }
+
+    const newHash = await hashPassword(newPassword);
+    updateUser(userId, {
+      hasPassword: true,
+      passwordHash: newHash,
+    });
+
+    return { success: true };
+  }, [users, updateUser]);
+
+  // Remove password from user
+  const removeUserPassword = useCallback(async (userId, currentPassword) => {
+    const user = users.find(u => u.id === userId);
+    if (!user) {
+      return { success: false, error: 'User not found' };
+    }
+
+    if (user.hasPassword && user.passwordHash) {
+      const currentHash = await hashPassword(currentPassword);
+      if (currentHash !== user.passwordHash) {
+        return { success: false, error: 'Current password is incorrect' };
+      }
+    }
+
+    updateUser(userId, {
+      hasPassword: false,
+      passwordHash: null,
+    });
+
+    return { success: true };
+  }, [users, updateUser]);
+
+  // Delete user account
+  const deleteUser = useCallback((userId) => {
+    // Cannot delete the last admin
+    const admins = users.filter(u => u.accountType === 'admin');
+    const userToDelete = users.find(u => u.id === userId);
+
+    if (userToDelete?.accountType === 'admin' && admins.length <= 1) {
+      return { success: false, error: 'Cannot delete the only administrator account' };
+    }
+
+    // Cannot delete currently logged in user
+    if (userId === activeUserId && isLoggedIn) {
+      return { success: false, error: 'Cannot delete the currently logged in user' };
+    }
+
+    setUsers(prev => prev.filter(u => u.id !== userId));
+
+    // If we deleted the active user (not logged in), clear it
+    if (userId === activeUserId) {
+      setActiveUserId(null);
+    }
+
+    return { success: true };
+  }, [users, activeUserId, isLoggedIn]);
+
+  // Update user settings
+  const updateUserSettings = useCallback((userId, settingUpdates) => {
+    setUsers(prev => prev.map(user => {
+      if (user.id === userId) {
+        return {
+          ...user,
+          settings: { ...user.settings, ...settingUpdates },
+        };
+      }
+      return user;
+    }));
+  }, []);
+
+  // Get current user's settings
+  const getCurrentUserSettings = useCallback(() => {
+    const user = getCurrentUser();
+    return user?.settings || {
+      wallpaper: null,
+      screensaver: { name: 'windows', waitMinutes: 5, enabled: true },
+      desktopIconPositions: {},
+    };
+  }, [getCurrentUser]);
+
+  // Update current user's settings
+  const updateCurrentUserSettings = useCallback((settingUpdates) => {
+    if (activeUserId) {
+      updateUserSettings(activeUserId, settingUpdates);
+    }
+  }, [activeUserId, updateUserSettings]);
+
+  // Change account type
+  const changeAccountType = useCallback((userId, newType) => {
+    // Cannot remove the last admin
+    if (newType !== 'admin') {
+      const admins = users.filter(u => u.accountType === 'admin');
+      const userToChange = users.find(u => u.id === userId);
+
+      if (userToChange?.accountType === 'admin' && admins.length <= 1) {
+        return { success: false, error: 'Cannot remove the only administrator' };
+      }
+    }
+
+    updateUser(userId, { accountType: newType });
+    return { success: true };
+  }, [users, updateUser]);
+
+  const value = {
+    // State
+    users,
+    activeUserId,
+    isLoading,
+    isLoggedIn,
+
+    // User getters
+    getCurrentUser,
+
+    // Auth actions
+    loginUser,
+    logoutUser,
+    switchUser,
+
+    // Account management
+    createUser,
+    updateUser,
+    deleteUser,
+    changeUserName,
+    changeUserPicture,
+    changeUserPassword,
+    createUserPassword,
+    removeUserPassword,
+    changeAccountType,
+
+    // Settings
+    getCurrentUserSettings,
+    updateCurrentUserSettings,
+    updateUserSettings,
+
+    // Constants
+    availablePictures: DEFAULT_USER_PICTURES,
+  };
+
+  return (
+    <UserAccountsContext.Provider value={value}>
+      {children}
+    </UserAccountsContext.Provider>
+  );
+}
+
+export function useUserAccounts() {
+  const context = useContext(UserAccountsContext);
+  if (!context) {
+    throw new Error('useUserAccounts must be used within a UserAccountsProvider');
+  }
+  return context;
+}
+
+export default UserAccountsContext;

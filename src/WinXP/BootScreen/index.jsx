@@ -2,18 +2,41 @@ import React, { useEffect, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { BOOT_STATE } from '../constants';
 import { useConfig } from '../../contexts/ConfigContext';
+import { useUserAccounts } from '../../contexts/UserAccountsContext';
 import useSystemSounds from '../../hooks/useSystemSounds';
 
 function BootScreen({ bootState, onComplete }) {
   const [showLogin, setShowLogin] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
-  const { isLoading, getDisplayName, getProfession, getUserLoginIcon, getLoadingImagePath } = useConfig();
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [showPasswordInput, setShowPasswordInput] = useState(false);
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState(null);
+
+  const { isLoading: configLoading, getDisplayName, getProfession, getUserLoginIcon, getLoadingImagePath } = useConfig();
+  const {
+    users,
+    isLoading: usersLoading,
+    loginUser,
+    activeUserId,
+  } = useUserAccounts();
   const { playLogin, prewarmBalloon } = useSystemSounds();
 
-  const userName = getDisplayName();
-  const userTitle = getProfession();
-  const userIcon = getUserLoginIcon();
+  const isLoading = configLoading || usersLoading;
+
+  // Get user info - use selected user from accounts or fall back to config
+  const selectedUser = users.find(u => u.id === selectedUserId);
+  const userName = selectedUser?.name || getDisplayName();
+  const userTitle = selectedUser ? (selectedUser.accountType === 'admin' ? 'Computer Administrator' : 'Limited Account') : getProfession();
+  const userIcon = selectedUser?.picture || getUserLoginIcon();
   const bootLogo = getLoadingImagePath();
+
+  // Auto-select user if only one exists
+  useEffect(() => {
+    if (!usersLoading && users.length === 1 && !selectedUserId) {
+      setSelectedUserId(users[0].id);
+    }
+  }, [users, usersLoading, selectedUserId]);
 
   useEffect(() => {
     // If coming from log off, skip boot animation and show login directly
@@ -32,7 +55,43 @@ function BootScreen({ bootState, onComplete }) {
     }
   }, [bootState, isLoading]);
 
-  const handleLogin = () => {
+  const handleUserClick = async (userId) => {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+
+    setSelectedUserId(userId);
+    setPasswordError(null);
+
+    // If user has password, show password input
+    if (user.hasPassword) {
+      setShowPasswordInput(true);
+      return;
+    }
+
+    // Otherwise, log in directly
+    await performLogin(userId);
+  };
+
+  const handlePasswordSubmit = async (e) => {
+    e?.preventDefault();
+    if (!selectedUserId) return;
+
+    const result = await loginUser(selectedUserId, password);
+    if (result.success) {
+      await performLogin(selectedUserId);
+    } else {
+      setPasswordError(result.error || 'Incorrect password');
+      setPassword('');
+    }
+  };
+
+  const performLogin = async (userId) => {
+    const result = await loginUser(userId);
+    if (!result.success && result.requiresPassword) {
+      setShowPasswordInput(true);
+      return;
+    }
+
     // Don't hide login screen - just show welcome overlay on top
     setShowWelcome(true);
 
@@ -50,7 +109,20 @@ function BootScreen({ bootState, onComplete }) {
     }, 2000);
   };
 
+  const handleCancelPassword = () => {
+    setShowPasswordInput(false);
+    setPassword('');
+    setPasswordError(null);
+    if (users.length > 1) {
+      setSelectedUserId(null);
+    }
+  };
+
   if (showLogin) {
+    // Multi-user mode: show all users or single user with password
+    const showMultiUser = users.length > 1 && !selectedUserId && !showPasswordInput;
+    const showSingleUser = users.length === 1 || selectedUserId;
+
     return (
       <LoginScreen>
         <LoginScreenInner>
@@ -58,20 +130,82 @@ function BootScreen({ bootState, onComplete }) {
             <LoginLeft $fadeOut={showWelcome}>
               <XPLogo src={bootLogo} alt="Windows XP" />
               <LoginInstruction>
-                <DesktopText>To begin, click on <LoginInstructionName>{userName}</LoginInstructionName></DesktopText>
-                <MobileText>Tap on the user icon to begin</MobileText>
+                {showMultiUser ? (
+                  <>
+                    <DesktopText>To begin, click your user name</DesktopText>
+                    <MobileText>Tap on a user to begin</MobileText>
+                  </>
+                ) : showPasswordInput ? (
+                  <>
+                    <DesktopText>Type your password</DesktopText>
+                    <MobileText>Enter your password</MobileText>
+                  </>
+                ) : (
+                  <>
+                    <DesktopText>To begin, click on <LoginInstructionName>{userName}</LoginInstructionName></DesktopText>
+                    <MobileText>Tap on the user icon to begin</MobileText>
+                  </>
+                )}
               </LoginInstruction>
             </LoginLeft>
             <LoginDivider $fadeOut={showWelcome} />
             <MobileSeparator $fadeOut={showWelcome} />
-            <LoginRight $fadeOut={showWelcome}>
-              <UserCard onClick={handleLogin}>
-                <UserIcon src={userIcon} alt={userName} />
-                <UserInfo>
-                  <UserNameText>{userName}</UserNameText>
-                  {userTitle && <UserTitleText className="user-title">{userTitle}</UserTitleText>}
-                </UserInfo>
-              </UserCard>
+            <LoginRight $fadeOut={showWelcome} $multiUser={showMultiUser}>
+              {showMultiUser ? (
+                // Show all users
+                <UsersList>
+                  {users.map(user => (
+                    <UserCard key={user.id} onClick={() => handleUserClick(user.id)}>
+                      <UserIcon src={user.picture} alt={user.name} />
+                      <UserInfo>
+                        <UserNameText>{user.name}</UserNameText>
+                        <UserTitleText className="user-title">
+                          {user.accountType === 'admin' ? 'Computer Administrator' : 'Limited Account'}
+                          {user.hasPassword && ' 🔒'}
+                        </UserTitleText>
+                      </UserInfo>
+                    </UserCard>
+                  ))}
+                </UsersList>
+              ) : showPasswordInput ? (
+                // Show password input for selected user
+                <PasswordContainer>
+                  <UserCard $noHover>
+                    <UserIcon src={userIcon} alt={userName} />
+                    <UserInfo>
+                      <UserNameText>{userName}</UserNameText>
+                      {userTitle && <UserTitleText className="user-title">{userTitle}</UserTitleText>}
+                    </UserInfo>
+                  </UserCard>
+                  <PasswordForm onSubmit={handlePasswordSubmit}>
+                    <PasswordInput
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Type your password"
+                      autoFocus
+                    />
+                    <PasswordButtons>
+                      <PasswordSubmitButton type="submit">→</PasswordSubmitButton>
+                    </PasswordButtons>
+                  </PasswordForm>
+                  {passwordError && <PasswordError>{passwordError}</PasswordError>}
+                  {users.length > 1 && (
+                    <BackToUsersLink onClick={handleCancelPassword}>
+                      ← Back to user list
+                    </BackToUsersLink>
+                  )}
+                </PasswordContainer>
+              ) : (
+                // Single user without password
+                <UserCard onClick={() => handleUserClick(selectedUserId || users[0]?.id)}>
+                  <UserIcon src={userIcon} alt={userName} />
+                  <UserInfo>
+                    <UserNameText>{userName}</UserNameText>
+                    {userTitle && <UserTitleText className="user-title">{userTitle}</UserTitleText>}
+                  </UserInfo>
+                </UserCard>
+              )}
             </LoginRight>
           </LoginContainer>
           {showWelcome && (
@@ -426,10 +560,13 @@ const LoginRight = styled.div`
   top: 45%;
   transform: translate(72px, -50%);
   display: flex;
-  align-items: center;
+  align-items: ${({ $multiUser }) => $multiUser ? 'flex-start' : 'center'};
   justify-content: flex-start;
+  flex-direction: ${({ $multiUser }) => $multiUser ? 'column' : 'row'};
   opacity: ${({ $fadeOut }) => ($fadeOut ? 0 : 1)};
   transition: opacity 0.3s ease;
+  max-height: ${({ $multiUser }) => $multiUser ? '60vh' : 'auto'};
+  overflow-y: ${({ $multiUser }) => $multiUser ? 'auto' : 'visible'};
 
   /* Mobile: center and stack */
   .mobile-device & {
@@ -437,7 +574,14 @@ const LoginRight = styled.div`
     transform: none;
     justify-content: center;
     margin: 0 auto;
+    max-height: 50vh;
   }
+`;
+
+const UsersList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 `;
 
 const UserCard = styled.div`
@@ -446,7 +590,7 @@ const UserCard = styled.div`
   min-width: 260px;
   padding: 12px 18px;
   border-radius: 5px;
-  cursor: pointer;
+  cursor: ${({ $noHover }) => $noHover ? 'default' : 'pointer'};
   position: relative;
   overflow: hidden;
   transition: opacity 0.3s;
@@ -460,7 +604,7 @@ const UserCard = styled.div`
     height: 100%;
     background: linear-gradient(90deg, #113fa6, #113fa6, #587cdb);
     border-radius: inherit;
-    opacity: 0;
+    opacity: ${({ $noHover }) => $noHover ? 1 : 0};
     transition: opacity 0.3s ease;
     z-index: -1;
   }
@@ -470,11 +614,11 @@ const UserCard = styled.div`
   }
 
   &:hover img {
-    border-color: #fdbd32;
+    border-color: ${({ $noHover }) => $noHover ? 'white' : '#fdbd32'};
   }
 
   &:hover .user-title {
-    color: #fdbd32;
+    color: ${({ $noHover }) => $noHover ? 'navy' : '#fdbd32'};
   }
 
   /* Mobile adjustments */
@@ -482,7 +626,7 @@ const UserCard = styled.div`
     flex-direction: column;
     min-width: auto;
     max-width: 280px;
-    min-height: 160px;
+    min-height: ${({ $noHover }) => $noHover ? 'auto' : '160px'};
     padding: 24px;
     border-radius: 10px;
     justify-content: center;
@@ -528,6 +672,108 @@ const UserTitleText = styled.div`
   margin-top: -2px;
   color: navy;
   transition: color 0.3s;
+`;
+
+const PasswordContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+
+  .mobile-device & {
+    align-items: center;
+  }
+`;
+
+const PasswordForm = styled.form`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 18px;
+
+  .mobile-device & {
+    margin-left: 0;
+    flex-direction: column;
+    width: 100%;
+    max-width: 200px;
+  }
+`;
+
+const PasswordInput = styled.input`
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 2px solid #4a6ea5;
+  border-radius: 3px;
+  background: #fff;
+  color: #000;
+  width: 180px;
+  font-family: Tahoma, Arial, sans-serif;
+
+  &:focus {
+    outline: none;
+    border-color: #fdbd32;
+  }
+
+  &::placeholder {
+    color: #888;
+  }
+
+  .mobile-device & {
+    width: 100%;
+  }
+`;
+
+const PasswordButtons = styled.div`
+  display: flex;
+  gap: 4px;
+`;
+
+const PasswordSubmitButton = styled.button`
+  padding: 6px 12px;
+  font-size: 14px;
+  background: linear-gradient(180deg, #5b8fd8, #3366b3);
+  border: 1px solid #2a4f8a;
+  border-radius: 3px;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+
+  &:hover {
+    background: linear-gradient(180deg, #6b9fe8, #4376c3);
+  }
+
+  &:active {
+    background: linear-gradient(180deg, #3366b3, #2a4f8a);
+  }
+`;
+
+const PasswordError = styled.div`
+  color: #ffcc00;
+  font-size: 12px;
+  margin-left: 18px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+
+  .mobile-device & {
+    margin-left: 0;
+    text-align: center;
+  }
+`;
+
+const BackToUsersLink = styled.a`
+  color: #fff;
+  font-size: 12px;
+  margin-left: 18px;
+  cursor: pointer;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+    color: #fdbd32;
+  }
+
+  .mobile-device & {
+    margin-left: 0;
+  }
 `;
 
 const TurnOffContainer = styled.div`

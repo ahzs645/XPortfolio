@@ -356,9 +356,12 @@ const TabContainer = styled.div`
     button {
       position: relative;
       margin-bottom: -2px;
+      margin-left: 0;
+      margin-right: 0;
 
       &[aria-selected="true"] {
         z-index: 3;
+        margin-left: 0;
       }
     }
   }

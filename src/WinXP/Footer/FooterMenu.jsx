@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { useConfig } from '../../contexts/ConfigContext';
 import { useInstalledApps } from '../../contexts/InstalledAppsContext';
@@ -267,11 +267,52 @@ function AllProgramsMenu({ items, activeFolder, onItemClick, onFolderHover }) {
 }
 
 function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemClick }) {
+  const itemRef = useRef(null);
+  const submenuRef = useRef(null);
+  const [submenuOffset, setSubmenuOffset] = useState(0);
+
+  useLayoutEffect(() => {
+    if (!isOpen) {
+      setSubmenuOffset(0);
+      return;
+    }
+
+    // Keep submenu fully visible even when the parent item sits near the bottom of the viewport
+    const repositionSubmenu = () => {
+      if (!submenuRef.current || !itemRef.current) return;
+
+      const submenuRect = submenuRef.current.getBoundingClientRect();
+      const itemRect = itemRef.current.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const padding = 8;
+
+      let desiredTop = itemRect.top;
+
+      if (desiredTop + submenuRect.height + padding > viewportHeight) {
+        desiredTop = viewportHeight - submenuRect.height - padding;
+      }
+
+      if (desiredTop < padding) {
+        desiredTop = padding;
+      }
+
+      setSubmenuOffset(desiredTop - itemRect.top);
+    };
+
+    repositionSubmenu();
+    window.addEventListener('resize', repositionSubmenu);
+
+    return () => {
+      window.removeEventListener('resize', repositionSubmenu);
+    };
+  }, [isOpen, folderItems.length]);
+
   return (
     <li
       className={`all-programs-item folder ${isOpen ? 'active' : ''}`}
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
+      ref={itemRef}
     >
       <img src={folder.icon} alt="" />
       <span>{folder.title}</span>
@@ -279,6 +320,8 @@ function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemC
         <div
           className="folder-submenu"
           onMouseEnter={onHover}
+          ref={submenuRef}
+          style={{ transform: `translateY(${submenuOffset}px)` }}
         >
           {folderItems.map((item) => (
             <div

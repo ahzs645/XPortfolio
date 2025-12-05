@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import styled from 'styled-components';
 import { ProgramLayout, FileChooser } from '../../../components';
-import { useConfig } from '../../../contexts/ConfigContext';
+import { useUserSettings } from '../../../contexts/UserSettingsContext';
 import { useScreensaver } from '../../../contexts/ScreensaverContext';
 
 const WALLPAPERS = [
@@ -112,7 +112,8 @@ const SCREENSAVERS = [
 ];
 
 function DisplayProperties({ onClose, onMinimize }) {
-  const { getWallpaperPath, setWallpaperPath } = useConfig();
+  // Use per-user settings for wallpaper
+  const { getWallpaperPath, setWallpaperPath } = useUserSettings();
   const {
     screensaverName,
     setScreensaverName,

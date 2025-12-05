@@ -242,7 +242,7 @@ function Properties({ onClose, itemId, itemData }) {
                 <GroupPane>
                   <GroupTitle>Network sharing and security</GroupTitle>
                   <GroupContent>
-                    <GroupIcon src="/icons/xp/MyComputer.png" alt="" />
+                    <GroupIcon src="/icons/xp/Workgroup.png" alt="" />
                     <GroupText>
                       <p>
                         As a security measure, Windows has disabled remote access
@@ -313,9 +313,12 @@ const TabContainer = styled.div`
     button {
       position: relative;
       margin-bottom: -2px;
+      margin-left: 0;
+      margin-right: 0;
 
       &[aria-selected="true"] {
         z-index: 3;
+        margin-left: 0;
       }
     }
   }
@@ -381,19 +384,12 @@ const Divider = styled.hr`
 `;
 
 const CheckboxWrapper = styled.div`
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   margin-right: 15px;
-  color: ${({ $disabled }) => ($disabled ? '#888' : '#000')};
 
   label {
-    display: flex;
-    align-items: center;
-    gap: 4px;
     cursor: ${({ $disabled }) => ($disabled ? 'default' : 'pointer')};
-  }
-
-  input[type="checkbox"] {
-    margin: 0;
   }
 `;
 

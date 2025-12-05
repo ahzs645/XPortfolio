@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import styled from 'styled-components';
-import { useConfig } from './ConfigContext';
+import { useUserSettings } from './UserSettingsContext';
 
 const ScreensaverContext = createContext(null);
 
@@ -27,7 +27,8 @@ const SCREENSAVER_EMBEDS = {
 };
 
 export function ScreensaverProvider({ children }) {
-  const { getScreensaverSettings, setScreensaverSettings } = useConfig();
+  // Use per-user settings from UserSettingsContext
+  const { getScreensaverSettings, setScreensaverSettings } = useUserSettings();
   const settings = getScreensaverSettings();
   const [isActive, setIsActive] = useState(false);
   const timeoutRef = useRef(null);

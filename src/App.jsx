@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import WinXP from './WinXP';
 import { createGlobalStyle } from 'styled-components';
 import { ConfigProvider } from './contexts/ConfigContext';
+import { UserAccountsProvider } from './contexts/UserAccountsContext';
+import { UserSettingsProvider } from './contexts/UserSettingsContext';
 import { FileSystemProvider } from './contexts/FileSystemContext';
 import { InstalledAppsProvider } from './contexts/InstalledAppsContext';
 import { ScreensaverProvider } from './contexts/ScreensaverContext';
@@ -45,15 +47,19 @@ function App() {
 
   return (
     <ConfigProvider>
-      <FileSystemProvider>
-        <InstalledAppsProvider>
-          <ScreensaverProvider>
-            <GlobalStyle />
-            <WinXP />
-            <UpdateToast />
-          </ScreensaverProvider>
-        </InstalledAppsProvider>
-      </FileSystemProvider>
+      <UserAccountsProvider>
+        <UserSettingsProvider>
+          <FileSystemProvider>
+            <InstalledAppsProvider>
+              <ScreensaverProvider>
+                <GlobalStyle />
+                <WinXP />
+                <UpdateToast />
+              </ScreensaverProvider>
+            </InstalledAppsProvider>
+          </FileSystemProvider>
+        </UserSettingsProvider>
+      </UserAccountsProvider>
     </ConfigProvider>
   );
 }

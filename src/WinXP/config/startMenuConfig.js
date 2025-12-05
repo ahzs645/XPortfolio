@@ -185,6 +185,20 @@ export const START_MENU_CATALOG = {
     title: 'System Recovery',
     description: 'Reset all settings',
   },
+  wordpad: {
+    type: 'program',
+    appKey: 'WordPad',
+    icon: '/icons/xp/wordpad.png',
+    title: 'WordPad',
+    description: 'Rich text editor',
+  },
+  userAccounts: {
+    type: 'program',
+    appKey: 'User Accounts',
+    icon: '/icons/xp/UserAccounts.png',
+    title: 'User Accounts',
+    description: 'Manage user accounts',
+  },
   'divider-main': {
     type: 'separator',
   },
@@ -224,7 +238,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Accessories',
     icon: '/icons/xp/FolderClosed.png',
-    items: ['calculator', 'notepad', 'displayProperties', 'speechProperties', 'systemProperties', 'systemRecovery', 'paint', 'cmd', 'imageViewer', 'installer'],
+    items: ['calculator', 'notepad', 'wordpad', 'displayProperties', 'speechProperties', 'systemProperties', 'systemRecovery', 'userAccounts', 'paint', 'cmd', 'imageViewer', 'installer'],
   },
   entertainment: {
     type: 'folder',

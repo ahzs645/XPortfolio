@@ -153,6 +153,23 @@ export function useFileContextMenu({
 
       items.push({ type: 'divider' });
 
+      // WinRAR options for folders
+      if (onAddToArchive) {
+        items.push({
+          label: 'Add to archive...',
+          icon: XP_ICONS.rar,
+          onClick: onAddToArchive,
+        });
+
+        items.push({
+          label: `Add to "${selectedItem?.name || 'folder'}.zip"`,
+          icon: XP_ICONS.rar,
+          onClick: onAddToArchive,
+        });
+
+        items.push({ type: 'divider' });
+      }
+
       items.push({
         label: 'Sharing and Security...',
         disabled: true,
@@ -250,8 +267,14 @@ export function useFileContextMenu({
 
       items.push({ type: 'divider' });
 
-      // Archive-specific options
+      // Archive-specific options (for .zip, .rar, .7z files)
       if (isArchive && onExtractHere) {
+        items.push({
+          label: 'Extract files...',
+          icon: XP_ICONS.rar,
+          onClick: onExtractHere,
+        });
+
         items.push({
           label: 'Extract Here',
           icon: XP_ICONS.rar,
@@ -259,9 +282,26 @@ export function useFileContextMenu({
         });
 
         items.push({
-          label: 'Extract to folder...',
+          label: `Extract to "${selectedItem?.name?.replace(/\.[^/.]+$/, '') || 'folder'}/"`,
           icon: XP_ICONS.rar,
-          disabled: true,
+          onClick: onExtractHere,
+        });
+
+        items.push({ type: 'divider' });
+      }
+
+      // WinRAR options for non-archive files
+      if (onAddToArchive) {
+        items.push({
+          label: 'Add to archive...',
+          icon: XP_ICONS.rar,
+          onClick: onAddToArchive,
+        });
+
+        items.push({
+          label: `Add to "${selectedItem?.name || 'file'}.zip"`,
+          icon: XP_ICONS.rar,
+          onClick: onAddToArchive,
         });
 
         items.push({ type: 'divider' });
@@ -357,6 +397,23 @@ export function useFileContextMenu({
     }
 
     items.push({ type: 'divider' });
+
+    // WinRAR options
+    if (onAddToArchive) {
+      items.push({
+        label: 'Add to archive...',
+        icon: XP_ICONS.rar,
+        onClick: onAddToArchive,
+      });
+
+      items.push({
+        label: `Add to "${selectedItem?.name || 'item'}.zip"`,
+        icon: XP_ICONS.rar,
+        onClick: onAddToArchive,
+      });
+
+      items.push({ type: 'divider' });
+    }
 
     // Send To submenu
     const sendToItems = [

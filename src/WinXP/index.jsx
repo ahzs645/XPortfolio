@@ -3,6 +3,7 @@ import styled, { keyframes } from 'styled-components';
 import { useMouse, useWindowSize, useMobileRestriction } from '../hooks';
 import useSystemSounds from '../hooks/useSystemSounds';
 import { useConfig } from '../contexts/ConfigContext';
+import { useUserSettings } from '../contexts/UserSettingsContext';
 import MobileRestrictionPopup from '../components/MobileRestrictionPopup';
 import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../contexts/FileSystemContext';
 import { useInstalledApps } from '../contexts/InstalledAppsContext';
@@ -259,8 +260,8 @@ const reducer = (state, action = { type: '' }) => {
         }
         return icon;
       });
-      // Save to localStorage
-      saveIconPositions(updatedIcons);
+      // Note: Icon positions are saved via useEffect in WinXP component
+      // using per-user settings from UserSettingsContext
       return {
         ...state,
         icons: updatedIcons,
@@ -288,7 +289,9 @@ function WinXP() {
   const { width } = useWindowSize();
   const focusedAppId = getFocusedAppId();
   const { playLogoff, playBalloon } = useSystemSounds();
-  const { getWallpaperPath, isLoading: configLoading, isFileDropUploadEnabled } = useConfig();
+  const { isLoading: configLoading, isFileDropUploadEnabled } = useConfig();
+  // Use per-user settings for wallpaper and icon positions
+  const { getWallpaperPath, getDesktopIconPositions, setDesktopIconPositions } = useUserSettings();
   const {
     createFile,
     createItem,
@@ -351,25 +354,35 @@ function WinXP() {
   const isMobile = width < 768;
   const wallpaperPath = getWallpaperPath(isMobile);
 
-  // Get saved icon positions from localStorage
-  const getSavedPositions = useCallback(() => {
-    try {
-      const saved = localStorage.getItem('desktopIconPositions');
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
-  }, []);
-
   // Update desktop icons from file system Desktop folder
+  // Uses per-user icon positions from UserSettingsContext
   useEffect(() => {
     if (!fsLoading && fileSystem) {
       const desktopContents = getFolderContents(SYSTEM_IDS.DESKTOP);
-      const savedPositions = getSavedPositions();
+      const savedPositions = getDesktopIconPositions();
       const icons = convertToDesktopIcons(desktopContents, appSettings, savedPositions);
       dispatch({ type: SET_ICONS, payload: icons });
     }
-  }, [fsLoading, fileSystem, getFolderContents, getSavedPositions]);
+  }, [fsLoading, fileSystem, getFolderContents, getDesktopIconPositions]);
+
+  // Save icon positions when they change (per-user)
+  const iconPositionsRef = useRef({});
+  useEffect(() => {
+    // Build positions map from current icons
+    const positions = {};
+    state.icons.forEach((icon) => {
+      if (icon.x !== undefined && icon.y !== undefined) {
+        positions[icon.id] = { x: icon.x, y: icon.y };
+      }
+    });
+
+    // Only save if positions actually changed
+    const positionsStr = JSON.stringify(positions);
+    if (positionsStr !== JSON.stringify(iconPositionsRef.current) && Object.keys(positions).length > 0) {
+      iconPositionsRef.current = positions;
+      setDesktopIconPositions(positions);
+    }
+  }, [state.icons, setDesktopIconPositions]);
 
   const handleToggleCRT = useCallback(() => {
     setCrtEnabled((prev) => !prev);
@@ -800,7 +813,7 @@ function WinXP() {
       case 'refresh':
         // Trigger a re-render by updating icons
         const desktopContents = getFolderContents(SYSTEM_IDS.DESKTOP);
-        const savedPositions = getSavedPositions();
+        const savedPositions = getDesktopIconPositions();
         const icons = convertToDesktopIcons(desktopContents, appSettings, savedPositions);
         dispatch({ type: SET_ICONS, payload: icons });
         break;
@@ -811,7 +824,7 @@ function WinXP() {
       default:
         console.log('Desktop action:', action);
     }
-  }, [createItem, getFolderContents, getSavedPositions, paste]);
+  }, [createItem, getFolderContents, getDesktopIconPositions, paste]);
 
   // Close desktop context menu when clicking elsewhere
   useEffect(() => {

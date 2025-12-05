@@ -28,6 +28,8 @@ import Messenger from './Messenger';
 import SpeechProperties from './SpeechProperties';
 import SystemProperties from './SystemProperties';
 import SystemRecovery from './SystemRecovery';
+import UserAccounts from './UserAccounts';
+import Wordpad from './Wordpad';
 
 // XP Icons paths
 const XP_ICONS = {
@@ -45,6 +47,8 @@ const XP_ICONS = {
   soundRecorder: '/icons/xp/SoundRecorder.webp',
   speechProperties: '/icons/xp/speech.png',
   systemProperties: '/icons/xp/system.png',
+  userAccounts: '/icons/xp/UserAccounts.png',
+  wordpad: '/icons/xp/wordpad.png',
 };
 
 // Default apps open on startup (empty for now - user opens via desktop icons)
@@ -176,6 +180,16 @@ export const desktopIconCatalog = {
     icon: XP_ICONS.systemProperties,
     title: 'System Properties',
     component: SystemProperties,
+  },
+  userAccounts: {
+    icon: XP_ICONS.userAccounts,
+    title: 'User Accounts',
+    component: UserAccounts,
+  },
+  wordpad: {
+    icon: XP_ICONS.wordpad,
+    title: 'WordPad',
+    component: Wordpad,
   },
 };
 
@@ -921,6 +935,46 @@ export const appSettings = {
     maximized: false,
     multiInstance: false,
   },
+  'User Accounts': {
+    header: {
+      icon: XP_ICONS.userAccounts,
+      title: 'User Accounts',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: UserAccounts,
+    defaultSize: {
+      width: 708,
+      height: 534,
+    },
+    defaultOffset: {
+      x: 80,
+      y: 40,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  WordPad: {
+    header: {
+      icon: XP_ICONS.wordpad,
+      title: 'Document - WordPad',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: Wordpad,
+    defaultSize: {
+      width: 608,
+      height: 534,
+    },
+    defaultOffset: {
+      x: 120,
+      y: 60,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
+  },
 };
 
 export {
@@ -952,4 +1006,6 @@ export {
   Messenger,
   SpeechProperties,
   SystemProperties,
+  UserAccounts,
+  Wordpad,
 };
