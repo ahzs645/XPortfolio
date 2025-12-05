@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import styled from 'styled-components';
 import { VIEW_MODES } from '../constants';
 
@@ -20,7 +21,7 @@ function ViewMenu({ viewMode, onViewChange, onClose, position }) {
     onClose();
   };
 
-  return (
+  return ReactDOM.createPortal(
     <Container ref={menuRef} $top={position?.top} $left={position?.left}>
       <MenuItem
         $active={viewMode === VIEW_MODES.TILES}
@@ -50,19 +51,19 @@ function ViewMenu({ viewMode, onViewChange, onClose, position }) {
         <MenuIcon src="/gui/views/details.png" alt="" onError={(e) => e.target.style.display = 'none'} />
         Details
       </MenuItem>
-    </Container>
+    </Container>,
+    document.body
   );
 }
 
 const Container = styled.div`
-  position: absolute;
-  top: ${({ $top }) => $top != null ? `${$top}px` : '2px'};
-  left: ${({ $left }) => $left != null ? `${$left}px` : 'auto'};
-  right: ${({ $left }) => $left != null ? 'auto' : '4px'};
+  position: fixed;
+  top: ${({ $top }) => $top != null ? `${$top}px` : '0'};
+  left: ${({ $left }) => $left != null ? `${$left}px` : '0'};
   background: white;
   border: 1px solid #808080;
   box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
+  z-index: 10001;
   min-width: 100px;
 `;
 

@@ -57,6 +57,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   const [isSearching, setIsSearching] = useState(false);
   const isDraggingInternalRef = useRef(false); // Sync ref for drag state (React state updates are async)
   const justFinishedSelectingRef = useRef(false); // Prevent click from clearing selection after drag
+  const wrapperRef = useRef(null);
   const containerRef = useRef(null);
   const contentRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -625,10 +626,10 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
       case 'views':
         if (event?.currentTarget) {
           const rect = event.currentTarget.getBoundingClientRect();
-          const containerRect = containerRef.current?.getBoundingClientRect() || { top: 0, left: 0 };
+          // Use viewport coordinates for fixed positioning
           setViewMenuPosition({
-            top: rect.bottom - containerRect.top,
-            left: rect.left - containerRect.left,
+            top: rect.bottom,
+            left: rect.left,
           });
         }
         setShowViewMenu(prev => !prev);
@@ -853,14 +854,15 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
       addressIcon={currentFolderData?.icon || XP_ICONS.myComputer}
       statusFields={statusText}
     >
-      <Container
-        ref={containerRef}
-        tabIndex={0}
-        onClick={handleContainerClick}
-        onDragOver={!isMyComputerRoot ? handleDragOver : undefined}
-        onDragLeave={!isMyComputerRoot ? handleDragLeave : undefined}
-        onDrop={!isMyComputerRoot ? handleDrop : undefined}
-      >
+      <OuterWrapper ref={wrapperRef}>
+        <Container
+          ref={containerRef}
+          tabIndex={0}
+          onClick={handleContainerClick}
+          onDragOver={!isMyComputerRoot ? handleDragOver : undefined}
+          onDragLeave={!isMyComputerRoot ? handleDragLeave : undefined}
+          onDrop={!isMyComputerRoot ? handleDrop : undefined}
+        >
         <HiddenFileInput
           ref={fileInputRef}
           type="file"
@@ -984,16 +986,6 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
           />
         )}
 
-        {/* View Menu Dropdown - positioned below toolbar */}
-        {showViewMenu && (
-          <ViewMenu
-            viewMode={viewMode}
-            onViewChange={setViewMode}
-            onClose={() => setShowViewMenu(false)}
-            position={viewMenuPosition}
-          />
-        )}
-
         {contextMenu && (
           <ContextMenu
             overlayType="fixed"
@@ -1034,6 +1026,17 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
           </UploadProgressOverlay>
         )}
       </Container>
+
+      {/* View Menu Dropdown - positioned below toolbar button */}
+      {showViewMenu && (
+        <ViewMenu
+          viewMode={viewMode}
+          onViewChange={setViewMode}
+          onClose={() => setShowViewMenu(false)}
+          position={viewMenuPosition}
+        />
+      )}
+      </OuterWrapper>
     </ProgramLayout>
   );
 }
@@ -1044,6 +1047,14 @@ const LoadingContainer = styled.div`
   justify-content: center;
   height: 100%;
   color: #808080;
+`;
+
+const OuterWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  position: relative;
+  overflow: visible;
 `;
 
 const Container = styled.div`

@@ -151,8 +151,8 @@ export const desktopIconCatalog = {
     component: QQPenguin,
   },
   installer: {
-    icon: '/icons/xp/Programs.png',
-    title: 'App Installer',
+    icon: '/icons/xp/programs/add.png',
+    title: 'Add or Remove Programs',
     component: Installer,
   },
 };
@@ -738,20 +738,41 @@ export const appSettings = {
     maximized: false,
     multiInstance: false,
   },
-  'App Installer': {
+  'Add or Remove Programs': {
     header: {
-      icon: '/icons/xp/Programs.png',
-      title: 'App Installer',
+      icon: '/icons/xp/programs/add.png',
+      title: 'Add or Remove Programs',
       buttons: ['minimize', 'close'],
     },
     component: Installer,
     defaultSize: {
-      width: 500,
-      height: 450,
+      width: 580,
+      height: 480,
     },
     defaultOffset: {
-      x: 150,
-      y: 80,
+      x: 100,
+      y: 60,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  // Alias for backwards compatibility
+  'App Installer': {
+    header: {
+      icon: '/icons/xp/programs/add.png',
+      title: 'Add or Remove Programs',
+      buttons: ['minimize', 'close'],
+    },
+    component: Installer,
+    defaultSize: {
+      width: 580,
+      height: 480,
+    },
+    defaultOffset: {
+      x: 100,
+      y: 60,
     },
     resizable: true,
     minimized: false,
