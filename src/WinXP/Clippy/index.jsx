@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
+import Balloon from '../../components/Balloon';
 import useSystemSounds from '../../hooks/useSystemSounds';
 
 const SPRITE_SHEET_URL = '/clippy/map.png';
@@ -246,6 +247,11 @@ function Clippy() {
     }
   }, [getRandomMessage, showMessage]);
 
+  const handleBalloonClose = useCallback((e) => {
+    e?.stopPropagation?.();
+    hideBalloon();
+  }, [hideBalloon]);
+
   // Start idle animations
   useEffect(() => {
     if (status !== 'idle' || !isReady) return;
@@ -310,27 +316,18 @@ function Clippy() {
   return (
     <Container onClick={handleClick}>
       {showBalloon && currentMessage && (
-        <Balloon>
-          <div className="balloon">
-            <button
-              className="balloon__close"
-              aria-label="Close"
-              onClick={(e) => {
-                e.stopPropagation();
-                hideBalloon();
-              }}
-            />
-            <div className="balloon__header">
-              <img
-                className="balloon__header__img"
-                src="/icons/about.webp"
-                alt="clippy"
-              />
-              <span className="balloon__header__text">Clippy the Assistant</span>
-            </div>
+        <BalloonWrapper>
+          <Balloon
+            title="Clippy the Assistant"
+            icon="/icons/about.webp"
+            iconAlt="clippy"
+            width={220}
+            arrowOffset={20}
+            onClose={handleBalloonClose}
+          >
             <p className="balloon__text">{currentMessage}</p>
-          </div>
-        </Balloon>
+          </Balloon>
+        </BalloonWrapper>
       )}
       <Sprite
         ref={spriteRef}
@@ -370,118 +367,12 @@ const Sprite = styled.div`
   }
 `;
 
-const Balloon = styled.div`
+const BalloonWrapper = styled.div`
   position: absolute;
   right: 80px;
   bottom: 110px;
   z-index: 10;
   pointer-events: all;
-
-  .balloon {
-    width: 200px;
-    background: #ffffcc;
-    border: 1px solid #000;
-    border-radius: 8px;
-    padding: 8px;
-    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    position: relative;
-
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: -10px;
-      right: 20px;
-      border-width: 10px 10px 0 10px;
-      border-style: solid;
-      border-color: #ffffcc transparent transparent transparent;
-    }
-
-    &::before {
-      content: '';
-      position: absolute;
-      bottom: -12px;
-      right: 19px;
-      border-width: 11px 11px 0 11px;
-      border-style: solid;
-      border-color: #000 transparent transparent transparent;
-    }
-  }
-
-  .balloon__close {
-    all: unset;
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 14px;
-    height: 14px;
-    background-color: transparent;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    border-radius: 3px;
-    box-sizing: border-box;
-    display: block;
-    cursor: pointer;
-
-    &::before,
-    &::after {
-      content: '';
-      position: absolute;
-      left: 5px;
-      top: 2px;
-      width: 2px;
-      height: 8px;
-      background-color: #aaa;
-    }
-
-    &::before {
-      transform: rotate(45deg);
-    }
-
-    &::after {
-      transform: rotate(-45deg);
-    }
-
-    &:hover {
-      background-color: #dd0f0f;
-      border-color: #fff;
-      box-shadow: 1px 1px rgba(0, 0, 0, 0.1);
-
-      &::before,
-      &::after {
-        background-color: #fff;
-      }
-    }
-
-    &:active {
-      background-color: #a00a0a;
-    }
-  }
-
-  .balloon__header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
-    padding-right: 16px;
-  }
-
-  .balloon__header__img {
-    width: 20px;
-    height: 20px;
-    margin-right: 6px;
-  }
-
-  .balloon__header__text {
-    font-size: 11px;
-    font-weight: bold;
-    color: #000;
-  }
-
-  .balloon__text {
-    font-size: 11px;
-    color: #000;
-    margin: 0;
-    line-height: 1.4;
-    word-wrap: break-word;
-  }
 `;
 
 export default Clippy;

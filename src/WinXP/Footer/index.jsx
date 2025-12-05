@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
+import Balloon from '../../components/Balloon';
 import FooterMenu from './FooterMenu';
 
 const getTime = () => {
@@ -34,9 +35,12 @@ function Footer({
   const [time, setTime] = useState(getTime);
   const [menuOn, setMenuOn] = useState(false);
   const [showWelcomeBalloon, setShowWelcomeBalloon] = useState(false);
+  const [hasUpdate, setHasUpdate] = useState(false);
+  const [updateTooltip, setUpdateTooltip] = useState('Updates available');
   const menuRef = useRef(null);
   const startButtonRef = useRef(null);
   const welcomeIconRef = useRef(null);
+  const updateIconRef = useRef(null);
   const balloonTimeoutRef = useRef(null);
 
   function toggleMenu(e) {
@@ -136,6 +140,31 @@ function Footer({
     };
   }, []);
 
+  // Listen for update availability to show tray icon
+  useEffect(() => {
+    const handleAvailable = (e) => {
+      const detail = e?.detail;
+      setHasUpdate(true);
+      if (detail?.version) {
+        setUpdateTooltip(`Update ${detail.version} available`);
+      } else {
+        setUpdateTooltip('Updates available');
+      }
+    };
+
+    const handleClear = () => {
+      setHasUpdate(false);
+    };
+
+    window.addEventListener('xp:update-available', handleAvailable);
+    window.addEventListener('xp:update-clear', handleClear);
+
+    return () => {
+      window.removeEventListener('xp:update-available', handleAvailable);
+      window.removeEventListener('xp:update-clear', handleClear);
+    };
+  }, []);
+
   return (
     <Container onMouseDown={_onMouseDown}>
       <div className="footer__items left">
@@ -167,15 +196,15 @@ function Footer({
 
       <div className="footer__items right">
         {showWelcomeBalloon && (
-          <WelcomeBalloon className="welcome-balloon">
-            <button
-              className="balloon__close"
-              onClick={() => setShowWelcomeBalloon(false)}
-            />
-            <div className="balloon__header">
-              <img src="/gui/taskbar/welcome.webp" alt="welcome" />
-              <span>Welcome to XPortfolio</span>
-            </div>
+          <WelcomeBalloon
+            className="welcome-balloon"
+            title="Welcome to XPortfolio"
+            icon="/gui/taskbar/welcome.webp"
+            iconAlt="welcome"
+            width={260}
+            arrowOffset={40}
+            onClose={() => setShowWelcomeBalloon(false)}
+          >
             <p className="balloon__text">
               A faithful XP-inspired interface, custom-built to showcase my work and attention to detail.
             </p>
@@ -198,6 +227,16 @@ function Footer({
           title="Welcome"
           onClick={handleWelcomeClick}
         />
+        {hasUpdate && (
+          <TrayIcon
+            ref={updateIconRef}
+            className="tray-icon--update"
+            src="/gui/taskbar/windows-update.png"
+            alt="Windows Update"
+            title={updateTooltip}
+            onClick={() => window.dispatchEvent(new Event('xp:update-icon-click'))}
+          />
+        )}
         <TrayIcon
           src={crtEnabled ? '/gui/taskbar/crt.webp' : '/gui/taskbar/crt-off.webp'}
           alt="CRT Effects"
@@ -270,126 +309,11 @@ const TrayIcon = styled.img`
   }
 `;
 
-const WelcomeBalloon = styled.div`
+const WelcomeBalloon = styled(Balloon)`
   position: absolute;
   bottom: 40px;
   right: 10px;
-  width: 260px;
-  background: #ffffcc;
-  border: 1px solid #000;
-  border-radius: 4px;
-  padding: 10px;
-  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   z-index: 9999;
-  font-size: 11px;
-
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    right: 40px;
-    border-width: 10px 10px 0 10px;
-    border-style: solid;
-    border-color: #ffffcc transparent transparent transparent;
-  }
-
-  &::before {
-    content: '';
-    position: absolute;
-    bottom: -12px;
-    right: 39px;
-    border-width: 11px 11px 0 11px;
-    border-style: solid;
-    border-color: #000 transparent transparent transparent;
-  }
-
-  .balloon__close {
-    all: unset;
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 14px;
-    height: 14px;
-    background-color: transparent;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    border-radius: 3px;
-    box-sizing: border-box;
-    display: block;
-    cursor: pointer;
-
-    &::before,
-    &::after {
-      content: '';
-      position: absolute;
-      left: 5px;
-      top: 2px;
-      width: 2px;
-      height: 8px;
-      background-color: #aaa;
-    }
-
-    &::before {
-      transform: rotate(45deg);
-    }
-
-    &::after {
-      transform: rotate(-45deg);
-    }
-
-    &:hover {
-      background-color: #dd0f0f;
-      border-color: #fff;
-      box-shadow: 1px 1px rgba(0, 0, 0, 0.1);
-
-      &::before,
-      &::after {
-        background-color: #fff;
-      }
-    }
-
-    &:active {
-      background-color: #a00a0a;
-    }
-  }
-
-  .balloon__header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
-    padding-right: 16px;
-
-    img {
-      width: 20px;
-      height: 20px;
-      margin-right: 8px;
-    }
-
-    span {
-      font-weight: bold;
-      color: #000;
-    }
-  }
-
-  .balloon__text {
-    margin: 0 0 8px 0;
-    color: #000;
-    line-height: 1.4;
-  }
-
-  .balloon__links {
-    margin: 0;
-    color: #000;
-
-    a {
-      color: blue;
-      text-decoration: underline;
-      cursor: pointer;
-
-      &:hover {
-        color: darkblue;
-      }
-    }
-  }
 `;
 
 const Container = styled.footer`
