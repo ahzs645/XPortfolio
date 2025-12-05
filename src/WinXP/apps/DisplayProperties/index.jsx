@@ -494,7 +494,7 @@ const WindowSurface = styled.div`
   padding: 8px;
   gap: 10px;
   overflow: hidden;
-  font-family: "Tahoma", "MS Sans Serif", sans-serif;
+  font-family: "MS Sans Serif", "Tahoma", sans-serif;
 
   section.tabs {
     height: 100%;
@@ -513,20 +513,23 @@ const TabsBar = styled.menu`
   background: linear-gradient(180deg, #f8f8f4 0%, #eae7d9 100%);
   border: 1px solid #919b9c;
   border-radius: 4px 4px 0 0;
+  border-bottom: none;
+  margin-bottom: -1px;
 `;
 
 const TabButton = styled.button`
   min-width: 76px;
   padding: 5px 10px 6px 10px;
   font-size: 12px;
+  font-family: "MS Sans Serif", "Tahoma", sans-serif;
   border: 1px solid #91a7b4;
   border-bottom: ${({ $active }) => ($active ? '1px solid #fbfbfc' : '1px solid #919b9c')};
   border-radius: 3px 3px 0 0;
   background: ${({ $active }) => ($active
     ? 'linear-gradient(180deg, #fff, #fafaf9 26%, #f0f0ea 95%, #ecebe5)'
-    : 'linear-gradient(180deg, #f6f6f6, #ededeb 26%, #e4e4dd 95%, #dfdfd6)')};
+    : 'linear-gradient(180deg, #f7f7f7, #ededeb 40%, #e7e7e0 95%, #e2e2d8)')};
   color: ${({ $active }) => ($active ? '#000' : '#222')};
-  box-shadow: ${({ $active }) => ($active ? 'inset 0 2px #ffc73c' : 'none')};
+  box-shadow: ${({ $active }) => ($active ? 'inset 0 2px #ffc73c, inset 0 1px 0 #fff' : 'none')};
   position: relative;
   top: ${({ $active }) => ($active ? '0' : '1px')};
   margin-bottom: ${({ $active }) => ($active ? '-1px' : '0')};
@@ -545,7 +548,7 @@ const TabPanel = styled.article`
   overflow: hidden;
   background: #fbfbfc;
   border: 1px solid #919b9c;
-  border-top: 0;
+  border-top: 1px solid #919b9c;
   box-shadow: inset 1px 1px #fcfcfe, inset -1px -1px #fcfcfe, 1px 2px 2px 0 rgba(208, 206, 191, 0.75);
   border-radius: 0 0 4px 4px;
   margin-top: 0;
@@ -564,10 +567,10 @@ const PreviewArea = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #ffffff 0%, #f2f2f2 100%);
-  border: 1px solid #b5b5b5;
-  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #9a9a9a, 0 2px 6px rgba(0,0,0,0.12);
-  padding: 12px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8f8f4 100%);
+  border: 2px solid #716f64;
+  box-shadow: inset 1px 1px 0 #f1efe2, inset -1px -1px 0 #f1efe2;
+  padding: 10px;
   min-height: 150px;
 `;
 
@@ -632,6 +635,7 @@ const ListItem = styled.div`
   background: ${({ $active }) => ($active ? '#316ac5' : 'transparent')};
   color: ${({ $active }) => ($active ? '#fff' : '#000')};
   font-size: 12px;
+  font-family: "MS Sans Serif", "Tahoma", sans-serif;
   border-radius: 2px;
 
   &:hover {
@@ -687,6 +691,7 @@ const SideLabel = styled.span`
 const SideButton = styled.button`
   padding: 4px 10px;
   font-size: 11px;
+  font-family: "MS Sans Serif", "Tahoma", sans-serif;
   min-width: 90px;
   background: linear-gradient(180deg, #fff, #ecebe5 86%, #d8d0c4);
   border: 1px solid #003c74;
@@ -704,6 +709,7 @@ const SideButton = styled.button`
 
 const SideSelect = styled.select`
   font-size: 12px;
+  font-family: "MS Sans Serif", "Tahoma", sans-serif;
   min-width: 90px;
   padding: 3px 4px;
   border: 1px solid #7f9db9;
@@ -809,6 +815,7 @@ const ThemePreview = styled.div`
   max-width: 100%;
   width: 100%;
   align-self: center;
+  font-family: "MS Sans Serif", "Tahoma", sans-serif;
 
   img {
     max-width: 100%;
@@ -872,6 +879,7 @@ const AppearanceControls = styled.div`
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 10px;
   align-content: start;
+  font-family: "MS Sans Serif", "Tahoma", sans-serif;
 `;
 
 const SettingsPane = styled.div`

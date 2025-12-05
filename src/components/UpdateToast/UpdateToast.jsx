@@ -86,6 +86,14 @@ export default function UpdateToast() {
     };
   }, [triggerMockUpdate, computeAnchor]);
 
+  // Ensure tray icon is present whenever we have update info
+  useEffect(() => {
+    if (!updateInfo) return;
+    window.dispatchEvent(new CustomEvent('xp:update-available', { detail: updateInfo }));
+    computeAnchor();
+    setIsVisible(true);
+  }, [updateInfo, computeAnchor]);
+
   const handleClose = () => {
     setIsClosing(true);
     setTimeout(() => {
@@ -151,7 +159,7 @@ export default function UpdateToast() {
       width={280}
       arrowOffset={140}
       anchor={anchor}
-      offset={{ y: -12 }}
+      offset={{ y: 0 }}
       placement="top"
       animate
       isClosing={isClosing}

@@ -225,12 +225,37 @@ export default function Balloon({
   className,
   ...rest
 }) {
+  let computedArrowOffset = arrowOffset;
+  let anchorStyle = null;
+
+  if (anchor) {
+    const bubbleWidth = width || 240;
+    const padding = 8;
+    const centerX = (anchor.x ?? 0) + (anchor.width ? anchor.width / 2 : 0) + (offset?.x || 0);
+    const arrowHeight = 18; // visual height of the tail
+    const top = (anchor.y ?? 0) + (offset?.y || 0) - arrowHeight;
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : bubbleWidth;
+    const unclampedLeft = centerX - bubbleWidth / 2;
+    const clampedLeft = Math.max(padding, Math.min(unclampedLeft, viewportWidth - bubbleWidth - padding));
+    const arrowFromLeft = Math.max(12, Math.min(bubbleWidth - 12, centerX - clampedLeft));
+    computedArrowOffset = bubbleWidth - arrowFromLeft;
+
+    anchorStyle = {
+      position: 'absolute',
+      left: clampedLeft,
+      top,
+      transform: placement === 'top' ? 'translateY(-100%)' : 'translateY(0)',
+      pointerEvents: 'auto',
+      maxWidth: `calc(100vw - ${padding * 2}px)`,
+    };
+  }
+
   const frame = (
     <BalloonFrame
       className={className}
       $width={width}
       $iconSize={iconSize}
-      $arrowOffset={arrowOffset}
+      $arrowOffset={computedArrowOffset}
       $radius={radius}
       $isClosing={isClosing}
       $animate={animate}
@@ -254,21 +279,5 @@ export default function Balloon({
     </BalloonFrame>
   );
 
-  if (!anchor) {
-    return frame;
-  }
-
-  const anchorStyle = {
-    position: 'absolute',
-    left: (anchor.x ?? 0) + (anchor.width ? anchor.width / 2 : 0) + (offset?.x || 0),
-    top: (anchor.y ?? 0) + (offset?.y || 0),
-    transform: placement === 'top' ? 'translate(-50%, -100%)' : 'translate(-50%, 0)',
-    pointerEvents: 'auto',
-  };
-
-  return (
-    <div style={anchorStyle}>
-      {frame}
-    </div>
-  );
+  return anchorStyle ? <div style={anchorStyle}>{frame}</div> : frame;
 }
