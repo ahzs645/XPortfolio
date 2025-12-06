@@ -4,7 +4,6 @@ import { BOOT_STATE } from '../constants';
 import { useConfig } from '../../contexts/ConfigContext';
 import { useUserAccounts } from '../../contexts/UserAccountsContext';
 import useSystemSounds from '../../hooks/useSystemSounds';
-import XpLogoSvg from '../../assets/xp.svg?react';
 
 function BootScreen({ bootState, onComplete }) {
   const [showLogin, setShowLogin] = useState(false);
@@ -128,7 +127,7 @@ function BootScreen({ bootState, onComplete }) {
         <LoginScreenInner>
           <LoginContainer $fadeOut={showWelcome}>
             <LoginLeft $fadeOut={showWelcome}>
-              <XPLogo as={XpLogoSvg} aria-label="Windows XP" />
+              <XPLogo src="/xp.svg" alt="Windows XP" aria-label="Windows XP" />
               <LoginInstruction>
                 {showMultiUser ? (
                   <>
@@ -231,7 +230,7 @@ function BootScreen({ bootState, onComplete }) {
   return (
     <BootContainer>
       <BootContent>
-        <BootLogo as={XpLogoSvg} aria-label="Windows XP" />
+        <BootLogo src="/xp.svg" alt="Windows XP" aria-label="Windows XP" />
         <LoadingBoxes>
           <LoadingBox />
           <LoadingBox />
