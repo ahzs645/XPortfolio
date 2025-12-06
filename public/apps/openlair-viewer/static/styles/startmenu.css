@@ -1,0 +1,293 @@
+#startmenu {
+	display: none;
+	position: absolute;
+	bottom: 30px;
+	left: 0;
+	width: 380px;
+	filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.6));
+	z-index: 900;
+	border: 1px solid #1e59c4;
+	background-color: #2b6dd1;
+}
+
+#startmenu .top {
+	height: 67px;
+	background: 
+	  radial-gradient(circle at 100% 0%, #0849a977 0%, #0849a900 6%, #0849a900 100%),
+	  linear-gradient(to bottom, #66a2e7 0%, #74abe8 1.5%, #0c5fcb 5%, #1061cc 10%, #4792ec 100%),
+	  linear-gradient(to bottom, #a8a7bf 0%, #ffffff 3%, #a8a7bf 5%, #b1b3c8 8%, #ffffff 100%);
+	box-shadow: inset -2px 0px 3px #1455b7, inset 2px 0 3px #7190d9;
+	border-bottom: 1px solid #1b6bd1;
+	border-radius: 5px 5px 0 0;
+	display: flex;
+	align-items: center;
+	padding: 0 10px;
+}
+
+#startmenu .top .userinfo {
+	display: flex;
+	align-items: center;
+}
+
+#startmenu .top .userinfo .UserPicture {
+	width: 48px;
+	height: 48px;
+	border: 1px solid #d5d3e8;
+	border-radius: 2px;
+	box-shadow: 1px 0 #d5d3e8, -1px 0 #d5d3e8, 0 1px #d5d3e8, 0 -1px #d5d3e8, 2px 2px 3px #0003;
+	cursor: url('https://xp.openlair.com/static/cursors/pointer.cur'), pointer;
+}
+
+#startmenu .top .userinfo .UserName {
+	color: #fff;
+	font-size: 19px;
+	margin-left: 12px;
+	text-shadow: 2px 2px 3px #000000dd;
+	font-family: 'Franklin Gothic', sans-serif;
+	cursor: url('https://xp.openlair.com/static/cursors/pointer.cur'), pointer;
+}
+
+#startmenu .middle {
+	display: flex;
+	width: 380px;
+	border-top: 2px solid;
+	border-image-slice: 1;
+	border-image-source: linear-gradient(to right, #91a4da 0%, #91a4da 0.4%, #ffffff 0.5%, #ff8e24, #d3e5fa 99.5%, #2b6dd1 99.6%, #2b6dd1 100%);
+}
+
+#startmenu .middle .left,
+#startmenu .middle .right {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+}
+
+#startmenu .middle .left .holder {
+	display: flex;
+	flex-direction: column;
+	flex-grow: 1;
+	padding: 2px;
+	background: #FFFFFF;
+	border-left: 1px solid #91a4da;
+	color: #373738;
+}
+
+#startmenu .middle .left .holder .button {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 2px 0 2px 2px;
+	margin: 2px;
+}
+
+#startmenu .middle .left .holder .button:hover {
+	background-color: #316AC5;
+}
+
+#startmenu .middle .left .holder .button:hover * {
+	color: #FFFFFF !important;
+}
+
+#startmenu .middle .left .holder .button .image {
+	width: 32px;
+	flex-shrink: 0;
+	filter: drop-shadow(0.5px 0.5px 0.5px rgba(0, 0, 0, 0.5));
+}
+
+#startmenu .middle .left .holder .button .label {
+	overflow: hidden;
+	color: #373738;
+}
+
+#startmenu .middle .left .holder .button .sublabel {
+	color: #808080;
+}
+
+#startmenu .middle .right .holder {
+	display: flex;
+	flex-direction: column;
+	flex-grow: 1;
+	padding: 2px;
+	background-color: #d3e5fa;
+	box-shadow: inset -1px 0 2px #a6c2e6;
+	border-left: 1px solid #95bdee;
+	border-right: 1px solid #2b6dd1;
+	color: #0a246a;
+}
+
+#startmenu .middle .right .holder .button {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 1px 3px;
+	margin: 2px;
+}
+
+#startmenu .middle .right .holder .button:hover {
+	background-color: #316AC5;
+}
+
+#startmenu .middle .right .holder .button:hover * {
+	color: #FFFFFF !important;
+}
+
+#startmenu .middle .right .holder .button .image {
+	width: 24px;
+	flex-shrink: 0;
+	filter: drop-shadow(0.5px 0.5px 0.5px rgba(0, 0, 0, 0.5));
+}
+
+#startmenu .middle .right .holder .button .label {
+	overflow: hidden;
+	color: #0a246a;
+}
+
+#startmenu .middle .right .holder .button .sublabel {
+	color: #808080;
+}
+
+#startmenu .bottom {
+	height: 41px;
+	background: 
+	  radial-gradient(circle at 0% 100%, #0846b8aa 0%, #0846b800 13%, #0846b800 100%),
+	  radial-gradient(circle at 100% 100%, #0c50b188 0%, #0c50b100 13%, #0c50b100 100%),
+	  linear-gradient(to bottom, #438be3 0%, #1164d1 95%, #0c56c0 100%);
+	box-shadow: inset -2px 0px 3px #1455b7, inset 2px 0 3px #7190d9;
+	border-top: 1px solid #3277de;
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+	padding: 0 8px;
+	gap: 6px;
+}
+
+#startmenu .bottom .button {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	cursor: url('https://xp.openlair.com/static/cursors/pointer.cur'), pointer;
+	padding: 4px 6px;
+	transition: filter 0.2s ease;
+}
+
+#startmenu .bottom .button:hover {
+	filter: brightness(120%);
+}
+
+#startmenu .bottom .button .image {
+	width: 22px;
+	height: 22px;
+	flex-shrink: 0;
+}
+
+#startmenu .bottom .button .label {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+#startmenu .programs {
+	position: relative;
+}
+
+#startmenu .programs .button {
+	padding: 5px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 15px;
+	text-align: center;
+}
+
+#startmenu .programs .menu {
+	position: absolute;
+	left: 180px;
+	bottom: 0;
+	background: #FFFFFF;
+	border: 1px solid #2D7CE2;
+	border-left-width: 5px;
+	width: 200px;
+	z-index: 999;
+	box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: none;
+	pointer-events: auto;
+}
+
+#startmenu .programs:hover .menu,
+#startmenu .programs.open .menu {
+	display: block;
+}
+
+#startmenu .programs .menu li {
+	display: flex;
+	align-items: center;
+	padding: 4px 8px;
+	cursor: url('https://xp.openlair.com/static/cursors/pointer.cur'), pointer;
+	white-space: nowrap;
+	position: relative;
+}
+
+#startmenu .programs .menu li.new {
+	background-color: #fbe7b5;
+}
+
+#startmenu .programs .menu li:hover,
+#startmenu .programs .menu li:focus {
+	background: #316AC5;
+	color: #fff;
+	outline: none;
+}
+
+#startmenu .programs .menu li .image {
+	width: 16px;
+	height: 16px;
+	margin-right: 5px;
+}
+
+#startmenu .programs .menu .folder::after {
+	content: "\25B8";
+	position: absolute;
+	right: 0;
+	pointer-events: none;
+}
+
+#startmenu .programs .folder .submenu {
+	position: absolute;
+	left: 100%;
+	top: 0;
+	background: #FFFFFF;
+	border: 1px solid #2D7CE2;
+	border-left-width: 5px;
+	min-width: 100px;
+	width: auto;
+	padding-left: 0;
+	color: #000000;
+	display: none;
+	pointer-events: auto;
+	z-index: 1000;
+}
+
+#startmenu .programs .folder:hover > .submenu,
+#startmenu .programs .folder:focus-within > .submenu,
+#startmenu .programs.open .folder > .submenu {
+	display: block;
+}
+
+#startmenu .programs:has(.list:hover) > .button,
+#startmenu .programs:has(.list:focus-within) > .button,
+#startmenu .programs:has(.folder:hover) > .button,
+#startmenu .programs:hover > .button,
+#startmenu .programs:focus-within > .button,
+#startmenu .programs.open > .button {
+	background-color: #316AC5;
+	color: #FFFFFF;
+}
+
+#startmenu .programs:has(.list:hover) > .button *,
+#startmenu .programs:hover > .button *,
+#startmenu .programs.open > .button * {
+	color: #FFFFFF !important;
+}

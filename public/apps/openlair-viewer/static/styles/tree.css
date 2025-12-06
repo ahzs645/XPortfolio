@@ -1,0 +1,22 @@
+.tree {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.tree ul {
+    list-style: none;
+    padding-left: 16px;
+    margin: 0;
+}
+
+.tree details {
+    display: inline-block;
+}
+
+.tree details summary img {
+    width:16px;
+    height:16px;
+    margin-right: 2px;
+    vertical-align: bottom;
+}

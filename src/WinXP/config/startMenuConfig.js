@@ -108,6 +108,13 @@ export const START_MENU_CATALOG = {
     title: 'Picture and Fax Viewer',
     description: null,
   },
+  classicViewer: {
+    type: 'program',
+    appKey: 'Classic Picture Viewer',
+    icon: '/apps/openlair-viewer/static/images/icon/viewer.png',
+    title: 'Picture and Fax Viewer (Classic)',
+    description: 'Static OpenLair port',
+  },
   winamp: {
     type: 'program',
     appKey: 'Winamp',
@@ -245,7 +252,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Accessories',
     icon: '/icons/xp/FolderClosed.png',
-    items: ['calculator', 'notepad', 'wordpad', 'displayProperties', 'speechProperties', 'systemProperties', 'systemRecovery', 'userAccounts', 'paint', 'cmd', 'imageViewer', 'installer'],
+    items: ['calculator', 'notepad', 'wordpad', 'displayProperties', 'speechProperties', 'systemProperties', 'systemRecovery', 'userAccounts', 'paint', 'cmd', 'imageViewer', 'classicViewer', 'installer'],
   },
   entertainment: {
     type: 'folder',

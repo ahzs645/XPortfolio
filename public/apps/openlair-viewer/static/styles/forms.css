@@ -1,0 +1,168 @@
+label > * {
+	vertical-align: middle;
+	display: inline-block;
+}
+
+input[type=checkbox],
+input[type=radio] {
+	margin: 0 5px 0 0;
+}
+
+input[type=email],
+input[type=password],
+input[type=text],
+input[type=number],
+input[type=search],
+input[type=url] {
+	padding: 3px 4px;
+	border: 1px solid #7f9db9;
+	background-color: #FFFFFF;
+	box-sizing: border-box;
+	border-radius: 0;
+	font-family: "msSansSerif", Arial;
+	font-size: 11px;
+}
+
+button {
+	font-family: "msSansSerif", Arial;
+	font-size: 11px;
+	box-sizing: border-box;
+	min-width: 75px;
+	min-height: 22px;
+	padding: 0 12px;
+	border: 1px solid #003c74;
+	border-radius: 3px;
+	background: linear-gradient(180deg, #fff, #ecebe5 86%, #d8d0c4);
+	box-shadow: none;
+}
+
+button:not(:disabled).active,
+button:not(:disabled):active {
+	background: linear-gradient(180deg, #cdcac3, #e3e3db 8%, #e5e5de 94%, #f2f2f1);
+	box-shadow: none;
+}
+
+button:not(:disabled):hover {
+	box-shadow: inset -1px 1px #fff0cf, inset 1px 2px #fdd889, inset -2px 2px #fbc761, inset 2px -2px #e5a01a;
+}
+
+button:focus,
+button.focused {
+	outline: none;
+	box-shadow: inset -1px 1px #cee7ff, inset 1px 2px #98b8ea, inset -2px 2px #bcd4f6, inset 1px -1px #89ade4, inset 2px -2px #89ade4;
+}
+
+button::-moz-focus-inner {
+	border: 0;
+}
+
+select {
+	font-family: "msSansSerif", Arial;
+	font-size: 11px;
+	box-sizing: border-box;
+	height: 22px;
+	padding: 3px 32px 3px 4px;
+	border: 1px solid #7f9db9;
+	border-radius: 0;
+	background-color: #fff;
+	background-image: url("https://xp.openlair.com/static/images/forms/select_2.svg");
+	background-position: top 2px right 2px;
+	background-repeat: no-repeat;
+	background-size: 15px;
+	appearance: none;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	position: relative;
+}
+
+select:focus {
+	outline: none;
+	color: #fff;
+	background-color: #2267cb;
+	box-shadow: inset 2px 2px #fff, inset -2px -2px #fff;
+}
+
+select:focus option {
+	color: #000;
+	background-color: #fff;
+}
+
+select:hover {
+	background-image: url("https://xp.openlair.com/static/images/forms/selecthover_1.svg");
+}
+
+select:active {
+	background-image: url("https://xp.openlair.com/static/images/forms/selectactive_2.svg");
+}
+
+option {
+	font-family: "msSansSerif", Arial;
+	font-size: 11px;
+}
+
+optgroup {
+	color: #000;
+	background-color: #fff;
+}
+
+input[type=range] {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	width: 100%;
+	height: 2px;
+	background: transparent;
+	border-radius: 2px;
+	border: none;
+}
+
+input[type=range]:focus {
+	outline: none;
+}
+
+input[type=range]::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	height: 22px;
+	width: 12px;
+	background: url("https://xp.openlair.com/static/images/forms/inputtyperange-webkit-slider-thumb_2.svg");
+	transform: translateY(-10px);
+}
+
+input[type=range]::-moz-range-thumb {
+	height: 22px;
+	width: 12px;
+	border: 0;
+	border-radius: 0;
+	background: url("https://xp.openlair.com/static/images/forms/inputtyperange-moz-range-thumb_2.svg");
+	transform: translateY(2px);
+}
+
+input[type=range].has-box-indicator::-webkit-slider-thumb {
+	background: url("https://xp.openlair.com/static/images/forms/inputtyperangehas-box-indicator-webkit-slider-thumb_2.svg");
+	transform: translateY(-10px);
+}
+
+input[type=range].has-box-indicator::-moz-range-thumb {
+	background: url("https://xp.openlair.com/static/images/forms/inputtyperangehas-box-indicator-moz-range-thumb_2.svg");
+	transform: translateY(0);
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+	width: 100%;
+	height: 2px;
+	box-sizing: border-box;
+	background: transparent;
+	border: none;
+	border-radius: 2px;
+	box-shadow: 1px 0 0 #fff, 1px 1px 0 #fff, 0 1px 0 #fff, -1px 0 0 #a9a9a9, -1px -1px 0 #a9a9a9, 0 -1px 0 #a9a9a9, -1px 1px 0 #fff, 1px -1px 0 #a9a9a9;
+}
+
+input[type=range]::-moz-range-track {
+	width: 100%;
+	height: 2px;
+	box-sizing: border-box;
+	background: transparent;
+	border: none;
+	border-radius: 2px;
+	box-shadow: 1px 0 0 #fff, 1px 1px 0 #fff, 0 1px 0 #fff, -1px 0 0 #a9a9a9, -1px -1px 0 #a9a9a9, 0 -1px 0 #a9a9a9, -1px 1px 0 #fff, 1px -1px 0 #a9a9a9;
+}

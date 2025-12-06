@@ -1,0 +1,7 @@
+#desktop {
+    position: relative;
+    width: 100%;
+    height: calc(100% - 30px);
+    color:#FFFFFF;
+    text-shadow: 0px 0px 3px #0009, 1px 2px 2px #000b;
+}

@@ -1,0 +1,123 @@
+#taskbar {
+    position: absolute;
+    display: flex;
+	background: linear-gradient(to bottom, #3168d5 2%, #4993e6 8%, #245dd7 17%, #2257d5 30%, #2663e0 89%, #1941a5 98%);
+    bottom: 0px;
+    height: 30px;
+    width: 100%;
+    z-index: 850;
+}
+
+#taskbar .start {
+	width: 100px;
+	height: 30px;
+}
+	
+#taskbar .apps {
+    padding: 0 10px;
+    overflow: hidden;
+    text-overflow: " ≫ ";
+    white-space: nowrap;
+    
+    display: flex;
+    align-items: center;
+}
+
+#taskbar .apps img {
+    width: 16px;
+    height: 16px;
+    padding: 3px;
+}
+
+#taskbar .apps img:hover {
+    background: linear-gradient(to bottom, #3a80f3, #3980f4);
+    box-shadow: inset 1px 1px 2px #68a7f7, inset 0px -2px 2px #316fe8, inset 1px 0 0 #6da4f6;
+    border-radius: 4px;
+}
+
+#taskbar .tasks {
+    display: flex;
+    flex: 1;
+    overflow-x: hidden;
+}
+	
+#taskbar .tray {
+
+    right: 0px;
+    height: 30px;
+    padding: 0 15px;
+    text-align: right;
+    color: #FFFFFF;
+    position:relative;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: linear-gradient(to bottom, #095bc9 2%, #19b8f3 8%, #1290e8 17%, #1290e9 30%, #0f9eef 89%, #095bc9 98%), linear-gradient(to left, #0f83e0ff 0%, #0f83e000 15%);
+    box-shadow: inset 2px 0 0 #00c5ff88, -1px 0 0 #0b3051;
+}	
+
+#taskbar .tray .app {
+    display: block;
+    width: 16px;
+    height: 16px;
+    box-sizing: border-box;
+}
+			
+#taskbar .start:hover {
+	filter: brightness(120%);
+}
+	
+#taskbar .tasks .task {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    max-width: 135px;
+    min-width: 50px;
+    height: 23px;
+    border-radius: 4px;
+    padding: 0 10px 0 5px;
+    color: #404040;
+    overflow: hidden;
+    white-space: nowrap;
+    gap: 2px;
+    background: linear-gradient(to bottom, #3a80f3, #3980f4);
+    box-shadow: inset 1px 1px 2px #68a7f7, inset 0px -2px 2px #316fe8, inset 1px 0 0 #6da4f6;
+    border: 1px solid;
+    border-color: #3172da #2653b8 #2653b8 #3172da;
+    margin-top: 3px;
+}			
+				
+#taskbar .tasks .task.active {
+    background: linear-gradient(to bottom, #1951b9, #1a50b8);
+    box-shadow: inset 1px 1px 0 #1848a6, inset 0px -2px 2px #2156b7, 0 -1px 0 #2266d5;
+    border: 1px solid #123d94;
+    border-left: 1px solid #082970;
+}	
+
+#taskbar .task.active:hover {
+    background: linear-gradient(to bottom, #326fea, #326ee9);
+    box-shadow: inset 1px 1px 1px #1b5bd3, inset 2px 2px 2px #3f7ae8, 0 -1px 0 #2266d5;
+    border: 1px solid;
+    border-color: #1c51c2 #0c3cae #0c3cae #1c51c2;
+}
+
+#taskbar .task:hover {
+    background: linear-gradient(to bottom, #59a4ff, #55a0ff);
+    box-shadow: inset 1px 1px 3px #8bc0ff, inset 1px 0 0 #9fccff, inset -1px -1px 3px #2a81ff;
+    border: 1px solid;
+    border-color: #2e60b3 #1f408c #1f408c #2e60b3;
+}	
+
+#taskbar .tasks .task .image {
+    width:16px;
+    height:16px;
+    padding: 3px 0 3px 5px;
+}
+
+#taskbar .tasks .task .label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #FFFFFF;
+    padding: 1px;
+}

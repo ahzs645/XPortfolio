@@ -1,0 +1,60 @@
+::-webkit-scrollbar{
+    width:17px;
+    height:17px;
+}
+
+::-webkit-scrollbar-corner{
+    background:#dfdfdf
+}
+
+::-webkit-scrollbar-track:vertical{
+    background-image:url('https://xp.openlair.com/static/images/scrollbars/track-vertical.svg')
+}
+
+::-webkit-scrollbar-track:horizontal{
+    background-image:url('https://xp.openlair.com/static/images/scrollbars/track-horizontal.svg')
+}
+
+::-webkit-scrollbar-thumb{
+    background-position:50%;
+    background-repeat:no-repeat;
+    background-color:#c8d6fb;
+    background-size:7px;
+    border:2px solid #fff;
+    border-radius:2px;
+    box-shadow:inset -3px 0 #bad1fc, inset 1px 1px #b7caf5
+}
+
+::-webkit-scrollbar-thumb:vertical{
+    background-size:8px;
+    background-image:url('https://xp.openlair.com/static/images/scrollbars/thumb-vertical.svg')
+}
+
+::-webkit-scrollbar-thumb:horizontal{
+    background-size:8px;
+    background-image:url('https://xp.openlair.com/static/images/scrollbars/thumb-horizontal.svg')
+}
+
+::-webkit-scrollbar-button:single-button:vertical:increment {
+    width:17px;
+    height:17px;
+    background-image:url('https://xp.openlair.com/static/images/scrollbars/increment-vertical.svg')
+}
+
+::-webkit-scrollbar-button:single-button:vertical:decrement {
+    width:17px;
+    height:17px;
+    background-image:url('https://xp.openlair.com/static/images/scrollbars/decrement-vertical.svg')
+}
+
+::-webkit-scrollbar-button:single-button:horizontal:increment {
+    width:17px;
+    height:17px;
+    background-image:url('https://xp.openlair.com/static/images/scrollbars/increment-horizontal.svg')
+}
+
+::-webkit-scrollbar-button:single-button:horizontal:decrement {
+    width:17px;
+    height:17px;
+    background-image:url('https://xp.openlair.com/static/images/scrollbars/decrement-horizontal.svg')
+}

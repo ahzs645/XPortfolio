@@ -15,14 +15,19 @@ import { useFileContextMenu, useBackgroundContextMenu } from './hooks/useFileCon
 import { createArchive, extractArchive, isArchiveFile } from '../utils/archiveUtils';
 import { getDefaultProgramForFile } from './apps/Installer/components/SetProgramDefaults';
 
+// Icon grid layout constants (used for arranging icons)
+const ICON_GRID = {
+  iconWidth: 80,
+  iconHeight: 90,
+  iconGapX: 10,
+  iconGapY: 10,
+  startX: 10,
+  startY: 10,
+};
+
 // Convert file system items to desktop icon format
 const convertToDesktopIcons = (items, appSettings, savedPositions = {}) => {
-  const iconWidth = 80;
-  const iconHeight = 90;
-  const iconGapX = 10;
-  const iconGapY = 10;
-  const startX = 10;
-  const startY = 10;
+  const { iconWidth, iconHeight, iconGapX, iconGapY, startX, startY } = ICON_GRID;
   // Calculate max icons per column based on viewport (leave room for taskbar)
   const maxHeight = window.innerHeight - 60; // 60px for taskbar
   const iconsPerColumn = Math.floor((maxHeight - startY) / (iconHeight + iconGapY));
@@ -293,6 +298,8 @@ function WinXP() {
   const [iconContextMenu, setIconContextMenu] = useState(null); // { x, y, icon }
   const [renamingIconId, setRenamingIconId] = useState(null);
   const [renameValue, setRenameValue] = useState('');
+  const [alignToGridEnabled, setAlignToGridEnabled] = useState(true);
+  const [autoArrangeEnabled, setAutoArrangeEnabled] = useState(false);
   const ref = useRef(null);
   const dragCounterRef = useRef(0);
   const mouse = useMouse(ref);
@@ -1124,17 +1131,6 @@ function WinXP() {
     onExtractHere: () => handleIconMenuAction('extractHere'),
   });
 
-  // Use the shared hook for desktop background context menu
-  const desktopMenuItems = useBackgroundContextMenu({
-    clipboard,
-    onRefresh: () => handleDesktopMenuAction('refresh'),
-    onPaste: () => handleDesktopMenuAction('paste'),
-    onNewFolder: () => handleDesktopMenuAction('newFolder'),
-    onNewTextDoc: () => handleDesktopMenuAction('newTextDoc'),
-    onProperties: () => handleDesktopMenuAction('properties'),
-    // Note: Upload and SelectAll not available on desktop background
-  });
-
   // Close icon context menu when clicking elsewhere
   useEffect(() => {
     if (iconContextMenu) {
@@ -1148,9 +1144,31 @@ function WinXP() {
     dispatch({ type: SELECT_ICONS, payload: iconIds });
   }, []);
 
-  const onUpdateIconPositions = useCallback((positions) => {
-    dispatch({ type: UPDATE_ICON_POSITIONS, payload: positions });
+  // Snap a single position to the grid
+  const snapToGrid = useCallback((x, y) => {
+    const { iconWidth, iconHeight, iconGapX, iconGapY, startX, startY } = ICON_GRID;
+    const cellWidth = iconWidth + iconGapX;
+    const cellHeight = iconHeight + iconGapY;
+
+    const snappedX = Math.max(startX, Math.round((x - startX) / cellWidth) * cellWidth + startX);
+    const snappedY = Math.max(startY, Math.round((y - startY) / cellHeight) * cellHeight + startY);
+
+    return { x: snappedX, y: snappedY };
   }, []);
+
+  const onUpdateIconPositions = useCallback((positions) => {
+    // If align to grid is enabled, snap all positions to the grid
+    if (alignToGridEnabled) {
+      const snappedPositions = {};
+      Object.entries(positions).forEach(([id, pos]) => {
+        const snapped = snapToGrid(pos.x, pos.y);
+        snappedPositions[id] = snapped;
+      });
+      dispatch({ type: UPDATE_ICON_POSITIONS, payload: snappedPositions });
+    } else {
+      dispatch({ type: UPDATE_ICON_POSITIONS, payload: positions });
+    }
+  }, [alignToGridEnabled, snapToGrid]);
 
   // Handle moving icons to a folder via drag-and-drop
   const onMoveToFolder = useCallback((iconIds, targetFolderId) => {
@@ -1163,6 +1181,146 @@ function WinXP() {
       }
     }
   }, [moveItem]);
+
+  // Helper to calculate new grid positions for icons
+  const calculateGridPositions = useCallback((iconsList) => {
+    const { iconWidth, iconHeight, iconGapX, iconGapY, startX, startY } = ICON_GRID;
+    const maxHeight = window.innerHeight - 60; // Leave room for taskbar
+    const iconsPerColumn = Math.floor((maxHeight - startY) / (iconHeight + iconGapY));
+
+    const positions = {};
+    iconsList.forEach((icon, index) => {
+      const column = Math.floor(index / iconsPerColumn);
+      const row = index % iconsPerColumn;
+      positions[icon.id] = {
+        x: startX + column * (iconWidth + iconGapX),
+        y: startY + row * (iconHeight + iconGapY),
+      };
+    });
+    return positions;
+  }, []);
+
+  // Arrange icons by name
+  const handleArrangeByName = useCallback(() => {
+    setDesktopContextMenu(null);
+    const sortedIcons = [...state.icons].sort((a, b) => {
+      // System icons first (My Computer, Recycle Bin)
+      if (a.type === 'system' && b.type !== 'system') return -1;
+      if (a.type !== 'system' && b.type === 'system') return 1;
+      // Then alphabetically by title
+      return a.title.localeCompare(b.title, undefined, { sensitivity: 'base' });
+    });
+    const positions = calculateGridPositions(sortedIcons);
+    dispatch({ type: UPDATE_ICON_POSITIONS, payload: positions });
+  }, [state.icons, calculateGridPositions]);
+
+  // Arrange icons by size
+  const handleArrangeBySize = useCallback(() => {
+    setDesktopContextMenu(null);
+    const sortedIcons = [...state.icons].sort((a, b) => {
+      // System icons first
+      if (a.type === 'system' && b.type !== 'system') return -1;
+      if (a.type !== 'system' && b.type === 'system') return 1;
+      // Folders before files
+      if (a.type === 'folder' && b.type !== 'folder') return -1;
+      if (a.type !== 'folder' && b.type === 'folder') return 1;
+      // Then by size (larger first)
+      return (b.size || 0) - (a.size || 0);
+    });
+    const positions = calculateGridPositions(sortedIcons);
+    dispatch({ type: UPDATE_ICON_POSITIONS, payload: positions });
+  }, [state.icons, calculateGridPositions]);
+
+  // Arrange icons by type
+  const handleArrangeByType = useCallback(() => {
+    setDesktopContextMenu(null);
+    const getTypeOrder = (icon) => {
+      if (icon.type === 'system') return 0;
+      if (icon.type === 'folder') return 1;
+      if (icon.type === 'shortcut') return 2;
+      // For files, group by extension
+      const ext = icon.title?.split('.').pop()?.toLowerCase() || '';
+      return ext;
+    };
+    const sortedIcons = [...state.icons].sort((a, b) => {
+      const typeA = getTypeOrder(a);
+      const typeB = getTypeOrder(b);
+      if (typeA < typeB) return -1;
+      if (typeA > typeB) return 1;
+      // Same type, sort by name
+      return a.title.localeCompare(b.title, undefined, { sensitivity: 'base' });
+    });
+    const positions = calculateGridPositions(sortedIcons);
+    dispatch({ type: UPDATE_ICON_POSITIONS, payload: positions });
+  }, [state.icons, calculateGridPositions]);
+
+  // Arrange icons by modified date
+  const handleArrangeByModified = useCallback(() => {
+    setDesktopContextMenu(null);
+    const sortedIcons = [...state.icons].sort((a, b) => {
+      // System icons first
+      if (a.type === 'system' && b.type !== 'system') return -1;
+      if (a.type !== 'system' && b.type === 'system') return 1;
+      // Then by modified date (newest first)
+      return (b.dateModified || 0) - (a.dateModified || 0);
+    });
+    const positions = calculateGridPositions(sortedIcons);
+    dispatch({ type: UPDATE_ICON_POSITIONS, payload: positions });
+  }, [state.icons, calculateGridPositions]);
+
+  // Toggle auto arrange
+  const handleAutoArrange = useCallback(() => {
+    setDesktopContextMenu(null);
+    const newAutoArrange = !autoArrangeEnabled;
+    setAutoArrangeEnabled(newAutoArrange);
+
+    // If enabling auto arrange, arrange icons now
+    if (newAutoArrange) {
+      const sortedIcons = [...state.icons].sort((a, b) => {
+        if (a.type === 'system' && b.type !== 'system') return -1;
+        if (a.type !== 'system' && b.type === 'system') return 1;
+        return a.title.localeCompare(b.title, undefined, { sensitivity: 'base' });
+      });
+      const positions = calculateGridPositions(sortedIcons);
+      dispatch({ type: UPDATE_ICON_POSITIONS, payload: positions });
+    }
+  }, [autoArrangeEnabled, state.icons, calculateGridPositions]);
+
+  // Toggle align to grid (and snap all icons if enabling)
+  const handleAlignToGrid = useCallback(() => {
+    setDesktopContextMenu(null);
+    const newAlignToGrid = !alignToGridEnabled;
+    setAlignToGridEnabled(newAlignToGrid);
+
+    // If enabling align to grid, snap all icons now
+    if (newAlignToGrid) {
+      const positions = {};
+      state.icons.forEach((icon) => {
+        const snapped = snapToGrid(icon.x, icon.y);
+        positions[icon.id] = snapped;
+      });
+      dispatch({ type: UPDATE_ICON_POSITIONS, payload: positions });
+    }
+  }, [alignToGridEnabled, state.icons, snapToGrid]);
+
+  // Use the shared hook for desktop background context menu
+  const desktopMenuItems = useBackgroundContextMenu({
+    clipboard,
+    onRefresh: () => handleDesktopMenuAction('refresh'),
+    onPaste: () => handleDesktopMenuAction('paste'),
+    onNewFolder: () => handleDesktopMenuAction('newFolder'),
+    onNewTextDoc: () => handleDesktopMenuAction('newTextDoc'),
+    onProperties: () => handleDesktopMenuAction('properties'),
+    // Arrange icons handlers
+    onArrangeByName: handleArrangeByName,
+    onArrangeBySize: handleArrangeBySize,
+    onArrangeByType: handleArrangeByType,
+    onArrangeByModified: handleArrangeByModified,
+    onAutoArrange: handleAutoArrange,
+    onAlignToGrid: handleAlignToGrid,
+    autoArrangeEnabled,
+    alignToGridEnabled,
+  });
 
   function onModalRestart() {
     // Restart: reload the page to show the boot sequence again

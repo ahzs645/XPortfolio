@@ -1,0 +1,50 @@
+.tabs {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.tabs .list {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.tabs .list li {
+    background: linear-gradient(180deg, #fff, #fafaf9 26%, #f0f0ea 95%, #ecebe5);
+    color: #222;
+    border: 1px solid #91a7b4;
+    border-bottom: none;
+    border-radius: 3px 3px 0 0;
+    padding: 2px 5px;
+    cursor: url('https://xp.openlair.com/static/cursors/pointer.cur'), pointer;
+}
+
+.tabs .list li:hover:not(.active) {
+    border-top: 1px solid #e68b2c;
+    box-shadow: inset 0 2px #ffc73c;
+}
+
+.tabs .list li.active {
+    margin: -2px 0 -1px 0;
+    background: #FBFBFC;
+    border-bottom: 1px solid #FFFFFF;
+    border-top: 1px solid #e68b2c;
+    box-shadow: inset 0 2px #ffc73c;
+    position: relative;
+    z-index: 1;
+}
+
+.tabs .panel {
+    padding: 10px;
+    background: #FBFBFC;
+    border: 1px solid #919b9c;
+    box-shadow: inset 1px 1px #fcfcfe, inset -1px -1px #fcfcfe, 1px 2px 2px 0 rgba(208, 206, 191, .75);
+    text-align: left;
+    display: none;
+}
+
+.tabs .panel.active {
+    display: block;
+}
+

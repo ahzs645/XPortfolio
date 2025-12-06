@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Windows Picture and Fax Viewer</title>
+  <link rel="stylesheet" href="./viewer.css">
+</head>
+<body>
+  <div class="viewer-shell">
+    <div class="window window_viewer active">
+      <div class="titlebar">
+        <div class="title">
+          <img class="image" src="./static/images/icon/viewer.png" alt="">
+          <span class="label">Windows Picture and Fax Viewer</span>
+        </div>
+        <div class="buttons">
+          <img class="minimize" src="./static/images/interface/minimize.png" alt="Minimize" title="Minimize">
+          <img class="maximize" src="./static/images/interface/maximize.png" alt="Maximize" title="Maximize">
+          <img class="close" src="./static/images/interface/close.png" alt="Close" title="Close">
+        </div>
+      </div>
+      <div class="inner">
+        <div class="head"></div>
+        <div class="middle">
+          <div class="body">
+            <div class="xp-viewer">
+              <div class="image">
+                <div class="loading">Loading images...</div>
+              </div>
+              <div class="toolbar">
+                <img class="button prev" src="./static/images/interface/viewer/prev.png" title="Previous" alt="Previous">
+                <img class="button next" src="./static/images/interface/viewer/next.png" title="Next" alt="Next">
+                <div class="separator"></div>
+                <img class="button maximise" src="./static/images/interface/viewer/maximise.png" title="Actual Size" alt="Actual Size">
+                <img class="button minimise active" src="./static/images/interface/viewer/minimise.png" title="Fit to Window" alt="Fit to Window">
+                <img class="button slideshow" src="./static/images/interface/viewer/slideshow.png" title="Start Slideshow" alt="Start Slideshow">
+                <div class="separator"></div>
+                <img class="button zoomin" src="./static/images/interface/viewer/zoomin.png" title="Zoom In" alt="Zoom In">
+                <img class="button zoomout" src="./static/images/interface/viewer/zoomout.png" title="Zoom Out" alt="Zoom Out">
+                <div class="separator"></div>
+                <img class="button flipleft" src="./static/images/interface/viewer/flipleft.png" title="Rotate Left" alt="Rotate Left">
+                <img class="button flipright" src="./static/images/interface/viewer/flipright.png" title="Rotate Right" alt="Rotate Right">
+                <div class="separator"></div>
+                <img class="button disabled delete" src="./static/images/interface/viewer/delete.png" title="Delete" alt="Delete">
+                <img class="button print" src="./static/images/interface/viewer/print.png" title="Print" alt="Print">
+                <img class="button save" src="./static/images/interface/viewer/save.png" title="Save" alt="Save">
+                <img class="button edit" src="./static/images/interface/viewer/edit.png" title="Edit" alt="Edit">
+                <div class="separator"></div>
+                <img class="button help" src="./static/images/interface/viewer/help.png" title="Help" alt="Help">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="./viewer.js"></script>
+</body>
+</html>

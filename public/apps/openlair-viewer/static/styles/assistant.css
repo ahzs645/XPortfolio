@@ -1,0 +1,51 @@
+.assistant .assistant-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+}
+.assistant .assistant-balloon-block {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0;
+}
+.assistant .assistant-agent-block {
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+    min-height: 1px;
+    margin: 0 auto;
+}
+.assistant .assistant-balloon {
+    position:relative;
+    background: #D6DFF7;
+    color: black;
+    padding: 8px;
+    border: 1px solid #FEFEFE;
+    border-radius: 5px;
+    display: inline-block;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+.assistant .assistant-content {
+    max-width: 200px;
+    min-width: 120px;
+    word-wrap: break-word;
+}
+.assistant .assistant-tip {
+    position:absolute;
+    bottom:-10px;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid #FFC;
+    display: inline-block;
+    margin-left: 40%;
+}
+.assistant .assistant-agent-block > div {
+    position: absolute;
+    left: 0;
+    top: 0;
+}

@@ -84,6 +84,7 @@ function renderItems(items) {
     };
 
     const hasSubmenu = Array.isArray(item.submenu) && item.submenu.length > 0;
+    const hasCheckmark = item.checked !== undefined;
 
     return (
       <MenuItem
@@ -93,8 +94,12 @@ function renderItems(items) {
         $bold={item.bold}
         title={item.title}
       >
-        <MenuIcon>
-          {typeof item.icon === 'string' ? <img src={item.icon} alt="" /> : item.icon || null}
+        <MenuIcon $hasCheckmark={hasCheckmark}>
+          {hasCheckmark ? (
+            item.checked ? <Checkmark>✓</Checkmark> : null
+          ) : (
+            typeof item.icon === 'string' ? <img src={item.icon} alt="" /> : item.icon || null
+          )}
         </MenuIcon>
         <MenuLabel>{item.label}</MenuLabel>
         <MenuRightSlot>{hasSubmenu ? '>' : ''}</MenuRightSlot>
@@ -190,6 +195,12 @@ const MenuDivider = styled.div`
   height: 1px;
   background: #c0c0c0;
   margin: 2px 0;
+`;
+
+const Checkmark = styled.span`
+  font-size: 12px;
+  font-weight: bold;
+  color: inherit;
 `;
 
 export default ContextMenu;

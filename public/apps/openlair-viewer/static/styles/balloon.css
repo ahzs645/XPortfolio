@@ -1,0 +1,96 @@
+#balloon {
+    width: 240px;
+    margin: 0;
+    padding: 10px;
+    display: block;
+    position: absolute;
+    bottom: 35px;
+    filter: drop-shadow(3px 3px 2px #00000099);
+    background-color: #fffee8;
+    color: #000;
+    border: 1px solid black;
+    border-radius: 6px;
+    text-align: left;
+    z-index: 860;
+}
+
+#balloon:before, #balloon:after {
+    content: ' ';
+    position: absolute;
+    width: 0; height: 0;
+    border-style: solid;
+    right: 15px;
+}
+
+#balloon:before {
+    bottom: -18px;
+    border-width: 0 17px 18px 0;
+    border-color: transparent #000 transparent transparent;
+    transform: translateX(1px);
+}
+
+#balloon:after {
+    bottom: -18px;
+    border-width: 0 17px 18px 0;
+    border-color: transparent #fffee8 transparent transparent;
+}
+
+#balloon .title {
+    height: 16px;
+    font-weight: 900;
+    display: inline-block;
+    vertical-align: middle;
+    margin-bottom: 10px;
+}
+
+#balloon .balloonicon {
+    margin-right: 8px;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+}
+
+#balloon .close {
+    display: block;
+    position: absolute;
+    right:5px;
+    top:5px;
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    border: 1px solid #d0c9b6;
+    background: #fffff7;
+}
+
+#balloon .close img {
+    width: 16px;
+    height: 16px;
+    filter: invert(70%) sepia(100%);
+}
+
+#balloon .close:hover {
+    border:1px solid white;
+    box-shadow: 1px 1px 1px #b8b8a2, -1px -1px 0px #b8b8a266, inset -1px -1px 1px #b6700788, inset 1px 1px 0 #ffad31;
+    background: radial-gradient(at 10% 10%, #fff6 0%, #fff0 33%), radial-gradient(at 80% 80%, #ffdc18 0%, #ffdc1800 40%), linear-gradient(#ffad31, #ffad31);
+}
+
+#balloon .close:hover img {
+    filter: none;
+}
+
+#balloon .close:active {
+    border:1px solid white;
+    box-shadow: 1px 1px 1px #b8b8a2, -1px -1px 0px #b8b8a266, inset -1px -1px 1px #653c00;
+    background: radial-gradient(at 0% 0%, #8c5200 0%, #8c520000 33%), radial-gradient(at 80% 80%, #eea600 0%, #eea60000 50%), linear-gradient(#cc7900, #cc7900);
+}
+
+#balloon .close:active img {
+    filter: brightness(70%) sepia(100%);
+}
+
+#balloon span.messagetext {
+    display: block;
+    padding: 0 25px 0 0;
+    color: #000;
+}

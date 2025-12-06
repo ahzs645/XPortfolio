@@ -1,0 +1,24 @@
+.group {
+    display: flex;
+    gap: 10px;
+}
+
+.group .pane {
+    position: relative;
+    margin: 10px 0;
+    border: 1px solid #919b9c;
+    width: 100%;
+    padding: 10px;
+    border-radius: 4px;
+    background: #f8f8f4;
+}
+
+.group .pane .title {
+    position: absolute;
+    top: -8px;
+    left: 8px;
+    padding: 0 5px;
+    background: #f8f8f4;
+    margin: 0;
+    color: #1B59D7;
+}

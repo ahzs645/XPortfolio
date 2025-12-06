@@ -1,0 +1,119 @@
+html::before,
+body::before,
+html::after,
+body::after {
+	content: "preload";
+	position: absolute;
+	left: -9999px;
+	top: -9999px;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	visibility: hidden;
+	pointer-events: none;
+	white-space: nowrap;
+}
+
+html::before {
+	font-family: "msPixelTahoma", "msSansSerif", "msTahoma", "vga8x14";
+	font-weight: normal;
+	font-style: normal;
+}
+
+body::before {
+	font-family: "msPixelTahoma", "msSansSerif";
+	font-weight: bold;
+	font-style: normal;
+}
+
+html::after {
+	font-family: "msPixelTahoma", "msSansSerif";
+	font-weight: normal;
+	font-style: italic;
+}
+
+body::after {
+	font-family: "msPixelTahoma", "msSansSerif";
+	font-weight: bold;
+	font-style: italic;
+}
+
+@font-face {
+	font-family: "msPixelTahoma";
+	src: url("https://xp.openlair.com/static/fonts/Tahoma%208pt%2011-2.ttf") format("truetype");
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "msPixelTahoma";
+	src: url("https://xp.openlair.com/static/fonts/Tahoma%208pt%2011-2%20Bold.ttf") format("truetype");
+	font-weight: bold;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "msPixelTahoma";
+	src: url("https://xp.openlair.com/static/fonts/Tahoma%208pt%2011-2%20Italic.ttf") format("truetype");
+	font-weight: normal;
+	font-style: italic;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "msPixelTahoma";
+	src: url("https://xp.openlair.com/static/fonts/Tahoma%208pt%2011-2%20Bold%20Italic.ttf") format("truetype");
+	font-weight: bold;
+	font-style: italic;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "msSansSerif";
+	src: url("https://xp.openlair.com/static/fonts/MSSansSerif%208pt.ttf") format("truetype");
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "msSansSerif";
+	src: url("https://xp.openlair.com/static/fonts/MSSansSerif%20Bold%208pt.ttf") format("truetype");
+	font-weight: bold;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "msSansSerif";
+	src: url("https://xp.openlair.com/static/fonts/MSSansSerif%208pt.ttf") format("truetype");
+	font-weight: normal;
+	font-style: italic;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "msSansSerif";
+	src: url("https://xp.openlair.com/static/fonts/MSSansSerif%20Bold%208pt.ttf") format("truetype");
+	font-weight: bold;
+	font-style: italic;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "msTahoma";
+	src: url("https://xp.openlair.com/static/fonts/Tahoma.ttf") format("truetype");
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "vga8x14";
+	src: url('https://xp.openlair.com/static/fonts/Web437_IBM_VGA_8x14.woff') format("woff");
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}

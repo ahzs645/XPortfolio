@@ -1,0 +1,64 @@
+#context {
+    position: absolute;
+    display: none;
+    background: #fff;
+    border: 1px solid #9a9a9a;
+    min-width: 160px;
+    box-shadow: 2px 2px 3px rgba(0,0,0,0.5);
+    list-style: none;
+    margin: 0;
+    padding: 1px;
+    z-index: 1000;
+    color: #000000;
+}
+
+#context ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+#context ul li {
+    padding: 2px 25px;
+    white-space: nowrap;
+}
+
+#context ul li:hover {
+    background: #316ac5;
+    color: #FFFFFF;
+}
+
+#context ul li.separator {
+    border-top: 1px solid #c5c5c5;
+    margin: 4px 2px;
+    padding: 0;
+}
+
+#context ul li:has(ul)::after {
+    content: "\25B8";
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#context ul li:has(ul) {
+    position: relative;
+}
+
+#context ul li ul {
+    display: none;
+    position: absolute;
+    background: #fff;
+    border: 1px solid #9a9a9a;
+    min-width: 160px;
+    box-shadow: 2px 2px 3px rgba(0,0,0,0.5);
+    margin: 0;
+    padding: 1px;
+    z-index: 1000;
+    color: #000000;
+}
+
+#context ul li:hover ul {
+    display: block;
+}

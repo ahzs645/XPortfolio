@@ -1,0 +1,236 @@
+:root {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  height: 100vh;
+  padding: 12px;
+  background: linear-gradient(180deg, #2b579e 0%, #2b5fad 40%, #3c70c3 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Trebuchet MS", Tahoma, sans-serif;
+  color: #000;
+}
+
+.viewer-shell {
+  width: 100%;
+  height: 100%;
+}
+
+.window {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  background: #eef2fb;
+  border-radius: 8px 8px 0 0;
+  border: 1px solid #003ddc;
+  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.35);
+}
+
+.window .titlebar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 6px;
+  color: #fff;
+  background: linear-gradient(
+      to bottom,
+      #3d95ff 0%,
+      #2b90ff 7%,
+      #0372ff 9%,
+      #0054e3 18%,
+      #0054e3 19%,
+      #0058ee 50%,
+      #026afe 80%,
+      #026afe 90%,
+      #0065fd 93%,
+      #71aaff 96%,
+      #c4d6ff 100%
+    );
+  box-shadow: inset -1px -1px 1px #0026acaa, inset -2px -1px 1px #0020c8aa,
+    inset -3px -1px 1px #003be0aa, inset 1px -1px 1px #0020c8aa,
+    inset 2px -1px 1px #0038d8aa, inset 3px -1px 1px #0046e4aa;
+}
+
+.window .titlebar .title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.window .titlebar .title .image {
+  width: 16px;
+  height: 16px;
+}
+
+.window .titlebar .title .label {
+  font-weight: bold;
+  text-shadow: 1px 1px 1px #00000055;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.window .titlebar .buttons {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.window .titlebar .buttons img {
+  width: 21px;
+  height: 21px;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.window .titlebar .buttons img:hover {
+  filter: brightness(120%);
+  opacity: 1;
+}
+
+.window .inner {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  background: #eef2fb;
+  border-left: 4px solid #0144d0;
+  border-right: 4px solid #0144d0;
+  border-bottom: 4px solid #0144d0;
+  overflow: hidden;
+}
+
+.window .head {
+  flex-shrink: 0;
+}
+
+.window .middle {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.window .body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  background: #eef2fb;
+}
+
+/* XP viewer styling from provided snippet */
+.xp-viewer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #eef2fb;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.xp-viewer .toolbar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #eef2fb;
+  z-index: 1;
+}
+
+.xp-viewer .toolbar .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 4px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.xp-viewer .toolbar .button:hover {
+  border: 1px solid #d7d4cb;
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.5);
+}
+
+.xp-viewer .toolbar .button.active {
+  border: 1px solid #839fb4;
+  background: rgba(255, 255, 255, 1);
+}
+
+.xp-viewer .toolbar .button.disabled {
+  opacity: 0.45;
+  cursor: default;
+  pointer-events: none;
+}
+
+.xp-viewer .toolbar .button img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.xp-viewer .separator {
+  width: 1px;
+  height: 20px;
+  background-color: silver;
+  margin: 0 5px;
+}
+
+.xp-viewer .image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.xp-viewer .image img {
+  display: block;
+  object-fit: contain;
+}
+
+.xp-viewer .image .loading {
+  pointer-events: none;
+  user-select: none;
+  color: #003399;
+  font-weight: 600;
+  text-shadow: 1px 1px 0 #fff;
+}
+
+.xp-viewer .status {
+  position: absolute;
+  left: 12px;
+  bottom: 48px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid #c4cedb;
+  border-radius: 4px;
+  color: #003399;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}

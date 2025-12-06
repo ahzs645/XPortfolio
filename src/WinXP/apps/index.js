@@ -13,6 +13,7 @@ import Pinball from './Pinball';
 import CMD from './CMD';
 import MediaPlayer from './MediaPlayer';
 import ImageViewer from './ImageViewer';
+import OpenLairViewer from './OpenLairViewer';
 import Paint from './Paint';
 import Winamp from './Winamp';
 import MyComputer from './MyComputer';
@@ -126,6 +127,11 @@ export const desktopIconCatalog = {
     icon: XP_ICONS.mediaPlayer,
     title: 'Windows Media Player',
     component: MediaPlayer,
+  },
+  classicViewer: {
+    icon: '/apps/openlair-viewer/static/images/icon/viewer.png',
+    title: 'Picture and Fax Viewer (Classic)',
+    component: OpenLairViewer,
   },
   imageViewer: {
     icon: '/icons/image-viewer.png',
@@ -669,6 +675,26 @@ export const appSettings = {
     minimized: false,
     maximized: false,
     multiInstance: false,
+  },
+  'Classic Picture Viewer': {
+    header: {
+      icon: '/apps/openlair-viewer/static/images/icon/viewer.png',
+      title: 'Windows Picture and Fax Viewer',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: OpenLairViewer,
+    defaultSize: {
+      width: 700,
+      height: 540,
+    },
+    defaultOffset: {
+      x: 170,
+      y: 70,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
   },
   'Recycle Bin': {
     header: {

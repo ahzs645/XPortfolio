@@ -512,6 +512,16 @@ export function useBackgroundContextMenu({
   onSelectAll,
   onProperties,
 
+  // Arrange icons handlers
+  onArrangeByName,
+  onArrangeBySize,
+  onArrangeByType,
+  onArrangeByModified,
+  onAutoArrange,
+  onAlignToGrid,
+  autoArrangeEnabled = false,
+  alignToGridEnabled = true,
+
   // Clipboard state
   clipboard = [],
 }) {
@@ -524,28 +534,30 @@ export function useBackgroundContextMenu({
     const arrangeIconsSubmenu = [
       {
         label: 'Name',
-        disabled: true,
+        onClick: onArrangeByName,
       },
       {
         label: 'Size',
-        disabled: true,
+        onClick: onArrangeBySize,
       },
       {
         label: 'Type',
-        disabled: true,
+        onClick: onArrangeByType,
       },
       {
         label: 'Modified',
-        disabled: true,
+        onClick: onArrangeByModified,
       },
       { type: 'divider' },
       {
         label: 'Auto Arrange',
-        disabled: true,
+        onClick: onAutoArrange,
+        checked: autoArrangeEnabled,
       },
       {
         label: 'Align to Grid',
-        disabled: true,
+        onClick: onAlignToGrid,
+        checked: alignToGridEnabled,
       },
     ];
 
@@ -652,6 +664,14 @@ export function useBackgroundContextMenu({
     onUpload,
     onSelectAll,
     onProperties,
+    onArrangeByName,
+    onArrangeBySize,
+    onArrangeByType,
+    onArrangeByModified,
+    onAutoArrange,
+    onAlignToGrid,
+    autoArrangeEnabled,
+    alignToGridEnabled,
   ]);
 
   return menuItems;
