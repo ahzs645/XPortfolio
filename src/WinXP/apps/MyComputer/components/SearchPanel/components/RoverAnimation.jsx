@@ -1,35 +1,53 @@
-import { useState, useEffect, useImperativeHandle, forwardRef, useCallback } from 'react';
+import { useState, useEffect, useImperativeHandle, forwardRef, useCallback, useRef } from 'react';
 import styled from 'styled-components';
 import { useClippyAnimation } from '../hooks';
 
-// Rover animation data will be loaded dynamically
-const ROVER_DATA_URL = '/agents/Rover/data.json';
-const ROVER_SOUNDS_URL = '/agents/Rover/sounds.json';
-
-const RoverAnimation = forwardRef(({ onExitComplete, onShowComplete }, ref) => {
+const RoverAnimation = forwardRef(({ character, onExitComplete, onShowComplete }, ref) => {
   const [animationData, setAnimationData] = useState(null);
   const [soundsData, setSoundsData] = useState(null);
   const [phase, setPhase] = useState('loading'); // loading, show, idle, hide
 
-  // Load animation data and sounds
+  // Use refs for callbacks to always have the latest value
+  const onExitCompleteRef = useRef(onExitComplete);
+  const onShowCompleteRef = useRef(onShowComplete);
+
   useEffect(() => {
+    onExitCompleteRef.current = onExitComplete;
+  }, [onExitComplete]);
+
+  useEffect(() => {
+    onShowCompleteRef.current = onShowComplete;
+  }, [onShowComplete]);
+
+  // Track if we need to play Show animation
+  const needsShowAnimation = useRef(true);
+
+  // Load animation data and sounds for the character
+  useEffect(() => {
+    if (!character) return;
+
+    setAnimationData(null);
+    setSoundsData(null);
+    setPhase('loading');
+    needsShowAnimation.current = true; // Reset for new character
+
     // Load animation data
-    fetch(ROVER_DATA_URL)
+    fetch(character.dataUrl)
       .then(res => res.json())
       .then(data => {
         setAnimationData(data);
         setPhase('show');
       })
       .catch(err => {
-        console.error('Failed to load Rover animation data:', err);
+        console.error('Failed to load character animation data:', err);
       });
 
     // Load sounds
-    fetch(ROVER_SOUNDS_URL)
+    fetch(character.soundsUrl)
       .then(res => res.json())
       .then(data => setSoundsData(data))
       .catch(() => {}); // Sounds are optional
-  }, []);
+  }, [character]);
 
   const {
     spritePosition,
@@ -38,23 +56,33 @@ const RoverAnimation = forwardRef(({ onExitComplete, onShowComplete }, ref) => {
     hasAnimation,
   } = useClippyAnimation(animationData, 'Show', soundsData);
 
-  // Handle animation completion
+  // Handle animation completion - use refs to always get latest callbacks
   const handleAnimationComplete = useCallback((animName, state) => {
     if (state === 'EXITED') {
       if (animName === 'Show') {
         setPhase('idle');
         play('Idle');
-        onShowComplete?.(); // Notify parent that Show animation finished
+        onShowCompleteRef.current?.(); // Use ref for latest callback
       } else if (animName === 'Hide') {
-        onExitComplete?.();
+        onExitCompleteRef.current?.(); // Use ref for latest callback
       }
     }
-  }, [play, onExitComplete, onShowComplete]);
+  }, [play]);
 
   // Play Show animation when data is loaded
   useEffect(() => {
-    if (animationData && phase === 'show' && hasAnimation('Show')) {
-      play('Show', handleAnimationComplete);
+    if (animationData && phase === 'show' && needsShowAnimation.current) {
+      needsShowAnimation.current = false; // Only play once per character load
+      if (hasAnimation('Show')) {
+        play('Show', handleAnimationComplete);
+      } else {
+        // No Show animation, go straight to Idle
+        setPhase('idle');
+        if (hasAnimation('Idle')) {
+          play('Idle', handleAnimationComplete);
+        }
+        onShowCompleteRef.current?.();
+      }
     }
   }, [animationData, phase, hasAnimation, play, handleAnimationComplete]);
 
@@ -72,30 +100,31 @@ const RoverAnimation = forwardRef(({ onExitComplete, onShowComplete }, ref) => {
         setPhase('hide');
         play('Hide', handleAnimationComplete);
       } else {
-        onExitComplete?.();
+        onExitCompleteRef.current?.(); // Use ref for latest callback
       }
     }
-  }));
+  }), [hasAnimation, play, handleAnimationComplete]);
 
   // Don't render until data is loaded
-  if (!animationData) {
-    return <RoverArea />;
+  if (!animationData || !character) {
+    return <CharacterArea />;
   }
 
   return (
-    <RoverArea>
-      <RoverSprite
+    <CharacterArea>
+      <CharacterSprite
         $frameWidth={frameSize[0]}
         $frameHeight={frameSize[1]}
         style={{
+          backgroundImage: `url(${character.spriteMap})`,
           backgroundPosition: `-${spritePosition[0]}px -${spritePosition[1]}px`,
         }}
       />
-    </RoverArea>
+    </CharacterArea>
   );
 });
 
-const RoverArea = styled.div`
+const CharacterArea = styled.div`
   display: flex;
   justify-content: center;
   align-items: flex-end;
@@ -104,10 +133,9 @@ const RoverArea = styled.div`
   flex-shrink: 0;
 `;
 
-const RoverSprite = styled.div`
+const CharacterSprite = styled.div`
   width: ${props => props.$frameWidth || 80}px;
   height: ${props => props.$frameHeight || 80}px;
-  background-image: url('/agents/Rover/map.png');
   background-repeat: no-repeat;
   image-rendering: pixelated;
 `;

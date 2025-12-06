@@ -20,26 +20,35 @@ import {
   IndexingServiceView,
   InternetBehaviorView,
   CharacterSelectView,
+  CHARACTERS,
 } from './views';
 
 function SearchPanel({ searchQuery, onSearchChange, onClose }) {
   const inputRef = useRef(null);
-  const roverRef = useRef(null);
+  const characterRef = useRef(null);
+
+  // Active character (the one shown at the bottom)
+  const [activeCharacterId, setActiveCharacterId] = useState('rover');
+  const [pendingCharacterId, setPendingCharacterId] = useState(null); // Character to switch to after exit
+
+  // Get the active character object
+  const activeCharacter = CHARACTERS.find(c => c.id === activeCharacterId) || CHARACTERS[0];
 
   // Track if character is visible and if it's currently exiting/entering
   const [characterVisible, setCharacterVisible] = useState(true);
   const [characterExiting, setCharacterExiting] = useState(false);
   const [characterEntering, setCharacterEntering] = useState(false);
+  const [characterSwapping, setCharacterSwapping] = useState(false); // Swapping characters (balloon stays visible)
   const [characterKey, setCharacterKey] = useState(0); // Force remount on turn on
 
   const handleTurnOffCharacter = useCallback(() => {
-    setCharacterExiting(true); // Hide balloon while Rover exits
-    roverRef.current?.triggerExit();
+    setCharacterExiting(true); // Hide balloon while character exits
+    characterRef.current?.triggerExit();
   }, []);
 
   const handleTurnOnCharacter = useCallback(() => {
-    setCharacterEntering(true); // Hide balloon while Rover enters
-    setCharacterVisible(true); // Show Rover (will play Show animation)
+    setCharacterEntering(true); // Hide balloon while character enters
+    setCharacterVisible(true); // Show character (will play Show animation)
     setCharacterKey(k => k + 1); // Force RoverAnimation to remount fresh
     setShowPreferences(false); // Go back to main menu
   }, []);
@@ -53,12 +62,25 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
   }, [characterVisible, handleTurnOffCharacter, handleTurnOnCharacter]);
 
   const handleCharacterExitComplete = useCallback(() => {
-    setCharacterVisible(false);
-    setCharacterExiting(false); // Show balloon again (without tail)
-  }, []);
+    // Check if we're switching to a new character
+    if (pendingCharacterId) {
+      // Switch to new character and play enter animation
+      setActiveCharacterId(pendingCharacterId);
+      setPendingCharacterId(null);
+      setCharacterExiting(false);
+      // Keep swapping true - will be set to false when Show animation completes
+      setCharacterKey(k => k + 1); // Force remount with new character
+    } else {
+      // Just turning off character
+      setCharacterVisible(false);
+      setCharacterExiting(false);
+      setCharacterSwapping(false);
+    }
+  }, [pendingCharacterId]);
 
   const handleCharacterShowComplete = useCallback(() => {
     setCharacterEntering(false); // Show balloon again (with tail)
+    setCharacterSwapping(false); // Swap complete
   }, []);
 
   // Main navigation state
@@ -105,7 +127,7 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
 
   // Character select view
   const [showCharacterSelect, setShowCharacterSelect] = useState(false);
-  const [selectedCharacter, setSelectedCharacter] = useState('rover');
+  const [previewCharacterId, setPreviewCharacterId] = useState('rover'); // For browsing in selection view
 
   // When was it modified filters
   const [modifiedFilter, setModifiedFilter] = useState('dont-remember');
@@ -175,8 +197,8 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
     if (showCharacterSelect) {
       return (
         <CharacterSelectView
-          selectedCharacter={selectedCharacter}
-          setSelectedCharacter={setSelectedCharacter}
+          previewCharacter={previewCharacterId}
+          setPreviewCharacter={setPreviewCharacterId}
         />
       );
     }
@@ -186,7 +208,10 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
         <PreferencesView
           onShowIndexingService={() => setShowIndexingService(true)}
           onShowInternetBehavior={() => setShowInternetBehavior(true)}
-          onShowCharacterSelect={() => setShowCharacterSelect(true)}
+          onShowCharacterSelect={() => {
+            setPreviewCharacterId(activeCharacterId); // Start preview at current active character
+            setShowCharacterSelect(true);
+          }}
           showBalloonTips={showBalloonTips}
           setShowBalloonTips={setShowBalloonTips}
           autoCompleteOn={autoCompleteOn}
@@ -374,10 +399,26 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
     }
 
     if (showCharacterSelect) {
+      const handleOK = () => {
+        setShowCharacterSelect(false);
+        // If a different character was selected, trigger the transition
+        if (previewCharacterId !== activeCharacterId) {
+          setPendingCharacterId(previewCharacterId);
+          setCharacterSwapping(true); // Swapping - balloon stays visible
+          setCharacterExiting(true);
+          characterRef.current?.triggerExit();
+        }
+      };
+
+      const handleCancel = () => {
+        setShowCharacterSelect(false);
+        setPreviewCharacterId(activeCharacterId); // Reset preview
+      };
+
       return (
         <ButtonRow>
-          <XPButton onClick={() => setShowCharacterSelect(false)}>OK</XPButton>
-          <XPButton onClick={() => setShowCharacterSelect(false)}>Cancel</XPButton>
+          <XPButton onClick={handleOK}>OK</XPButton>
+          <XPButton onClick={handleCancel}>Cancel</XPButton>
         </ButtonRow>
       );
     }
@@ -403,8 +444,8 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
     return null;
   };
 
-  // Hide balloon while character is entering or exiting
-  const balloonHidden = characterExiting || characterEntering;
+  // Hide balloon while character is entering or exiting (but NOT during swapping)
+  const balloonHidden = !characterSwapping && (characterExiting || characterEntering);
 
   return (
     <Container>
@@ -421,11 +462,12 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
             {characterVisible && <BalloonTip />}
           </Balloon>
         )}
-        {/* Show Rover when visible, entering, or exiting */}
+        {/* Show character when visible, entering, or exiting */}
         {(characterVisible || characterExiting) && (
           <RoverAnimation
             key={characterKey}
-            ref={roverRef}
+            ref={characterRef}
+            character={activeCharacter}
             onExitComplete={handleCharacterExitComplete}
             onShowComplete={handleCharacterShowComplete}
           />

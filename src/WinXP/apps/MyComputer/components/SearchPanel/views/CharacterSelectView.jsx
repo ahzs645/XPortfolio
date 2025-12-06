@@ -3,12 +3,14 @@ import styled from 'styled-components';
 import { BalloonTitle } from '../styles';
 import { useClippyAnimation } from '../hooks';
 
-const CHARACTERS = [
+// Export CHARACTERS so it can be used by other components
+export const CHARACTERS = [
   {
     id: 'rover',
     name: 'Rover',
     spriteMap: '/agents/Rover/map.png',
     dataUrl: '/agents/Rover/data.json',
+    soundsUrl: '/agents/Rover/sounds.json',
     description: 'Rover will help you sniff out what you\'re looking for.',
   },
   {
@@ -16,6 +18,7 @@ const CHARACTERS = [
     name: 'Clippy',
     spriteMap: '/agents/Clippy/map.png',
     dataUrl: '/agents/Clippy/data.json',
+    soundsUrl: '/agents/Clippy/sounds.json',
     description: 'Hi! I\'m Clippy, your office assistant. Would you like help?',
   },
   {
@@ -23,6 +26,7 @@ const CHARACTERS = [
     name: 'Merlin',
     spriteMap: '/agents/Merlin/map.png',
     dataUrl: '/agents/Merlin/data.json',
+    soundsUrl: '/agents/Merlin/sounds.json',
     description: 'Merlin will conjure up answers to your questions.',
   },
   {
@@ -30,6 +34,7 @@ const CHARACTERS = [
     name: 'Genie',
     spriteMap: '/agents/Genie/map.png',
     dataUrl: '/agents/Genie/data.json',
+    soundsUrl: '/agents/Genie/sounds.json',
     description: 'Your wish is my command!',
   },
   {
@@ -37,6 +42,7 @@ const CHARACTERS = [
     name: 'Genius',
     spriteMap: '/agents/Genius/map.png',
     dataUrl: '/agents/Genius/data.json',
+    soundsUrl: '/agents/Genius/sounds.json',
     description: 'Genius will help you find brilliant solutions.',
   },
   {
@@ -44,6 +50,7 @@ const CHARACTERS = [
     name: 'Bonzi',
     spriteMap: '/agents/Bonzi/map.png',
     dataUrl: '/agents/Bonzi/data.json',
+    soundsUrl: '/agents/Bonzi/sounds.json',
     description: 'Bonzi is here to be your friendly guide.',
   },
   {
@@ -51,6 +58,7 @@ const CHARACTERS = [
     name: 'Peedy',
     spriteMap: '/agents/Peedy/map.png',
     dataUrl: '/agents/Peedy/data.json',
+    soundsUrl: '/agents/Peedy/sounds.json',
     description: 'Peedy the parrot will help you find what you need.',
   },
   {
@@ -58,6 +66,7 @@ const CHARACTERS = [
     name: 'Rocky',
     spriteMap: '/agents/Rocky/map.png',
     dataUrl: '/agents/Rocky/data.json',
+    soundsUrl: '/agents/Rocky/sounds.json',
     description: 'Rocky is ready to help you on your adventure.',
   },
   {
@@ -65,6 +74,7 @@ const CHARACTERS = [
     name: 'Links',
     spriteMap: '/agents/Links/map.png',
     dataUrl: '/agents/Links/data.json',
+    soundsUrl: '/agents/Links/sounds.json',
     description: 'Links the cat will help you prowl for information.',
   },
   {
@@ -72,65 +82,51 @@ const CHARACTERS = [
     name: 'F1',
     spriteMap: '/agents/F1/map.png',
     dataUrl: '/agents/F1/data.json',
+    soundsUrl: '/agents/F1/sounds.json',
     description: 'F1 the robot is programmed to assist you.',
   },
 ];
 
-function CharacterSelectView({ selectedCharacter, setSelectedCharacter }) {
-  const currentIndex = CHARACTERS.findIndex(c => c.id === selectedCharacter);
+function CharacterSelectView({ previewCharacter, setPreviewCharacter }) {
+  const currentIndex = CHARACTERS.findIndex(c => c.id === previewCharacter);
   const character = CHARACTERS[currentIndex] || CHARACTERS[0];
 
   const [animationData, setAnimationData] = useState(null);
   const [soundsData, setSoundsData] = useState(null);
 
-  // Load animation data and sounds for current character
+  // Load animation data and sounds for current character preview
   useEffect(() => {
-    setAnimationData(null); // Reset when character changes
+    setAnimationData(null);
     setSoundsData(null);
 
-    // Load animation data
     fetch(character.dataUrl)
       .then(res => res.json())
       .then(data => setAnimationData(data))
       .catch(err => console.error('Failed to load character data:', err));
 
-    // Load sounds
-    const soundsUrl = character.dataUrl.replace('data.json', 'sounds.json');
-    fetch(soundsUrl)
+    fetch(character.soundsUrl)
       .then(res => res.json())
       .then(data => setSoundsData(data))
-      .catch(() => {}); // Sounds are optional
-  }, [character.dataUrl]);
+      .catch(() => {});
+  }, [character.dataUrl, character.soundsUrl]);
 
   const { spritePosition, frameSize, play, hasAnimation } = useClippyAnimation(animationData, 'Idle', soundsData);
 
-  // Play a greeting animation when data loads, then switch to Idle
+  // Play Idle animation when data loads
   useEffect(() => {
-    if (animationData) {
-      // Try to play a greeting animation first for a more lively preview
-      const greetingAnims = ['Greet', 'Greeting', 'Wave', 'Show'];
-      const greetAnim = greetingAnims.find(name => hasAnimation(name));
-
-      if (greetAnim) {
-        play(greetAnim, (animName, state) => {
-          if (state === 'EXITED' && hasAnimation('Idle')) {
-            play('Idle');
-          }
-        });
-      } else if (hasAnimation('Idle')) {
-        play('Idle');
-      }
+    if (animationData && hasAnimation('Idle')) {
+      play('Idle');
     }
   }, [animationData, hasAnimation, play]);
 
   const handlePrev = () => {
     const newIndex = currentIndex <= 0 ? CHARACTERS.length - 1 : currentIndex - 1;
-    setSelectedCharacter(CHARACTERS[newIndex].id);
+    setPreviewCharacter(CHARACTERS[newIndex].id);
   };
 
   const handleNext = () => {
     const newIndex = currentIndex >= CHARACTERS.length - 1 ? 0 : currentIndex + 1;
-    setSelectedCharacter(CHARACTERS[newIndex].id);
+    setPreviewCharacter(CHARACTERS[newIndex].id);
   };
 
   return (
