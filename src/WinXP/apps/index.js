@@ -35,6 +35,7 @@ import HelpAndSupport from './HelpAndSupport';
 import FontViewer from './FontViewer';
 import OutlookExpress from './OutlookExpress';
 import TaskbarProperties from './TaskbarProperties';
+import AdobeReader from './AdobeReader';
 
 // XP Icons paths
 const XP_ICONS = {
@@ -57,6 +58,7 @@ const XP_ICONS = {
   helpAndSupport: '/icons/help.png',
   fontViewer: '/icons/xp/font.png',
   outlookExpress: '/icons/outlook/outlook.png',
+  adobeReader: '/icons/adobe/acrobat.svg',
 };
 
 // Default apps open on startup (empty for now - user opens via desktop icons)
@@ -213,6 +215,11 @@ export const desktopIconCatalog = {
     icon: XP_ICONS.outlookExpress,
     title: 'Outlook Express',
     component: OutlookExpress,
+  },
+  adobeReader: {
+    icon: XP_ICONS.adobeReader,
+    title: 'Adobe Reader',
+    component: AdobeReader,
   },
 };
 
@@ -1078,6 +1085,26 @@ export const appSettings = {
     maximized: false,
     multiInstance: false,
   },
+  'Adobe Reader': {
+    header: {
+      icon: XP_ICONS.adobeReader,
+      title: 'Adobe Reader',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: AdobeReader,
+    defaultSize: {
+      width: 900,
+      height: 650,
+    },
+    defaultOffset: {
+      x: 60,
+      y: 30,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
+  },
 };
 
 export {
@@ -1115,4 +1142,5 @@ export {
   FontViewer,
   OutlookExpress,
   TaskbarProperties,
+  AdobeReader,
 };

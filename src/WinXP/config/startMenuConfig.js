@@ -213,6 +213,13 @@ export const START_MENU_CATALOG = {
     title: 'Outlook Express',
     description: 'Read email messages',
   },
+  adobeReader: {
+    type: 'program',
+    appKey: 'Adobe Reader',
+    icon: '/icons/adobe/acrobat.svg',
+    title: 'Adobe Reader',
+    description: 'View PDF files',
+  },
   'divider-main': {
     type: 'separator',
   },
@@ -266,6 +273,7 @@ export const START_MENU_FOLDERS = {
 export const ALL_PROGRAMS_ORDER = [
   'internetExplorer',
   'outlookExpress',
+  'adobeReader',
   'messenger',
   'qqPenguin',
   'about',

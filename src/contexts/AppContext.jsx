@@ -341,6 +341,23 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
       return;
     }
 
+    // For PDF files, open with Adobe Reader
+    if (ext === '.pdf' || contentType === 'application/pdf') {
+      const adobeReaderSetting = {
+        ...appSettings['Adobe Reader'],
+        header: {
+          ...appSettings['Adobe Reader'].header,
+          title: `Adobe Reader - [${name}]`,
+        },
+        injectProps: {
+          pdfData: fileData,
+          pdfName: name,
+        },
+      };
+      dispatch({ type: addAppAction, payload: adobeReaderSetting });
+      return;
+    }
+
     // For HTML files, open with Internet Explorer
     const htmlExtensions = ['.html', '.htm'];
     if (htmlExtensions.includes(ext)) {

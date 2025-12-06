@@ -28,7 +28,7 @@ export const fileIcons = {
   '.png': '/icons/image-viewer.png',
   '.gif': '/icons/image-viewer.png',
   '.bmp': '/icons/paint.webp',
-  '.pdf': '/icons/xp/PDF.png',
+  '.pdf': '/icons/adobe/acrobat.svg',
   '.html': '/icons/xp/InternetExplorer6.png',
   '.htm': '/icons/xp/InternetExplorer6.png',
   '.lnk': '/icons/xp/Shortcutoverlay.png',
@@ -122,6 +122,7 @@ export const DESKTOP_SHORTCUT_CATALOG = {
   soundRecorder: { id: 'shortcut-sound-recorder', name: 'Sound Recorder.lnk', icon: '/icons/xp/SoundRecorder.webp', target: 'Sound Recorder', size: SHORTCUT_SIZE },
   winamp: { id: 'shortcut-winamp', name: 'Winamp.lnk', icon: '/icons/winamp.png', target: 'Winamp', size: SHORTCUT_SIZE },
   displayProperties: { id: 'shortcut-display', name: 'Display Properties.lnk', icon: XP_ICONS.displayProperties, target: 'Display Properties', size: SHORTCUT_SIZE },
+  adobeReader: { id: 'shortcut-adobe-reader', name: 'Adobe Reader.lnk', icon: '/icons/adobe/acrobat.svg', target: 'Adobe Reader', size: SHORTCUT_SIZE },
 };
 
 // Default desktop programs if not specified in config (excludes system icons like My Computer and Recycle Bin)
