@@ -686,8 +686,14 @@ export function FileSystemProvider({ children }) {
   }, [fileSystem]);
 
   // Create new file or folder
-  const createItem = useCallback(async (parentId, name, type, file = null) => {
+  // file can be a File object or an options object with { icon: string }
+  const createItem = useCallback(async (parentId, name, type, fileOrOptions = null) => {
     if (!fileSystem || !fileSystem[parentId]) return null;
+
+    // Check if fileOrOptions is an options object or a File
+    const isOptions = fileOrOptions && typeof fileOrOptions === 'object' && !(fileOrOptions instanceof File) && !fileOrOptions.size;
+    const file = isOptions ? null : fileOrOptions;
+    const options = isOptions ? fileOrOptions : {};
 
     const now = Date.now();
     const id = uuidv4();
@@ -701,7 +707,7 @@ export function FileSystemProvider({ children }) {
       name: uniqueName,
       basename: baseName,
       ext,
-      icon: getFileIcon(uniqueName, type),
+      icon: options.icon || getFileIcon(uniqueName, type),
       parent: parentId,
       children: type === 'folder' ? [] : undefined,
       size: file ? file.size : 0,

@@ -271,6 +271,7 @@ export const START_MENU_FOLDERS = {
 };
 
 // All Programs menu order
+// Note: 'projects' removed - it's now a folder, not an app
 export const ALL_PROGRAMS_ORDER = [
   'internetExplorer',
   'outlookExpress',
@@ -278,7 +279,6 @@ export const ALL_PROGRAMS_ORDER = [
   'messenger',
   'qqPenguin',
   'about',
-  'projects',
   'resume',
   'contact',
   'divider-main',

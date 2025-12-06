@@ -760,6 +760,17 @@ function WinXP() {
         }
         break;
       }
+      case 'newBriefcase': {
+        const id = await createItem(SYSTEM_IDS.DESKTOP, 'New Briefcase', 'folder', { icon: '/icons/xp/Briefcase.png' });
+        if (id) {
+          // Start renaming the new briefcase
+          setTimeout(() => {
+            setRenamingIconId(id);
+            setRenameValue('New Briefcase');
+          }, 100);
+        }
+        break;
+      }
       case 'newTextDoc': {
         const id = await createItem(SYSTEM_IDS.DESKTOP, 'New Text Document.txt', 'file');
         if (id) {
@@ -1190,6 +1201,7 @@ function WinXP() {
     onRefresh: () => handleDesktopMenuAction('refresh'),
     onPaste: () => handleDesktopMenuAction('paste'),
     onNewFolder: () => handleDesktopMenuAction('newFolder'),
+    onNewBriefcase: () => handleDesktopMenuAction('newBriefcase'),
     onNewTextDoc: () => handleDesktopMenuAction('newTextDoc'),
     onProperties: () => handleDesktopMenuAction('properties'),
     // Arrange icons handlers

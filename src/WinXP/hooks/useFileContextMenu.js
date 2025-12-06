@@ -503,6 +503,7 @@ export function useFileContextMenu({
  */
 export function useBackgroundContextMenu({
   onNewFolder,
+  onNewBriefcase,
   onNewTextDoc,
   onNewRichTextDoc,
   onNewBitmapImage,
@@ -603,6 +604,14 @@ export function useBackgroundContextMenu({
       });
     }
 
+    if (onNewBriefcase) {
+      newSubmenu.push({
+        label: 'Briefcase',
+        icon: XP_ICONS.briefcase,
+        onClick: onNewBriefcase,
+      });
+    }
+
     newSubmenu.push({ type: 'divider' });
 
     if (onNewTextDoc) {
@@ -656,6 +665,7 @@ export function useBackgroundContextMenu({
   }, [
     hasClipboard,
     onNewFolder,
+    onNewBriefcase,
     onNewTextDoc,
     onNewRichTextDoc,
     onNewBitmapImage,
