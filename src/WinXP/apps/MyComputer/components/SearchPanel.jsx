@@ -41,6 +41,14 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
   const [whatSizeOpen, setWhatSizeOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
+  // Documents advanced search toggle
+  const [docAdvancedOpen, setDocAdvancedOpen] = useState(false);
+
+  // Computers sub-view (null = menu, 'computer' = network computer, 'internet' = search internet, 'internet-refine' = refine search)
+  const [computersSubView, setComputersSubView] = useState(null);
+  const [computerName, setComputerName] = useState('');
+  const [sampleQuestion, setSampleQuestion] = useState('Buy a book online');
+
   // When was it modified filters
   const [modifiedFilter, setModifiedFilter] = useState('dont-remember');
   const [dateFrom, setDateFrom] = useState('');
@@ -83,8 +91,13 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
 
   const handleKeyDown = (e) => {
     if (e.key === 'Escape') {
-      if (searchType) {
+      if (searchType === 'computers' && computersSubView) {
+        setComputersSubView(null);
+        setComputerName('');
+        onSearchChange('');
+      } else if (searchType) {
         setSearchType(null);
+        setComputersSubView(null);
         onSearchChange('');
       } else {
         onClose();
@@ -153,53 +166,60 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
               <>
                 <BalloonTitle>Search by any or all of the criteria below.</BalloonTitle>
 
-                <InputLabel>Last time it was modified:</InputLabel>
-                <RadioGroup>
-                  <RadioRow>
-                    <input
-                      type="radio"
-                      id="date-dont-remember"
-                      name="dateFilter"
-                      value="dont-remember"
-                      checked={dateFilter === 'dont-remember'}
-                      onChange={(e) => setDateFilter(e.target.value)}
-                    />
-                    <label htmlFor="date-dont-remember">Don't remember</label>
-                  </RadioRow>
-                  <RadioRow>
-                    <input
-                      type="radio"
-                      id="date-last-week"
-                      name="dateFilter"
-                      value="last-week"
-                      checked={dateFilter === 'last-week'}
-                      onChange={(e) => setDateFilter(e.target.value)}
-                    />
-                    <label htmlFor="date-last-week">Within the last week</label>
-                  </RadioRow>
-                  <RadioRow>
-                    <input
-                      type="radio"
-                      id="date-past-month"
-                      name="dateFilter"
-                      value="past-month"
-                      checked={dateFilter === 'past-month'}
-                      onChange={(e) => setDateFilter(e.target.value)}
-                    />
-                    <label htmlFor="date-past-month">Past month</label>
-                  </RadioRow>
-                  <RadioRow>
-                    <input
-                      type="radio"
-                      id="date-past-year"
-                      name="dateFilter"
-                      value="past-year"
-                      checked={dateFilter === 'past-year'}
-                      onChange={(e) => setDateFilter(e.target.value)}
-                    />
-                    <label htmlFor="date-past-year">Within the past year</label>
-                  </RadioRow>
-                </RadioGroup>
+                <CollapsibleRow onClick={() => setWhenModifiedOpen(!whenModifiedOpen)}>
+                  <span>Last time it was modified:</span>
+                  <ChevronIcon $open={whenModifiedOpen} />
+                </CollapsibleRow>
+                {whenModifiedOpen && (
+                  <CollapsibleContent>
+                    <RadioGroup>
+                      <RadioRow>
+                        <input
+                          type="radio"
+                          id="doc-date-dont-remember"
+                          name="docDateFilter"
+                          value="dont-remember"
+                          checked={dateFilter === 'dont-remember'}
+                          onChange={(e) => setDateFilter(e.target.value)}
+                        />
+                        <label htmlFor="doc-date-dont-remember">Don't remember</label>
+                      </RadioRow>
+                      <RadioRow>
+                        <input
+                          type="radio"
+                          id="doc-date-last-week"
+                          name="docDateFilter"
+                          value="last-week"
+                          checked={dateFilter === 'last-week'}
+                          onChange={(e) => setDateFilter(e.target.value)}
+                        />
+                        <label htmlFor="doc-date-last-week">Within the last week</label>
+                      </RadioRow>
+                      <RadioRow>
+                        <input
+                          type="radio"
+                          id="doc-date-past-month"
+                          name="docDateFilter"
+                          value="past-month"
+                          checked={dateFilter === 'past-month'}
+                          onChange={(e) => setDateFilter(e.target.value)}
+                        />
+                        <label htmlFor="doc-date-past-month">Past month</label>
+                      </RadioRow>
+                      <RadioRow>
+                        <input
+                          type="radio"
+                          id="doc-date-past-year"
+                          name="docDateFilter"
+                          value="past-year"
+                          checked={dateFilter === 'past-year'}
+                          onChange={(e) => setDateFilter(e.target.value)}
+                        />
+                        <label htmlFor="doc-date-past-year">Within the past year</label>
+                      </RadioRow>
+                    </RadioGroup>
+                  </CollapsibleContent>
+                )}
 
                 <InputLabel>All or part of the document name:</InputLabel>
                 <SearchInput
@@ -210,13 +230,102 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
                   onKeyDown={handleKeyDown}
                 />
 
-                <AlsoSection>
-                  <AlsoTitle>You may also want to...</AlsoTitle>
-                  <AlsoItem>
-                    <PreferencesIcon />
-                    <span>Use advanced search options</span>
-                  </AlsoItem>
-                </AlsoSection>
+                {docAdvancedOpen && (
+                  <>
+                    <InputLabel>A word or phrase in the document:</InputLabel>
+                    <SearchInput
+                      type="text"
+                      value={phraseQuery}
+                      onChange={(e) => setPhraseQuery(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                    />
+
+                    <InputLabel>Look in:</InputLabel>
+                    <SelectInput value={lookIn} onChange={(e) => setLookIn(e.target.value)}>
+                      <option value="Shared Documents">Shared Documents</option>
+                      <option value="My Documents">My Documents</option>
+                      <option value="My Computer">My Computer</option>
+                      <option value="Local Disk (C:)">Local Disk (C:)</option>
+                    </SelectInput>
+
+                    <CollapsibleRow onClick={() => setWhatSizeOpen(!whatSizeOpen)}>
+                      <span>What size is it?</span>
+                      <ChevronIcon $open={whatSizeOpen} />
+                    </CollapsibleRow>
+                    {whatSizeOpen && (
+                      <CollapsibleContent>
+                        <RadioGroup>
+                          <RadioRow>
+                            <input type="radio" id="doc-size-any" name="docSizeFilter" defaultChecked />
+                            <label htmlFor="doc-size-any">Don't remember</label>
+                          </RadioRow>
+                          <RadioRow>
+                            <input type="radio" id="doc-size-small" name="docSizeFilter" />
+                            <label htmlFor="doc-size-small">Small (less than 100 KB)</label>
+                          </RadioRow>
+                          <RadioRow>
+                            <input type="radio" id="doc-size-medium" name="docSizeFilter" />
+                            <label htmlFor="doc-size-medium">Medium (less than 1 MB)</label>
+                          </RadioRow>
+                          <RadioRow>
+                            <input type="radio" id="doc-size-large" name="docSizeFilter" />
+                            <label htmlFor="doc-size-large">Large (more than 1 MB)</label>
+                          </RadioRow>
+                          <RadioRow>
+                            <input type="radio" id="doc-size-specify" name="docSizeFilter" />
+                            <label htmlFor="doc-size-specify">Specify size (in KB)</label>
+                          </RadioRow>
+                        </RadioGroup>
+                        <SizeSpecifyRow>
+                          <SelectInput style={{ width: '80px', marginBottom: 0 }}>
+                            <option>at least</option>
+                            <option>at most</option>
+                          </SelectInput>
+                          <SizeInput type="text" placeholder="0" />
+                        </SizeSpecifyRow>
+                      </CollapsibleContent>
+                    )}
+
+                    <CollapsibleRow onClick={() => setAdvancedOpen(!advancedOpen)}>
+                      <span>More advanced options</span>
+                      <ChevronIcon $open={advancedOpen} />
+                    </CollapsibleRow>
+                    {advancedOpen && (
+                      <CollapsibleContent>
+                        <CheckboxRow>
+                          <input type="checkbox" id="doc-adv-system" />
+                          <label htmlFor="doc-adv-system">Search system folders</label>
+                        </CheckboxRow>
+                        <CheckboxRow>
+                          <input type="checkbox" id="doc-adv-hidden" />
+                          <label htmlFor="doc-adv-hidden">Search hidden files and folders</label>
+                        </CheckboxRow>
+                        <CheckboxRow>
+                          <input type="checkbox" id="doc-adv-subfolders" defaultChecked />
+                          <label htmlFor="doc-adv-subfolders">Search subfolders</label>
+                        </CheckboxRow>
+                        <CheckboxRow>
+                          <input type="checkbox" id="doc-adv-case" />
+                          <label htmlFor="doc-adv-case">Case sensitive</label>
+                        </CheckboxRow>
+                        <CheckboxRow>
+                          <input type="checkbox" id="doc-adv-tape" />
+                          <label htmlFor="doc-adv-tape">Search tape backup</label>
+                        </CheckboxRow>
+                      </CollapsibleContent>
+                    )}
+                  </>
+                )}
+
+                {!docAdvancedOpen && (
+                  <AlsoSection>
+                    <AlsoTitle>You may also want to...</AlsoTitle>
+                    <AlsoItem onClick={() => setDocAdvancedOpen(true)}>
+                      <PreferencesIcon />
+                      <span>Use advanced search options</span>
+                    </AlsoItem>
+                  </AlsoSection>
+                )}
               </>
             ) : searchType === 'all' ? (
               <>
@@ -411,23 +520,145 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
                   </CollapsibleContent>
                 )}
               </>
-            ) : searchType ? (
-              <>
-                <BalloonTitle>
-                  {searchType === 'computers' && 'Search for computers or people:'}
-                </BalloonTitle>
-                <SearchInput
-                  ref={inputRef}
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => onSearchChange(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  autoFocus
-                />
-                <BackLink onClick={() => { setSearchType(null); onSearchChange(''); }}>
-                  &larr; Back
-                </BackLink>
-              </>
+            ) : searchType === 'computers' ? (
+              computersSubView === 'computer' ? (
+                <>
+                  <BalloonTitle>Which computer are you looking for?</BalloonTitle>
+
+                  <InputLabel>Computer name:</InputLabel>
+                  <SearchInput
+                    ref={inputRef}
+                    type="text"
+                    value={computerName}
+                    onChange={(e) => setComputerName(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                  />
+
+                  <AlsoSection>
+                    <AlsoTitle>You may also want to...</AlsoTitle>
+                    <AlsoItem onClick={() => { setSearchType('all'); setComputersSubView(null); }}>
+                      <SearchComputerIcon />
+                      <span>Search this computer for files</span>
+                    </AlsoItem>
+                    <AlsoItem onClick={() => setComputersSubView('internet')}>
+                      <SearchComputerIcon />
+                      <span>Search the Internet</span>
+                    </AlsoItem>
+                  </AlsoSection>
+                </>
+              ) : computersSubView === 'internet-refine' ? (
+                <>
+                  <BalloonTitle>What would you like to do?</BalloonTitle>
+
+                  <OptionsList>
+                    <OptionItem>
+                      <ArrowIcon />
+                      <span>Find a legal document about Buy</span>
+                    </OptionItem>
+                    <OptionItem>
+                      <ArrowIcon />
+                      <span>Find a legal document</span>
+                    </OptionItem>
+                    <OptionItem>
+                      <ArrowIcon />
+                      <span>Find software reviews, instructions, etc.</span>
+                    </OptionItem>
+                    <OptionItem>
+                      <ArrowIcon />
+                      <span>Automatically send your search to other search engines</span>
+                    </OptionItem>
+                    <OptionItem>
+                      <HighlightIcon />
+                      <span>Highlight words on the results page</span>
+                    </OptionItem>
+                  </OptionsList>
+
+                  <InputLabel>Change current search:</InputLabel>
+                  <SearchTextarea
+                    ref={inputRef}
+                    value={searchQuery}
+                    onChange={(e) => onSearchChange(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        window.open(`https://www.bing.com/search?q=${encodeURIComponent(searchQuery)}`, '_blank');
+                      }
+                      handleKeyDown(e);
+                    }}
+                  />
+
+                  <OptionItem onClick={() => { setSampleQuestion('upgrade to windows 10'); setComputersSubView('internet'); onSearchChange(''); }}>
+                    <NewSearchIcon />
+                    <span>Start a new search</span>
+                  </OptionItem>
+                </>
+              ) : computersSubView === 'internet' ? (
+                <>
+                  <BalloonTitle>What are you looking for?</BalloonTitle>
+
+                  <InputLabel>Type your question below. For best results, use complete sentences.</InputLabel>
+                  <SearchTextarea
+                    ref={inputRef}
+                    value={searchQuery}
+                    onChange={(e) => onSearchChange(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        window.open(`https://www.bing.com/search?q=${encodeURIComponent(searchQuery)}`, '_blank');
+                      }
+                      handleKeyDown(e);
+                    }}
+                    placeholder="Please type your query here, then press <Enter>."
+                  />
+
+                  <SampleSection>
+                    <SampleTitle>Sample question:</SampleTitle>
+                    <OptionItem onClick={() => { onSearchChange(sampleQuestion); setComputersSubView('internet-refine'); }}>
+                      <ArrowIcon />
+                      <span>{sampleQuestion}</span>
+                    </OptionItem>
+                  </SampleSection>
+
+                  <AlsoSection>
+                    <AlsoTitle>You may also want to...</AlsoTitle>
+                    <AlsoItem onClick={() => { setSearchType('all'); setComputersSubView(null); }}>
+                      <SearchComputerIcon />
+                      <span>Search this computer for files</span>
+                    </AlsoItem>
+                    <AlsoItem>
+                      <PreferencesIcon />
+                      <span>Change preferences</span>
+                    </AlsoItem>
+                    <AlsoItem onClick={onClose}>
+                      <DogIcon />
+                      <span>Turn off animated character</span>
+                    </AlsoItem>
+                  </AlsoSection>
+                </>
+              ) : (
+                <>
+                  <BalloonTitle>What are you looking for?</BalloonTitle>
+
+                  <OptionsList>
+                    <OptionItem onClick={() => { setComputersSubView('computer'); setTimeout(() => inputRef.current?.focus(), 100); }}>
+                      <ArrowIcon />
+                      <span>A computer on the network</span>
+                    </OptionItem>
+                    <OptionItem>
+                      <ArrowIcon />
+                      <span>People in your address book</span>
+                    </OptionItem>
+                  </OptionsList>
+
+                  <AlsoSection>
+                    <AlsoTitle>You may also want to...</AlsoTitle>
+                    <AlsoItem onClick={() => { setComputersSubView('internet'); setTimeout(() => inputRef.current?.focus(), 100); }}>
+                      <SearchComputerIcon />
+                      <span>Search the Internet</span>
+                    </AlsoItem>
+                  </AlsoSection>
+                </>
+              )
             ) : (
               <>
                 <BalloonTitle>What do you want to search for?</BalloonTitle>
@@ -457,8 +688,8 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
 
                 <AlsoSection>
                   <AlsoTitle>You may also want to...</AlsoTitle>
-                  <AlsoItem>
-                    <GlobeIcon />
+                  <AlsoItem onClick={() => { setSearchType('computers'); setComputersSubView('internet'); }}>
+                    <SearchComputerIcon />
                     <span>Search the Internet</span>
                   </AlsoItem>
                   <AlsoItem>
@@ -477,6 +708,27 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
             <ButtonRow>
               <XPButton onClick={() => { setSearchType(null); onSearchChange(''); setPhraseQuery(''); }}>Back</XPButton>
               <XPButton onClick={() => onSearchChange(searchQuery)}>Search</XPButton>
+            </ButtonRow>
+          )}
+          {searchType === 'computers' && computersSubView === 'computer' && (
+            <ButtonRow style={{ justifyContent: 'flex-end' }}>
+              <XPButton onClick={() => console.log('Search for:', computerName)}>Search</XPButton>
+            </ButtonRow>
+          )}
+          {searchType === 'computers' && computersSubView === 'internet' && (
+            <ButtonRow style={{ justifyContent: 'flex-end' }}>
+              <XPButton onClick={() => window.open(`https://www.bing.com/search?q=${encodeURIComponent(searchQuery)}`, '_blank')}>Search</XPButton>
+            </ButtonRow>
+          )}
+          {searchType === 'computers' && computersSubView === 'internet-refine' && (
+            <ButtonRow>
+              <XPButton onClick={() => { setComputersSubView('internet'); }}>Back</XPButton>
+              <XPButton onClick={() => window.open(`https://www.bing.com/search?q=${encodeURIComponent(searchQuery)}`, '_blank')}>Search</XPButton>
+            </ButtonRow>
+          )}
+          {searchType === 'computers' && !computersSubView && (
+            <ButtonRow style={{ justifyContent: 'flex-start' }}>
+              <XPButton onClick={() => { setSearchType(null); }}>Back</XPButton>
             </ButtonRow>
           )}
           <BalloonTip />
@@ -537,8 +789,9 @@ const Balloon = styled.div`
   border-radius: 12px;
   box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
   margin-bottom: 8px;
-  flex: 1 1 0;
-  min-height: 100px;
+  margin-top: auto;
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -632,24 +885,14 @@ const ArrowIcon = styled.img.attrs({
   min-width: 14px;
 `;
 
-const HelpIcon = styled.div`
-  width: 14px;
-  height: 14px;
-  min-width: 14px;
-  background: #6699CC;
-  border-radius: 50%;
-  position: relative;
-  margin-top: 1px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-weight: bold;
-  color: white;
-
-  &::after {
-    content: '?';
-  }
+const HelpIcon = styled.img.attrs({
+  src: '/icons/help.png',
+  alt: 'Help',
+  draggable: false,
+})`
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
 `;
 
 const AlsoSection = styled.div`
@@ -738,11 +981,12 @@ const CheckboxGroup = styled.div`
 
 const CheckboxRow = styled.div`
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
   font-size: 11px;
   font-family: Tahoma, 'Noto Sans', sans-serif;
   color: #000;
+  margin-bottom: 4px;
 
   label {
     cursor: pointer;
@@ -783,18 +1027,9 @@ const InputLabel = styled.div`
 
 const SelectInput = styled.select`
   width: 100%;
-  padding: 4px 6px;
-  border: 1px solid #7f9db9;
-  font-size: 11px;
-  font-family: Tahoma, 'Noto Sans', sans-serif;
   box-sizing: border-box;
   margin-bottom: 8px;
-  background: #fff;
-
-  &:focus {
-    outline: none;
-    border-color: #316ac5;
-  }
+  font-size: 11px;
 `;
 
 const CollapsibleRow = styled.div`
@@ -877,6 +1112,89 @@ const DateInput = styled.input`
     outline: none;
     border-color: #316ac5;
   }
+`;
+
+const SearchTextarea = styled.textarea`
+  width: 100%;
+  min-height: 60px;
+  padding: 4px 6px;
+  border: 1px solid #7f9db9;
+  font-size: 11px;
+  font-family: Tahoma, 'Noto Sans', sans-serif;
+  box-sizing: border-box;
+  margin-bottom: 8px;
+  resize: none;
+
+  &:focus {
+    outline: none;
+    border-color: #316ac5;
+  }
+
+  &::placeholder {
+    color: #888;
+  }
+`;
+
+const SampleSection = styled.div`
+  margin-bottom: 8px;
+`;
+
+const SampleTitle = styled.div`
+  font-size: 11px;
+  font-family: Tahoma, 'Noto Sans', sans-serif;
+  color: #000;
+  margin-bottom: 4px;
+`;
+
+const SearchIcon = styled.div`
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  background: radial-gradient(circle at 40% 40%, #a8d4ff 0%, #4a90d9 60%, #2a5a9a 100%);
+  border-radius: 50%;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 6px;
+    height: 2px;
+    background: #666;
+    transform: rotate(45deg);
+    transform-origin: top left;
+  }
+`;
+
+const HighlightIcon = styled.img.attrs({
+  src: '/icons/search/highlight.ico',
+  alt: 'highlight',
+  draggable: false,
+})`
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+`;
+
+const NewSearchIcon = styled.img.attrs({
+  src: '/icons/search/new-search.ico',
+  alt: 'new search',
+  draggable: false,
+})`
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+`;
+
+const SearchComputerIcon = styled.img.attrs({
+  src: '/icons/search/search-computer.ico',
+  alt: 'search computer',
+  draggable: false,
+})`
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
 `;
 
 const ButtonRow = styled.div`
