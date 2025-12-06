@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import * as idb from 'idb-keyval';
 import { v4 as uuidv4 } from 'uuid';
 import { useConfig } from './ConfigContext';
+import { useUserAccounts } from './UserAccountsContext';
 
 // Sort options
 export const SortOptions = Object.freeze({
@@ -30,6 +31,7 @@ export const fileIcons = {
   '.pdf': '/icons/xp/PDF.png',
   '.html': '/icons/xp/InternetExplorer6.png',
   '.htm': '/icons/xp/InternetExplorer6.png',
+  '.lnk': '/icons/xp/Shortcutoverlay.png',
 };
 
 // XP-style icons
@@ -86,28 +88,31 @@ const PROTECTED_ITEMS = [
   SYSTEM_IDS.RECYCLE_BIN,
 ];
 
+// Shortcut file size in bytes (Windows .lnk files are typically small)
+const SHORTCUT_SIZE = 90; // 90 bytes like in reference
+
 // Full catalog of available desktop shortcuts (program ID -> shortcut definition)
 // These map to the appSettings keys in src/WinXP/apps/index.js
 export const DESKTOP_SHORTCUT_CATALOG = {
-  myComputer: { id: 'shortcut-my-computer', name: 'My Computer', icon: XP_ICONS.myComputer, target: 'My Computer' },
-  recycleBin: { id: 'shortcut-recycle-bin', name: 'Recycle Bin', icon: XP_ICONS.recycleBinEmpty, target: 'Recycle Bin' },
-  about: { id: 'shortcut-about', name: 'About Me', icon: '/icons/about.webp', target: 'About Me' },
-  resume: { id: 'shortcut-resume', name: 'Resume', icon: '/icons/resume.webp', target: 'Resume' },
-  projects: { id: 'shortcut-projects', name: 'Projects', icon: '/icons/projects.webp', target: 'Projects' },
-  contact: { id: 'shortcut-contact', name: 'Contact', icon: '/icons/contact.webp', target: 'Contact' },
-  calculator: { id: 'shortcut-calculator', name: 'Calculator', icon: XP_ICONS.calculator, target: 'Calculator' },
-  minesweeper: { id: 'shortcut-minesweeper', name: 'Minesweeper', icon: XP_ICONS.minesweeper, target: 'Minesweeper' },
-  notepad: { id: 'shortcut-notepad', name: 'Notepad', icon: XP_ICONS.notepad, target: 'Notepad' },
-  paint: { id: 'shortcut-paint', name: 'Paint', icon: '/icons/xp/Paint.png', target: 'Paint' },
-  cmd: { id: 'shortcut-cmd', name: 'Command Prompt', icon: '/icons/xp/CommandPrompt.png', target: 'Command Prompt' },
-  mediaPlayer: { id: 'shortcut-media-player', name: 'Windows Media Player', icon: '/icons/xp/WindowsMediaPlayer9.png', target: 'Windows Media Player' },
-  internetExplorer: { id: 'shortcut-ie', name: 'Internet Explorer', icon: '/icons/xp/InternetExplorer6.png', target: 'Internet Explorer' },
-  solitaire: { id: 'shortcut-solitaire', name: 'Solitaire', icon: '/icons/solitaire-icon.png', target: 'Solitaire' },
-  spiderSolitaire: { id: 'shortcut-spider-solitaire', name: 'Spider Solitaire', icon: '/icons/spider-solitaire-icon.webp', target: 'Spider Solitaire' },
-  pinball: { id: 'shortcut-pinball', name: '3D Pinball', icon: '/icons/pinball-icon.png', target: 'Pinball' },
-  soundRecorder: { id: 'shortcut-sound-recorder', name: 'Sound Recorder', icon: '/icons/xp/SoundRecorder.webp', target: 'Sound Recorder' },
-  winamp: { id: 'shortcut-winamp', name: 'Winamp', icon: '/icons/winamp.png', target: 'Winamp' },
-  displayProperties: { id: 'shortcut-display', name: 'Display Properties', icon: XP_ICONS.displayProperties, target: 'Display Properties' },
+  myComputer: { id: 'shortcut-my-computer', name: 'My Computer.lnk', icon: XP_ICONS.myComputer, target: 'My Computer', size: SHORTCUT_SIZE },
+  recycleBin: { id: 'shortcut-recycle-bin', name: 'Recycle Bin.lnk', icon: XP_ICONS.recycleBinEmpty, target: 'Recycle Bin', size: SHORTCUT_SIZE },
+  about: { id: 'shortcut-about', name: 'About Me.lnk', icon: '/icons/about.webp', target: 'About Me', size: SHORTCUT_SIZE },
+  resume: { id: 'shortcut-resume', name: 'Resume.lnk', icon: '/icons/resume.webp', target: 'Resume', size: SHORTCUT_SIZE },
+  projects: { id: 'shortcut-projects', name: 'Projects.lnk', icon: '/icons/projects.webp', target: 'Projects', size: SHORTCUT_SIZE },
+  contact: { id: 'shortcut-contact', name: 'Contact.lnk', icon: '/icons/contact.webp', target: 'Contact', size: SHORTCUT_SIZE },
+  calculator: { id: 'shortcut-calculator', name: 'Calculator.lnk', icon: XP_ICONS.calculator, target: 'Calculator', size: SHORTCUT_SIZE },
+  minesweeper: { id: 'shortcut-minesweeper', name: 'Minesweeper.lnk', icon: XP_ICONS.minesweeper, target: 'Minesweeper', size: SHORTCUT_SIZE },
+  notepad: { id: 'shortcut-notepad', name: 'Notepad.lnk', icon: XP_ICONS.notepad, target: 'Notepad', size: SHORTCUT_SIZE },
+  paint: { id: 'shortcut-paint', name: 'Paint.lnk', icon: '/icons/xp/Paint.png', target: 'Paint', size: SHORTCUT_SIZE },
+  cmd: { id: 'shortcut-cmd', name: 'Command Prompt.lnk', icon: '/icons/xp/CommandPrompt.png', target: 'Command Prompt', size: SHORTCUT_SIZE },
+  mediaPlayer: { id: 'shortcut-media-player', name: 'Windows Media Player.lnk', icon: '/icons/xp/WindowsMediaPlayer9.png', target: 'Windows Media Player', size: SHORTCUT_SIZE },
+  internetExplorer: { id: 'shortcut-ie', name: 'Internet Explorer.lnk', icon: '/icons/xp/InternetExplorer6.png', target: 'Internet Explorer', size: SHORTCUT_SIZE },
+  solitaire: { id: 'shortcut-solitaire', name: 'Solitaire.lnk', icon: '/icons/solitaire-icon.png', target: 'Solitaire', size: SHORTCUT_SIZE },
+  spiderSolitaire: { id: 'shortcut-spider-solitaire', name: 'Spider Solitaire.lnk', icon: '/icons/spider-solitaire-icon.webp', target: 'Spider Solitaire', size: SHORTCUT_SIZE },
+  pinball: { id: 'shortcut-pinball', name: '3D Pinball.lnk', icon: '/icons/pinball-icon.png', target: 'Pinball', size: SHORTCUT_SIZE },
+  soundRecorder: { id: 'shortcut-sound-recorder', name: 'Sound Recorder.lnk', icon: '/icons/xp/SoundRecorder.webp', target: 'Sound Recorder', size: SHORTCUT_SIZE },
+  winamp: { id: 'shortcut-winamp', name: 'Winamp.lnk', icon: '/icons/winamp.png', target: 'Winamp', size: SHORTCUT_SIZE },
+  displayProperties: { id: 'shortcut-display', name: 'Display Properties.lnk', icon: XP_ICONS.displayProperties, target: 'Display Properties', size: SHORTCUT_SIZE },
 };
 
 // Default desktop programs if not specified in config
@@ -132,9 +137,11 @@ const createInitialFileSystem = (desktopShortcuts) => {
       id: shortcut.id,
       type: 'shortcut',
       name: shortcut.name,
+      ext: '.lnk',
       icon: shortcut.icon,
       target: shortcut.target,
       parent: SYSTEM_IDS.DESKTOP,
+      size: shortcut.size || SHORTCUT_SIZE,
       dateCreated: now,
       dateModified: now,
     };
@@ -208,12 +215,17 @@ const createInitialFileSystem = (desktopShortcuts) => {
 
 const FileSystemContext = createContext(null);
 
+// Helper to get storage key for a user's file system
+const getFileSystemKey = (userId) => userId ? `fileSystem-${userId}` : 'fileSystem';
+
 export function FileSystemProvider({ children }) {
   const { getDesktopPrograms, isLoading: configLoading } = useConfig();
+  const { activeUserId, isLoading: userLoading } = useUserAccounts();
   const [fileSystem, setFileSystem] = useState(null);
   const [clipboard, setClipboard] = useState([]);
   const [clipboardOp, setClipboardOp] = useState('copy'); // 'copy' or 'cut'
   const [isLoading, setIsLoading] = useState(true);
+  const currentUserIdRef = useRef(null);
 
   // Build desktop shortcuts from config
   const desktopShortcuts = useMemo(() => {
@@ -249,12 +261,23 @@ export function FileSystemProvider({ children }) {
           id: shortcut.id,
           type: 'shortcut',
           name: shortcut.name,
+          ext: '.lnk',
           icon: shortcut.icon,
           target: shortcut.target,
           parent: SYSTEM_IDS.DESKTOP,
+          size: shortcut.size || SHORTCUT_SIZE,
           dateCreated: now,
           dateModified: now,
         };
+        modified = true;
+      } else if (!fs[shortcut.id].ext) {
+        // Migrate existing shortcuts to include .lnk extension
+        fs[shortcut.id].ext = '.lnk';
+        fs[shortcut.id].size = fs[shortcut.id].size || shortcut.size || SHORTCUT_SIZE;
+        // Update name to include .lnk if not present
+        if (!fs[shortcut.id].name.endsWith('.lnk')) {
+          fs[shortcut.id].name = fs[shortcut.id].name + '.lnk';
+        }
         modified = true;
       }
 
@@ -287,14 +310,41 @@ export function FileSystemProvider({ children }) {
     return migrated;
   };
 
-  // Load file system from IndexedDB on mount
+  // Load file system from IndexedDB when user changes
   useEffect(() => {
-    // Wait for config to load before initializing file system
-    if (configLoading) return;
+    // Wait for config and user to load before initializing file system
+    if (configLoading || userLoading) return;
+
+    // If no active user, don't load file system (show login screen)
+    if (!activeUserId) {
+      setFileSystem(null);
+      setIsLoading(false);
+      return;
+    }
+
+    // Skip if already loaded for this user
+    if (currentUserIdRef.current === activeUserId && fileSystem) {
+      return;
+    }
 
     const loadFileSystem = async () => {
+      setIsLoading(true);
+      const storageKey = getFileSystemKey(activeUserId);
+
       try {
-        let fs = await idb.get('fileSystem');
+        let fs = await idb.get(storageKey);
+
+        // Migration: Check if there's an old global file system to migrate
+        if (!fs && activeUserId) {
+          const oldFs = await idb.get('fileSystem');
+          if (oldFs && !oldFs._migratedToPerUser) {
+            // Migrate old global file system to first user
+            fs = { ...oldFs, _migratedToPerUser: true };
+            // Mark the old one as migrated so we don't do it again
+            await idb.set('fileSystem', { ...oldFs, _migratedToPerUser: true });
+          }
+        }
+
         if (!fs) {
           fs = createInitialFileSystem(desktopShortcuts);
         } else {
@@ -303,24 +353,29 @@ export function FileSystemProvider({ children }) {
           // Migrate old file sizes from KB to bytes
           fs = migrateFileSizes(fs);
         }
-        await idb.set('fileSystem', fs);
+
+        await idb.set(storageKey, fs);
+        currentUserIdRef.current = activeUserId;
         setFileSystem(fs);
       } catch (error) {
         console.error('Failed to load file system:', error);
         setFileSystem(createInitialFileSystem(desktopShortcuts));
+        currentUserIdRef.current = activeUserId;
       } finally {
         setIsLoading(false);
       }
     };
+
     loadFileSystem();
-  }, [configLoading, desktopShortcuts]);
+  }, [configLoading, userLoading, activeUserId, desktopShortcuts]);
 
   // Save file system to IndexedDB whenever it changes
   useEffect(() => {
-    if (fileSystem && !isLoading) {
-      idb.set('fileSystem', fileSystem).catch(console.error);
+    if (fileSystem && !isLoading && activeUserId) {
+      const storageKey = getFileSystemKey(activeUserId);
+      idb.set(storageKey, fileSystem).catch(console.error);
     }
-  }, [fileSystem, isLoading]);
+  }, [fileSystem, isLoading, activeUserId]);
 
   // Get file extension
   const getExtension = useCallback((filename) => {

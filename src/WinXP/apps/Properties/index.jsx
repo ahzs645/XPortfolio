@@ -54,22 +54,35 @@ function Properties({ onClose, itemId, itemData }) {
   const details = useMemo(() => {
     if (!item) return {};
 
-    // Type
-    const typeMap = {
-      file: 'File',
-      folder: 'File Folder',
-      drive: 'Local Disk',
-      shortcut: 'Shortcut',
-    };
+    // Type - check for .lnk extension for shortcuts
+    let itemType;
+    if (item.type === 'shortcut' || item.name?.endsWith('.lnk')) {
+      itemType = 'Shortcut File';
+    } else {
+      const typeMap = {
+        file: 'File',
+        folder: 'File Folder',
+        drive: 'Local Disk',
+      };
+      itemType = typeMap[item.type] || 'Unknown';
+    }
 
     // Location
     const path = getPath ? getPath(item.id) : item.name;
     const location = path ? `C:/${path.split('\\').slice(0, -1).join('/')}` : 'C:/';
 
-    // Size
+    // Size - shortcuts and other items store size directly in bytes
     let sizeBytes;
-    if (item.type === 'file') {
-      sizeBytes = (item.size || 0) * 1024;
+    if (item.type === 'shortcut') {
+      // Shortcuts store size directly in bytes
+      sizeBytes = item.size || 90;
+    } else if (item.type === 'file') {
+      // Files might store size in bytes or KB, check magnitude
+      sizeBytes = item.size || 0;
+      // If size seems too small to be in bytes (likely KB), convert
+      if (sizeBytes > 0 && sizeBytes < 10000) {
+        sizeBytes = sizeBytes * 1024;
+      }
     } else if (item.type === 'folder') {
       sizeBytes = calculateFolderSize(item.id) * 1024;
     } else {
@@ -80,7 +93,7 @@ function Properties({ onClose, itemId, itemData }) {
     const sizeOnDisk = Math.ceil(sizeBytes / 4096) * 4096;
 
     return {
-      type: typeMap[item.type] || 'Unknown',
+      type: itemType,
       location: location || 'C:/',
       size: formatBytes(sizeBytes),
       sizeOnDisk: formatBytes(sizeOnDisk),

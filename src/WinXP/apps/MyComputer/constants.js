@@ -5,7 +5,7 @@ export const FILE_TYPES = {
   sys: 'System File',
   bat: 'Batch File',
   cmd: 'Command Script',
-  lnk: 'Shortcut',
+  lnk: 'Shortcut File',
   txt: 'Text Document',
   doc: 'Microsoft Word Document',
   docx: 'Microsoft Word Document',

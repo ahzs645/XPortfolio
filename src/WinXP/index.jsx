@@ -48,11 +48,18 @@ const convertToDesktopIcons = (items, appSettings, savedPositions = {}) => {
       }
     }
 
+    // For shortcuts, strip the .lnk extension from display title
+    let displayTitle = item.name;
+    if (item.type === 'shortcut' && item.name.endsWith('.lnk')) {
+      displayTitle = item.name.slice(0, -4);
+    }
+
     return {
       id: item.id,
       programId: item.id,
       icon: item.icon || XP_ICONS.file,
-      title: item.name,
+      title: displayTitle,
+      fullName: item.name, // Keep the full name with .lnk for properties
       component: component,
       isFocus: false,
       x: validX,
@@ -62,6 +69,9 @@ const convertToDesktopIcons = (items, appSettings, savedPositions = {}) => {
       target: item.target,
       data: item.data,
       fileType: item.type === 'file' ? item.contentType : null,
+      size: item.size,
+      dateCreated: item.dateCreated,
+      dateModified: item.dateModified,
     };
   });
 };
@@ -935,22 +945,24 @@ function WinXP() {
         if (icon.target === 'My Computer' || icon.title === 'My Computer') {
           dispatch({ type: ADD_APP, payload: appSettings['System Properties'] });
         } else {
+          // Use full name with .lnk for properties display
+          const propName = icon.fullName || icon.title;
           // Open Properties dialog for the icon
           const propertiesSetting = {
             ...appSettings['Properties'],
             header: {
               ...appSettings['Properties'].header,
-              title: `${icon.title} Properties`,
+              title: `${propName} Properties`,
             },
             injectProps: {
               itemId: icon.id,
               itemData: {
                 id: icon.id,
-                name: icon.title,
+                name: propName,
                 type: icon.type || 'shortcut',
                 icon: icon.icon,
                 target: icon.target,
-                size: icon.size || 0,
+                size: icon.size || 90, // Default shortcut size
                 dateCreated: icon.dateCreated || Date.now(),
                 dateModified: icon.dateModified || Date.now(),
               },

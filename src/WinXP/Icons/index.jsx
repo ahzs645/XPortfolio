@@ -411,7 +411,12 @@ function Icons({
               top: pos.y,
             }}
           >
-            <IconImage src={icon.icon} alt={icon.title} draggable={false} $isCut={isCut} />
+            <IconImageWrapper>
+              <IconImage src={icon.icon} alt={icon.title} draggable={false} $isCut={isCut} />
+              {icon.type === 'shortcut' && (
+                <ShortcutOverlay src="/icons/xp/Shortcutoverlay.png" alt="" draggable={false} />
+              )}
+            </IconImageWrapper>
             {isRenaming ? (
               <RenameForm onSubmit={onRenameSubmit}>
                 <RenameInput
@@ -482,12 +487,28 @@ const Icon = styled.div`
   }
 `;
 
-const IconImage = styled.img`
+const IconImageWrapper = styled.div`
+  position: relative;
   width: 32px;
   height: 32px;
   margin-bottom: 5px;
+`;
+
+const IconImage = styled.img`
+  width: 32px;
+  height: 32px;
   image-rendering: pixelated;
   opacity: ${({ $isCut }) => ($isCut ? 0.5 : 1)};
+`;
+
+const ShortcutOverlay = styled.img`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  image-rendering: pixelated;
+  pointer-events: none;
 `;
 
 const IconText = styled.span`

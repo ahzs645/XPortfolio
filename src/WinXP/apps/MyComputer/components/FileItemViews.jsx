@@ -3,6 +3,17 @@ import styled from 'styled-components';
 import { XP_ICONS } from '../../../../contexts/FileSystemContext';
 import { getFileType, formatFileSize, formatDate, calculateFolderSize } from '../utils';
 
+// Check if item is a shortcut
+const isShortcut = (item) => item.type === 'shortcut' || item.name?.endsWith('.lnk');
+
+// Get display name (strip .lnk extension for shortcuts)
+const getDisplayName = (item) => {
+  if (isShortcut(item) && item.name?.endsWith('.lnk')) {
+    return item.name.slice(0, -4);
+  }
+  return item.name;
+};
+
 // Icon View Item
 export function IconItem({
   item,
@@ -41,7 +52,10 @@ export function IconItem({
       onDragLeave={onDragLeave}
       onDrop={onDrop}
     >
-      <IconImage src={item.icon || XP_ICONS.folder} alt="" />
+      <IconImageWrapper>
+        <IconImage src={item.icon || XP_ICONS.folder} alt="" />
+        {isShortcut(item) && <ShortcutOverlay src="/icons/xp/Shortcutoverlay.png" alt="" />}
+      </IconImageWrapper>
       {isRenaming ? (
         <RenameForm onSubmit={onRenameSubmit}>
           <RenameInput
@@ -53,7 +67,7 @@ export function IconItem({
           />
         </RenameForm>
       ) : (
-        <IconName>{item.name}</IconName>
+        <IconName>{getDisplayName(item)}</IconName>
       )}
     </IconItemContainer>
   );
@@ -97,7 +111,10 @@ export function ListItem({
       onDragLeave={onDragLeave}
       onDrop={onDrop}
     >
-      <ListIcon src={item.icon || XP_ICONS.folder} alt="" />
+      <ListIconWrapper>
+        <ListIcon src={item.icon || XP_ICONS.folder} alt="" />
+        {isShortcut(item) && <SmallShortcutOverlay src="/icons/xp/Shortcutoverlay.png" alt="" />}
+      </ListIconWrapper>
       {isRenaming ? (
         <RenameForm onSubmit={onRenameSubmit}>
           <RenameInput
@@ -109,7 +126,7 @@ export function ListItem({
           />
         </RenameForm>
       ) : (
-        <ListFileName>{item.name}</ListFileName>
+        <ListFileName>{getDisplayName(item)}</ListFileName>
       )}
     </ListItemContainer>
   );
@@ -159,7 +176,10 @@ export function DetailsRow({
       onDrop={onDrop}
     >
       <DetailsCell $width="40%">
-        <DetailsIcon src={item.icon || XP_ICONS.folder} alt="" />
+        <DetailsIconWrapper>
+          <DetailsIcon src={item.icon || XP_ICONS.folder} alt="" />
+          {isShortcut(item) && <SmallShortcutOverlay src="/icons/xp/Shortcutoverlay.png" alt="" />}
+        </DetailsIconWrapper>
         {isRenaming ? (
           <RenameForm onSubmit={onRenameSubmit}>
             <RenameInput
@@ -171,7 +191,7 @@ export function DetailsRow({
             />
           </RenameForm>
         ) : (
-          <span>{item.name}</span>
+          <span>{getDisplayName(item)}</span>
         )}
       </DetailsCell>
       <DetailsCell $width="15%" $align="right">
@@ -221,7 +241,10 @@ export function TileItem({
       onDragLeave={onDragLeave}
       onDrop={onDrop}
     >
-      <TileIcon src={item.icon || XP_ICONS.folder} alt="" />
+      <TileIconWrapper>
+        <TileIcon src={item.icon || XP_ICONS.folder} alt="" />
+        {isShortcut(item) && <TileShortcutOverlay src="/icons/xp/Shortcutoverlay.png" alt="" />}
+      </TileIconWrapper>
       <TileInfo>
         {isRenaming ? (
           <RenameForm onSubmit={onRenameSubmit}>
@@ -235,7 +258,7 @@ export function TileItem({
           </RenameForm>
         ) : (
           <>
-            <TileName>{item.name}</TileName>
+            <TileName>{getDisplayName(item)}</TileName>
             <TileType>{getFileType(item)}</TileType>
             {item.type !== 'folder' && <TileSize>{formatFileSize(item.size)}</TileSize>}
           </>
@@ -333,10 +356,26 @@ const IconItemContainer = styled.div`
   }
 `;
 
-const IconImage = styled.img`
+const IconImageWrapper = styled.div`
+  position: relative;
   width: 32px;
   height: 32px;
   margin-bottom: 4px;
+`;
+
+const IconImage = styled.img`
+  width: 32px;
+  height: 32px;
+`;
+
+const ShortcutOverlay = styled.img`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  image-rendering: pixelated;
+  pointer-events: none;
 `;
 
 const IconName = styled.span`
@@ -366,10 +405,26 @@ const ListItemContainer = styled.div`
   }
 `;
 
-const ListIcon = styled.img`
+const ListIconWrapper = styled.div`
+  position: relative;
   width: 16px;
   height: 16px;
   flex-shrink: 0;
+`;
+
+const ListIcon = styled.img`
+  width: 16px;
+  height: 16px;
+`;
+
+const SmallShortcutOverlay = styled.img`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  image-rendering: pixelated;
+  pointer-events: none;
 `;
 
 const ListFileName = styled.span`
@@ -435,10 +490,16 @@ const DetailsCell = styled.div`
   text-overflow: ellipsis;
 `;
 
-const DetailsIcon = styled.img`
+const DetailsIconWrapper = styled.div`
+  position: relative;
   width: 16px;
   height: 16px;
   flex-shrink: 0;
+`;
+
+const DetailsIcon = styled.img`
+  width: 16px;
+  height: 16px;
 `;
 
 // Tiles View Styles
@@ -462,10 +523,26 @@ const TileItemContainer = styled.div`
   }
 `;
 
-const TileIcon = styled.img`
+const TileIconWrapper = styled.div`
+  position: relative;
   width: 48px;
   height: 48px;
   flex-shrink: 0;
+`;
+
+const TileIcon = styled.img`
+  width: 48px;
+  height: 48px;
+`;
+
+const TileShortcutOverlay = styled.img`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 14px;
+  height: 14px;
+  image-rendering: pixelated;
+  pointer-events: none;
 `;
 
 const TileInfo = styled.div`
