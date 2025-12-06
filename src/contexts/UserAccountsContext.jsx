@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useConfig } from './ConfigContext';
 
 const UserAccountsContext = createContext(null);
 
@@ -62,14 +63,18 @@ function createDefaultUser(name = 'User', picture = '/icons/users/chess.png') {
   };
 }
 
-export function UserAccountsProvider({ children, defaultUserName, defaultUserPicture }) {
+export function UserAccountsProvider({ children }) {
+  const { getDisplayName, getUserLoginIcon, isLoading: configLoading } = useConfig();
   const [users, setUsers] = useState([]);
   const [activeUserId, setActiveUserId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Load users from localStorage on mount
+  // Load users from localStorage once config is ready
   useEffect(() => {
+    // Wait for config to load first
+    if (configLoading) return;
+
     try {
       const savedUsers = localStorage.getItem('userAccounts');
       const savedActiveId = localStorage.getItem('activeUserId');
@@ -83,22 +88,22 @@ export function UserAccountsProvider({ children, defaultUserName, defaultUserPic
           setActiveUserId(savedActiveId);
         }
       } else {
-        // Create default user on first run
+        // Create default user on first run using config values
         const defaultUser = createDefaultUser(
-          defaultUserName || 'User',
-          defaultUserPicture || '/icons/users/chess.png'
+          getDisplayName(),
+          getUserLoginIcon()
         );
         setUsers([defaultUser]);
         localStorage.setItem('userAccounts', JSON.stringify([defaultUser]));
       }
     } catch (err) {
       console.error('Failed to load user accounts:', err);
-      const defaultUser = createDefaultUser(defaultUserName, defaultUserPicture);
+      const defaultUser = createDefaultUser(getDisplayName(), getUserLoginIcon());
       setUsers([defaultUser]);
     } finally {
       setIsLoading(false);
     }
-  }, [defaultUserName, defaultUserPicture]);
+  }, [configLoading, getDisplayName, getUserLoginIcon]);
 
   // Persist users to localStorage
   useEffect(() => {

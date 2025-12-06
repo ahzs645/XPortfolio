@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { ProgramLayout } from '../../../components';
+import { useConfig } from '../../../contexts/ConfigContext';
 
 const TABS = [
   { id: 'general', label: 'General', enabled: true },
 ];
 
 function SystemProperties({ onClose, onMinimize }) {
+  const { getOSName, getFullName } = useConfig();
   const [activeTab, setActiveTab] = useState('general');
 
   return (
@@ -51,7 +53,7 @@ function SystemProperties({ onClose, onMinimize }) {
                 <RightColumn>
                   <InfoSection>
                     <InfoLabel>System:</InfoLabel>
-                    <InfoText>Ahmad XP Windows XP</InfoText>
+                    <InfoText>{getOSName()} Windows XP</InfoText>
                     <InfoText>Professional x64 Edition</InfoText>
                     <InfoText>Version 1.0.0</InfoText>
                     <InfoText>Service Pack 3</InfoText>
@@ -59,7 +61,7 @@ function SystemProperties({ onClose, onMinimize }) {
 
                   <InfoSection>
                     <InfoLabel>Registered to:</InfoLabel>
-                    <InfoText>Ahmad Jalil</InfoText>
+                    <InfoText>{getFullName()}</InfoText>
                   </InfoSection>
 
                   <InfoSection>
