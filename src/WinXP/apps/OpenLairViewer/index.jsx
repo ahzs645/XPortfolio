@@ -498,14 +498,23 @@ const Button = styled.button`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
-  padding: 4px;
-  margin: 0 1px;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  max-width: 28px;
+  min-height: 28px;
+  max-height: 28px;
+  flex: 0 0 28px;
+  padding: 6px;
+  margin: 0 2px;
   border: 1px solid transparent;
-  border-radius: 5px;
+  border-radius: 4px;
   background: transparent;
   cursor: pointer;
+  line-height: 0;
+  box-sizing: border-box;
+  appearance: none;
+  font-size: 0;
 
   &:hover:not(.disabled) {
     border: 1px solid #d7d4cb;
