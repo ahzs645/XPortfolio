@@ -69,26 +69,17 @@ const BalloonFrame = styled.div`
     border: 1px solid #d0c9b6;
     border-radius: 3px;
     box-sizing: border-box;
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
 
-    &::before,
-    &::after {
-      content: '';
-      position: absolute;
-      left: 7px;
-      top: 2px;
-      width: 2px;
-      height: 11px;
-      background-color: #a05a00;
-    }
-
-    &::before {
-      transform: rotate(45deg);
-    }
-
-    &::after {
-      transform: rotate(-45deg);
+    img {
+      width: 16px;
+      height: 16px;
+      filter: invert(70%) sepia(100%);
+      user-drag: none;
+      -webkit-user-drag: none;
     }
 
     &:hover {
@@ -102,9 +93,8 @@ const BalloonFrame = styled.div`
         radial-gradient(at 80% 80%, #ffdc18 0%, #ffdc1800 40%),
         linear-gradient(#ffad31, #ffad31);
 
-      &::before,
-      &::after {
-        background-color: #000;
+      img {
+        filter: invert(0%) sepia(0%);
       }
     }
 
@@ -118,9 +108,8 @@ const BalloonFrame = styled.div`
         radial-gradient(at 80% 80%, #eea600 0%, #eea60000 50%),
         linear-gradient(#cc7900, #cc7900);
 
-      &::before,
-      &::after {
-        background-color: #6c3d00;
+      img {
+        filter: invert(25%) sepia(50%) saturate(1000%) hue-rotate(10deg);
       }
     }
   }
@@ -267,7 +256,9 @@ export default function Balloon({
           className="balloon__close"
           aria-label="Close"
           onClick={onClose}
-        />
+        >
+          <img src="/apps/openlair-viewer/static/images/interface/balloon/close.png" alt="" />
+        </button>
       )}
       {(icon || title) && (
         <div className="balloon__header">
