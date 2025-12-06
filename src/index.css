@@ -169,12 +169,28 @@ body {
   user-select: none !important;
 }
 
-/* Prevent image/canvas dragging on mobile */
+/* Prevent image/canvas dragging on mobile - but allow touch on interactive elements */
 .mobile-device canvas,
 .mobile-device img,
 .mobile-device video {
   -webkit-user-drag: none !important;
+}
+
+/* Only block touch-action on canvas/images NOT inside interactive elements */
+.mobile-device canvas:not(button canvas):not([role="button"] canvas),
+.mobile-device video {
   touch-action: none !important;
+}
+
+/* Ensure images and elements inside buttons/toolbars are touchable */
+.mobile-device button img,
+.mobile-device [role="button"] img,
+.mobile-device [class*="toolbar"] img,
+.mobile-device [class*="Toolbar"] img,
+.mobile-device [class*="menu"] img,
+.mobile-device [class*="Menu"] img {
+  touch-action: manipulation !important;
+  pointer-events: none !important; /* Let parent handle the touch */
 }
 
 /* Mobile visibility utilities */

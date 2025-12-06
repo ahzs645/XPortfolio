@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
+import { useApp } from '../../../contexts/AppContext';
 
 /**
  * Classic Windows Picture and Fax Viewer (React implementation, no iframe).
@@ -12,6 +13,7 @@ import styled from 'styled-components';
  * - Uses initialImages/initialImage if provided, otherwise pulls from projects.json
  */
 function OpenLairViewer({ initialImages, initialImage }) {
+  const { openApp } = useApp();
   const containerRef = useRef(null);
   const [images, setImages] = useState([]);
   const [index, setIndex] = useState(0);
@@ -298,6 +300,16 @@ function OpenLairViewer({ initialImages, initialImage }) {
     setSlideshowActive((prev) => !prev);
   };
 
+  const handleEditInPaint = useCallback(() => {
+    if (!currentImage?.src) {
+      alert('No image to edit');
+      return;
+    }
+    openApp('Paint', {
+      imagePath: currentImage.src,
+    });
+  }, [currentImage?.src, openApp]);
+
   const toggleZoomMode = () => {
     setMode((prev) => {
       if (prev === 'actual') {
@@ -423,10 +435,7 @@ function OpenLairViewer({ initialImages, initialImage }) {
           <Button onClick={handleSave} title="Save">
             <img src={`${ICON_BASE}/save.png`} alt="Save" />
           </Button>
-          <Button
-            onClick={() => alert('Edit is not wired in this viewer.')}
-            title="Edit"
-          >
+          <Button onClick={handleEditInPaint} title="Edit in Paint">
             <img src={`${ICON_BASE}/edit.png`} alt="Edit" />
           </Button>
           <Separator />

@@ -36,7 +36,7 @@ function MenuBar({ menus = [], logo, onAction, windowActions = {} }) {
   const menuBarRef = useRef(null);
   const menuItemRefs = useRef({});
 
-  // Handle clicking outside to close dropdown
+  // Handle clicking/touching outside to close dropdown
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuBarRef.current && !menuBarRef.current.contains(e.target)) {
@@ -46,7 +46,11 @@ function MenuBar({ menus = [], logo, onAction, windowActions = {} }) {
 
     if (activeMenu) {
       document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+        document.removeEventListener('touchstart', handleClickOutside);
+      };
     }
   }, [activeMenu]);
 
@@ -101,6 +105,18 @@ function MenuBar({ menus = [], logo, onAction, windowActions = {} }) {
     setActiveMenu(null);
   }, [onAction, windowActions]);
 
+  // Touch handler for menu items (prevents double-firing on touch devices)
+  const handleMenuTouchEnd = useCallback((e, menuId, disabled) => {
+    e.preventDefault();
+    handleMenuClick(menuId, disabled);
+  }, [handleMenuClick]);
+
+  // Touch handler for dropdown options
+  const handleItemTouchEnd = useCallback((e, action, disabled) => {
+    e.preventDefault();
+    handleItemClick(action, disabled);
+  }, [handleItemClick]);
+
   const activeMenuData = menus.find(m => m.id === activeMenu);
 
   return (
@@ -113,6 +129,7 @@ function MenuBar({ menus = [], logo, onAction, windowActions = {} }) {
             className={`${menu.disabled ? 'disabled' : ''} ${activeMenu === menu.id ? 'active' : ''}`}
             onClick={() => handleMenuClick(menu.id, menu.disabled)}
             onMouseEnter={() => handleMenuHover(menu.id, menu.disabled)}
+            onTouchEnd={(e) => handleMenuTouchEnd(e, menu.id, menu.disabled)}
           >
             {menu.label}
           </MenuItem>
@@ -130,6 +147,7 @@ function MenuBar({ menus = [], logo, onAction, windowActions = {} }) {
                 key={item.label || index}
                 className={item.disabled ? 'disabled' : ''}
                 onClick={() => handleItemClick(item.action, item.disabled)}
+                onTouchEnd={(e) => handleItemTouchEnd(e, item.action, item.disabled)}
               >
                 {item.label}
               </MenuOption>
@@ -178,6 +196,7 @@ const MenuItem = styled.div`
   padding: 0 12px;
   text-align: center;
   cursor: default;
+  touch-action: manipulation;
 
   &.active,
   &:not(.disabled):hover {
@@ -241,6 +260,7 @@ const MenuOption = styled.div`
   white-space: nowrap;
   width: 100%;
   cursor: default;
+  touch-action: manipulation;
 
   &:hover:not(.disabled) {
     background: #0a6fc2;

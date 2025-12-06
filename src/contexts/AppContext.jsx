@@ -62,6 +62,15 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
       case 'Image Viewer':
       case 'Paint': {
         const viewerKey = programName === 'Paint' ? 'Paint' : 'Image Viewer';
+        const injectProps = programName === 'Paint'
+          ? {
+              imagePath: fileData,
+              fileName: name,
+              fileId: fileItem.id,
+            }
+          : {
+              initialImage: { src: fileData, title: name },
+            };
         dispatch({
           type: addAppAction,
           payload: {
@@ -70,9 +79,7 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
               ...appSettings[viewerKey].header,
               title: `${name} - ${programName === 'Paint' ? 'Paint' : 'Windows Picture and Fax Viewer'}`,
             },
-            injectProps: {
-              initialImage: { src: fileData, title: name },
-            },
+            injectProps,
           },
         });
         return true;

@@ -64,6 +64,21 @@ function Toolbar({ items = [], onAction, onChange, bottomBorder = true, topBorde
     setPressedButton(null);
   }, []);
 
+  // Touch handlers for mobile support
+  const handleTouchStart = useCallback((e, id, disabled) => {
+    if (!disabled) {
+      setPressedButton(id);
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback((e, action, id, disabled) => {
+    e.preventDefault(); // Prevent mouse event from also firing
+    setPressedButton(null);
+    if (!disabled && onAction) {
+      onAction(action, e);
+    }
+  }, [onAction]);
+
   const handleSelectChange = useCallback((id, value) => {
     if (onChange) {
       onChange(id, value);
@@ -134,6 +149,8 @@ function Toolbar({ items = [], onAction, onChange, bottomBorder = true, topBorde
               onMouseDown={() => handleMouseDown(item.id, isDisabled)}
               onMouseUp={(e) => handleMouseUp(e, item.action, item.id, isDisabled)}
               onMouseLeave={handleMouseLeave}
+              onTouchStart={(e) => handleTouchStart(e, item.id, isDisabled)}
+              onTouchEnd={(e) => handleTouchEnd(e, item.action, item.id, isDisabled)}
               $isCompact={isCompact}
             >
               <img
@@ -217,6 +234,7 @@ const ToolbarButton = styled.div`
   cursor: default;
   min-width: ${props => props.$isCompact ? '24px' : 'auto'};
   min-height: ${props => props.$isCompact ? '22px' : 'auto'};
+  touch-action: manipulation;
 
   &.disabled {
     opacity: 0.5;
