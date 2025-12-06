@@ -163,9 +163,9 @@ function BootScreen({ bootState, onComplete }) {
                           $selected={isSelected}
                           onClick={() => handleUserClick(user.id)}
                         >
-                          <UserIcon src={user.picture} alt={user.name} $locked={isLocked} />
-                          <UserInfo $locked={isLocked}>
-                            <UserNameText $locked={isLocked}>{user.name}</UserNameText>
+                          <UserIcon src={user.picture} alt={user.name} />
+                          <UserInfo>
+                            <UserNameText>{user.name}</UserNameText>
                             {isSelected ? (
                               <InlinePasswordContainer>
                                 <InlinePasswordInput
@@ -643,14 +643,12 @@ const UserCard = styled.div`
   display: flex;
   align-items: center;
   min-width: 260px;
-  padding: ${({ $locked }) => $locked ? '10px' : '12px 18px'};
+  padding: 12px 18px;
   border: 1px solid ${({ $locked }) => $locked ? '#5A7EDC' : 'transparent'};
-  border-radius: ${({ $locked }) => $locked ? '10px' : '5px'};
+  border-radius: 10px;
   cursor: ${({ $noHover }) => $noHover ? 'default' : 'pointer'};
   position: relative;
   overflow: hidden;
-  gap: ${({ $locked }) => $locked ? '12px' : '0'};
-  min-height: ${({ $locked }) => $locked ? '50px' : 'auto'};
 
   /* Locked account styling */
   opacity: ${({ $locked, $selected, $noHover }) => {
@@ -681,7 +679,7 @@ const UserCard = styled.div`
     height: 100%;
     background: linear-gradient(90deg, #113fa6, #113fa6, #587cdb);
     border-radius: inherit;
-    opacity: ${({ $noHover, $locked }) => ($noHover || $locked) ? 0 : 0};
+    opacity: 0;
     transition: opacity 0.3s ease;
     z-index: -1;
   }
@@ -716,15 +714,15 @@ const UserCard = styled.div`
 `;
 
 const UserIcon = styled.img`
-  width: ${({ $locked }) => $locked ? '48px' : '70px'};
-  height: ${({ $locked }) => $locked ? '48px' : '70px'};
+  width: 70px;
+  height: 70px;
   border-radius: 5px;
-  border: ${({ $locked }) => $locked ? '2px' : '3px'} solid white;
-  transition: border-color 0.3s, width 0.3s, height 0.3s;
+  border: 3px solid white;
+  transition: border-color 0.3s;
 `;
 
 const UserInfo = styled.div`
-  margin-left: ${({ $locked }) => $locked ? '0' : '20px'};
+  margin-left: 20px;
   width: 200px;
   overflow: hidden;
 
@@ -738,8 +736,8 @@ const UserInfo = styled.div`
 `;
 
 const UserNameText = styled.div`
-  font-family: ${({ $locked }) => $locked ? 'sans-serif' : 'Tahoma, Arial, sans-serif'};
-  font-size: ${({ $locked }) => $locked ? '20px' : '26px'};
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 26px;
   font-weight: 500;
   letter-spacing: 0.25px;
   margin-bottom: 0.5px;
