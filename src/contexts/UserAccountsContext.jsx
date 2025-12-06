@@ -45,7 +45,7 @@ function generateId() {
 }
 
 // Default user based on config (will be set on first load)
-function createDefaultUser(name = 'User', picture = '/icons/users/astronaut.png') {
+function createDefaultUser(name = 'User', picture = '/icons/users/chess.png') {
   return {
     id: 'default-user',
     name,
@@ -86,7 +86,7 @@ export function UserAccountsProvider({ children, defaultUserName, defaultUserPic
         // Create default user on first run
         const defaultUser = createDefaultUser(
           defaultUserName || 'User',
-          defaultUserPicture || '/favicon.png'
+          defaultUserPicture || '/icons/users/chess.png'
         );
         setUsers([defaultUser]);
         localStorage.setItem('userAccounts', JSON.stringify([defaultUser]));

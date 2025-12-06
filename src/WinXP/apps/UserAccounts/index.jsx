@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import styled from 'styled-components';
 import { useUserAccounts } from '../../../contexts/UserAccountsContext';
+import { ProgramLayout, TaskPanel } from '../../../components';
 
 // Navigation history stack
 const VIEW = {
@@ -16,7 +17,7 @@ const VIEW = {
   CHANGE_ACCOUNT_TYPE: 'changeAccountType',
 };
 
-function UserAccounts({ onClose, onMinimize, onOpenWindow }) {
+function UserAccounts({ onClose, onMinimize, onMaximize, onOpenWindow }) {
   const {
     users,
     getCurrentUser,
@@ -183,44 +184,82 @@ function UserAccounts({ onClose, onMinimize, onOpenWindow }) {
     }
   };
 
-  // Render sidebar
+  // Get toolbar items based on current navigation state
+  const getToolbarItems = () => [
+    {
+      type: 'button',
+      id: 'back',
+      icon: '/gui/toolbar/back.webp',
+      label: 'Back',
+      disabled: historyIndex <= 0,
+      action: 'nav:back'
+    },
+    {
+      type: 'button',
+      id: 'forward',
+      icon: '/gui/toolbar/forward.webp',
+      disabled: historyIndex >= history.length - 1,
+      action: 'nav:forward'
+    },
+    { type: 'separator' },
+    {
+      type: 'button',
+      id: 'home',
+      icon: '/icons/xp/UserAccounts.png',
+      label: 'Home',
+      action: 'nav:home'
+    },
+  ];
+
+  // Handle toolbar actions
+  const handleToolbarAction = (action) => {
+    switch (action) {
+      case 'nav:back':
+        goBack();
+        break;
+      case 'nav:forward':
+        goForward();
+        break;
+      case 'nav:home':
+        goHome();
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Render sidebar using TaskPanel
   const renderSidebar = () => (
-    <Sidebar>
-      <SidebarPane>
-        <SidebarTitle>Related Tasks</SidebarTitle>
-        <SidebarLinks>
-          {view !== VIEW.HOME && (
-            <SidebarLink onClick={goHome}>
-              <img src="/icons/xp/FolderClosed.png" alt="" />
-              View all users
-            </SidebarLink>
-          )}
-          {isAdmin && view === VIEW.HOME && (
-            <SidebarLink onClick={() => navigate(VIEW.CREATE_ACCOUNT)}>
-              <img src="/icons/xp/Go.png" alt="" />
-              Create a new account
-            </SidebarLink>
-          )}
-        </SidebarLinks>
-      </SidebarPane>
-      <SidebarPane>
-        <SidebarTitle>Learn About</SidebarTitle>
-        <SidebarLinks>
-          <SidebarLink onClick={() => onOpenWindow?.('Help and Support')}>
-            <img src="/icons/help.png" alt="" />
-            User accounts
-          </SidebarLink>
-          <SidebarLink onClick={() => onOpenWindow?.('Help and Support')}>
-            <img src="/icons/help.png" alt="" />
-            User account types
-          </SidebarLink>
-          <SidebarLink onClick={() => onOpenWindow?.('Help and Support')}>
-            <img src="/icons/help.png" alt="" />
-            Switching users
-          </SidebarLink>
-        </SidebarLinks>
-      </SidebarPane>
-    </Sidebar>
+    <TaskPanel width={200}>
+      <TaskPanel.Section title="Related Tasks" variant="primary">
+        {view !== VIEW.HOME && (
+          <TaskPanel.Item icon="/icons/xp/FolderClosed.png" onClick={goHome}>
+            View all users
+          </TaskPanel.Item>
+        )}
+        {isAdmin && view === VIEW.HOME && (
+          <TaskPanel.Item icon="/icons/xp/Go.png" onClick={() => navigate(VIEW.CREATE_ACCOUNT)}>
+            Create a new account
+          </TaskPanel.Item>
+        )}
+        {view === VIEW.HOME && !isAdmin && (
+          <TaskPanel.Text icon="/icons/xp/UserAccounts.png">
+            Select an account to modify
+          </TaskPanel.Text>
+        )}
+      </TaskPanel.Section>
+      <TaskPanel.Section title="Learn About">
+        <TaskPanel.Item icon="/icons/help.png" onClick={() => onOpenWindow?.('Help and Support')}>
+          User accounts
+        </TaskPanel.Item>
+        <TaskPanel.Item icon="/icons/help.png" onClick={() => onOpenWindow?.('Help and Support')}>
+          User account types
+        </TaskPanel.Item>
+        <TaskPanel.Item icon="/icons/help.png" onClick={() => onOpenWindow?.('Help and Support')}>
+          Switching users
+        </TaskPanel.Item>
+      </TaskPanel.Section>
+    </TaskPanel>
   );
 
   // Render main content based on view
@@ -609,135 +648,29 @@ function UserAccounts({ onClose, onMinimize, onOpenWindow }) {
   };
 
   return (
-    <Container>
-      <NavBar>
-        <NavButtons>
-          <NavButton onClick={goBack} disabled={historyIndex <= 0}>
-            <img src="/gui/toolbar/back.webp" alt="" height="24" />
-            <span>Back</span>
-          </NavButton>
-          <NavButton onClick={goForward} disabled={historyIndex >= history.length - 1} $small>
-            <img src="/gui/toolbar/forward.webp" alt="" height="24" />
-          </NavButton>
-          <NavButton onClick={goHome}>
-            <img src="/icons/xp/ControlPanel.png" alt="" height="24" />
-            <span>Home</span>
-          </NavButton>
-        </NavButtons>
-      </NavBar>
+    <ProgramLayout
+      windowActions={{ onClose, onMinimize, onMaximize }}
+      toolbarItems={getToolbarItems()}
+      onToolbarAction={handleToolbarAction}
+      showMenuBar={false}
+      showAddressBar={false}
+      showStatusBar={false}
+    >
       <MainArea>
         {renderSidebar()}
         <ContentArea>
           {renderContent()}
         </ContentArea>
       </MainArea>
-    </Container>
+    </ProgramLayout>
   );
 }
 
 // Styled components
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background: #fff;
-  font-family: Tahoma, 'MS Sans Serif', sans-serif;
-  font-size: 11px;
-`;
-
-const NavBar = styled.div`
-  display: flex;
-  align-items: center;
-  padding: 4px 8px;
-  background: linear-gradient(180deg, #f7f8fa 0%, #d6dfe9 100%);
-  border-bottom: 1px solid #89a4c2;
-`;
-
-const NavButtons = styled.div`
-  display: flex;
-  gap: 4px;
-`;
-
-const NavButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 3px;
-  cursor: ${({ disabled }) => disabled ? 'default' : 'pointer'};
-  opacity: ${({ disabled }) => disabled ? 0.5 : 1};
-  font-size: 11px;
-  font-family: inherit;
-
-  &:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.5);
-    border-color: #c1d2ee;
-  }
-
-  img {
-    width: ${({ $small }) => $small ? '20px' : '24px'};
-    height: ${({ $small }) => $small ? '20px' : '24px'};
-  }
-
-  span {
-    display: ${({ $small }) => $small ? 'none' : 'inline'};
-  }
-`;
-
 const MainArea = styled.div`
   display: flex;
   flex: 1;
   overflow: hidden;
-`;
-
-const Sidebar = styled.div`
-  width: 200px;
-  background: linear-gradient(180deg, #6b92c2 0%, #5479af 50%, #6188bb 100%);
-  padding: 12px;
-  overflow-y: auto;
-  flex-shrink: 0;
-`;
-
-const SidebarPane = styled.div`
-  background: linear-gradient(180deg, #c6d7f1 0%, #d8e4f1 30%, #e5ecf5 100%);
-  border-radius: 5px;
-  padding: 10px;
-  margin-bottom: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-`;
-
-const SidebarTitle = styled.div`
-  font-weight: bold;
-  color: #215dc6;
-  margin-bottom: 8px;
-  font-size: 11px;
-`;
-
-const SidebarLinks = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-`;
-
-const SidebarLink = styled.a`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #215dc6;
-  text-decoration: none;
-  cursor: pointer;
-  font-size: 11px;
-
-  &:hover {
-    text-decoration: underline;
-  }
-
-  img {
-    width: 16px;
-    height: 16px;
-  }
 `;
 
 const ContentArea = styled.div`

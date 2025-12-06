@@ -356,6 +356,10 @@ function useElementResize(ref, options) {
       originMouseY = pageY;
       _boundary = { ...boundary };
       if (dragTarget && (e.target === dragTarget || dragTarget.contains(e.target))) {
+        // Don't start dragging if clicking on title bar controls (min/max/close buttons)
+        if (e.target.closest('.title-bar-controls')) {
+          return;
+        }
         shouldCover = true;
         return onDragStart(e);
       }

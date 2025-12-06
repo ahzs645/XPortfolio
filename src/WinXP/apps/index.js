@@ -30,6 +30,7 @@ import SystemProperties from './SystemProperties';
 import SystemRecovery from './SystemRecovery';
 import UserAccounts from './UserAccounts';
 import Wordpad from './Wordpad';
+import HelpAndSupport from './HelpAndSupport';
 
 // XP Icons paths
 const XP_ICONS = {
@@ -49,6 +50,7 @@ const XP_ICONS = {
   systemProperties: '/icons/xp/system.png',
   userAccounts: '/icons/xp/UserAccounts.png',
   wordpad: '/icons/xp/wordpad.png',
+  helpAndSupport: '/icons/help.png',
 };
 
 // Default apps open on startup (empty for now - user opens via desktop icons)
@@ -190,6 +192,11 @@ export const desktopIconCatalog = {
     icon: XP_ICONS.wordpad,
     title: 'WordPad',
     component: Wordpad,
+  },
+  helpAndSupport: {
+    icon: XP_ICONS.helpAndSupport,
+    title: 'Help and Support',
+    component: HelpAndSupport,
   },
 };
 
@@ -636,18 +643,18 @@ export const appSettings = {
   },
   'Help and Support': {
     header: {
-      icon: '/icons/help.png',
-      title: 'Help and Support',
+      icon: XP_ICONS.helpAndSupport,
+      title: 'Help and Support Center',
       buttons: ['minimize', 'maximize', 'close'],
     },
-    component: () => null,
+    component: HelpAndSupport,
     defaultSize: {
-      width: 600,
-      height: 450,
+      width: 808,
+      height: 584,
     },
     defaultOffset: {
-      x: 120,
-      y: 60,
+      x: 80,
+      y: 80,
     },
     resizable: true,
     minimized: false,
@@ -1008,4 +1015,5 @@ export {
   SystemProperties,
   UserAccounts,
   Wordpad,
+  HelpAndSupport,
 };
