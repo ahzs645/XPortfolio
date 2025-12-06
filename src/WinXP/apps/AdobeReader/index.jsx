@@ -318,59 +318,132 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
         {/* Sidebar */}
         {showSidebar && (
           <Sidebar>
-            <SidebarTabs>
-              <SidebarTab
+            <SidebarTabStrip>
+              <TabButton
                 $active={sidebarTab === 'bookmarks'}
                 onClick={() => setSidebarTab('bookmarks')}
                 title="Bookmarks"
               >
-                <TabIcon src={ICONS.bookmark} alt="Bookmarks" />
-                <TabLabel>Bookmarks</TabLabel>
-              </SidebarTab>
-              <SidebarTab
+                <TabIconImg src={ICONS.bookmark} alt="" />
+                <TabText>Bookmarks</TabText>
+              </TabButton>
+              <TabButton
                 $active={sidebarTab === 'pages'}
                 onClick={() => setSidebarTab('pages')}
                 title="Pages"
               >
-                <TabIcon src={ICONS.pages} alt="Pages" />
-                <TabLabel>Pages</TabLabel>
-              </SidebarTab>
-              <SidebarTab
+                <TabIconImg src={ICONS.pages} alt="" />
+                <TabText>Pages</TabText>
+              </TabButton>
+              <TabButton
                 $active={sidebarTab === 'attachments'}
                 onClick={() => setSidebarTab('attachments')}
                 title="Attachments"
               >
-                <TabIcon src={ICONS.attachments} alt="Attachments" />
-                <TabLabel>Attachments</TabLabel>
-              </SidebarTab>
-              <SidebarTab
+                <TabIconImg src={ICONS.attachments} alt="" />
+                <TabText>Attachments</TabText>
+              </TabButton>
+              <TabButton
                 $active={sidebarTab === 'comments'}
                 onClick={() => setSidebarTab('comments')}
                 title="Comments"
               >
-                <TabIcon src={ICONS.comments} alt="Comments" />
-                <TabLabel>Comments</TabLabel>
-              </SidebarTab>
-            </SidebarTabs>
+                <TabIconImg src={ICONS.comments} alt="" />
+                <TabText>Comments</TabText>
+              </TabButton>
+            </SidebarTabStrip>
             <SidebarContent>
               <SidebarPanel>
                 <OptionsBar>
-                  <OptionsButton>
-                    <OptionsIcon>☰</OptionsIcon>
-                    Options ▼
-                  </OptionsButton>
+                  <OptionsLeft>
+                    <OptionsMenuBtn>
+                      <OptionsMenuIcon>☰</OptionsMenuIcon>
+                    </OptionsMenuBtn>
+                    <OptionsDropdown>Options ▼</OptionsDropdown>
+                  </OptionsLeft>
+                  <CloseButton onClick={() => setShowSidebar(false)}>✕</CloseButton>
                 </OptionsBar>
                 {sidebarTab === 'bookmarks' && (
                   <PanelContent>
                     {pdfUrl ? (
                       <BookmarkTree>
-                        <BookmarkItem>
-                          <BookmarkIcon>📄</BookmarkIcon>
-                          <BookmarkLabel>Table of Contents</BookmarkLabel>
-                        </BookmarkItem>
+                        <TreeItem>
+                          <TreeRow>
+                            <TreeSpacer />
+                            <DocIcon $type="page" />
+                            <TreeLabel>Table of Contents</TreeLabel>
+                          </TreeRow>
+                        </TreeItem>
+                        <TreeItem>
+                          <TreeRow>
+                            <ExpandBox $expanded>−</ExpandBox>
+                            <DocIcon $type="folder" />
+                            <TreeLabel>Current Solutions for A...</TreeLabel>
+                          </TreeRow>
+                          <TreeChildren>
+                            <TreeItem>
+                              <TreeRow $indent={1}>
+                                <TreeSpacer />
+                                <DocIcon $type="link" />
+                                <TreeLabel>access.adobe.com</TreeLabel>
+                              </TreeRow>
+                            </TreeItem>
+                            <TreeItem>
+                              <TreeRow $indent={1}>
+                                <TreeSpacer />
+                                <DocIcon $type="page" />
+                                <TreeLabel>Acrobat Access ™ P...</TreeLabel>
+                              </TreeRow>
+                            </TreeItem>
+                            <TreeItem>
+                              <TreeRow $indent={1}>
+                                <TreeSpacer />
+                                <DocIcon $type="page" />
+                                <TreeLabel>Demonstration of Ac...</TreeLabel>
+                              </TreeRow>
+                            </TreeItem>
+                          </TreeChildren>
+                        </TreeItem>
+                        <TreeItem>
+                          <TreeRow>
+                            <ExpandBox $expanded>−</ExpandBox>
+                            <DocIcon $type="folder" />
+                            <TreeLabel>Optimizing Adobe PDF F...</TreeLabel>
+                          </TreeRow>
+                          <TreeChildren>
+                            <TreeItem>
+                              <TreeRow $indent={1}>
+                                <TreeSpacer />
+                                <DocIcon $type="page" />
+                                <TreeLabel>Web Capture</TreeLabel>
+                              </TreeRow>
+                            </TreeItem>
+                            <TreeItem>
+                              <TreeRow $indent={1}>
+                                <TreeSpacer />
+                                <DocIcon $type="page" />
+                                <TreeLabel>PDFMaker for Micro...</TreeLabel>
+                              </TreeRow>
+                            </TreeItem>
+                            <TreeItem>
+                              <TreeRow $indent={1}>
+                                <TreeSpacer />
+                                <DocIcon $type="page" />
+                                <TreeLabel>Optimization Guideli...</TreeLabel>
+                              </TreeRow>
+                            </TreeItem>
+                          </TreeChildren>
+                        </TreeItem>
+                        <TreeItem>
+                          <TreeRow>
+                            <ExpandBox>+</ExpandBox>
+                            <DocIcon $type="page" />
+                            <TreeLabel>Future Enhancements ...</TreeLabel>
+                          </TreeRow>
+                        </TreeItem>
                       </BookmarkTree>
                     ) : (
-                      <EmptyMessage>No bookmarks</EmptyMessage>
+                      <EmptyMessage>No bookmarks available</EmptyMessage>
                     )}
                   </PanelContent>
                 )}
@@ -378,23 +451,33 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
                   <PanelContent $gray>
                     {pdfUrl ? (
                       <PageThumbnails>
-                        <PageThumb $selected={currentPage === 1}>
-                          <PageThumbInner>1</PageThumbInner>
-                        </PageThumb>
+                        {[...Array(Math.min(totalPages, 5))].map((_, i) => (
+                          <PageThumbWrapper key={i} $selected={currentPage === i + 1} onClick={() => setCurrentPage(i + 1)}>
+                            <PageThumb>
+                              <PageThumbContent>
+                                <PageLine />
+                                <PageLine $short />
+                                <PageLine />
+                                <PageLine $shorter />
+                              </PageThumbContent>
+                            </PageThumb>
+                            <PageNumber>{i + 1}</PageNumber>
+                          </PageThumbWrapper>
+                        ))}
                       </PageThumbnails>
                     ) : (
-                      <EmptyMessage>No pages</EmptyMessage>
+                      <EmptyMessage>No pages available</EmptyMessage>
                     )}
                   </PanelContent>
                 )}
                 {sidebarTab === 'attachments' && (
                   <PanelContent>
-                    <EmptyMessage>No attachments</EmptyMessage>
+                    <EmptyMessage>No attachments in this document</EmptyMessage>
                   </PanelContent>
                 )}
                 {sidebarTab === 'comments' && (
                   <PanelContent>
-                    <EmptyMessage>No comments</EmptyMessage>
+                    <EmptyMessage>No comments in this document</EmptyMessage>
                   </PanelContent>
                 )}
               </SidebarPanel>
@@ -504,53 +587,54 @@ const MainArea = styled.div`
 `;
 
 const Sidebar = styled.div`
-  width: 200px;
+  width: 220px;
   display: flex;
-  background: #e8e8e8;
+  background: #f0f0f0;
   border-right: 1px solid #808080;
   flex-shrink: 0;
 `;
 
-const SidebarTabs = styled.div`
+const SidebarTabStrip = styled.div`
   display: flex;
   flex-direction: column;
-  width: 26px;
-  background: linear-gradient(to right, #6b7280 0%, #5a6370 100%);
+  width: 20px;
+  background: #7a7a7a;
   flex-shrink: 0;
+  border-right: 1px solid #606060;
 `;
 
-const SidebarTab = styled.button`
-  width: 26px;
-  min-height: 80px;
+const TabButton = styled.button`
+  width: 20px;
+  min-height: 70px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
-  background: ${props => props.$active ? '#e8e8e8' : 'transparent'};
+  justify-content: flex-start;
+  padding: 4px 0;
+  gap: 2px;
+  background: ${props => props.$active ? '#f0f0f0' : 'transparent'};
   border: none;
-  border-right: ${props => props.$active ? '1px solid #e8e8e8' : 'none'};
-  border-left: ${props => props.$active ? '2px solid #0066CC' : '2px solid transparent'};
+  border-left: ${props => props.$active ? '2px solid #ee8800' : '2px solid transparent'};
   cursor: pointer;
-  padding: 8px 2px;
-  margin-right: ${props => props.$active ? '-1px' : '0'};
   position: relative;
+  margin-right: ${props => props.$active ? '-1px' : '0'};
   z-index: ${props => props.$active ? '1' : '0'};
 
   &:hover {
-    background: ${props => props.$active ? '#e8e8e8' : 'rgba(255,255,255,0.1)'};
+    background: ${props => props.$active ? '#f0f0f0' : 'rgba(255,255,255,0.1)'};
   }
 `;
 
-const TabIcon = styled.img`
+const TabIconImg = styled.img`
   width: 16px;
   height: 16px;
+  flex-shrink: 0;
 `;
 
-const TabLabel = styled.span`
-  font-size: 9px;
+const TabText = styled.span`
+  font-size: 10px;
   font-family: Tahoma, sans-serif;
-  color: ${props => props.$active ? '#000' : '#fff'};
+  color: #000;
   writing-mode: vertical-rl;
   text-orientation: mixed;
   transform: rotate(180deg);
@@ -574,89 +658,217 @@ const SidebarPanel = styled.div`
 
 const OptionsBar = styled.div`
   display: flex;
-  padding: 4px 8px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 4px;
   background: linear-gradient(to bottom, #fafafa 0%, #e8e8e8 100%);
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid #b0b0b0;
+  min-height: 22px;
 `;
 
-const OptionsButton = styled.button`
+const OptionsLeft = styled.div`
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  font-family: Tahoma, sans-serif;
+  gap: 2px;
+`;
+
+const OptionsMenuBtn = styled.button`
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   cursor: pointer;
-  padding: 2px 6px;
+  padding: 0;
 
   &:hover {
-    background: #e0e0e0;
+    background: #cce8ff;
+    border-color: #99ccff;
   }
 `;
 
-const OptionsIcon = styled.span`
-  font-size: 10px;
+const OptionsMenuIcon = styled.span`
+  font-size: 12px;
+  color: #666;
+`;
+
+const OptionsDropdown = styled.button`
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  font-family: Tahoma, sans-serif;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  padding: 2px 6px;
+  color: #000;
+
+  &:hover {
+    background: #cce8ff;
+    border-color: #99ccff;
+  }
+`;
+
+const CloseButton = styled.button`
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 12px;
+  color: #666;
+  padding: 0;
+
+  &:hover {
+    background: #ffcccc;
+    border-color: #ff9999;
+    color: #cc0000;
+  }
 `;
 
 const PanelContent = styled.div`
   flex: 1;
   overflow: auto;
-  padding: 4px;
-  background: ${props => props.$gray ? '#d0d0d0' : '#fff'};
+  background: ${props => props.$gray ? '#c0c0c0' : '#fff'};
 `;
 
 const BookmarkTree = styled.div`
-  padding: 4px;
+  padding: 4px 2px;
+  font-size: 11px;
+  font-family: Tahoma, sans-serif;
 `;
 
-const BookmarkItem = styled.div`
+const TreeItem = styled.div``;
+
+const TreeRow = styled.div`
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px 4px;
+  gap: 3px;
+  padding: 1px 2px;
+  padding-left: ${props => (props.$indent || 0) * 18 + 2}px;
   cursor: pointer;
+  white-space: nowrap;
 
   &:hover {
-    background: #cce8ff;
+    background: #d4e8fc;
   }
 `;
 
-const BookmarkIcon = styled.span`
-  font-size: 12px;
+const TreeSpacer = styled.span`
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
 `;
 
-const BookmarkLabel = styled.span`
+const ExpandBox = styled.span`
+  width: 9px;
+  height: 9px;
+  border: 1px solid #808080;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: bold;
+  line-height: 1;
+  color: #000;
+  flex-shrink: 0;
+  cursor: pointer;
+
+  &:hover {
+    border-color: #0066cc;
+  }
+`;
+
+const DocIcon = styled.span`
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+
+  ${props => props.$type === 'page' && `
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 1h7l3 3v11H3V1z' fill='%23fff' stroke='%23808080'/%3E%3Cpath d='M10 1v3h3' fill='none' stroke='%23808080'/%3E%3Cpath d='M5 6h6M5 8h6M5 10h4' stroke='%23ccc' stroke-width='1'/%3E%3Cpolygon points='4,6 6,9 4,12' fill='%23cc3300'/%3E%3C/svg%3E");
+  `}
+
+  ${props => props.$type === 'folder' && `
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M1 3h5l1 2h8v10H1V3z' fill='%23ffcc66' stroke='%23cc9933' stroke-width='0.5'/%3E%3Cpath d='M3 6h10M3 8h10M3 10h8' stroke='%23cc9933' stroke-width='0.5' opacity='0.5'/%3E%3Cpolygon points='2,5 4,8 2,11' fill='%23cc3300'/%3E%3C/svg%3E");
+  `}
+
+  ${props => props.$type === 'link' && `
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 1h7l3 3v11H3V1z' fill='%23fff' stroke='%23808080'/%3E%3Cpath d='M10 1v3h3' fill='none' stroke='%23808080'/%3E%3Cpolygon points='4,6 6,9 4,12' fill='%23cc3300'/%3E%3Ccircle cx='10' cy='10' r='3' fill='%234488ff' stroke='%23336699'/%3E%3Cpath d='M8 10h4M10 8v4' stroke='%23fff' stroke-width='1.5'/%3E%3C/svg%3E");
+  `}
+`;
+
+const TreeLabel = styled.span`
   font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #000;
+`;
+
+const TreeChildren = styled.div`
+  border-left: 1px dotted #808080;
+  margin-left: 6px;
 `;
 
 const PageThumbnails = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 8px;
+  gap: 12px;
+  padding: 12px 8px;
 `;
 
-const PageThumb = styled.div`
-  width: 80px;
-  height: 100px;
-  background: #fff;
-  border: 2px solid ${props => props.$selected ? '#316ac5' : '#999'};
+const PageThumbWrapper = styled.div`
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  gap: 4px;
   cursor: pointer;
-  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  padding: 4px;
+  border: 2px solid ${props => props.$selected ? '#316ac5' : 'transparent'};
+  background: ${props => props.$selected ? '#cce8ff' : 'transparent'};
 
   &:hover {
     border-color: #316ac5;
   }
 `;
 
-const PageThumbInner = styled.div`
-  font-size: 18px;
-  color: #999;
+const PageThumb = styled.div`
+  width: 85px;
+  height: 110px;
+  background: #fff;
+  border: 1px solid #808080;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 8px 6px;
+`;
+
+const PageThumbContent = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`;
+
+const PageLine = styled.div`
+  height: 2px;
+  background: #ccc;
+  width: ${props => props.$shorter ? '40%' : props.$short ? '70%' : '100%'};
+`;
+
+const PageNumber = styled.span`
+  font-size: 10px;
+  color: #333;
 `;
 
 const EmptyMessage = styled.div`
