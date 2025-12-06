@@ -49,6 +49,16 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
   const [computerName, setComputerName] = useState('');
   const [sampleQuestion, setSampleQuestion] = useState('Buy a book online');
 
+  // Preferences view
+  const [showPreferences, setShowPreferences] = useState(false);
+  const [autoCompleteOn, setAutoCompleteOn] = useState(true);
+  const [showBalloonTips, setShowBalloonTips] = useState(true);
+
+  // Internet search behavior modal
+  const [showInternetBehavior, setShowInternetBehavior] = useState(false);
+  const [searchCompanionMode, setSearchCompanionMode] = useState('companion');
+  const [defaultSearchEngine, setDefaultSearchEngine] = useState('MSN');
+
   // When was it modified filters
   const [modifiedFilter, setModifiedFilter] = useState('dont-remember');
   const [dateFrom, setDateFrom] = useState('');
@@ -112,7 +122,42 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
         <Balloon>
           <BalloonInner>
           <BalloonContent>
-            {searchType === 'pictures' ? (
+            {showPreferences ? (
+              <>
+                <BalloonTitle>How do you want to use Search Companion?</BalloonTitle>
+
+                <OptionsList>
+                  <OptionItem onClick={onClose}>
+                    <ArrowIcon />
+                    <span>Without an animated screen character</span>
+                  </OptionItem>
+                  <OptionItem>
+                    <ArrowIcon />
+                    <span>With a different character</span>
+                  </OptionItem>
+                  <OptionItem>
+                    <ArrowIcon />
+                    <span>With Indexing Service (for faster local searches)</span>
+                  </OptionItem>
+                  <OptionItem>
+                    <ArrowIcon />
+                    <span>Change files and folders search behavior</span>
+                  </OptionItem>
+                  <OptionItem onClick={() => setShowInternetBehavior(true)}>
+                    <ArrowIcon />
+                    <span>Change Internet search behavior</span>
+                  </OptionItem>
+                  <OptionItem onClick={() => { setShowBalloonTips(!showBalloonTips); setShowPreferences(false); setSearchType(null); setComputersSubView(null); }}>
+                    <ArrowIcon />
+                    <span>{showBalloonTips ? "Don't show balloon tips" : "Show balloon tips"}</span>
+                  </OptionItem>
+                  <OptionItem onClick={() => { setAutoCompleteOn(!autoCompleteOn); setShowPreferences(false); setSearchType(null); setComputersSubView(null); }}>
+                    <ArrowIcon />
+                    <span>{autoCompleteOn ? 'Turn AutoComplete off' : 'Turn AutoComplete on'}</span>
+                  </OptionItem>
+                </OptionsList>
+              </>
+            ) : searchType === 'pictures' ? (
               <>
                 <BalloonTitle>Search for all files of a certain type, or search by type and name.</BalloonTitle>
 
@@ -626,7 +671,7 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
                       <SearchComputerIcon />
                       <span>Search this computer for files</span>
                     </AlsoItem>
-                    <AlsoItem>
+                    <AlsoItem onClick={() => setShowPreferences(true)}>
                       <PreferencesIcon />
                       <span>Change preferences</span>
                     </AlsoItem>
@@ -693,7 +738,7 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
                     <SearchComputerIcon />
                     <span>Search the Internet</span>
                   </AlsoItem>
-                  <AlsoItem>
+                  <AlsoItem onClick={() => setShowPreferences(true)}>
                     <PreferencesIcon />
                     <span>Change preferences</span>
                   </AlsoItem>
@@ -732,6 +777,11 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
               <XPButton onClick={() => { setSearchType(null); }}>Back</XPButton>
             </ButtonRow>
           )}
+          {showPreferences && (
+            <ButtonRow style={{ justifyContent: 'flex-end' }}>
+              <XPButton onClick={() => setShowPreferences(false)}>Back</XPButton>
+            </ButtonRow>
+          )}
           </BalloonInner>
           <BalloonTip />
         </Balloon>
@@ -745,6 +795,61 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
           />
         </RoverArea>
       </Content>
+
+      {/* Internet Search Behavior Modal */}
+      {showInternetBehavior && (
+        <ModalOverlay>
+          <ModalWindow>
+            <ModalTitleBar>
+              <ModalTitle>Search Companion</ModalTitle>
+              <ModalCloseButton onClick={() => setShowInternetBehavior(false)}>×</ModalCloseButton>
+            </ModalTitleBar>
+            <ModalContent>
+              <ModalSectionTitle>Internet Search Behavior</ModalSectionTitle>
+              <ModalText>How do you want to search the Internet?</ModalText>
+
+              <RadioGroup>
+                <RadioRow>
+                  <input
+                    type="radio"
+                    id="search-companion-mode"
+                    name="searchMode"
+                    value="companion"
+                    checked={searchCompanionMode === 'companion'}
+                    onChange={(e) => setSearchCompanionMode(e.target.value)}
+                  />
+                  <label htmlFor="search-companion-mode">With Search Companion - provides task suggestions and automatically sends your search to other search engines</label>
+                </RadioRow>
+                <RadioRow>
+                  <input
+                    type="radio"
+                    id="classic-mode"
+                    name="searchMode"
+                    value="classic"
+                    checked={searchCompanionMode === 'classic'}
+                    onChange={(e) => setSearchCompanionMode(e.target.value)}
+                  />
+                  <label htmlFor="classic-mode">With Classic Internet search</label>
+                </RadioRow>
+              </RadioGroup>
+
+              <ModalText>Select the default search engine:</ModalText>
+              <SearchEngineList size={5} value={defaultSearchEngine} onChange={(e) => setDefaultSearchEngine(e.target.value)}>
+                <option value="MSN">MSN</option>
+                <option value="AltaVista">AltaVista</option>
+                <option value="Google">Google</option>
+                <option value="Ask Jeeves">Ask Jeeves</option>
+                <option value="AlltheWeb">AlltheWeb</option>
+              </SearchEngineList>
+
+              <ModalButtonRow>
+                <ModalButton onClick={() => setShowInternetBehavior(false)}>OK</ModalButton>
+                <ModalButton onClick={() => setShowInternetBehavior(false)}>Cancel</ModalButton>
+              </ModalButtonRow>
+            </ModalContent>
+          </ModalWindow>
+        </ModalOverlay>
+      )}
     </Container>
   );
 }
@@ -1248,6 +1353,120 @@ const RoverSprite = styled.div`
   background-image: url('/agents/Rover/map.png');
   background-repeat: no-repeat;
   image-rendering: pixelated;
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+`;
+
+const ModalWindow = styled.div`
+  background: #ece9d8;
+  border: 2px solid #0054e3;
+  border-radius: 6px;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
+  min-width: 280px;
+  max-width: 320px;
+`;
+
+const ModalTitleBar = styled.div`
+  background: linear-gradient(180deg, #0a246a 0%, #a6caf0 8%, #0a246a 92%, #0a246a 100%);
+  background: linear-gradient(180deg, #0054e3 0%, #0054e3 100%);
+  color: white;
+  padding: 4px 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 4px 4px 0 0;
+`;
+
+const ModalTitle = styled.span`
+  font-size: 12px;
+  font-weight: bold;
+  font-family: Tahoma, 'Noto Sans', sans-serif;
+`;
+
+const ModalCloseButton = styled.button`
+  background: linear-gradient(180deg, #c00 0%, #900 100%);
+  border: 1px solid #600;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 3px;
+  line-height: 1;
+  padding: 0;
+
+  &:hover {
+    background: linear-gradient(180deg, #e00 0%, #a00 100%);
+  }
+`;
+
+const ModalContent = styled.div`
+  padding: 12px;
+  background: linear-gradient(180deg, #E8F0F8 0%, #D8E8F0 100%);
+`;
+
+const ModalSectionTitle = styled.div`
+  font-size: 12px;
+  font-weight: bold;
+  font-family: Tahoma, 'Noto Sans', sans-serif;
+  color: #000;
+  margin-bottom: 8px;
+`;
+
+const ModalText = styled.div`
+  font-size: 11px;
+  font-family: Tahoma, 'Noto Sans', sans-serif;
+  color: #000;
+  margin-bottom: 8px;
+`;
+
+const SearchEngineList = styled.select`
+  width: 100%;
+  font-size: 11px;
+  font-family: Tahoma, 'Noto Sans', sans-serif;
+  margin-bottom: 12px;
+`;
+
+const ModalButtonRow = styled.div`
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 12px;
+`;
+
+const ModalButton = styled.button`
+  min-width: 70px;
+  padding: 4px 16px;
+  font-size: 11px;
+  font-family: Tahoma, 'Noto Sans', sans-serif;
+  background: linear-gradient(180deg, #fff 0%, #e3e3e3 50%, #cfcfcf 51%, #d8d8d8 100%);
+  border: 1px solid #003c74;
+  border-radius: 3px;
+  cursor: pointer;
+  color: #000;
+
+  &:hover {
+    background: linear-gradient(180deg, #fff 0%, #e5f4fc 50%, #c4e5f6 51%, #d8e8f0 100%);
+  }
+
+  &:active {
+    background: linear-gradient(180deg, #c4e5f6 0%, #98d1ef 50%, #68b8e3 51%, #8ccded 100%);
+  }
 `;
 
 export default SearchPanel;
