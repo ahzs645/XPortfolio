@@ -76,6 +76,9 @@ function FolderTree({ roots = [], fileSystem, currentFolder, onNavigate }) {
     const isExpanded = expandedIds.has(node.id);
     const hasChildren = childrenIds.length > 0;
     const isSelected = (node.id === 'my-computer-root' && currentFolder === null) || currentFolder === node.id;
+    const baseIcon = node.icon || XP_ICONS.folder;
+    const useOpenFolderIcon = baseIcon === XP_ICONS.folder || baseIcon === XP_ICONS.folderOpen;
+    const resolvedIcon = isExpanded && useOpenFolderIcon ? XP_ICONS.folderOpen : baseIcon;
 
     return (
       <Node key={node.id}>
@@ -94,7 +97,7 @@ function FolderTree({ roots = [], fileSystem, currentFolder, onNavigate }) {
             }}
           />
           <FolderIcon
-            src={isExpanded ? XP_ICONS.folderOpen : (node.icon || XP_ICONS.folder)}
+            src={resolvedIcon}
             alt=""
           />
           <NodeLabel>{node.name}</NodeLabel>
@@ -124,17 +127,17 @@ const Pane = styled.div`
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #f7f7f7 0%, #ededed 100%);
-  border-right: 1px solid #b5b5b5;
+  background: linear-gradient(180deg, #f6f4eb 0%, #f0ede3 100%);
+  border-right: 1px solid #c3c3c3;
   box-sizing: border-box;
 `;
 
 const PaneHeader = styled.div`
-  padding: 8px 10px;
+  padding: 8px 10px 6px 10px;
   font-size: 11px;
   font-weight: bold;
   color: #215dc6;
-  background: white;
+  background: #ece9d8;
   border-bottom: 1px solid #c3c3c3;
 `;
 
@@ -142,7 +145,7 @@ const PaneBody = styled.div`
   flex: 1;
   overflow: auto;
   padding: 6px 6px 12px 6px;
-  background: white;
+  background: #ffffff;
 `;
 
 const Node = styled.div`
@@ -155,8 +158,8 @@ const NodeRow = styled.div`
   align-items: center;
   gap: 4px;
   padding: 2px 4px;
-  border-radius: 3px;
-  margin-left: ${({ $depth }) => $depth * 10}px;
+  border-radius: 2px;
+  margin-left: ${({ $depth }) => $depth * 12}px;
   cursor: default;
   background: ${({ $selected }) => $selected ? '#316ac5' : 'transparent'};
   color: ${({ $selected }) => $selected ? 'white' : 'black'};
@@ -168,7 +171,6 @@ const NodeRow = styled.div`
 
 const Children = styled.div`
   margin-left: 10px;
-  border-left: 1px dashed #c3c3c3;
 `;
 
 const NodeLabel = styled.span`
@@ -185,7 +187,7 @@ const FolderIcon = styled.img`
 const Caret = styled.div`
   width: 10px;
   height: 10px;
-  margin-left: 4px;
+  margin-left: 2px;
   flex-shrink: 0;
   cursor: ${({ $visible }) => $visible ? 'pointer' : 'default'};
   visibility: ${({ $visible }) => $visible ? 'visible' : 'hidden'};
@@ -195,13 +197,13 @@ const Caret = styled.div`
     content: '';
     position: absolute;
     top: 2px;
-    left: 2px;
+    left: 1px;
     width: 0;
     height: 0;
     border-top: 4px solid transparent;
     border-bottom: 4px solid transparent;
-    border-left: 5px solid ${({ $expanded }) => $expanded ? '#215dc6' : '#555'};
-    transform: rotate(${({ $expanded }) => $expanded ? '90deg' : '0deg'});
+    border-left: 6px solid #000;
+    transform: ${({ $expanded }) => $expanded ? 'rotate(90deg)' : 'rotate(0deg)'};
     transform-origin: 3px 4px;
   }
 `;
