@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   Container,
   Content,
@@ -32,34 +32,34 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
   const [characterEntering, setCharacterEntering] = useState(false);
   const [characterKey, setCharacterKey] = useState(0); // Force remount on turn on
 
-  const handleTurnOffCharacter = () => {
+  const handleTurnOffCharacter = useCallback(() => {
     setCharacterExiting(true); // Hide balloon while Rover exits
     roverRef.current?.triggerExit();
-  };
+  }, []);
 
-  const handleTurnOnCharacter = () => {
+  const handleTurnOnCharacter = useCallback(() => {
     setCharacterEntering(true); // Hide balloon while Rover enters
     setCharacterVisible(true); // Show Rover (will play Show animation)
     setCharacterKey(k => k + 1); // Force RoverAnimation to remount fresh
     setShowPreferences(false); // Go back to main menu
-  };
+  }, []);
 
-  const handleToggleCharacter = () => {
+  const handleToggleCharacter = useCallback(() => {
     if (characterVisible) {
       handleTurnOffCharacter();
     } else {
       handleTurnOnCharacter();
     }
-  };
+  }, [characterVisible, handleTurnOffCharacter, handleTurnOnCharacter]);
 
-  const handleCharacterExitComplete = () => {
+  const handleCharacterExitComplete = useCallback(() => {
     setCharacterVisible(false);
     setCharacterExiting(false); // Show balloon again (without tail)
-  };
+  }, []);
 
-  const handleCharacterShowComplete = () => {
+  const handleCharacterShowComplete = useCallback(() => {
     setCharacterEntering(false); // Show balloon again (with tail)
-  };
+  }, []);
 
   // Main navigation state
   const [searchType, setSearchType] = useState(null);
