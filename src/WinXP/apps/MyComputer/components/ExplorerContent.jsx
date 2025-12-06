@@ -1,7 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
 import { IconItem, ListItem, DetailsRow, TileItem, DetailsHeader } from './FileItemViews';
-import SearchBar from './SearchBar';
 import { VIEW_MODES } from '../constants';
 
 function ExplorerContent({
@@ -76,15 +75,6 @@ function ExplorerContent({
 
   return (
     <Wrapper>
-      {/* Search Bar */}
-      {isSearching && (
-        <SearchBar
-          searchQuery={searchQuery}
-          onSearchChange={onSearchChange}
-          onClear={onSearchClear}
-        />
-      )}
-
       {/* Details View Header */}
       {viewMode === VIEW_MODES.DETAILS && items.length > 0 && (
         <DetailsHeader

@@ -8,7 +8,7 @@ import { ProgramLayout, TaskPanel } from '../../../components';
 import { ContextMenu } from '../../components/ContextMenu';
 import { useFileContextMenu, useBackgroundContextMenu } from '../../hooks/useFileContextMenu';
 import { createArchive, extractArchive } from '../../../utils/archiveUtils';
-import { ExplorerContent, ViewMenu } from './components';
+import { ExplorerContent, ViewMenu, SearchPanel } from './components';
 import { getFileExtension, getFileType, getSimpleFileType, sortItems, filterItems, formatDetailDate, formatFileSize } from './utils';
 import { VIEW_MODES } from './constants';
 
@@ -1027,95 +1027,106 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
           </MyComputerLayout>
         ) : (
           <FolderLayout>
-            <TaskPanel width={180}>
-              <TaskPanel.Section title="File and Folder Tasks" variant="primary">
-                <TaskPanel.Item
-                  icon={XP_ICONS.folder}
-                  onClick={handleCreateFolder}
-                >
-                  Make a new folder
-                </TaskPanel.Item>
-                {selectedItems.length > 0 && (
-                  <>
-                    <TaskPanel.Item
-                      icon={XP_ICONS.rename || XP_ICONS.file}
-                      onClick={handleRename}
-                      disabled={selectedItems.length !== 1}
-                    >
-                      Rename this {selectedItems.length === 1 && fileSystem[selectedItems[0]]?.type === 'folder' ? 'folder' : 'file'}
-                    </TaskPanel.Item>
-                    <TaskPanel.Item
-                      icon={XP_ICONS.copy || XP_ICONS.file}
-                      onClick={handleCopy}
-                    >
-                      Copy {selectedItems.length > 1 ? 'these items' : 'this item'}
-                    </TaskPanel.Item>
-                    <TaskPanel.Item
-                      icon={XP_ICONS.delete || XP_ICONS.recycleBin}
-                      onClick={handleDelete}
-                    >
-                      Delete {selectedItems.length > 1 ? 'these items' : 'this item'}
-                    </TaskPanel.Item>
-                  </>
-                )}
-              </TaskPanel.Section>
-              <TaskPanel.Section title="Other Places">
-                <TaskPanel.Item
-                  icon={XP_ICONS.myComputer}
-                  onClick={() => {
-                    setCurrentFolder(null);
-                    setSelectedItems([]);
-                  }}
-                >
-                  My Computer
-                </TaskPanel.Item>
-                <TaskPanel.Item
-                  icon={XP_ICONS.myDocuments}
-                  onClick={() => navigateTo(SYSTEM_IDS.MY_DOCUMENTS)}
-                >
-                  My Documents
-                </TaskPanel.Item>
-                <TaskPanel.Item
-                  icon={XP_ICONS.desktop || XP_ICONS.folder}
-                  onClick={() => navigateTo(SYSTEM_IDS.DESKTOP)}
-                >
-                  Desktop
-                </TaskPanel.Item>
-              </TaskPanel.Section>
-              <TaskPanel.Section title="Details" defaultExpanded={true}>
-                {selectedItems.length === 0 ? (
-                  <>
+            {isSearching ? (
+              <SearchPanel
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                onClose={() => {
+                  setIsSearching(false);
+                  setSearchQuery('');
+                }}
+              />
+            ) : (
+              <TaskPanel width={180}>
+                <TaskPanel.Section title="File and Folder Tasks" variant="primary">
+                  <TaskPanel.Item
+                    icon={XP_ICONS.folder}
+                    onClick={handleCreateFolder}
+                  >
+                    Make a new folder
+                  </TaskPanel.Item>
+                  {selectedItems.length > 0 && (
+                    <>
+                      <TaskPanel.Item
+                        icon={XP_ICONS.rename || XP_ICONS.file}
+                        onClick={handleRename}
+                        disabled={selectedItems.length !== 1}
+                      >
+                        Rename this {selectedItems.length === 1 && fileSystem[selectedItems[0]]?.type === 'folder' ? 'folder' : 'file'}
+                      </TaskPanel.Item>
+                      <TaskPanel.Item
+                        icon={XP_ICONS.copy || XP_ICONS.file}
+                        onClick={handleCopy}
+                      >
+                        Copy {selectedItems.length > 1 ? 'these items' : 'this item'}
+                      </TaskPanel.Item>
+                      <TaskPanel.Item
+                        icon={XP_ICONS.delete || XP_ICONS.recycleBin}
+                        onClick={handleDelete}
+                      >
+                        Delete {selectedItems.length > 1 ? 'these items' : 'this item'}
+                      </TaskPanel.Item>
+                    </>
+                  )}
+                </TaskPanel.Section>
+                <TaskPanel.Section title="Other Places">
+                  <TaskPanel.Item
+                    icon={XP_ICONS.myComputer}
+                    onClick={() => {
+                      setCurrentFolder(null);
+                      setSelectedItems([]);
+                    }}
+                  >
+                    My Computer
+                  </TaskPanel.Item>
+                  <TaskPanel.Item
+                    icon={XP_ICONS.myDocuments}
+                    onClick={() => navigateTo(SYSTEM_IDS.MY_DOCUMENTS)}
+                  >
+                    My Documents
+                  </TaskPanel.Item>
+                  <TaskPanel.Item
+                    icon={XP_ICONS.desktop || XP_ICONS.folder}
+                    onClick={() => navigateTo(SYSTEM_IDS.DESKTOP)}
+                  >
+                    Desktop
+                  </TaskPanel.Item>
+                </TaskPanel.Section>
+                <TaskPanel.Section title="Details" defaultExpanded={true}>
+                  {selectedItems.length === 0 ? (
+                    <>
+                      <TaskPanel.Text>
+                        <strong>{currentFolderData?.name || 'Folder'}</strong>
+                      </TaskPanel.Text>
+                      <TaskPanel.Text>
+                        File Folder
+                      </TaskPanel.Text>
+                      <DetailsSpacer />
+                      <TaskPanel.Text>
+                        Date Modified: {formatDetailDate(currentFolderData?.dateModified || currentFolderData?.dateCreated || Date.now())}
+                      </TaskPanel.Text>
+                    </>
+                  ) : selectedItems.length === 1 ? (
+                    <>
+                      <TaskPanel.Text>
+                        <strong>{fileSystem[selectedItems[0]]?.name}</strong>
+                      </TaskPanel.Text>
+                      <TaskPanel.Text>
+                        {getSimpleFileType(fileSystem[selectedItems[0]])}
+                      </TaskPanel.Text>
+                      <DetailsSpacer />
+                      <TaskPanel.Text>
+                        Date Modified: {formatDetailDate(fileSystem[selectedItems[0]]?.dateModified || fileSystem[selectedItems[0]]?.dateCreated || Date.now())}
+                      </TaskPanel.Text>
+                    </>
+                  ) : (
                     <TaskPanel.Text>
-                      <strong>{currentFolderData?.name || 'Folder'}</strong>
+                      <strong>{selectedItems.length} objects selected</strong>
                     </TaskPanel.Text>
-                    <TaskPanel.Text>
-                      File Folder
-                    </TaskPanel.Text>
-                    <DetailsSpacer />
-                    <TaskPanel.Text>
-                      Date Modified: {formatDetailDate(currentFolderData?.dateModified || currentFolderData?.dateCreated || Date.now())}
-                    </TaskPanel.Text>
-                  </>
-                ) : selectedItems.length === 1 ? (
-                  <>
-                    <TaskPanel.Text>
-                      <strong>{fileSystem[selectedItems[0]]?.name}</strong>
-                    </TaskPanel.Text>
-                    <TaskPanel.Text>
-                      {getSimpleFileType(fileSystem[selectedItems[0]])}
-                    </TaskPanel.Text>
-                    <DetailsSpacer />
-                    <TaskPanel.Text>
-                      Date Modified: {formatDetailDate(fileSystem[selectedItems[0]]?.dateModified || fileSystem[selectedItems[0]]?.dateCreated || Date.now())}
-                    </TaskPanel.Text>
-                  </>
-                ) : (
-                  <TaskPanel.Text>
-                    <strong>{selectedItems.length} objects selected</strong>
-                  </TaskPanel.Text>
-                )}
-              </TaskPanel.Section>
-            </TaskPanel>
+                  )}
+                </TaskPanel.Section>
+              </TaskPanel>
+            )}
             <ExplorerContent
               items={filteredContents}
               viewMode={viewMode}
