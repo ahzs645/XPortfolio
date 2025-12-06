@@ -780,6 +780,7 @@ const Content = styled.div`
   padding: 12px 8px 8px 8px;
   min-height: 0;
   overflow: hidden;
+  height: 100%;
 `;
 
 const Balloon = styled.div`
@@ -789,8 +790,7 @@ const Balloon = styled.div`
   border-radius: 12px;
   box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
   margin-bottom: 8px;
-  margin-top: auto;
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -801,7 +801,7 @@ const Balloon = styled.div`
 const BalloonContent = styled.div`
   padding: 0 4px 12px 12px;
   overflow-y: auto;
-  flex: 1;
+  flex: 1 1 0;
   min-height: 0;
 `;
 
