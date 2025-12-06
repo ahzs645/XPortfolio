@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import styled from 'styled-components';
 import { useUserAccounts } from '../../../contexts/UserAccountsContext';
-import { ProgramLayout, TaskPanel } from '../../../components';
+import { ProgramLayout, TaskPanel, Divider } from '../../../components';
 
 // Navigation history stack
 const VIEW = {
@@ -593,8 +593,7 @@ function UserAccounts({ onClose, onMinimize, onMaximize, onOpenWindow }) {
                 This name will appear on the <WizardLink>Welcome screen</WizardLink> and on the <WizardLink>Start menu</WizardLink>.
               </WizardHelpText>
               {error && <ErrorText>{error}</ErrorText>}
-            </WizardBody>
-            <WizardFooter>
+              <Divider direction="left" />
               <WizardButtonRow>
                 <ActionButton
                   onClick={() => {
@@ -615,7 +614,7 @@ function UserAccounts({ onClose, onMinimize, onMaximize, onOpenWindow }) {
                 </ActionButton>
                 <ActionButton onClick={goHome}>Cancel</ActionButton>
               </WizardButtonRow>
-            </WizardFooter>
+            </WizardBody>
           </WizardContentPane>
         );
 
@@ -647,7 +646,7 @@ function UserAccounts({ onClose, onMinimize, onMaximize, onOpenWindow }) {
                     <label htmlFor="radio-limited">Limited</label>
                   </div>
                 </RadioRow>
-
+                <Divider direction="right" />
                 <AccountTypeDescription>
                   {formData.accountType === 'admin' ? (
                     <>
@@ -680,8 +679,7 @@ function UserAccounts({ onClose, onMinimize, onMaximize, onOpenWindow }) {
 
               {error && <ErrorText>{error}</ErrorText>}
               {success && <SuccessText>{success}</SuccessText>}
-            </WizardBody>
-            <WizardFooter>
+              <Divider direction="left" />
               <WizardButtonRow>
                 <ActionButton onClick={() => {
                   setHistoryIndex(historyIndex - 1);
@@ -692,7 +690,7 @@ function UserAccounts({ onClose, onMinimize, onMaximize, onOpenWindow }) {
                 <ActionButton onClick={handleCreateAccount}>Create Account</ActionButton>
                 <ActionButton onClick={goHome}>Cancel</ActionButton>
               </WizardButtonRow>
-            </WizardFooter>
+            </WizardBody>
           </WizardContentPane>
         );
 
@@ -925,20 +923,6 @@ const UserType = styled.div`
   font-size: 11px;
   color: rgba(255, 255, 255, 0.9);
   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
-`;
-
-const CreateAccountLink = styled.a`
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: #fff;
-  text-decoration: none;
-  cursor: pointer;
-  font-size: 12px;
-
-  &:hover {
-    text-decoration: underline;
-  }
 `;
 
 const TasksContainer = styled.div`
@@ -1235,12 +1219,6 @@ const WizardLink = styled.span`
   }
 `;
 
-const WizardFooter = styled.div`
-  padding: 16px 30px;
-  border-top: 1px solid #d4d0c8;
-  background: #f0f0f0;
-`;
-
 const WizardButtonRow = styled.div`
   display: flex;
   justify-content: flex-end;
@@ -1249,8 +1227,9 @@ const WizardButtonRow = styled.div`
 
 const RadioRow = styled.div`
   display: flex;
+  align-items: center;
   gap: 24px;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 
   .field-row {
     display: flex;

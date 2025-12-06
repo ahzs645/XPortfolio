@@ -3,3 +3,4 @@ export { MenuBar, Toolbar, AddressBar, StatusBar, ProgramLayout } from './Window
 export { default as TaskPanel } from './TaskPanel';
 export { default as FileChooser } from './FileChooser';
 export { default as Balloon } from './Balloon';
+export { default as Divider } from './Divider';
