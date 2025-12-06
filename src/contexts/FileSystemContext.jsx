@@ -685,6 +685,41 @@ export function FileSystemProvider({ children }) {
     return name;
   }, [fileSystem]);
 
+  // Generate Windows XP-style copy name: "Copy of X", "Copy (2) of X", etc.
+  const generateCopyName = useCallback((parentId, originalName, extension) => {
+    if (!fileSystem || !fileSystem[parentId]) return `Copy of ${originalName}${extension}`;
+
+    const siblings = fileSystem[parentId].children
+      .map(id => fileSystem[id]?.name)
+      .filter(Boolean);
+
+    // Extract the original base name (remove any existing "Copy of" or "Copy (N) of" prefix)
+    let cleanBaseName = originalName;
+    const copyOfMatch = originalName.match(/^Copy of (.+)$/);
+    const copyNOfMatch = originalName.match(/^Copy \((\d+)\) of (.+)$/);
+
+    if (copyNOfMatch) {
+      cleanBaseName = copyNOfMatch[2];
+    } else if (copyOfMatch) {
+      cleanBaseName = copyOfMatch[1];
+    }
+
+    // Try "Copy of X" first
+    let name = `Copy of ${cleanBaseName}${extension}`;
+    if (!siblings.includes(name)) {
+      return name;
+    }
+
+    // Try "Copy (2) of X", "Copy (3) of X", etc.
+    let counter = 2;
+    while (siblings.includes(name)) {
+      name = `Copy (${counter}) of ${cleanBaseName}${extension}`;
+      counter++;
+    }
+
+    return name;
+  }, [fileSystem]);
+
   // Create new file or folder
   // file can be a File object or an options object with { icon: string }
   const createItem = useCallback(async (parentId, name, type, fileOrOptions = null) => {
@@ -869,7 +904,10 @@ export function FileSystemProvider({ children }) {
     const source = fileSystem[sourceId];
     const now = Date.now();
     const newId = uuidv4();
-    const uniqueName = generateUniqueName(targetParentId, source.basename || source.name, source.ext || '');
+
+    // Use Windows XP-style copy naming: "Copy of X", "Copy (2) of X", etc.
+    const baseName = source.basename || source.name?.replace(/\.[^/.]+$/, '') || source.name;
+    const uniqueName = generateCopyName(targetParentId, baseName, source.ext || '');
 
     const newItem = {
       ...source,
@@ -908,7 +946,7 @@ export function FileSystemProvider({ children }) {
     }
 
     return newId;
-  }, [fileSystem, generateUniqueName]);
+  }, [fileSystem, generateCopyName]);
 
   // Paste items from clipboard
   const paste = useCallback(async (targetParentId) => {
