@@ -4,6 +4,7 @@ import { BOOT_STATE } from '../constants';
 import { useConfig } from '../../contexts/ConfigContext';
 import { useUserAccounts } from '../../contexts/UserAccountsContext';
 import useSystemSounds from '../../hooks/useSystemSounds';
+import XpLogoSvg from '../../assets/xp.svg?react';
 
 function BootScreen({ bootState, onComplete }) {
   const [showLogin, setShowLogin] = useState(false);
@@ -13,7 +14,7 @@ function BootScreen({ bootState, onComplete }) {
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState(null);
 
-  const { isLoading: configLoading, getDisplayName, getProfession, getUserLoginIcon, getLoadingImagePath } = useConfig();
+  const { isLoading: configLoading, getDisplayName, getProfession, getUserLoginIcon } = useConfig();
   const {
     users,
     isLoading: usersLoading,
@@ -29,7 +30,6 @@ function BootScreen({ bootState, onComplete }) {
   const userName = selectedUser?.name || getDisplayName();
   const userTitle = selectedUser ? (selectedUser.accountType === 'admin' ? 'Computer Administrator' : 'Limited Account') : getProfession();
   const userIcon = selectedUser?.picture || getUserLoginIcon();
-  const bootLogo = getLoadingImagePath();
 
   // Auto-select user if only one exists
   useEffect(() => {
@@ -128,7 +128,7 @@ function BootScreen({ bootState, onComplete }) {
         <LoginScreenInner>
           <LoginContainer $fadeOut={showWelcome}>
             <LoginLeft $fadeOut={showWelcome}>
-              <XPLogo src={bootLogo} alt="Windows XP" />
+              <XPLogo as={XpLogoSvg} aria-label="Windows XP" />
               <LoginInstruction>
                 {showMultiUser ? (
                   <>
@@ -231,7 +231,7 @@ function BootScreen({ bootState, onComplete }) {
   return (
     <BootContainer>
       <BootContent>
-        <BootLogo src={bootLogo} alt="Windows XP" />
+        <BootLogo as={XpLogoSvg} aria-label="Windows XP" />
         <LoadingBoxes>
           <LoadingBox />
           <LoadingBox />
