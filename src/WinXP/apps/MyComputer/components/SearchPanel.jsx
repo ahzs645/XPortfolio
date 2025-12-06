@@ -110,6 +110,7 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
       <Content>
         {/* Speech Balloon */}
         <Balloon>
+          <BalloonInner>
           <BalloonContent>
             {searchType === 'pictures' ? (
               <>
@@ -731,6 +732,7 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
               <XPButton onClick={() => { setSearchType(null); }}>Back</XPButton>
             </ButtonRow>
           )}
+          </BalloonInner>
           <BalloonTip />
         </Balloon>
 
@@ -794,8 +796,17 @@ const Balloon = styled.div`
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
   padding: 12px 10px 0 0;
+`;
+
+const BalloonInner = styled.div`
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 12px;
 `;
 
 const BalloonContent = styled.div`
@@ -807,15 +818,12 @@ const BalloonContent = styled.div`
 
 const BalloonTip = styled.div`
   position: absolute;
-  bottom: -15px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: -16px;
+  left: 30px;
   width: 0;
   height: 0;
-  border-left: 15px solid transparent;
-  border-right: 15px solid transparent;
-  border-top: 15px solid #D8E8F0;
-  filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.1));
+  border-top: 16px solid #D8E8F0;
+  border-left: 16px solid transparent;
 `;
 
 const BalloonTitle = styled.div`
