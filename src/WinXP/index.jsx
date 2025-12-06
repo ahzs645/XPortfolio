@@ -307,7 +307,7 @@ function WinXP() {
   const { width } = useWindowSize();
   const focusedAppId = getFocusedAppId();
   const { playLogoff, playBalloon } = useSystemSounds();
-  const { isLoading: configLoading, isFileDropUploadEnabled } = useConfig();
+  const { isLoading: configLoading, isFileDropUploadEnabled, isFileDropOverlayEnabled } = useConfig();
   // Use per-user settings for wallpaper and icon positions
   const { getWallpaperPath, getDesktopIconPositions, setDesktopIconPositions } = useUserSettings();
   const {
@@ -1412,7 +1412,7 @@ function WinXP() {
       $crtEnabled={crtEnabled}
       $wallpaper={wallpaperPath}
     >
-      {isDraggingFiles && (
+      {isDraggingFiles && isFileDropOverlayEnabled() && (
         <DropOverlay>
           <DropMessage>
             <DropIcon src="/icons/xp/FolderOpened.png" alt="" />

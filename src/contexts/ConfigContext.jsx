@@ -85,6 +85,7 @@ function getDefaultConfig() {
 
     // File system
     ENABLE_FILE_DROP_UPLOAD: true,
+    SHOW_FILE_DROP_OVERLAY: false,
   };
 }
 
@@ -425,6 +426,11 @@ export function ConfigProvider({ children }) {
     return config?.ENABLE_FILE_DROP_UPLOAD !== false;
   };
 
+  // Check if file drop overlay should be shown
+  const isFileDropOverlayEnabled = () => {
+    return config?.SHOW_FILE_DROP_OVERLAY === true;
+  };
+
   // Get about content (load from markdown)
   const [aboutContent, setAboutContent] = useState(null);
 
@@ -504,6 +510,7 @@ export function ConfigProvider({ children }) {
     shouldShowProjectsWithoutMarkdown,
     // File system
     isFileDropUploadEnabled,
+    isFileDropOverlayEnabled,
     // Feature checks
     isFeatureEnabled,
   };
