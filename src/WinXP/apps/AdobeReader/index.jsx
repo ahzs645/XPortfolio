@@ -589,36 +589,36 @@ const MainArea = styled.div`
 const Sidebar = styled.div`
   width: 220px;
   display: flex;
+  flex-direction: row;
   background: #f0f0f0;
   border-right: 1px solid #808080;
   flex-shrink: 0;
+  overflow: hidden;
 `;
 
 const SidebarTabStrip = styled.div`
   display: flex;
   flex-direction: column;
-  width: 20px;
+  width: 21px;
+  min-width: 21px;
+  max-width: 21px;
   background: #7a7a7a;
   flex-shrink: 0;
-  border-right: 1px solid #606060;
 `;
 
 const TabButton = styled.button`
-  width: 20px;
-  min-height: 70px;
+  width: 21px;
+  height: 85px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: 4px 0;
-  gap: 2px;
+  padding-top: 6px;
+  gap: 4px;
   background: ${props => props.$active ? '#f0f0f0' : 'transparent'};
   border: none;
   border-left: ${props => props.$active ? '2px solid #ee8800' : '2px solid transparent'};
   cursor: pointer;
-  position: relative;
-  margin-right: ${props => props.$active ? '-1px' : '0'};
-  z-index: ${props => props.$active ? '1' : '0'};
 
   &:hover {
     background: ${props => props.$active ? '#f0f0f0' : 'rgba(255,255,255,0.1)'};
@@ -635,18 +635,20 @@ const TabText = styled.span`
   font-size: 10px;
   font-family: Tahoma, sans-serif;
   color: #000;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
+  writing-mode: vertical-lr;
   transform: rotate(180deg);
   white-space: nowrap;
+  flex: 1;
 `;
 
 const SidebarContent = styled.div`
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   background: #fff;
+  border-left: 1px solid #606060;
 `;
 
 const SidebarPanel = styled.div`

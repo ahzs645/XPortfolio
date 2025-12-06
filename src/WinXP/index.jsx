@@ -14,6 +14,7 @@ import FileUploadDialog from './FileUploadDialog';
 import { useFileContextMenu, useBackgroundContextMenu } from './hooks/useFileContextMenu';
 import { createArchive, extractArchive, isArchiveFile } from '../utils/archiveUtils';
 import { getDefaultProgramForFile } from './apps/Installer/components/SetProgramDefaults';
+import { openFileWithApp, downloadFile } from '../utils/fileOpener';
 
 // Icon grid layout constants (used for arranging icons)
 const ICON_GRID = {
@@ -528,8 +529,12 @@ function WinXP() {
     if (icon.type === 'file') {
       // Load file data if not present (stored in IndexedDB)
       let fileData = icon.data;
-      if (!fileData) {
-        const fileItem = fileSystem?.[icon.id];
+      const fileItem = fileSystem?.[icon.id];
+
+      // Check for inline content (used by Projects folder text files)
+      let inlineContent = fileItem?.content;
+
+      if (!fileData && !inlineContent) {
         if (fileItem?.storageKey) {
           const blob = await getFileContent(icon.id);
           if (blob) {
@@ -632,154 +637,24 @@ function WinXP() {
         if (handled) return;
       }
 
-      // For text files with no data (newly created empty files), open with empty content
-      const emptyTextExtensions = ['.txt', '.log', '.md', '.json', '.js', '.jsx', '.ts', '.tsx', '.css'];
-      if (!fileData && emptyTextExtensions.includes(fileExt)) {
-        const notepadSetting = {
-          ...appSettings['Notepad'],
-          header: {
-            ...appSettings['Notepad'].header,
-            title: `${icon.title} - Notepad`,
-          },
-          injectProps: {
-            initialContent: '',
-            fileName: icon.title,
-            fileId: icon.id,
-          },
-        };
-        dispatch({ type: ADD_APP, payload: notepadSetting });
-        return;
+      // Use shared file opener utility
+      const handled = openFileWithApp({
+        fileName: icon.title,
+        fileData,
+        fileId: icon.id,
+        parentFolderId: null, // Desktop files extract to desktop
+        contentType: icon.fileType,
+        inlineContent,
+        url: fileItem?.url,
+        appSettings,
+        dispatch,
+        addAppAction: ADD_APP,
+      });
+
+      if (!handled && fileData) {
+        // Fall back to download for unhandled file types
+        downloadFile(fileData, icon.title);
       }
-
-      if (!fileData) {
-        console.log('[DoubleClick] No file data available');
-        return;
-      }
-
-      // For images, open with Image Viewer
-      const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp'];
-      if (imageTypes.includes(icon.fileType)) {
-        const imageViewerSetting = {
-          ...appSettings['Image Viewer'],
-          header: {
-            ...appSettings['Image Viewer'].header,
-            title: `${icon.title} - Windows Picture and Fax Viewer`,
-          },
-          injectProps: {
-            initialImage: { src: fileData, title: icon.title },
-          },
-        };
-        dispatch({ type: ADD_APP, payload: imageViewerSetting });
-        return;
-      }
-
-      // For archive files, open with WinRAR
-      const archiveExtensions = ['.zip', '.rar', '.7z', '.tar', '.gz'];
-      const ext = icon.title.substring(icon.title.lastIndexOf('.')).toLowerCase();
-      if (archiveExtensions.includes(ext)) {
-        const winrarSetting = {
-          ...appSettings['WinRAR'],
-          header: {
-            ...appSettings['WinRAR'].header,
-            title: `Extracting ${icon.title}`,
-          },
-          injectProps: {
-            fileData: fileData,
-            fileName: icon.title,
-            parentFolderId: null, // Extract to Desktop
-          },
-        };
-        dispatch({ type: ADD_APP, payload: winrarSetting });
-        return;
-      }
-
-      // For font files, open with Font Viewer
-      const fontExtensions = ['.ttf', '.otf', '.woff', '.woff2', '.fon'];
-      if (fontExtensions.includes(ext)) {
-        const fontViewerSetting = {
-          ...appSettings['Font Viewer'],
-          header: {
-            ...appSettings['Font Viewer'].header,
-            title: icon.title,
-          },
-          injectProps: {
-            fontData: fileData,
-            fontName: icon.title,
-          },
-        };
-        dispatch({ type: ADD_APP, payload: fontViewerSetting });
-        return;
-      }
-
-      // For HTML files, open with Internet Explorer
-      const htmlExtensions = ['.html', '.htm'];
-      if (htmlExtensions.includes(ext)) {
-        // Convert base64 data URL to blob URL for iframe display
-        let blobUrl = fileData;
-        try {
-          const base64Data = fileData.split(',')[1] || fileData;
-          const binaryString = atob(base64Data);
-          const bytes = new Uint8Array(binaryString.length);
-          for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-          }
-          const blob = new Blob([bytes], { type: 'text/html' });
-          blobUrl = URL.createObjectURL(blob);
-        } catch (e) {
-          console.error('Failed to create blob URL for HTML file:', e);
-        }
-
-        // Build file path for display
-        const filePath = `C:\\Desktop\\${icon.title}`;
-
-        const ieSetting = {
-          ...appSettings['Internet Explorer'],
-          header: {
-            ...appSettings['Internet Explorer'].header,
-            title: `${icon.title} - Internet Explorer`,
-          },
-          injectProps: {
-            initialUrl: blobUrl,
-            filePath: filePath,
-          },
-        };
-        dispatch({ type: ADD_APP, payload: ieSetting });
-        return;
-      }
-
-      // For text files, open with Notepad
-      const textTypes = ['text/plain'];
-      const textExtensions = ['.txt', '.log', '.md', '.json', '.js', '.jsx', '.ts', '.tsx', '.css'];
-      if (textTypes.includes(icon.fileType) || textExtensions.includes(ext)) {
-        // Decode base64 data to text
-        let textContent = '';
-        try {
-          const base64Data = fileData.split(',')[1] || fileData;
-          textContent = atob(base64Data);
-        } catch (e) {
-          textContent = fileData;
-        }
-
-        const notepadSetting = {
-          ...appSettings['Notepad'],
-          header: {
-            ...appSettings['Notepad'].header,
-            title: `${icon.title} - Notepad`,
-          },
-          injectProps: {
-            initialContent: textContent,
-            fileName: icon.title,
-          },
-        };
-        dispatch({ type: ADD_APP, payload: notepadSetting });
-        return;
-      }
-
-      // For other files, try to open/download
-      const link = document.createElement('a');
-      link.href = fileData;
-      link.download = icon.title;
-      link.click();
       return;
     }
 
