@@ -33,10 +33,12 @@ function PreferencesView({
           <ArrowIcon />
           <span>{characterVisible ? 'Without an animated screen character' : 'With an animated screen character'}</span>
         </OptionItem>
-        <OptionItem onClick={onShowCharacterSelect}>
-          <ArrowIcon />
-          <span>With a different character</span>
-        </OptionItem>
+        {characterVisible && (
+          <OptionItem onClick={onShowCharacterSelect}>
+            <ArrowIcon />
+            <span>With a different character</span>
+          </OptionItem>
+        )}
         <OptionItem onClick={onShowIndexingService}>
           <ArrowIcon />
           <span>With Indexing Service (for faster local searches)</span>

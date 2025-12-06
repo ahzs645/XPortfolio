@@ -8,7 +8,7 @@ import { ProgramLayout, TaskPanel } from '../../../components';
 import { ContextMenu } from '../../components/ContextMenu';
 import { useFileContextMenu, useBackgroundContextMenu } from '../../hooks/useFileContextMenu';
 import { createArchive, extractArchive } from '../../../utils/archiveUtils';
-import { ExplorerContent, ViewMenu, SearchPanel } from './components';
+import { ExplorerContent, ViewMenu, SearchPanel, FolderTree } from './components';
 import { getFileExtension, getFileType, getSimpleFileType, sortItems, filterItems, formatDetailDate, formatFileSize } from './utils';
 import { VIEW_MODES } from './constants';
 
@@ -55,6 +55,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   const [viewMenuPosition, setViewMenuPosition] = useState({ top: 0, left: 0 });
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [showFoldersPane, setShowFoldersPane] = useState(false);
   const isDraggingInternalRef = useRef(false); // Sync ref for drag state (React state updates are async)
   const justFinishedSelectingRef = useRef(false); // Prevent click from clearing selection after drag
   const wrapperRef = useRef(null);
@@ -106,6 +107,16 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     folders: filterItems(myComputerItems.folders, searchQuery),
     drives: filterItems(myComputerItems.drives, searchQuery),
   }), [myComputerItems, searchQuery]);
+
+  const folderTreeRoots = React.useMemo(() => {
+    const driveIds = myComputerItems.drives.map(item => item.id);
+    return [{
+      id: 'my-computer-root',
+      name: 'My Computer',
+      icon: XP_ICONS.myComputer,
+      children: driveIds,
+    }];
+  }, [myComputerItems]);
 
   // Format path as shorter string (e.g., "C:\Desktop\folder" instead of "Local Disk (C:)\Desktop\folder")
   const formatShortPath = useCallback((path) => {
@@ -179,22 +190,34 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     }
   }, [historyIndex, history]);
 
+  const goToRoot = useCallback(() => {
+    setCurrentFolder(null);
+    setSelectedItems([]);
+    setContextMenu(null);
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push(null);
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+  }, [history, historyIndex]);
+
   const goUp = useCallback(() => {
     if (isMyComputerRoot) return;
 
     // If at a top-level folder (like C: drive), go to My Computer root
     if (!currentFolderData?.parent || currentFolderData?.parent === null) {
-      setCurrentFolder(null);
-      setSelectedItems([]);
-      setContextMenu(null);
-      const newHistory = history.slice(0, historyIndex + 1);
-      newHistory.push(null);
-      setHistory(newHistory);
-      setHistoryIndex(newHistory.length - 1);
+      goToRoot();
     } else {
       navigateTo(currentFolderData.parent);
     }
-  }, [currentFolderData, isMyComputerRoot, navigateTo, history, historyIndex]);
+  }, [currentFolderData, isMyComputerRoot, navigateTo, goToRoot]);
+
+  const handleTreeNavigate = useCallback((folderId) => {
+    if (folderId === null) {
+      goToRoot();
+      return;
+    }
+    navigateTo(folderId);
+  }, [goToRoot, navigateTo]);
 
   const handleItemClick = useCallback((e, item) => {
     e.stopPropagation();
@@ -632,6 +655,10 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
       case 'up':
         goUp();
         break;
+      case 'folders':
+        setIsSearching(false);
+        setShowFoldersPane(prev => !prev);
+        break;
       case 'views':
         if (event?.currentTarget) {
           const rect = event.currentTarget.getBoundingClientRect();
@@ -825,7 +852,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     { type: 'button', id: 'up', icon: '/gui/toolbar/up.webp', label: 'Up', action: 'up', disabled: isMyComputerRoot },
     { type: 'separator' },
     { type: 'button', id: 'search', icon: '/gui/toolbar/search.webp', label: 'Search', action: 'search' },
-    { type: 'button', id: 'folders', icon: '/gui/toolbar/favorites.webp', label: 'Folders', disabled: true },
+    { type: 'button', id: 'folders', icon: '/gui/toolbar/favorites.webp', label: 'Folders', action: 'folders' },
     { type: 'separator' },
     { type: 'button', id: 'views', icon: '/gui/toolbar/views.webp', label: 'Views', action: 'views', hasDropdown: true },
   ];
@@ -929,6 +956,13 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
                 onClose={closeSearch}
+              />
+            ) : showFoldersPane ? (
+              <FolderTree
+                roots={folderTreeRoots}
+                fileSystem={fileSystem}
+                currentFolder={currentFolder}
+                onNavigate={handleTreeNavigate}
               />
             ) : (
               <TaskPanel width={180}>
@@ -1057,6 +1091,13 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
                 onSearchChange={setSearchQuery}
                 onClose={closeSearch}
               />
+            ) : showFoldersPane ? (
+              <FolderTree
+                roots={folderTreeRoots}
+                fileSystem={fileSystem}
+                currentFolder={currentFolder}
+                onNavigate={handleTreeNavigate}
+              />
             ) : (
               <TaskPanel width={180}>
                 <TaskPanel.Section title="File and Folder Tasks" variant="primary">
@@ -1093,10 +1134,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
                 <TaskPanel.Section title="Other Places">
                   <TaskPanel.Item
                     icon={XP_ICONS.myComputer}
-                    onClick={() => {
-                      setCurrentFolder(null);
-                      setSelectedItems([]);
-                    }}
+                    onClick={goToRoot}
                   >
                     My Computer
                   </TaskPanel.Item>

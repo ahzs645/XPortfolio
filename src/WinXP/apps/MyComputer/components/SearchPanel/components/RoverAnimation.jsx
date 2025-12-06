@@ -4,13 +4,16 @@ import { useClippyAnimation } from '../hooks';
 
 // Rover animation data will be loaded dynamically
 const ROVER_DATA_URL = '/agents/Rover/data.json';
+const ROVER_SOUNDS_URL = '/agents/Rover/sounds.json';
 
 const RoverAnimation = forwardRef(({ onExitComplete, onShowComplete }, ref) => {
   const [animationData, setAnimationData] = useState(null);
+  const [soundsData, setSoundsData] = useState(null);
   const [phase, setPhase] = useState('loading'); // loading, show, idle, hide
 
-  // Load animation data
+  // Load animation data and sounds
   useEffect(() => {
+    // Load animation data
     fetch(ROVER_DATA_URL)
       .then(res => res.json())
       .then(data => {
@@ -20,6 +23,12 @@ const RoverAnimation = forwardRef(({ onExitComplete, onShowComplete }, ref) => {
       .catch(err => {
         console.error('Failed to load Rover animation data:', err);
       });
+
+    // Load sounds
+    fetch(ROVER_SOUNDS_URL)
+      .then(res => res.json())
+      .then(data => setSoundsData(data))
+      .catch(() => {}); // Sounds are optional
   }, []);
 
   const {
@@ -27,7 +36,7 @@ const RoverAnimation = forwardRef(({ onExitComplete, onShowComplete }, ref) => {
     frameSize,
     play,
     hasAnimation,
-  } = useClippyAnimation(animationData, 'Show');
+  } = useClippyAnimation(animationData, 'Show', soundsData);
 
   // Handle animation completion
   const handleAnimationComplete = useCallback((animName, state) => {

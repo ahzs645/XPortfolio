@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
  * React hook for ClippyJS-style sprite animations
  * Uses the same animation data format as clippyjs agent.js files
  */
-export function useClippyAnimation(animationData, initialAnimation = 'Idle') {
+export function useClippyAnimation(animationData, initialAnimation = 'Idle', soundsData = null) {
   const [currentAnimation, setCurrentAnimation] = useState(null); // Start null, set by play()
   const [frameIndex, setFrameIndex] = useState(0);
   const [spritePosition, setSpritePosition] = useState([0, 0]);
@@ -15,11 +15,32 @@ export function useClippyAnimation(animationData, initialAnimation = 'Idle') {
   const timeoutRef = useRef(null);
   const callbackRef = useRef(null);
   const animationDataRef = useRef(animationData);
+  const soundsRef = useRef({});
 
   // Update ref when data changes
   useEffect(() => {
     animationDataRef.current = animationData;
   }, [animationData]);
+
+  // Load sounds
+  useEffect(() => {
+    if (soundsData) {
+      const sounds = {};
+      for (const [key, dataUri] of Object.entries(soundsData)) {
+        sounds[key] = new Audio(dataUri);
+      }
+      soundsRef.current = sounds;
+    }
+  }, [soundsData]);
+
+  // Play sound helper
+  const playSound = useCallback((soundId) => {
+    const audio = soundsRef.current[soundId];
+    if (audio) {
+      audio.currentTime = 0;
+      audio.play().catch(() => {}); // Ignore autoplay errors
+    }
+  }, []);
 
   // Get frame size
   const frameSize = animationData?.framesize || [80, 80];
@@ -91,6 +112,11 @@ export function useClippyAnimation(animationData, initialAnimation = 'Idle') {
       setSpritePosition(currentFrame.images[0]);
     }
 
+    // Play sound if frame has one
+    if (currentFrame.sound) {
+      playSound(currentFrame.sound);
+    }
+
     // Calculate next frame
     const nextIndex = getNextFrameIndex(animation, currentFrame, frameIndex, isExiting);
 
@@ -116,7 +142,7 @@ export function useClippyAnimation(animationData, initialAnimation = 'Idle') {
         setFrameIndex(nextIndex);
       }
     }, duration);
-  }, [currentAnimation, frameIndex, isPlaying, isExiting, getNextFrameIndex]);
+  }, [currentAnimation, frameIndex, isPlaying, isExiting, getNextFrameIndex, playSound]);
 
   // Run animation step when frame changes or play is triggered
   useEffect(() => {

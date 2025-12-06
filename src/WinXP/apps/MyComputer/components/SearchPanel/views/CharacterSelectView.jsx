@@ -11,7 +11,69 @@ const CHARACTERS = [
     dataUrl: '/agents/Rover/data.json',
     description: 'Rover will help you sniff out what you\'re looking for.',
   },
-  // Additional characters can be added when their assets are available
+  {
+    id: 'clippy',
+    name: 'Clippy',
+    spriteMap: '/agents/Clippy/map.png',
+    dataUrl: '/agents/Clippy/data.json',
+    description: 'Hi! I\'m Clippy, your office assistant. Would you like help?',
+  },
+  {
+    id: 'merlin',
+    name: 'Merlin',
+    spriteMap: '/agents/Merlin/map.png',
+    dataUrl: '/agents/Merlin/data.json',
+    description: 'Merlin will conjure up answers to your questions.',
+  },
+  {
+    id: 'genie',
+    name: 'Genie',
+    spriteMap: '/agents/Genie/map.png',
+    dataUrl: '/agents/Genie/data.json',
+    description: 'Your wish is my command!',
+  },
+  {
+    id: 'genius',
+    name: 'Genius',
+    spriteMap: '/agents/Genius/map.png',
+    dataUrl: '/agents/Genius/data.json',
+    description: 'Genius will help you find brilliant solutions.',
+  },
+  {
+    id: 'bonzi',
+    name: 'Bonzi',
+    spriteMap: '/agents/Bonzi/map.png',
+    dataUrl: '/agents/Bonzi/data.json',
+    description: 'Bonzi is here to be your friendly guide.',
+  },
+  {
+    id: 'peedy',
+    name: 'Peedy',
+    spriteMap: '/agents/Peedy/map.png',
+    dataUrl: '/agents/Peedy/data.json',
+    description: 'Peedy the parrot will help you find what you need.',
+  },
+  {
+    id: 'rocky',
+    name: 'Rocky',
+    spriteMap: '/agents/Rocky/map.png',
+    dataUrl: '/agents/Rocky/data.json',
+    description: 'Rocky is ready to help you on your adventure.',
+  },
+  {
+    id: 'links',
+    name: 'Links',
+    spriteMap: '/agents/Links/map.png',
+    dataUrl: '/agents/Links/data.json',
+    description: 'Links the cat will help you prowl for information.',
+  },
+  {
+    id: 'f1',
+    name: 'F1',
+    spriteMap: '/agents/F1/map.png',
+    dataUrl: '/agents/F1/data.json',
+    description: 'F1 the robot is programmed to assist you.',
+  },
 ];
 
 function CharacterSelectView({ selectedCharacter, setSelectedCharacter }) {
@@ -19,16 +81,47 @@ function CharacterSelectView({ selectedCharacter, setSelectedCharacter }) {
   const character = CHARACTERS[currentIndex] || CHARACTERS[0];
 
   const [animationData, setAnimationData] = useState(null);
+  const [soundsData, setSoundsData] = useState(null);
 
-  // Load animation data for current character
+  // Load animation data and sounds for current character
   useEffect(() => {
+    setAnimationData(null); // Reset when character changes
+    setSoundsData(null);
+
+    // Load animation data
     fetch(character.dataUrl)
       .then(res => res.json())
       .then(data => setAnimationData(data))
       .catch(err => console.error('Failed to load character data:', err));
+
+    // Load sounds
+    const soundsUrl = character.dataUrl.replace('data.json', 'sounds.json');
+    fetch(soundsUrl)
+      .then(res => res.json())
+      .then(data => setSoundsData(data))
+      .catch(() => {}); // Sounds are optional
   }, [character.dataUrl]);
 
-  const { spritePosition, frameSize } = useClippyAnimation(animationData, 'Idle');
+  const { spritePosition, frameSize, play, hasAnimation } = useClippyAnimation(animationData, 'Idle', soundsData);
+
+  // Play a greeting animation when data loads, then switch to Idle
+  useEffect(() => {
+    if (animationData) {
+      // Try to play a greeting animation first for a more lively preview
+      const greetingAnims = ['Greet', 'Greeting', 'Wave', 'Show'];
+      const greetAnim = greetingAnims.find(name => hasAnimation(name));
+
+      if (greetAnim) {
+        play(greetAnim, (animName, state) => {
+          if (state === 'EXITED' && hasAnimation('Idle')) {
+            play('Idle');
+          }
+        });
+      } else if (hasAnimation('Idle')) {
+        play('Idle');
+      }
+    }
+  }, [animationData, hasAnimation, play]);
 
   const handlePrev = () => {
     const newIndex = currentIndex <= 0 ? CHARACTERS.length - 1 : currentIndex - 1;
@@ -93,7 +186,7 @@ const CharacterPreview = styled.div`
   justify-content: center;
   align-items: center;
   padding: 16px;
-  min-height: 80px;
+  min-height: 120px;
   background: #fff;
 `;
 
@@ -136,7 +229,6 @@ const CharacterDescription = styled.div`
   font-size: 11px;
   font-family: Tahoma, 'Noto Sans', sans-serif;
   color: #000;
-  border-top: 1px solid #e0e0e0;
   line-height: 1.4;
 `;
 
