@@ -372,9 +372,8 @@ const ShortcutOverlay = styled.img`
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 10px;
-  height: 10px;
-  image-rendering: pixelated;
+  width: 11px;
+  height: 11px;
   pointer-events: none;
 `;
 
@@ -421,9 +420,8 @@ const SmallShortcutOverlay = styled.img`
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 6px;
-  height: 6px;
-  image-rendering: pixelated;
+  width: 8px;
+  height: 8px;
   pointer-events: none;
 `;
 
@@ -539,9 +537,8 @@ const TileShortcutOverlay = styled.img`
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 14px;
-  height: 14px;
-  image-rendering: pixelated;
+  width: 11px;
+  height: 11px;
   pointer-events: none;
 `;
 

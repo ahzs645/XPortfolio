@@ -505,9 +505,8 @@ const ShortcutOverlay = styled.img`
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 10px;
-  height: 10px;
-  image-rendering: pixelated;
+  width: 11px;
+  height: 11px;
   pointer-events: none;
 `;
 
