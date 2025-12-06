@@ -845,7 +845,6 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   // Render item for My Computer root view based on viewMode
   const renderMyComputerItem = (item) => {
     const commonProps = {
-      key: item.id,
       $selected: selectedItems.includes(item.id),
       onClick: (e) => handleItemClick(e, item),
       onDoubleClick: () => handleItemDoubleClick(item),
@@ -854,7 +853,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     switch (viewMode) {
       case 'details':
         return (
-          <MyComputerDetailsRow {...commonProps}>
+          <MyComputerDetailsRow key={item.id} {...commonProps}>
             <MyComputerDetailsCell $width="50%">
               <MyComputerDetailsIcon src={item.icon || XP_ICONS.folder} alt="" />
               <span>{item.name}</span>
@@ -869,14 +868,14 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
         );
       case 'list':
         return (
-          <MyComputerListItem {...commonProps}>
+          <MyComputerListItem key={item.id} {...commonProps}>
             <MyComputerListIcon src={item.icon || XP_ICONS.folder} alt="" />
             <MyComputerListName>{item.name}</MyComputerListName>
           </MyComputerListItem>
         );
       case 'tiles':
         return (
-          <MyComputerTileItem {...commonProps}>
+          <MyComputerTileItem key={item.id} {...commonProps}>
             <MyComputerTileIcon src={item.icon || XP_ICONS.folder} alt="" />
             <MyComputerTileInfo>
               <MyComputerTileName>{item.name}</MyComputerTileName>
@@ -888,7 +887,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
         );
       default: // icons
         return (
-          <MyComputerFileItem {...commonProps}>
+          <MyComputerFileItem key={item.id} {...commonProps}>
             <MyComputerFileIcon src={item.icon || XP_ICONS.folder} alt="" />
             <MyComputerFileName>{item.name}</MyComputerFileName>
           </MyComputerFileItem>

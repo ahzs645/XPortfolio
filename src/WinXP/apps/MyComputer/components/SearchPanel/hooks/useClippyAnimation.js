@@ -5,11 +5,12 @@ import { useState, useEffect, useCallback, useRef } from 'react';
  * Uses the same animation data format as clippyjs agent.js files
  */
 export function useClippyAnimation(animationData, initialAnimation = 'Idle') {
-  const [currentAnimation, setCurrentAnimation] = useState(initialAnimation);
+  const [currentAnimation, setCurrentAnimation] = useState(null); // Start null, set by play()
   const [frameIndex, setFrameIndex] = useState(0);
   const [spritePosition, setSpritePosition] = useState([0, 0]);
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false); // Start paused
   const [isExiting, setIsExiting] = useState(false);
+  const [triggerStep, setTriggerStep] = useState(0); // Force step to run
 
   const timeoutRef = useRef(null);
   const callbackRef = useRef(null);
@@ -117,9 +118,9 @@ export function useClippyAnimation(animationData, initialAnimation = 'Idle') {
     }, duration);
   }, [currentAnimation, frameIndex, isPlaying, isExiting, getNextFrameIndex]);
 
-  // Run animation step when frame changes
+  // Run animation step when frame changes or play is triggered
   useEffect(() => {
-    if (isPlaying) {
+    if (isPlaying && currentAnimation) {
       step();
     }
 
@@ -128,7 +129,7 @@ export function useClippyAnimation(animationData, initialAnimation = 'Idle') {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [frameIndex, isPlaying, step]);
+  }, [frameIndex, isPlaying, step, triggerStep, currentAnimation]);
 
   // Play animation
   const play = useCallback((animationName, callback) => {
@@ -147,6 +148,7 @@ export function useClippyAnimation(animationData, initialAnimation = 'Idle') {
     setCurrentAnimation(animationName);
     setFrameIndex(0);
     setIsPlaying(true);
+    setTriggerStep(t => t + 1); // Force step to run
 
     return true;
   }, [hasAnimation]);
