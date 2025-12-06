@@ -551,6 +551,7 @@ const Balloon = styled.div`
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  padding-right: 10px;
 `;
 
 const BalloonContent = styled.div`
