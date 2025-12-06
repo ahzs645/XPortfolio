@@ -565,6 +565,7 @@ export const PasswordHintLabel = styled.label`
     color: #0066cc;
     text-decoration: underline;
     cursor: pointer;
+    margin-left: 0.25em;
 
     &:hover {
       color: #0044aa;

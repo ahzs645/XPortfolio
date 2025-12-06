@@ -118,9 +118,8 @@ function BootScreen({ bootState, onComplete }) {
   };
 
   if (showLogin) {
-    // Multi-user mode: show all users or single user with password
-    const showMultiUser = users.length > 1 && !selectedUserId && !showPasswordInput;
-    const showSingleUser = users.length === 1 || selectedUserId;
+    // Multi-user mode: show all users (including when password input is shown inline for a locked account)
+    const showMultiUser = users.length > 1 && (!selectedUserId || showPasswordInput);
 
     return (
       <LoginScreen>
@@ -153,18 +152,61 @@ function BootScreen({ bootState, onComplete }) {
               {showMultiUser ? (
                 // Show all users
                 <UsersList>
-                  {users.map(user => (
-                    <UserCard key={user.id} onClick={() => handleUserClick(user.id)}>
-                      <UserIcon src={user.picture} alt={user.name} />
-                      <UserInfo>
-                        <UserNameText>{user.name}</UserNameText>
-                        <UserTitleText className="user-title">
-                          {user.accountType === 'admin' ? 'Computer Administrator' : 'Limited Account'}
-                          {user.hasPassword && ' 🔒'}
-                        </UserTitleText>
-                      </UserInfo>
-                    </UserCard>
-                  ))}
+                  {users.map(user => {
+                    const isLocked = user.hasPassword;
+                    const isSelected = selectedUserId === user.id && showPasswordInput;
+
+                    return (
+                      <LoginWrapper key={user.id} $selected={isSelected}>
+                        <UserCard
+                          $locked={isLocked}
+                          $selected={isSelected}
+                          onClick={() => handleUserClick(user.id)}
+                        >
+                          <UserIcon src={user.picture} alt={user.name} $locked={isLocked} />
+                          <UserInfo $locked={isLocked}>
+                            <UserNameText $locked={isLocked}>{user.name}</UserNameText>
+                            {isSelected ? (
+                              <InlinePasswordContainer>
+                                <InlinePasswordInput
+                                  type="password"
+                                  value={password}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    setPassword(e.target.value);
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      handlePasswordSubmit(e);
+                                    }
+                                  }}
+                                  placeholder="Type your password..."
+                                  autoFocus
+                                />
+                                <InlinePasswordButton
+                                  src="/apps/openlair-viewer/static/images/interface/explorer/go.png"
+                                  alt="Go"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handlePasswordSubmit(e);
+                                  }}
+                                />
+                              </InlinePasswordContainer>
+                            ) : (
+                              <UserTitleText className="user-title">
+                                {user.accountType === 'admin' ? 'Computer Administrator' : 'Limited Account'}
+                              </UserTitleText>
+                            )}
+                            {isSelected && passwordError && (
+                              <PasswordError style={{ marginLeft: 0, marginTop: '4px' }}>{passwordError}</PasswordError>
+                            )}
+                          </UserInfo>
+                        </UserCard>
+                      </LoginWrapper>
+                    );
+                  })}
                 </UsersList>
               ) : showPasswordInput ? (
                 // Show password input for selected user
@@ -583,16 +625,52 @@ const UsersList = styled.div`
   gap: 8px;
 `;
 
+// Wrapper for login items (handles .login.selected gradient background)
+const LoginWrapper = styled.div`
+  padding: 1px;
+  margin-bottom: 10px;
+  border-radius: 11px;
+  background: ${({ $selected }) => $selected
+    ? 'linear-gradient(to right, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 100%)'
+    : 'transparent'};
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-clip: padding-box, border-box;
+  transition: background 0.3s ease;
+`;
+
 const UserCard = styled.div`
   display: flex;
   align-items: center;
   min-width: 260px;
-  padding: 12px 18px;
-  border-radius: 5px;
+  padding: ${({ $locked }) => $locked ? '10px' : '12px 18px'};
+  border: 1px solid ${({ $locked }) => $locked ? '#5A7EDC' : 'transparent'};
+  border-radius: ${({ $locked }) => $locked ? '10px' : '5px'};
   cursor: ${({ $noHover }) => $noHover ? 'default' : 'pointer'};
   position: relative;
   overflow: hidden;
-  transition: opacity 0.3s;
+  gap: ${({ $locked }) => $locked ? '12px' : '0'};
+  min-height: ${({ $locked }) => $locked ? '50px' : 'auto'};
+
+  /* Locked account styling */
+  opacity: ${({ $locked, $selected, $noHover }) => {
+    if ($noHover) return 1;
+    if ($locked && !$selected) return 0.5;
+    return 1;
+  }};
+
+  background: ${({ $locked, $selected }) => {
+    if ($locked && $selected) {
+      return 'linear-gradient(to right, #00309C 0%, #5A7EDC 100%)';
+    }
+    if ($locked) {
+      return '#5A7EDC';
+    }
+    return 'transparent';
+  }};
+
+  transition: opacity 0.5s ease, transform 0.5s ease, background 0.3s ease;
+  transform: translateY(0);
 
   &::before {
     content: '';
@@ -603,13 +681,17 @@ const UserCard = styled.div`
     height: 100%;
     background: linear-gradient(90deg, #113fa6, #113fa6, #587cdb);
     border-radius: inherit;
-    opacity: ${({ $noHover }) => $noHover ? 1 : 0};
+    opacity: ${({ $noHover, $locked }) => ($noHover || $locked) ? 0 : 0};
     transition: opacity 0.3s ease;
     z-index: -1;
   }
 
-  &:hover::before {
+  &:hover {
     opacity: 1;
+  }
+
+  &:hover::before {
+    opacity: ${({ $locked }) => $locked ? 0 : 1};
   }
 
   &:hover img {
@@ -634,16 +716,17 @@ const UserCard = styled.div`
 `;
 
 const UserIcon = styled.img`
-  width: 70px;
-  height: 70px;
+  width: ${({ $locked }) => $locked ? '48px' : '70px'};
+  height: ${({ $locked }) => $locked ? '48px' : '70px'};
   border-radius: 5px;
-  border: 3px solid white;
-  transition: border-color 0.3s;
+  border: ${({ $locked }) => $locked ? '2px' : '3px'} solid white;
+  transition: border-color 0.3s, width 0.3s, height 0.3s;
 `;
 
 const UserInfo = styled.div`
-  margin-left: 20px;
+  margin-left: ${({ $locked }) => $locked ? '0' : '20px'};
   width: 200px;
+  overflow: hidden;
 
   /* Mobile adjustments */
   .mobile-device & {
@@ -655,8 +738,8 @@ const UserInfo = styled.div`
 `;
 
 const UserNameText = styled.div`
-  font-family: Tahoma, Arial, sans-serif;
-  font-size: 26px;
+  font-family: ${({ $locked }) => $locked ? 'sans-serif' : 'Tahoma, Arial, sans-serif'};
+  font-size: ${({ $locked }) => $locked ? '20px' : '26px'};
   font-weight: 500;
   letter-spacing: 0.25px;
   margin-bottom: 0.5px;
@@ -671,6 +754,45 @@ const UserTitleText = styled.div`
   margin-top: -2px;
   color: navy;
   transition: color 0.3s;
+`;
+
+// Inline password input for locked accounts (shown when selected)
+const InlinePasswordContainer = styled.div`
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  margin-top: 4px;
+`;
+
+const InlinePasswordInput = styled.input`
+  border-radius: 5px;
+  font-size: 14px;
+  width: 150px;
+  outline: none;
+  border: none;
+  padding: 4px 8px;
+  font-family: Tahoma, Arial, sans-serif;
+
+  &:focus {
+    outline: none;
+  }
+
+  &::placeholder {
+    color: #888;
+  }
+`;
+
+const InlinePasswordButton = styled.img`
+  width: auto;
+  height: 28px;
+  border: 1px solid #FFFFFF;
+  border-radius: 5px;
+  box-sizing: border-box;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.9;
+  }
 `;
 
 const PasswordContainer = styled.div`
