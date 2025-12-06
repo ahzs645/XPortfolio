@@ -91,11 +91,15 @@ const PROTECTED_ITEMS = [
 // Shortcut file size in bytes (Windows .lnk files are typically small)
 const SHORTCUT_SIZE = 90; // 90 bytes like in reference
 
+// Special system icons (not shortcuts, don't appear in Desktop folder)
+export const SYSTEM_DESKTOP_ICONS = {
+  myComputer: { id: 'system-my-computer', name: 'My Computer', icon: XP_ICONS.myComputer, target: 'My Computer', type: 'system' },
+  recycleBin: { id: 'system-recycle-bin', name: 'Recycle Bin', icon: XP_ICONS.recycleBinEmpty, target: 'Recycle Bin', type: 'system' },
+};
+
 // Full catalog of available desktop shortcuts (program ID -> shortcut definition)
 // These map to the appSettings keys in src/WinXP/apps/index.js
 export const DESKTOP_SHORTCUT_CATALOG = {
-  myComputer: { id: 'shortcut-my-computer', name: 'My Computer.lnk', icon: XP_ICONS.myComputer, target: 'My Computer', size: SHORTCUT_SIZE },
-  recycleBin: { id: 'shortcut-recycle-bin', name: 'Recycle Bin.lnk', icon: XP_ICONS.recycleBinEmpty, target: 'Recycle Bin', size: SHORTCUT_SIZE },
   about: { id: 'shortcut-about', name: 'About Me.lnk', icon: '/icons/about.webp', target: 'About Me', size: SHORTCUT_SIZE },
   resume: { id: 'shortcut-resume', name: 'Resume.lnk', icon: '/icons/resume.webp', target: 'Resume', size: SHORTCUT_SIZE },
   projects: { id: 'shortcut-projects', name: 'Projects.lnk', icon: '/icons/projects.webp', target: 'Projects', size: SHORTCUT_SIZE },
@@ -115,8 +119,8 @@ export const DESKTOP_SHORTCUT_CATALOG = {
   displayProperties: { id: 'shortcut-display', name: 'Display Properties.lnk', icon: XP_ICONS.displayProperties, target: 'Display Properties', size: SHORTCUT_SIZE },
 };
 
-// Default desktop programs if not specified in config
-const DEFAULT_DESKTOP_PROGRAMS = ['myComputer', 'recycleBin', 'about', 'resume', 'projects', 'contact', 'calculator', 'minesweeper'];
+// Default desktop programs if not specified in config (excludes system icons like My Computer and Recycle Bin)
+const DEFAULT_DESKTOP_PROGRAMS = ['about', 'resume', 'projects', 'contact', 'calculator', 'minesweeper'];
 
 // Build desktop shortcuts array from program IDs
 const buildDesktopShortcuts = (programIds) => {
@@ -234,10 +238,26 @@ export function FileSystemProvider({ children }) {
     return buildDesktopShortcuts(programIds);
   }, [configLoading, getDesktopPrograms]);
 
+  // IDs of old shortcuts that should be removed (now system icons)
+  const OLD_SHORTCUT_IDS = ['shortcut-my-computer', 'shortcut-recycle-bin'];
+
   // Ensure desktop shortcuts exist in file system
   const ensureDesktopShortcuts = (fs, desktopShortcuts) => {
     const now = Date.now();
     let modified = false;
+
+    // Remove old My Computer and Recycle Bin shortcuts (now system icons)
+    for (const oldId of OLD_SHORTCUT_IDS) {
+      if (fs[oldId]) {
+        delete fs[oldId];
+        modified = true;
+      }
+      // Also remove from desktop children if present
+      if (fs[SYSTEM_IDS.DESKTOP]?.children?.includes(oldId)) {
+        fs[SYSTEM_IDS.DESKTOP].children = fs[SYSTEM_IDS.DESKTOP].children.filter(id => id !== oldId);
+        modified = true;
+      }
+    }
 
     // Ensure Desktop folder exists
     if (!fs[SYSTEM_IDS.DESKTOP]) {
@@ -270,15 +290,35 @@ export function FileSystemProvider({ children }) {
           dateModified: now,
         };
         modified = true;
-      } else if (!fs[shortcut.id].ext) {
-        // Migrate existing shortcuts to include .lnk extension
-        fs[shortcut.id].ext = '.lnk';
-        fs[shortcut.id].size = fs[shortcut.id].size || shortcut.size || SHORTCUT_SIZE;
-        // Update name to include .lnk if not present
-        if (!fs[shortcut.id].name.endsWith('.lnk')) {
-          fs[shortcut.id].name = fs[shortcut.id].name + '.lnk';
+      } else {
+        // Migrate existing items to be proper shortcuts
+        const item = fs[shortcut.id];
+        if (item.type !== 'shortcut') {
+          fs[shortcut.id].type = 'shortcut';
+          modified = true;
         }
-        modified = true;
+        if (!item.ext) {
+          fs[shortcut.id].ext = '.lnk';
+          modified = true;
+        }
+        if (!item.size) {
+          fs[shortcut.id].size = shortcut.size || SHORTCUT_SIZE;
+          modified = true;
+        }
+        // Update name to include .lnk if not present
+        if (!item.name.endsWith('.lnk')) {
+          fs[shortcut.id].name = item.name + '.lnk';
+          modified = true;
+        }
+        // Ensure icon and target are set
+        if (!item.icon) {
+          fs[shortcut.id].icon = shortcut.icon;
+          modified = true;
+        }
+        if (!item.target) {
+          fs[shortcut.id].target = shortcut.target;
+          modified = true;
+        }
       }
 
       // Ensure shortcut is in desktop's children

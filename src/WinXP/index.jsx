@@ -5,7 +5,7 @@ import useSystemSounds from '../hooks/useSystemSounds';
 import { useConfig } from '../contexts/ConfigContext';
 import { useUserSettings } from '../contexts/UserSettingsContext';
 import MobileRestrictionPopup from '../components/MobileRestrictionPopup';
-import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../contexts/FileSystemContext';
+import { useFileSystem, SYSTEM_IDS, XP_ICONS, SYSTEM_DESKTOP_ICONS } from '../contexts/FileSystemContext';
 import { useInstalledApps } from '../contexts/InstalledAppsContext';
 import { AppProvider } from '../contexts/AppContext';
 import { ContextMenu } from './components/ContextMenu';
@@ -364,14 +364,47 @@ function WinXP() {
   const isMobile = width < 768;
   const wallpaperPath = getWallpaperPath(isMobile);
 
-  // Update desktop icons from file system Desktop folder
+  // Update desktop icons from file system Desktop folder + system icons
   // Uses per-user icon positions from UserSettingsContext
   useEffect(() => {
     if (!fsLoading && fileSystem) {
       const desktopContents = getFolderContents(SYSTEM_IDS.DESKTOP);
       const savedPositions = getDesktopIconPositions();
-      const icons = convertToDesktopIcons(desktopContents, appSettings, savedPositions);
-      dispatch({ type: SET_ICONS, payload: icons });
+
+      // Convert file system items to icons
+      const fileIcons = convertToDesktopIcons(desktopContents, appSettings, savedPositions);
+
+      // Add system icons (My Computer, Recycle Bin) - these are not in the file system
+      const systemIcons = Object.values(SYSTEM_DESKTOP_ICONS).map((sysIcon, index) => {
+        const savedPos = savedPositions[sysIcon.id];
+        // System icons go at the top of the desktop
+        const defaultX = 10;
+        const defaultY = 10 + index * 90;
+
+        return {
+          id: sysIcon.id,
+          programId: sysIcon.id,
+          icon: sysIcon.icon,
+          title: sysIcon.name,
+          fullName: sysIcon.name,
+          component: appSettings[sysIcon.target]?.component,
+          isFocus: false,
+          x: savedPos?.x ?? defaultX,
+          y: savedPos?.y ?? defaultY,
+          type: 'system', // Special type - no shortcut overlay
+          target: sysIcon.target,
+        };
+      });
+
+      // Combine: system icons first, then file icons (offset their positions)
+      const allIcons = [...systemIcons, ...fileIcons.map((icon, idx) => ({
+        ...icon,
+        // If no saved position, offset below system icons
+        x: savedPositions[icon.id]?.x ?? icon.x,
+        y: savedPositions[icon.id]?.y ?? (icon.y + systemIcons.length * 90),
+      }))];
+
+      dispatch({ type: SET_ICONS, payload: allIcons });
     }
   }, [fsLoading, fileSystem, getFolderContents, getDesktopIconPositions]);
 
@@ -443,6 +476,20 @@ function WinXP() {
 
   async function onDoubleClickIcon(icon) {
     console.log('[DoubleClick]', icon.title, 'type:', icon.type, 'hasData:', !!icon.data);
+
+    // Handle system icons (My Computer, Recycle Bin) - launch the target app
+    if (icon.type === 'system' && icon.target) {
+      // Check for mobile restrictions before launching
+      if (!checkMobileRestriction(icon.target)) {
+        return; // Blocked on mobile, popup will be shown
+      }
+
+      const appSetting = appSettings[icon.target];
+      if (appSetting) {
+        dispatch({ type: ADD_APP, payload: appSetting });
+      }
+      return;
+    }
 
     // Handle shortcuts - launch the target app
     if (icon.type === 'shortcut' && icon.target) {
@@ -820,13 +867,39 @@ function WinXP() {
       case 'paste':
         await paste(SYSTEM_IDS.DESKTOP);
         break;
-      case 'refresh':
+      case 'refresh': {
         // Trigger a re-render by updating icons
         const desktopContents = getFolderContents(SYSTEM_IDS.DESKTOP);
         const savedPositions = getDesktopIconPositions();
-        const icons = convertToDesktopIcons(desktopContents, appSettings, savedPositions);
-        dispatch({ type: SET_ICONS, payload: icons });
+        const fileIcons = convertToDesktopIcons(desktopContents, appSettings, savedPositions);
+
+        // Add system icons
+        const systemIcons = Object.values(SYSTEM_DESKTOP_ICONS).map((sysIcon, index) => {
+          const savedPos = savedPositions[sysIcon.id];
+          return {
+            id: sysIcon.id,
+            programId: sysIcon.id,
+            icon: sysIcon.icon,
+            title: sysIcon.name,
+            fullName: sysIcon.name,
+            component: appSettings[sysIcon.target]?.component,
+            isFocus: false,
+            x: savedPos?.x ?? 10,
+            y: savedPos?.y ?? (10 + index * 90),
+            type: 'system',
+            target: sysIcon.target,
+          };
+        });
+
+        const allIcons = [...systemIcons, ...fileIcons.map((icon) => ({
+          ...icon,
+          x: savedPositions[icon.id]?.x ?? icon.x,
+          y: savedPositions[icon.id]?.y ?? (icon.y + systemIcons.length * 90),
+        }))];
+
+        dispatch({ type: SET_ICONS, payload: allIcons });
         break;
+      }
       case 'properties':
         // Open Display Properties dialog
         dispatch({ type: ADD_APP, payload: appSettings['Display Properties'] });
@@ -1001,7 +1074,7 @@ function WinXP() {
     return {
       id: icon.id,
       name: icon.title,
-      type: icon.type,
+      type: icon.type, // 'system', 'shortcut', 'folder', 'file'
       icon: icon.icon,
       target: icon.target,
     };
@@ -1009,7 +1082,8 @@ function WinXP() {
 
   const selectedIconCount = state.icons.filter(i => i.isFocus).length;
 
-  // Check if the selected icon is My Computer or Recycle Bin
+  // Check if the selected icon is My Computer or Recycle Bin (system icons)
+  const isSystemIcon = iconContextMenuItem?.type === 'system';
   const isMyComputerIcon = iconContextMenuItem?.target === 'My Computer' || iconContextMenuItem?.name === 'My Computer';
   const isRecycleBinIcon = iconContextMenuItem?.target === 'Recycle Bin' || iconContextMenuItem?.name === 'Recycle Bin';
 
