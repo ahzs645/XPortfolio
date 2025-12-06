@@ -3,7 +3,6 @@ import { BalloonTitle, OptionsList, OptionItem } from '../styles';
 import { ArrowIcon } from '../components/Icons';
 
 function PreferencesView({
-  onClose,
   onShowIndexingService,
   onShowInternetBehavior,
   onShowCharacterSelect,
@@ -12,6 +11,8 @@ function PreferencesView({
   autoCompleteOn,
   setAutoCompleteOn,
   onBackToHome,
+  characterVisible,
+  onToggleCharacter,
 }) {
   const handleToggleBalloonTips = () => {
     setShowBalloonTips(!showBalloonTips);
@@ -28,9 +29,9 @@ function PreferencesView({
       <BalloonTitle>How do you want to use Search Companion?</BalloonTitle>
 
       <OptionsList>
-        <OptionItem onClick={onClose}>
+        <OptionItem onClick={onToggleCharacter}>
           <ArrowIcon />
-          <span>Without an animated screen character</span>
+          <span>{characterVisible ? 'Without an animated screen character' : 'With an animated screen character'}</span>
         </OptionItem>
         <OptionItem onClick={onShowCharacterSelect}>
           <ArrowIcon />

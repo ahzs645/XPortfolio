@@ -2,7 +2,7 @@ import React from 'react';
 import { BalloonTitle, OptionsList, OptionItem, AlsoSection, AlsoTitle, AlsoItem } from '../styles';
 import { ArrowIcon, HelpIcon, SearchComputerIcon, PreferencesIcon, DogIcon } from '../components/Icons';
 
-function MainMenuView({ onSelectType, onSearchInternet, onShowPreferences, onTurnOffCharacter }) {
+function MainMenuView({ onSelectType, onSearchInternet, onShowPreferences, onTurnOffCharacter, characterVisible }) {
   return (
     <>
       <BalloonTitle>What do you want to search for?</BalloonTitle>
@@ -40,10 +40,12 @@ function MainMenuView({ onSelectType, onSearchInternet, onShowPreferences, onTur
           <PreferencesIcon />
           <span>Change preferences</span>
         </AlsoItem>
-        <AlsoItem onClick={onClose}>
-          <DogIcon />
-          <span>Turn off animated character</span>
-        </AlsoItem>
+        {characterVisible && (
+          <AlsoItem onClick={onTurnOffCharacter}>
+            <DogIcon />
+            <span>Turn off animated character</span>
+          </AlsoItem>
+        )}
       </AlsoSection>
     </>
   );

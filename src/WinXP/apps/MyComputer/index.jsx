@@ -102,6 +102,11 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     return { folders, drives };
   }, [fileSystem]);
 
+  const filteredMyComputerItems = React.useMemo(() => ({
+    folders: filterItems(myComputerItems.folders, searchQuery),
+    drives: filterItems(myComputerItems.drives, searchQuery),
+  }), [myComputerItems, searchQuery]);
+
   // Format path as shorter string (e.g., "C:\Desktop\folder" instead of "Local Disk (C:)\Desktop\folder")
   const formatShortPath = useCallback((path) => {
     if (!path || path === 'My Computer') return 'My Computer';
@@ -117,6 +122,10 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     if (fn) fn();
     closeContextMenu();
   }, [closeContextMenu]);
+  const closeSearch = useCallback(() => {
+    setIsSearching(false);
+    setSearchQuery('');
+  }, []);
 
   // Update window header when folder changes
   useEffect(() => {
@@ -815,20 +824,23 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     { type: 'button', id: 'forward', icon: '/gui/toolbar/forward.webp', label: 'Forward', action: 'forward', disabled: historyIndex >= history.length - 1 },
     { type: 'button', id: 'up', icon: '/gui/toolbar/up.webp', label: 'Up', action: 'up', disabled: isMyComputerRoot },
     { type: 'separator' },
-    { type: 'button', id: 'search', icon: '/gui/toolbar/search.webp', label: 'Search', action: 'search', disabled: isMyComputerRoot },
+    { type: 'button', id: 'search', icon: '/gui/toolbar/search.webp', label: 'Search', action: 'search' },
     { type: 'button', id: 'folders', icon: '/gui/toolbar/favorites.webp', label: 'Folders', disabled: true },
     { type: 'separator' },
     { type: 'button', id: 'views', icon: '/gui/toolbar/views.webp', label: 'Views', action: 'views', hasDropdown: true },
   ];
 
-  const itemCount = isMyComputerRoot
+  const totalItems = isMyComputerRoot
     ? myComputerItems.folders.length + myComputerItems.drives.length
+    : contents.length;
+  const visibleItems = isMyComputerRoot
+    ? filteredMyComputerItems.folders.length + filteredMyComputerItems.drives.length
     : filteredContents.length;
   const statusText = selectedItems.length > 0
     ? `${selectedItems.length} object(s) selected`
     : searchQuery.trim()
-    ? `${filteredContents.length} of ${contents.length} object(s)`
-    : `${itemCount} object(s)`;
+    ? `${visibleItems} of ${totalItems} object(s)`
+    : `${visibleItems} object(s)`;
 
   // Render item for My Computer root view based on viewMode
   const renderMyComputerItem = (item) => {
@@ -913,79 +925,87 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
 
         {isMyComputerRoot ? (
           <MyComputerLayout>
-            <TaskPanel width={180}>
-              <TaskPanel.Section title="System Tasks" variant="primary">
-                <TaskPanel.Item
-                  icon={XP_ICONS.help}
-                  onClick={() => console.log('View system info')}
-                >
-                  View system information
-                </TaskPanel.Item>
-                <TaskPanel.Item
-                  icon={XP_ICONS.programs}
-                  onClick={() => console.log('Add/remove programs')}
-                >
-                  Add or remove programs
-                </TaskPanel.Item>
-                <TaskPanel.Item
-                  icon={XP_ICONS.controlPanel}
-                  onClick={() => console.log('Change a setting')}
-                >
-                  Change a setting
-                </TaskPanel.Item>
-              </TaskPanel.Section>
-              <TaskPanel.Section title="Other Places">
-                <TaskPanel.Item
-                  icon={XP_ICONS.folder}
-                  onClick={() => console.log('My Network Places')}
-                >
-                  My Network Places
-                </TaskPanel.Item>
-                <TaskPanel.Item
-                  icon={XP_ICONS.myDocuments}
-                  onClick={() => navigateTo(SYSTEM_IDS.MY_DOCUMENTS)}
-                >
-                  My Documents
-                </TaskPanel.Item>
-                <TaskPanel.Item
-                  icon={XP_ICONS.controlPanel}
-                  onClick={() => console.log('Control Panel')}
-                >
-                  Control Panel
-                </TaskPanel.Item>
-              </TaskPanel.Section>
-              <TaskPanel.Section title="Details" defaultExpanded={true}>
-                {selectedItems.length === 0 ? (
-                  <>
+            {isSearching ? (
+              <SearchPanel
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                onClose={closeSearch}
+              />
+            ) : (
+              <TaskPanel width={180}>
+                <TaskPanel.Section title="System Tasks" variant="primary">
+                  <TaskPanel.Item
+                    icon={XP_ICONS.help}
+                    onClick={() => console.log('View system info')}
+                  >
+                    View system information
+                  </TaskPanel.Item>
+                  <TaskPanel.Item
+                    icon={XP_ICONS.programs}
+                    onClick={() => console.log('Add/remove programs')}
+                  >
+                    Add or remove programs
+                  </TaskPanel.Item>
+                  <TaskPanel.Item
+                    icon={XP_ICONS.controlPanel}
+                    onClick={() => console.log('Change a setting')}
+                  >
+                    Change a setting
+                  </TaskPanel.Item>
+                </TaskPanel.Section>
+                <TaskPanel.Section title="Other Places">
+                  <TaskPanel.Item
+                    icon={XP_ICONS.folder}
+                    onClick={() => console.log('My Network Places')}
+                  >
+                    My Network Places
+                  </TaskPanel.Item>
+                  <TaskPanel.Item
+                    icon={XP_ICONS.myDocuments}
+                    onClick={() => navigateTo(SYSTEM_IDS.MY_DOCUMENTS)}
+                  >
+                    My Documents
+                  </TaskPanel.Item>
+                  <TaskPanel.Item
+                    icon={XP_ICONS.controlPanel}
+                    onClick={() => console.log('Control Panel')}
+                  >
+                    Control Panel
+                  </TaskPanel.Item>
+                </TaskPanel.Section>
+                <TaskPanel.Section title="Details" defaultExpanded={true}>
+                  {selectedItems.length === 0 ? (
+                    <>
+                      <TaskPanel.Text>
+                        <strong>My Computer</strong>
+                      </TaskPanel.Text>
+                      <TaskPanel.Text>
+                        System Folder
+                      </TaskPanel.Text>
+                    </>
+                  ) : selectedItems.length === 1 ? (
+                    <>
+                      <TaskPanel.Text>
+                        <strong>{fileSystem[selectedItems[0]]?.name}</strong>
+                      </TaskPanel.Text>
+                      <TaskPanel.Text>
+                        {fileSystem[selectedItems[0]]?.type === 'drive' ? 'Local Disk' : 'System Folder'}
+                      </TaskPanel.Text>
+                      <DetailsSpacer />
+                      <TaskPanel.Text>
+                        Date Modified: {formatDetailDate(fileSystem[selectedItems[0]]?.dateModified || fileSystem[selectedItems[0]]?.dateCreated || Date.now())}
+                      </TaskPanel.Text>
+                    </>
+                  ) : (
                     <TaskPanel.Text>
-                      <strong>My Computer</strong>
+                      <strong>{selectedItems.length} objects selected</strong>
                     </TaskPanel.Text>
-                    <TaskPanel.Text>
-                      System Folder
-                    </TaskPanel.Text>
-                  </>
-                ) : selectedItems.length === 1 ? (
-                  <>
-                    <TaskPanel.Text>
-                      <strong>{fileSystem[selectedItems[0]]?.name}</strong>
-                    </TaskPanel.Text>
-                    <TaskPanel.Text>
-                      {fileSystem[selectedItems[0]]?.type === 'drive' ? 'Local Disk' : 'System Folder'}
-                    </TaskPanel.Text>
-                    <DetailsSpacer />
-                    <TaskPanel.Text>
-                      Date Modified: {formatDetailDate(fileSystem[selectedItems[0]]?.dateModified || fileSystem[selectedItems[0]]?.dateCreated || Date.now())}
-                    </TaskPanel.Text>
-                  </>
-                ) : (
-                  <TaskPanel.Text>
-                    <strong>{selectedItems.length} objects selected</strong>
-                  </TaskPanel.Text>
-                )}
-              </TaskPanel.Section>
-            </TaskPanel>
+                  )}
+                </TaskPanel.Section>
+              </TaskPanel>
+            )}
             <MyComputerContent>
-              {myComputerItems.folders.length > 0 && (
+              {filteredMyComputerItems.folders.length > 0 && (
                 <CategorySection>
                   <CategoryHeader>
                     <CategoryIcon src="/gui/mycomputer/files_header.png" alt="" onError={(e) => e.target.style.display = 'none'} />
@@ -1000,11 +1020,11 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
                     </MyComputerDetailsHeader>
                   )}
                   <CategoryItems $viewMode={viewMode}>
-                    {myComputerItems.folders.map(renderMyComputerItem)}
+                    {filteredMyComputerItems.folders.map(renderMyComputerItem)}
                   </CategoryItems>
                 </CategorySection>
               )}
-              {myComputerItems.drives.length > 0 && (
+              {filteredMyComputerItems.drives.length > 0 && (
                 <CategorySection>
                   <CategoryHeader>
                     <CategoryIcon src="/gui/mycomputer/drives_header.png" alt="" onError={(e) => e.target.style.display = 'none'} />
@@ -1019,9 +1039,14 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
                     </MyComputerDetailsHeader>
                   )}
                   <CategoryItems $viewMode={viewMode}>
-                    {myComputerItems.drives.map(renderMyComputerItem)}
+                    {filteredMyComputerItems.drives.map(renderMyComputerItem)}
                   </CategoryItems>
                 </CategorySection>
+              )}
+              {filteredMyComputerItems.folders.length === 0 && filteredMyComputerItems.drives.length === 0 && (
+                <MyComputerEmptyMessage>
+                  {searchQuery.trim() ? 'No items match your search.' : 'No drives or folders available.'}
+                </MyComputerEmptyMessage>
               )}
             </MyComputerContent>
           </MyComputerLayout>
@@ -1031,10 +1056,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
               <SearchPanel
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
-                onClose={() => {
-                  setIsSearching(false);
-                  setSearchQuery('');
-                }}
+                onClose={closeSearch}
               />
             ) : (
               <TaskPanel width={180}>
@@ -1366,6 +1388,12 @@ const MyComputerContent = styled.div`
   border: 1px solid #808080;
   border-top: 1px solid #404040;
   border-left: 1px solid #404040;
+`;
+
+const MyComputerEmptyMessage = styled.div`
+  padding: 16px 0;
+  font-size: 11px;
+  color: #808080;
 `;
 
 const CategorySection = styled.div`

@@ -1,84 +1,85 @@
-import React, { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
+import { useState, useEffect, useImperativeHandle, forwardRef, useCallback } from 'react';
 import styled from 'styled-components';
+import { useClippyAnimation } from '../hooks';
 
-// Rover sprite sheet is 2160x2160, each frame is 80x80
-// Show animation - Rover appears/digs up from ground
-const ROVER_SHOW_FRAMES = [
-  [1440, 1440], [1520, 1440], [1600, 1440], [1680, 1440], [1760, 1440],
-  [1840, 1440], [1920, 1440], [2000, 1440], [2080, 1440], [0, 1520],
-  [80, 1520], [160, 1520], [240, 1520], [320, 1520], [400, 1520],
-  [480, 1520], [560, 1520], [640, 1520], [720, 1520], [800, 1520],
-  [0, 0], // End on idle pose
-];
+// Rover animation data will be loaded dynamically
+const ROVER_DATA_URL = '/agents/Rover/data.json';
 
-// Idle animation frames
-const ROVER_IDLE_FRAMES = [
-  [0, 0], [0, 0], [960, 800], [1040, 800], [0, 0],
-  [1120, 800], [1200, 800], [1280, 800], [1360, 800],
-];
+const RoverAnimation = forwardRef(({ onExitComplete, onShowComplete }, ref) => {
+  const [animationData, setAnimationData] = useState(null);
+  const [phase, setPhase] = useState('loading'); // loading, show, idle, hide
 
-// Hide/exit animation - Rover walks off (from clippyjs agent.js)
-const ROVER_HIDE_FRAMES = [
-  [0, 0], [1040, 0], [1120, 0], [1200, 0], [1280, 0], [1360, 0],
-  [1440, 0], [1520, 0], [1600, 0], [1680, 0], [1760, 0], [1840, 0],
-  [1920, 0], [2000, 0], [2080, 0], [0, 80], [80, 80], [160, 80],
-  [240, 80], [320, 80], [400, 80], [480, 80], [560, 80], [640, 80],
-  [720, 80], [800, 80], [880, 80], [960, 80], [1040, 80], [1120, 80],
-  [1200, 80], [1280, 80],
-];
+  // Load animation data
+  useEffect(() => {
+    fetch(ROVER_DATA_URL)
+      .then(res => res.json())
+      .then(data => {
+        setAnimationData(data);
+        setPhase('show');
+      })
+      .catch(err => {
+        console.error('Failed to load Rover animation data:', err);
+      });
+  }, []);
 
-const RoverAnimation = forwardRef(({ onExitComplete }, ref) => {
-  const [animationState, setAnimationState] = useState('show');
-  const [frameIndex, setFrameIndex] = useState(0);
-  const [roverPosition, setRoverPosition] = useState(ROVER_SHOW_FRAMES[0]);
+  const {
+    spritePosition,
+    frameSize,
+    play,
+    hasAnimation,
+  } = useClippyAnimation(animationData, 'Show');
+
+  // Handle animation completion
+  const handleAnimationComplete = useCallback((animName, state) => {
+    if (state === 'EXITED') {
+      if (animName === 'Show') {
+        setPhase('idle');
+        play('Idle');
+        onShowComplete?.(); // Notify parent that Show animation finished
+      } else if (animName === 'Hide') {
+        onExitComplete?.();
+      }
+    }
+  }, [play, onExitComplete, onShowComplete]);
+
+  // Play Show animation when data is loaded
+  useEffect(() => {
+    if (animationData && phase === 'show' && hasAnimation('Show')) {
+      play('Show', handleAnimationComplete);
+    }
+  }, [animationData, phase, hasAnimation, play, handleAnimationComplete]);
+
+  // Play Idle animation after Show completes
+  useEffect(() => {
+    if (phase === 'idle' && hasAnimation('Idle')) {
+      play('Idle', handleAnimationComplete);
+    }
+  }, [phase, hasAnimation, play, handleAnimationComplete]);
 
   // Expose triggerExit method to parent
   useImperativeHandle(ref, () => ({
     triggerExit: () => {
-      setAnimationState('hide');
-      setFrameIndex(0);
+      if (hasAnimation('Hide')) {
+        setPhase('hide');
+        play('Hide', handleAnimationComplete);
+      } else {
+        onExitComplete?.();
+      }
     }
   }));
 
-  useEffect(() => {
-    const duration = animationState === 'show' ? 100 : animationState === 'hide' ? 100 : 300;
-
-    const interval = setInterval(() => {
-      setFrameIndex(prev => {
-        const next = prev + 1;
-
-        if (animationState === 'show') {
-          if (next >= ROVER_SHOW_FRAMES.length) {
-            setAnimationState('idle');
-            setRoverPosition([0, 0]);
-            return 0;
-          }
-          setRoverPosition(ROVER_SHOW_FRAMES[next]);
-          return next;
-        } else if (animationState === 'hide') {
-          // Hide animation - Rover digs down and disappears
-          if (next >= ROVER_HIDE_FRAMES.length) {
-            onExitComplete?.();
-            return prev;
-          }
-          setRoverPosition(ROVER_HIDE_FRAMES[next]);
-          return next;
-        } else {
-          const loopIndex = next % ROVER_IDLE_FRAMES.length;
-          setRoverPosition(ROVER_IDLE_FRAMES[loopIndex]);
-          return loopIndex;
-        }
-      });
-    }, duration);
-
-    return () => clearInterval(interval);
-  }, [animationState, onExitComplete]);
+  // Don't render until data is loaded
+  if (!animationData) {
+    return <RoverArea />;
+  }
 
   return (
     <RoverArea>
       <RoverSprite
+        $frameWidth={frameSize[0]}
+        $frameHeight={frameSize[1]}
         style={{
-          backgroundPosition: `-${roverPosition[0]}px -${roverPosition[1]}px`,
+          backgroundPosition: `-${spritePosition[0]}px -${spritePosition[1]}px`,
         }}
       />
     </RoverArea>
@@ -95,8 +96,8 @@ const RoverArea = styled.div`
 `;
 
 const RoverSprite = styled.div`
-  width: 80px;
-  height: 80px;
+  width: ${props => props.$frameWidth || 80}px;
+  height: ${props => props.$frameHeight || 80}px;
   background-image: url('/agents/Rover/map.png');
   background-repeat: no-repeat;
   image-rendering: pixelated;

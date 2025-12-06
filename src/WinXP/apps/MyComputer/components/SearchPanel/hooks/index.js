@@ -1,0 +1,1 @@
+export { useClippyAnimation } from './useClippyAnimation';

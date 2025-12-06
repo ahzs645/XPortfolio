@@ -26,8 +26,39 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
   const inputRef = useRef(null);
   const roverRef = useRef(null);
 
+  // Track if character is visible and if it's currently exiting/entering
+  const [characterVisible, setCharacterVisible] = useState(true);
+  const [characterExiting, setCharacterExiting] = useState(false);
+  const [characterEntering, setCharacterEntering] = useState(false);
+  const [characterKey, setCharacterKey] = useState(0); // Force remount on turn on
+
   const handleTurnOffCharacter = () => {
+    setCharacterExiting(true); // Hide balloon while Rover exits
     roverRef.current?.triggerExit();
+  };
+
+  const handleTurnOnCharacter = () => {
+    setCharacterEntering(true); // Hide balloon while Rover enters
+    setCharacterVisible(true); // Show Rover (will play Show animation)
+    setCharacterKey(k => k + 1); // Force RoverAnimation to remount fresh
+    setShowPreferences(false); // Go back to main menu
+  };
+
+  const handleToggleCharacter = () => {
+    if (characterVisible) {
+      handleTurnOffCharacter();
+    } else {
+      handleTurnOnCharacter();
+    }
+  };
+
+  const handleCharacterExitComplete = () => {
+    setCharacterVisible(false);
+    setCharacterExiting(false); // Show balloon again (without tail)
+  };
+
+  const handleCharacterShowComplete = () => {
+    setCharacterEntering(false); // Show balloon again (with tail)
   };
 
   // Main navigation state
@@ -153,7 +184,6 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
     if (showPreferences) {
       return (
         <PreferencesView
-          onClose={onClose}
           onShowIndexingService={() => setShowIndexingService(true)}
           onShowInternetBehavior={() => setShowInternetBehavior(true)}
           onShowCharacterSelect={() => setShowCharacterSelect(true)}
@@ -162,6 +192,8 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
           autoCompleteOn={autoCompleteOn}
           setAutoCompleteOn={setAutoCompleteOn}
           onBackToHome={handleBackToHome}
+          characterVisible={characterVisible}
+          onToggleCharacter={handleToggleCharacter}
         />
       );
     }
@@ -283,7 +315,8 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
           setComputersSubView('internet');
         }}
         onShowPreferences={() => setShowPreferences(true)}
-        onClose={onClose}
+        onTurnOffCharacter={handleTurnOffCharacter}
+        characterVisible={characterVisible}
       />
     );
   };
@@ -370,19 +403,33 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
     return null;
   };
 
+  // Hide balloon while character is entering or exiting
+  const balloonHidden = characterExiting || characterEntering;
+
   return (
     <Container>
-      <Content>
-        <Balloon>
-          <BalloonInner>
-            <BalloonContent>
-              {renderContent()}
-            </BalloonContent>
-            {renderButtons()}
-          </BalloonInner>
-          <BalloonTip />
-        </Balloon>
-        <RoverAnimation ref={roverRef} onExitComplete={onClose} />
+      <Content style={balloonHidden ? { justifyContent: 'flex-end' } : undefined}>
+        {/* Hide balloon while character is entering/exiting */}
+        {!balloonHidden && (
+          <Balloon>
+            <BalloonInner>
+              <BalloonContent>
+                {renderContent()}
+              </BalloonContent>
+              {renderButtons()}
+            </BalloonInner>
+            {characterVisible && <BalloonTip />}
+          </Balloon>
+        )}
+        {/* Show Rover when visible, entering, or exiting */}
+        {(characterVisible || characterExiting) && (
+          <RoverAnimation
+            key={characterKey}
+            ref={roverRef}
+            onExitComplete={handleCharacterExitComplete}
+            onShowComplete={handleCharacterShowComplete}
+          />
+        )}
       </Content>
     </Container>
   );

@@ -1,19 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { BalloonTitle } from '../styles';
-
-// Idle animation frames for Rover
-const ROVER_IDLE_FRAMES = [
-  [0, 0], [0, 0], [960, 800], [1040, 800], [0, 0],
-  [1120, 800], [1200, 800], [1280, 800], [1360, 800],
-];
+import { useClippyAnimation } from '../hooks';
 
 const CHARACTERS = [
   {
     id: 'rover',
     name: 'Rover',
     spriteMap: '/agents/Rover/map.png',
-    idleFrames: ROVER_IDLE_FRAMES,
+    dataUrl: '/agents/Rover/data.json',
     description: 'Rover will help you sniff out what you\'re looking for.',
   },
   // Additional characters can be added when their assets are available
@@ -23,22 +18,17 @@ function CharacterSelectView({ selectedCharacter, setSelectedCharacter }) {
   const currentIndex = CHARACTERS.findIndex(c => c.id === selectedCharacter);
   const character = CHARACTERS[currentIndex] || CHARACTERS[0];
 
-  const [frameIndex, setFrameIndex] = useState(0);
-  const [spritePos, setSpritePos] = useState(character.idleFrames[0]);
+  const [animationData, setAnimationData] = useState(null);
 
-  // Animation loop
+  // Load animation data for current character
   useEffect(() => {
-    const frames = character.idleFrames;
-    const interval = setInterval(() => {
-      setFrameIndex(prev => {
-        const next = (prev + 1) % frames.length;
-        setSpritePos(frames[next]);
-        return next;
-      });
-    }, 300);
+    fetch(character.dataUrl)
+      .then(res => res.json())
+      .then(data => setAnimationData(data))
+      .catch(err => console.error('Failed to load character data:', err));
+  }, [character.dataUrl]);
 
-    return () => clearInterval(interval);
-  }, [character]);
+  const { spritePosition, frameSize } = useClippyAnimation(animationData, 'Idle');
 
   const handlePrev = () => {
     const newIndex = currentIndex <= 0 ? CHARACTERS.length - 1 : currentIndex - 1;
@@ -58,9 +48,11 @@ function CharacterSelectView({ selectedCharacter, setSelectedCharacter }) {
         <CharacterTab>{character.name}</CharacterTab>
         <CharacterPreview>
           <CharacterSprite
+            $width={frameSize[0]}
+            $height={frameSize[1]}
             style={{
               backgroundImage: `url(${character.spriteMap})`,
-              backgroundPosition: `-${spritePos[0]}px -${spritePos[1]}px`,
+              backgroundPosition: `-${spritePosition[0]}px -${spritePosition[1]}px`,
             }}
           />
         </CharacterPreview>
@@ -106,8 +98,8 @@ const CharacterPreview = styled.div`
 `;
 
 const CharacterSprite = styled.div`
-  width: 80px;
-  height: 80px;
+  width: ${props => props.$width || 80}px;
+  height: ${props => props.$height || 80}px;
   background-repeat: no-repeat;
   image-rendering: pixelated;
 `;
