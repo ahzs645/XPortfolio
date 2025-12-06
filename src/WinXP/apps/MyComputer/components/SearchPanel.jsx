@@ -148,11 +148,6 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
                     <span>Use advanced search options</span>
                   </AlsoItem>
                 </AlsoSection>
-
-                <ButtonRow>
-                  <XPButton onClick={() => { setSearchType(null); onSearchChange(''); }}>Back</XPButton>
-                  <XPButton onClick={() => onSearchChange(searchQuery)}>Search</XPButton>
-                </ButtonRow>
               </>
             ) : searchType === 'documents' ? (
               <>
@@ -222,11 +217,6 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
                     <span>Use advanced search options</span>
                   </AlsoItem>
                 </AlsoSection>
-
-                <ButtonRow>
-                  <XPButton onClick={() => { setSearchType(null); onSearchChange(''); }}>Back</XPButton>
-                  <XPButton onClick={() => onSearchChange(searchQuery)}>Search</XPButton>
-                </ButtonRow>
               </>
             ) : searchType === 'all' ? (
               <>
@@ -420,11 +410,6 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
                     </CheckboxRow>
                   </CollapsibleContent>
                 )}
-
-                <ButtonRow>
-                  <XPButton onClick={() => { setSearchType(null); onSearchChange(''); setPhraseQuery(''); }}>Back</XPButton>
-                  <XPButton onClick={() => onSearchChange(searchQuery)}>Search</XPButton>
-                </ButtonRow>
               </>
             ) : searchType ? (
               <>
@@ -488,6 +473,12 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
               </>
             )}
           </BalloonContent>
+          {(searchType === 'pictures' || searchType === 'documents' || searchType === 'all') && (
+            <ButtonRow>
+              <XPButton onClick={() => { setSearchType(null); onSearchChange(''); setPhraseQuery(''); }}>Back</XPButton>
+              <XPButton onClick={() => onSearchChange(searchQuery)}>Search</XPButton>
+            </ButtonRow>
+          )}
           <BalloonTip />
         </Balloon>
 
@@ -551,12 +542,11 @@ const Balloon = styled.div`
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding-right: 10px;
+  padding: 12px 10px 0 0;
 `;
 
 const BalloonContent = styled.div`
-  padding: 12px;
-  padding-right: 4px;
+  padding: 0 4px 12px 12px;
   overflow-y: auto;
   flex: 1;
   min-height: 0;
@@ -892,8 +882,9 @@ const DateInput = styled.input`
 const ButtonRow = styled.div`
   display: flex;
   gap: 8px;
-  margin-top: 12px;
+  padding: 8px 12px 12px 12px;
   justify-content: center;
+  flex-shrink: 0;
 `;
 
 const XPButton = styled.button`
