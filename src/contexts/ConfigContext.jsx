@@ -373,8 +373,9 @@ export function ConfigProvider({ children }) {
   };
 
   // Get desktop programs list
+  // Note: 'projects' removed from default - now using Projects briefcase folder instead
   const getDesktopPrograms = () => {
-    const programs = config?.DESKTOP_PROGRAMS || 'about,resume,projects,contact';
+    const programs = config?.DESKTOP_PROGRAMS || 'about,resume,contact';
     return programs.split(',').map(p => p.trim()).filter(Boolean);
   };
 

@@ -55,8 +55,8 @@ function Footer({
     onMouseDown();
   }
 
-  function _onClickMenuItem(name) {
-    onClickMenuItem(name);
+  function _onClickMenuItem(name, injectProps = {}) {
+    onClickMenuItem(name, injectProps);
     setMenuOn(false);
   }
 

@@ -48,6 +48,11 @@ function FooterMenu({ className, onClick, onLaunchInstalledApp }) {
       setActiveFolder(activeFolder === item.key ? null : item.key);
       return;
     }
+    if (item.type === 'openFolder' && item.appKey && item.folderId) {
+      // Open My Computer navigated to a specific folder
+      onClick(item.appKey, { initialPath: item.folderId });
+      return;
+    }
     if (item.type === 'program' && item.appKey) {
       onClick(item.appKey);
     }
@@ -64,6 +69,7 @@ function FooterMenu({ className, onClick, onLaunchInstalledApp }) {
   const isItemEnabled = (item) => {
     if (item.type === 'separator') return true;
     if (item.type === 'folder') return true; // Folders are always shown
+    if (item.type === 'openFolder') return true; // Open folder items are always shown
     if (item.type === 'program' && item.appKey) {
       return !isAppDisabled(item.appKey);
     }

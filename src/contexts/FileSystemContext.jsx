@@ -106,10 +106,10 @@ export const SYSTEM_DESKTOP_ICONS = {
 
 // Full catalog of available desktop shortcuts (program ID -> shortcut definition)
 // These map to the appSettings keys in src/WinXP/apps/index.js
+// Note: 'projects' removed - now using Projects briefcase folder instead
 export const DESKTOP_SHORTCUT_CATALOG = {
   about: { id: 'shortcut-about', name: 'About Me.lnk', icon: '/icons/about.webp', target: 'About Me', size: SHORTCUT_SIZE },
   resume: { id: 'shortcut-resume', name: 'Resume.lnk', icon: '/icons/resume.webp', target: 'Resume', size: SHORTCUT_SIZE },
-  projects: { id: 'shortcut-projects', name: 'Projects.lnk', icon: '/icons/projects.webp', target: 'Projects', size: SHORTCUT_SIZE },
   contact: { id: 'shortcut-contact', name: 'Contact.lnk', icon: '/icons/contact.webp', target: 'Contact', size: SHORTCUT_SIZE },
   calculator: { id: 'shortcut-calculator', name: 'Calculator.lnk', icon: XP_ICONS.calculator, target: 'Calculator', size: SHORTCUT_SIZE },
   minesweeper: { id: 'shortcut-minesweeper', name: 'Minesweeper.lnk', icon: XP_ICONS.minesweeper, target: 'Minesweeper', size: SHORTCUT_SIZE },
@@ -128,7 +128,8 @@ export const DESKTOP_SHORTCUT_CATALOG = {
 };
 
 // Default desktop programs if not specified in config (excludes system icons like My Computer and Recycle Bin)
-const DEFAULT_DESKTOP_PROGRAMS = ['about', 'resume', 'projects', 'contact', 'calculator', 'minesweeper'];
+// Note: 'projects' removed - now using Projects briefcase folder instead
+const DEFAULT_DESKTOP_PROGRAMS = ['about', 'resume', 'contact', 'calculator', 'minesweeper'];
 
 // Build desktop shortcuts array from program IDs
 const buildDesktopShortcuts = (programIds) => {
@@ -415,8 +416,8 @@ export function FileSystemProvider({ children }) {
     return cvProjects.map(convertCvProjectToFolderProject);
   }, [cvData]);
 
-  // IDs of old shortcuts that should be removed (now system icons)
-  const OLD_SHORTCUT_IDS = ['shortcut-my-computer', 'shortcut-recycle-bin'];
+  // IDs of old shortcuts that should be removed (now system icons or replaced with folders)
+  const OLD_SHORTCUT_IDS = ['shortcut-my-computer', 'shortcut-recycle-bin', 'shortcut-projects'];
 
   // Ensure Projects folder structure exists and is up-to-date
   const ensureProjectsFolder = (fs, projects) => {

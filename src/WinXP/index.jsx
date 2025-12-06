@@ -690,7 +690,7 @@ function WinXP() {
     dispatch({ type: FOCUS_DESKTOP });
   }
 
-  function onClickMenuItem(appName) {
+  function onClickMenuItem(appName, injectProps = {}) {
     // Check for mobile restrictions before launching
     if (!checkMobileRestriction(appName)) {
       return; // Blocked on mobile, popup will be shown
@@ -698,7 +698,13 @@ function WinXP() {
 
     const appSetting = appSettings[appName];
     if (appSetting) {
-      dispatch({ type: ADD_APP, payload: appSetting });
+      dispatch({
+        type: ADD_APP,
+        payload: {
+          ...appSetting,
+          injectProps: { ...appSetting.injectProps, ...injectProps },
+        },
+      });
     } else if (appName === 'Log Off') {
       playLogoff();
       dispatch({ type: POWER_OFF, payload: POWER_STATE.LOG_OFF });

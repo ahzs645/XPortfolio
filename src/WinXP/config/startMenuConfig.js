@@ -10,9 +10,10 @@ export const START_MENU_CATALOG = {
     description: null,
   },
   projects: {
-    type: 'program',
-    appKey: 'Projects',
-    icon: '/icons/projects.webp',
+    type: 'openFolder',
+    folderId: 'projects-folder',
+    appKey: 'My Computer', // Opens My Computer navigated to this folder
+    icon: '/icons/xp/Briefcase.png',
     title: 'My Projects',
     description: 'View my work',
     emphasize: true,
