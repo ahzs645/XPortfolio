@@ -137,6 +137,212 @@ const HELP_TOPICS = {
       { title: 'Create a new user account', topic: 'usercpl_add_user' },
     ],
   },
+  usercpl_add_user: {
+    title: 'Add a new user to the computer',
+    content: `
+      <h1>Add a new user to the computer</h1>
+      <p>You can add new user accounts to your computer to allow multiple people to use the same computer with their own settings and files.</p>
+
+      <h2>To add a new user</h2>
+      <ol>
+        <li>Click <strong>Start</strong>, and then click <strong>Control Panel</strong>.</li>
+        <li>Click <strong>User Accounts</strong>.</li>
+        <li>Click <strong>Create a new account</strong>.</li>
+        <li>Type a name for the new account, and then click <strong>Next</strong>.</li>
+        <li>Select an account type (Computer administrator or Limited), and then click <strong>Create Account</strong>.</li>
+      </ol>
+
+      <p class="note"><strong>Note:</strong> You must be logged on as an administrator to create new user accounts.</p>
+    `,
+    relatedLinks: [
+      { title: 'User Accounts overview', topic: 'usercpl_overview' },
+      { title: 'Create a user password', topic: 'usercpl_create_password' },
+    ],
+  },
+  usercpl_create_password: {
+    title: 'Create a user password',
+    content: `
+      <h1>Create a user password</h1>
+      <p>Passwords help protect your user account and personal files from unauthorized access.</p>
+
+      <h2>To create a password for your account</h2>
+      <ol>
+        <li>Click <strong>Start</strong>, and then click <strong>Control Panel</strong>.</li>
+        <li>Click <strong>User Accounts</strong>.</li>
+        <li>Click your account name.</li>
+        <li>Click <strong>Create a password</strong>.</li>
+        <li>Type your new password, type it again to confirm, and optionally add a password hint.</li>
+        <li>Click <strong>Create Password</strong>.</li>
+      </ol>
+
+      <h2>Password tips</h2>
+      <ul>
+        <li>Use a mix of uppercase letters, lowercase letters, and numbers.</li>
+        <li>Make your password at least 8 characters long.</li>
+        <li>Avoid using common words or personal information.</li>
+        <li>Create a password hint that will help you remember your password but won't give it away to others.</li>
+      </ul>
+    `,
+    relatedLinks: [
+      { title: 'User Accounts overview', topic: 'usercpl_overview' },
+      { title: 'Manage passwords stored on the computer', topic: 'usercpl_manage_passwords' },
+    ],
+  },
+  usercpl_manage_passwords: {
+    title: 'Manage passwords stored on the computer',
+    content: `
+      <h1>Manage passwords stored on the computer</h1>
+      <p>Windows can store passwords for network resources and websites so you don't have to type them each time.</p>
+
+      <h2>Stored User Names and Passwords</h2>
+      <p>The Stored User Names and Passwords feature securely stores your credentials for network resources and websites. When you connect to a resource that requires authentication, Windows can automatically supply the stored credentials.</p>
+
+      <h2>To manage stored passwords</h2>
+      <ol>
+        <li>Click <strong>Start</strong>, and then click <strong>Control Panel</strong>.</li>
+        <li>Click <strong>User Accounts</strong>.</li>
+        <li>Click your account name.</li>
+        <li>In the Related Tasks area, click <strong>Manage my network passwords</strong>.</li>
+      </ol>
+
+      <p class="note"><strong>Note:</strong> Stored passwords are encrypted and protected by your Windows logon password.</p>
+    `,
+    relatedLinks: [
+      { title: 'User Accounts overview', topic: 'usercpl_overview' },
+      { title: 'Create a user password', topic: 'usercpl_create_password' },
+    ],
+  },
+  usercpl_manage_passport: {
+    title: 'Set up your user account to use a .NET Passport',
+    content: `
+      <h1>Set up your user account to use a .NET Passport</h1>
+      <p>A .NET Passport is a single sign-in service that allows you to use one user name and password to access .NET Passport-enabled sites and services.</p>
+
+      <h2>What is .NET Passport?</h2>
+      <p>.NET Passport is a service that makes it easier to sign in to websites and services. Instead of remembering separate user names and passwords for each site, you use your Passport credentials.</p>
+
+      <h2>To associate a .NET Passport with your Windows account</h2>
+      <ol>
+        <li>Click <strong>Start</strong>, and then click <strong>Control Panel</strong>.</li>
+        <li>Click <strong>User Accounts</strong>.</li>
+        <li>Click your account name.</li>
+        <li>Click <strong>Set up my account to use a .NET Passport</strong>.</li>
+        <li>Follow the .NET Passport Wizard instructions.</li>
+      </ol>
+    `,
+    relatedLinks: [
+      { title: 'User Accounts overview', topic: 'usercpl_overview' },
+    ],
+  },
+  snap_localmgr: {
+    title: 'Using Local Users and Groups',
+    content: `
+      <h1>Using Local Users and Groups</h1>
+      <p>Local Users and Groups is a Microsoft Management Console (MMC) snap-in that provides advanced user and group management capabilities.</p>
+
+      <h2>When to use Local Users and Groups</h2>
+      <p>Use Local Users and Groups when you need to:</p>
+      <ul>
+        <li>Create groups and add users to multiple groups.</li>
+        <li>Set advanced account options such as account expiration.</li>
+        <li>Manage user profiles and home folders.</li>
+        <li>Enable or disable accounts.</li>
+      </ul>
+
+      <h2>To open Local Users and Groups</h2>
+      <ol>
+        <li>Click <strong>Start</strong>, right-click <strong>My Computer</strong>, and then click <strong>Manage</strong>.</li>
+        <li>In Computer Management, expand <strong>Local Users and Groups</strong>.</li>
+      </ol>
+
+      <p class="note"><strong>Note:</strong> Local Users and Groups is not available in Windows XP Home Edition.</p>
+    `,
+    relatedLinks: [
+      { title: 'User Accounts overview', topic: 'usercpl_overview' },
+      { title: 'Using Group Policy', topic: 'snap_gpe' },
+    ],
+  },
+  snap_gpe: {
+    title: 'Using Group Policy',
+    content: `
+      <h1>Using Group Policy</h1>
+      <p>Group Policy is a powerful tool for managing computer and user settings across your system.</p>
+
+      <h2>What is Group Policy?</h2>
+      <p>Group Policy provides centralized management and configuration of operating systems, applications, and user settings. You can use Group Policy to:</p>
+      <ul>
+        <li>Configure security settings and password policies.</li>
+        <li>Deploy software to users and computers.</li>
+        <li>Configure desktop settings and folder redirection.</li>
+        <li>Manage startup and shutdown scripts.</li>
+      </ul>
+
+      <h2>To access Local Group Policy</h2>
+      <ol>
+        <li>Click <strong>Start</strong>, and then click <strong>Run</strong>.</li>
+        <li>Type <strong>gpedit.msc</strong> and press Enter.</li>
+      </ol>
+
+      <p class="note"><strong>Note:</strong> Group Policy Editor is not available in Windows XP Home Edition.</p>
+    `,
+    relatedLinks: [
+      { title: 'User Accounts overview', topic: 'usercpl_overview' },
+      { title: 'Using Local Users and Groups', topic: 'snap_localmgr' },
+    ],
+  },
+  startmenu_overview: {
+    title: 'The Start menu',
+    content: `
+      <h1>The Start menu</h1>
+      <p>The Start menu is your gateway to programs, folders, and computer settings. Windows XP features a redesigned Start menu that makes it easier to find what you need.</p>
+
+      <h2>Start menu features</h2>
+      <ul>
+        <li><strong>Pinned programs:</strong> Your most important programs stay at the top of the Start menu.</li>
+        <li><strong>Most frequently used programs:</strong> Programs you use often appear automatically.</li>
+        <li><strong>All Programs:</strong> Access all installed programs from one place.</li>
+        <li><strong>Quick access:</strong> My Documents, My Pictures, My Music, and My Computer are always available.</li>
+      </ul>
+
+      <h2>To customize the Start menu</h2>
+      <ol>
+        <li>Right-click the <strong>Start</strong> button and click <strong>Properties</strong>.</li>
+        <li>Click <strong>Customize</strong> to change Start menu settings.</li>
+      </ol>
+    `,
+    relatedLinks: [
+      { title: 'Customizing Windows', topic: 'acc_dis_custom_nt' },
+      { title: "What's New in Windows XP", topic: 'whatsnew_overview' },
+    ],
+  },
+  desktop_background: {
+    title: 'Change your desktop background',
+    content: `
+      <h1>Change your desktop background</h1>
+      <p>You can personalize your computer by changing the desktop background (wallpaper) to a picture, color, or pattern.</p>
+
+      <h2>To change your desktop background</h2>
+      <ol>
+        <li>Right-click an empty area of the desktop.</li>
+        <li>Click <strong>Properties</strong>.</li>
+        <li>Click the <strong>Desktop</strong> tab.</li>
+        <li>In the <strong>Background</strong> list, click a background image, or click <strong>Browse</strong> to find a picture file.</li>
+        <li>In the <strong>Position</strong> list, choose how to display the picture: Center, Tile, or Stretch.</li>
+        <li>Click <strong>OK</strong>.</li>
+      </ol>
+
+      <h2>Tips</h2>
+      <ul>
+        <li>You can use JPEG, BMP, GIF, or PNG image files as backgrounds.</li>
+        <li>If no picture is selected, you can choose a solid color for the background.</li>
+        <li>Web pages can also be used as desktop backgrounds.</li>
+      </ul>
+    `,
+    relatedLinks: [
+      { title: 'Customizing Windows', topic: 'acc_dis_custom_nt' },
+      { title: 'The Start menu', topic: 'startmenu_overview' },
+    ],
+  },
 };
 
 // Default topic when none specified
@@ -539,7 +745,7 @@ const ArticleContent = styled.div`
     font-size: 12px;
   }
 
-  ul {
+  ul, ol {
     margin: 8px 0;
     padding-left: 24px;
 

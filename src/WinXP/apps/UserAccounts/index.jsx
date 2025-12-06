@@ -13,7 +13,8 @@ const VIEW = {
   CREATE_PASSWORD: 'createPassword',
   REMOVE_PASSWORD: 'removePassword',
   DELETE_ACCOUNT: 'deleteAccount',
-  CREATE_ACCOUNT: 'createAccount',
+  CREATE_ACCOUNT_NAME: 'createAccountName',
+  CREATE_ACCOUNT_TYPE: 'createAccountType',
   CHANGE_ACCOUNT_TYPE: 'changeAccountType',
 };
 
@@ -238,7 +239,7 @@ function UserAccounts({ onClose, onMinimize, onMaximize, onOpenWindow }) {
           </TaskPanel.Item>
         )}
         {isAdmin && view === VIEW.HOME && (
-          <TaskPanel.Item icon="/icons/xp/Go.png" onClick={() => navigate(VIEW.CREATE_ACCOUNT)}>
+          <TaskPanel.Item icon="/icons/xp/Go.png" onClick={() => navigate(VIEW.CREATE_ACCOUNT_NAME)}>
             Create a new account
           </TaskPanel.Item>
         )}
@@ -267,29 +268,61 @@ function UserAccounts({ onClose, onMinimize, onMaximize, onOpenWindow }) {
     switch (view) {
       case VIEW.HOME:
         return (
-          <ContentPane>
-            <PageTitle>Pick an account to change</PageTitle>
+          <BlueContentPane>
+            {/* Header with icon and title */}
+            <ContentHeader>
+              <img src="/icons/xp/UserAccounts.png" alt="" />
+              <span>User Accounts</span>
+            </ContentHeader>
+
+            {/* Pick a task section */}
+            <SectionTitle>Pick a task...</SectionTitle>
+            <TaskLinksSection>
+              <BlueTaskLink onClick={() => navigate(VIEW.PICK_TASK, users[0]?.id)}>
+                <img src="/icons/xp/Go.png" alt="" />
+                <span>Change an account</span>
+              </BlueTaskLink>
+              {isAdmin && (
+                <BlueTaskLink onClick={() => navigate(VIEW.CREATE_ACCOUNT_NAME)}>
+                  <img src="/icons/xp/Go.png" alt="" />
+                  <span>Create a new account</span>
+                </BlueTaskLink>
+              )}
+              <BlueTaskLink onClick={() => onOpenWindow?.('Help and Support')}>
+                <img src="/icons/xp/Go.png" alt="" />
+                <span>Change the way users log on or off</span>
+              </BlueTaskLink>
+            </TaskLinksSection>
+
+            {/* Pick an account section */}
+            <SectionTitle>or pick an account to change</SectionTitle>
             <UsersGrid>
               {users.map(user => (
-                <UserCard key={user.id} onClick={() => navigate(VIEW.PICK_TASK, user.id)}>
+                <UserCard
+                  key={user.id}
+                  onClick={() => navigate(VIEW.PICK_TASK, user.id)}
+                  title={`Change this person's account\naccount type, name, password, or delete the\naccount.`}
+                >
                   <UserAvatar src={user.picture} alt={user.name} />
                   <UserInfo>
                     <UserName>{user.name}</UserName>
-                    <UserType>
-                      {user.accountType === 'admin' ? 'Computer administrator' : 'Limited account'}
-                      {user.hasPassword && ' • Password protected'}
-                    </UserType>
+                    <UserType>{user.accountType === 'admin' ? 'Computer administrator' : 'Limited account'}</UserType>
+                    {user.hasPassword && <UserType>Password protected</UserType>}
                   </UserInfo>
                 </UserCard>
               ))}
+              {/* Guest account */}
+              <UserCard onClick={() => {}} title="Guest account is off">
+                <GuestAvatar>
+                  <img src="/icons/xp/UserAccounts.png" alt="Guest" />
+                </GuestAvatar>
+                <UserInfo>
+                  <UserName>Guest</UserName>
+                  <UserType>Guest account is off</UserType>
+                </UserInfo>
+              </UserCard>
             </UsersGrid>
-            {isAdmin && (
-              <CreateAccountLink onClick={() => navigate(VIEW.CREATE_ACCOUNT)}>
-                <img src="/icons/xp/Go.png" alt="" height="16" />
-                Create a new account
-              </CreateAccountLink>
-            )}
-          </ContentPane>
+          </BlueContentPane>
         );
 
       case VIEW.PICK_TASK:
@@ -544,58 +577,123 @@ function UserAccounts({ onClose, onMinimize, onMaximize, onOpenWindow }) {
           </ContentPane>
         );
 
-      case VIEW.CREATE_ACCOUNT:
+      case VIEW.CREATE_ACCOUNT_NAME:
         return (
-          <ContentPane>
-            <PageTitle>Name the new account</PageTitle>
-            <FormGroup>
-              <FormLabel>Type a name for the new user:</FormLabel>
-              <FormInput
+          <WizardContentPane>
+            <WizardTitle>Name the new account</WizardTitle>
+            <WizardBody>
+              <WizardLabel>Type a name for the new account:</WizardLabel>
+              <WizardInput
                 type="text"
                 value={formData.newName || ''}
                 onChange={(e) => setFormData({ ...formData, newName: e.target.value })}
-                placeholder="Name"
                 autoFocus
               />
-              <FormLabel style={{ marginTop: 20 }}>Pick an account type:</FormLabel>
-              <AccountTypeOptions>
-                <AccountTypeOption
-                  $selected={formData.accountType === 'admin'}
-                  onClick={() => setFormData({ ...formData, accountType: 'admin' })}
+              <WizardHelpText>
+                This name will appear on the <WizardLink>Welcome screen</WizardLink> and on the <WizardLink>Start menu</WizardLink>.
+              </WizardHelpText>
+              {error && <ErrorText>{error}</ErrorText>}
+            </WizardBody>
+            <WizardFooter>
+              <WizardButtonRow>
+                <ActionButton
+                  onClick={() => {
+                    if (!formData.newName?.trim()) {
+                      setError('Please enter a name');
+                      return;
+                    }
+                    setError(null);
+                    // Keep formData and navigate to next step
+                    const newHistory = history.slice(0, historyIndex + 1);
+                    newHistory.push(VIEW.CREATE_ACCOUNT_TYPE);
+                    setHistory(newHistory);
+                    setHistoryIndex(newHistory.length - 1);
+                    setView(VIEW.CREATE_ACCOUNT_TYPE);
+                  }}
                 >
-                  <input
-                    type="radio"
-                    checked={formData.accountType === 'admin'}
-                    onChange={() => setFormData({ ...formData, accountType: 'admin' })}
-                  />
-                  <div>
-                    <strong>Computer administrator</strong>
-                    <p>You can change all computer settings, install programs, and access all files.</p>
+                  Next &gt;
+                </ActionButton>
+                <ActionButton onClick={goHome}>Cancel</ActionButton>
+              </WizardButtonRow>
+            </WizardFooter>
+          </WizardContentPane>
+        );
+
+      case VIEW.CREATE_ACCOUNT_TYPE:
+        return (
+          <WizardContentPane>
+            <WizardTitle>Pick an account type</WizardTitle>
+            <WizardBody>
+              <fieldset>
+                <RadioRow>
+                  <div className="field-row">
+                    <input
+                      id="radio-admin"
+                      type="radio"
+                      name="accountType"
+                      checked={formData.accountType === 'admin'}
+                      onChange={() => setFormData({ ...formData, accountType: 'admin' })}
+                    />
+                    <label htmlFor="radio-admin">Computer administrator</label>
                   </div>
-                </AccountTypeOption>
-                <AccountTypeOption
-                  $selected={formData.accountType !== 'admin'}
-                  onClick={() => setFormData({ ...formData, accountType: 'limited' })}
-                >
-                  <input
-                    type="radio"
-                    checked={formData.accountType !== 'admin'}
-                    onChange={() => setFormData({ ...formData, accountType: 'limited' })}
-                  />
-                  <div>
-                    <strong>Limited</strong>
-                    <p>You can change some settings and use most programs, but cannot install programs or make changes that affect other users.</p>
+                  <div className="field-row">
+                    <input
+                      id="radio-limited"
+                      type="radio"
+                      name="accountType"
+                      checked={formData.accountType !== 'admin'}
+                      onChange={() => setFormData({ ...formData, accountType: 'limited' })}
+                    />
+                    <label htmlFor="radio-limited">Limited</label>
                   </div>
-                </AccountTypeOption>
-              </AccountTypeOptions>
+                </RadioRow>
+
+                <AccountTypeDescription>
+                  {formData.accountType === 'admin' ? (
+                    <>
+                      <p>With a computer administrator account, you can:</p>
+                      <ul>
+                        <li>Create, change, and delete accounts</li>
+                        <li>Make system-wide changes</li>
+                        <li>Install programs and access all files</li>
+                      </ul>
+                    </>
+                  ) : (
+                    <>
+                      <p>With a limited account, you can:</p>
+                      <ul>
+                        <li>Change or remove your password</li>
+                        <li>Change your picture, theme, and other desktop settings</li>
+                        <li>View files you created</li>
+                        <li>View files in the Shared Documents folder</li>
+                      </ul>
+                      <WarningText>
+                        Users with limited accounts cannot always install programs. Depending on the program, a user might need administrator privileges to install it.
+                      </WarningText>
+                      <WarningText>
+                        Also, programs designed prior to Windows XP or Windows 2000 might not work properly with limited accounts. For best results, choose programs bearing the Designed for Windows XP logo, or, to run older programs, choose the "computer administrator" account type.
+                      </WarningText>
+                    </>
+                  )}
+                </AccountTypeDescription>
+              </fieldset>
+
               {error && <ErrorText>{error}</ErrorText>}
               {success && <SuccessText>{success}</SuccessText>}
-              <ButtonRow>
+            </WizardBody>
+            <WizardFooter>
+              <WizardButtonRow>
+                <ActionButton onClick={() => {
+                  setHistoryIndex(historyIndex - 1);
+                  setView(VIEW.CREATE_ACCOUNT_NAME);
+                }}>
+                  &lt; Back
+                </ActionButton>
                 <ActionButton onClick={handleCreateAccount}>Create Account</ActionButton>
                 <ActionButton onClick={goHome}>Cancel</ActionButton>
-              </ButtonRow>
-            </FormGroup>
-          </ContentPane>
+              </WizardButtonRow>
+            </WizardFooter>
+          </WizardContentPane>
         );
 
       case VIEW.CHANGE_ACCOUNT_TYPE:
@@ -675,12 +773,77 @@ const MainArea = styled.div`
 
 const ContentArea = styled.div`
   flex: 1;
-  background: #fff;
+  background: linear-gradient(180deg, #5a7edc 0%, #3c5eb5 50%, #2a4a9a 100%);
   overflow-y: auto;
 `;
 
 const ContentPane = styled.div`
   padding: 16px 20px;
+  background: #fff;
+  min-height: 100%;
+`;
+
+const BlueContentPane = styled.div`
+  padding: 0;
+  min-height: 100%;
+`;
+
+const ContentHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: linear-gradient(180deg, #6b8dd6 0%, #4a6fc4 100%);
+  border-bottom: 1px solid #3a5ea8;
+
+  img {
+    width: 32px;
+    height: 32px;
+  }
+
+  span {
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  }
+`;
+
+const SectionTitle = styled.h2`
+  margin: 0;
+  padding: 20px 30px 10px;
+  font-size: 22px;
+  font-weight: normal;
+  font-style: italic;
+  color: #fff;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  font-family: 'Franklin Gothic Medium', 'Trebuchet MS', sans-serif;
+`;
+
+const TaskLinksSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px 30px 20px 50px;
+`;
+
+const BlueTaskLink = styled.a`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 13px;
+
+  img {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 const PageTitle = styled.h1`
@@ -695,21 +858,29 @@ const PageTitle = styled.h1`
 
 const UsersGrid = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 10px 30px 30px;
 `;
 
 const UserCard = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px;
+  padding: 8px 12px;
   cursor: pointer;
   border-radius: 3px;
+  border: 2px solid transparent;
+  min-width: 200px;
 
   &:hover {
-    background: #e8f0fa;
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+
+  &:focus {
+    border-color: #fff;
+    background: rgba(255, 255, 255, 0.2);
   }
 `;
 
@@ -717,8 +888,28 @@ const UserAvatar = styled.img`
   width: ${({ $large }) => $large ? '64px' : '48px'};
   height: ${({ $large }) => $large ? '64px' : '48px'};
   border-radius: 3px;
-  border: 1px solid #7f9db9;
+  border: 2px solid rgba(255, 255, 255, 0.6);
   object-fit: cover;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+`;
+
+const GuestAvatar = styled.div`
+  width: 48px;
+  height: 48px;
+  border-radius: 3px;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  background: #8a8a8a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+
+  img {
+    width: 32px;
+    height: 32px;
+    filter: grayscale(100%) brightness(1.2);
+    opacity: 0.8;
+  }
 `;
 
 const UserInfo = styled.div`
@@ -728,19 +919,21 @@ const UserInfo = styled.div`
 const UserName = styled.div`
   font-weight: bold;
   font-size: 12px;
-  color: #000;
+  color: #fff;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
 `;
 
 const UserType = styled.div`
   font-size: 11px;
-  color: #666;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
 `;
 
 const CreateAccountLink = styled.a`
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #0054e3;
+  color: #fff;
   text-decoration: none;
   cursor: pointer;
   font-size: 12px;
@@ -978,6 +1171,130 @@ const AccountTypeOption = styled.div`
       line-height: 1.4;
     }
   }
+`;
+
+// Wizard styled components for Create Account flow
+const WizardContentPane = styled.div`
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: #fff;
+`;
+
+const WizardTitle = styled.h1`
+  margin: 0;
+  padding: 30px 30px 20px;
+  font-size: 24px;
+  font-weight: normal;
+  color: #0054e3;
+  font-family: 'Franklin Gothic Medium', 'Trebuchet MS', sans-serif;
+`;
+
+const WizardBody = styled.div`
+  flex: 1;
+  padding: 0 30px;
+
+  fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+`;
+
+const WizardLabel = styled.label`
+  display: block;
+  font-size: 12px;
+  color: #000;
+  margin-bottom: 8px;
+`;
+
+const WizardInput = styled.input`
+  width: 300px;
+  padding: 4px 6px;
+  border: 1px solid #7f9db9;
+  font-size: 12px;
+  font-family: inherit;
+
+  &:focus {
+    outline: none;
+    border-color: #316ac5;
+  }
+`;
+
+const WizardHelpText = styled.p`
+  font-size: 12px;
+  color: #000;
+  margin: 12px 0 0;
+`;
+
+const WizardLink = styled.span`
+  color: #0054e3;
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:hover {
+    color: #0066ff;
+  }
+`;
+
+const WizardFooter = styled.div`
+  padding: 16px 30px;
+  border-top: 1px solid #d4d0c8;
+  background: #f0f0f0;
+`;
+
+const WizardButtonRow = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+`;
+
+const RadioRow = styled.div`
+  display: flex;
+  gap: 24px;
+  margin-bottom: 16px;
+
+  .field-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    input[type="radio"] {
+      margin: 0;
+    }
+
+    label {
+      font-size: 12px;
+      color: #000;
+      cursor: pointer;
+    }
+  }
+`;
+
+const AccountTypeDescription = styled.div`
+  font-size: 12px;
+  color: #000;
+  line-height: 1.5;
+
+  p {
+    margin: 0 0 8px 0;
+  }
+
+  ul {
+    margin: 0 0 16px 0;
+    padding-left: 24px;
+
+    li {
+      margin: 4px 0;
+    }
+  }
+`;
+
+const WarningText = styled.p`
+  font-size: 12px;
+  color: #000;
+  margin: 12px 0;
+  line-height: 1.5;
 `;
 
 export default UserAccounts;
