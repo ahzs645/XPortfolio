@@ -874,13 +874,11 @@ const UserCard = styled.div`
   min-width: 200px;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.5);
+    border-color: rgba(255, 255, 255, 0.6);
   }
 
   &:focus {
     border-color: #fff;
-    background: rgba(255, 255, 255, 0.2);
   }
 `;
 
