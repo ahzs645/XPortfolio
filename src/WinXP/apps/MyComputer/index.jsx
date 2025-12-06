@@ -33,7 +33,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   } = useFileSystem();
 
   const { openFile } = useApp();
-  const { isFileDropUploadEnabled } = useConfig();
+  const { isFileDropUploadEnabled, isFileDropOverlayEnabled } = useConfig();
 
   // null = My Computer root view, otherwise folder ID
   const [currentFolder, setCurrentFolder] = useState(initialPath || null);
@@ -1234,7 +1234,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
           />
         )}
 
-        {isDragOver && (
+        {isDragOver && isFileDropOverlayEnabled() && (
           <DragOverlay>
             <DragOverlayContent>
               Drop files here to upload

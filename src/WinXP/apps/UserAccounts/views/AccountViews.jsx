@@ -17,6 +17,12 @@ import {
   AccountTypeOptions,
   AccountTypeOption,
   UserAvatar,
+  PasswordFormGroup,
+  PasswordFormInput,
+  PasswordHelperText,
+  PasswordHintLabel,
+  BlueDivider,
+  RightAlignedButtonRow,
 } from '../styles';
 
 // Change Name View
@@ -114,39 +120,44 @@ export function CreatePasswordView({
 }) {
   return (
     <ContentPane>
-      <PageTitle>Create a password for {selectedUser?.name}'s account</PageTitle>
-      <PasswordHint>
-        You are creating a password for {selectedUser?.name}. If you do this, {selectedUser?.name} will
-        lose all personal certificates and stored passwords for Web sites or network resources.
-      </PasswordHint>
-      <FormGroup>
+      <PageTitle>Create a password for your account</PageTitle>
+      <PasswordFormGroup>
         <FormLabel>Type a new password:</FormLabel>
-        <FormInput
+        <PasswordFormInput
           type="password"
           value={formData.newPassword || ''}
           onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
           autoFocus
         />
         <FormLabel>Type the new password again to confirm:</FormLabel>
-        <FormInput
+        <PasswordFormInput
           type="password"
           value={formData.confirmPassword || ''}
           onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
         />
-        <FormLabel>Type a word or phrase to use as a password hint:</FormLabel>
-        <FormInput
+        <PasswordHelperText>
+          If your password contains capital letters, be sure to type them the same way every time
+          you log on.
+        </PasswordHelperText>
+        <PasswordHintLabel>
+          Type a word or phrase to use as a <a>password hint:</a>
+        </PasswordHintLabel>
+        <PasswordFormInput
           type="text"
           value={formData.passwordHint || ''}
           onChange={(e) => setFormData({ ...formData, passwordHint: e.target.value })}
-          placeholder="Optional"
         />
+        <PasswordHelperText>
+          The password hint will be visible to everyone who uses this computer.
+        </PasswordHelperText>
         {error && <ErrorText>{error}</ErrorText>}
         {success && <SuccessText>{success}</SuccessText>}
-        <ButtonRow>
+        <BlueDivider />
+        <RightAlignedButtonRow>
           <ActionButton onClick={onSubmit}>Create Password</ActionButton>
           <ActionButton onClick={onCancel}>Cancel</ActionButton>
-        </ButtonRow>
-      </FormGroup>
+        </RightAlignedButtonRow>
+      </PasswordFormGroup>
     </ContentPane>
   );
 }

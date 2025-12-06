@@ -527,3 +527,59 @@ export const WarningText = styled.p`
   margin: 12px 0;
   line-height: 1.5;
 `;
+
+// Password form specific components
+export const PasswordFormGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 500px;
+`;
+
+export const PasswordFormInput = styled.input`
+  padding: 3px 4px;
+  border: 1px solid #000;
+  font-size: 12px;
+  font-family: inherit;
+  width: 100%;
+  max-width: 450px;
+  margin-bottom: 8px;
+
+  &:focus {
+    outline: none;
+  }
+`;
+
+export const PasswordHelperText = styled.p`
+  font-size: 12px;
+  color: #000;
+  margin: 4px 0 12px 0;
+  line-height: 1.4;
+`;
+
+export const PasswordHintLabel = styled.label`
+  font-size: 12px;
+  color: #000;
+
+  a {
+    color: #0066cc;
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:hover {
+      color: #0044aa;
+    }
+  }
+`;
+
+export const BlueDivider = styled.hr`
+  border: none;
+  border-top: 2px solid #4a7bc9;
+  margin: 20px 0 16px 0;
+`;
+
+export const RightAlignedButtonRow = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+`;
