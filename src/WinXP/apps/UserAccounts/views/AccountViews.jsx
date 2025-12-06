@@ -140,7 +140,7 @@ export function CreatePasswordView({
           you log on.
         </PasswordHelperText>
         <PasswordHintLabel>
-          Type a word or phrase to use as a <a>password hint:</a>
+          {'Type a word or phrase to use as a '}<a>password hint</a>:
         </PasswordHintLabel>
         <PasswordFormInput
           type="text"

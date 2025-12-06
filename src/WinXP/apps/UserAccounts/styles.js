@@ -572,10 +572,10 @@ export const PasswordHintLabel = styled.label`
   }
 `;
 
-export const BlueDivider = styled.hr`
-  border: none;
-  border-top: 2px solid #4a7bc9;
-  margin: 20px 0 16px 0;
+export const BlueDivider = styled.div`
+  height: 1px;
+  margin: 16px 0 12px 0;
+  background: linear-gradient(to left, #215DC6 0%, #215DC6 40%, transparent 100%);
 `;
 
 export const RightAlignedButtonRow = styled.div`
