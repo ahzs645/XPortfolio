@@ -31,6 +31,8 @@ import SystemRecovery from './SystemRecovery';
 import UserAccounts from './UserAccounts';
 import Wordpad from './Wordpad';
 import HelpAndSupport from './HelpAndSupport';
+import FontViewer from './FontViewer';
+import OutlookExpress from './OutlookExpress';
 
 // XP Icons paths
 const XP_ICONS = {
@@ -51,6 +53,8 @@ const XP_ICONS = {
   userAccounts: '/icons/xp/UserAccounts.png',
   wordpad: '/icons/xp/wordpad.png',
   helpAndSupport: '/icons/help.png',
+  fontViewer: '/icons/xp/font.png',
+  outlookExpress: '/icons/outlook/outlook.png',
 };
 
 // Default apps open on startup (empty for now - user opens via desktop icons)
@@ -197,6 +201,11 @@ export const desktopIconCatalog = {
     icon: XP_ICONS.helpAndSupport,
     title: 'Help and Support',
     component: HelpAndSupport,
+  },
+  outlookExpress: {
+    icon: XP_ICONS.outlookExpress,
+    title: 'Outlook Express',
+    component: OutlookExpress,
   },
 };
 
@@ -982,6 +991,46 @@ export const appSettings = {
     maximized: false,
     multiInstance: true,
   },
+  'Font Viewer': {
+    header: {
+      icon: XP_ICONS.fontViewer,
+      title: 'Font Preview',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: FontViewer,
+    defaultSize: {
+      width: 708,
+      height: 534,
+    },
+    defaultOffset: {
+      x: 50,
+      y: 50,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
+  },
+  'Outlook Express': {
+    header: {
+      icon: XP_ICONS.outlookExpress,
+      title: 'Outlook Express',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: OutlookExpress,
+    defaultSize: {
+      width: 708,
+      height: 534,
+    },
+    defaultOffset: {
+      x: 140,
+      y: 140,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
 };
 
 export {
@@ -1016,4 +1065,6 @@ export {
   UserAccounts,
   Wordpad,
   HelpAndSupport,
+  FontViewer,
+  OutlookExpress,
 };

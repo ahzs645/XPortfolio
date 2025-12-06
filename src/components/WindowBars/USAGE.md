@@ -106,6 +106,7 @@ import { MenuBar } from '../components';
 ```jsx
 import { Toolbar } from '../components';
 
+// Standard explorer-style toolbar
 <Toolbar
   items={[
     { type: 'button', id: 'back', icon: '/gui/toolbar/back.webp', label: 'Back', action: 'navigate:back' },
@@ -117,7 +118,46 @@ import { Toolbar } from '../components';
   ]}
   onAction={(action, id) => console.log('Button clicked:', action, id)}
 />
+
+// Compact WordPad-style toolbar with selects, color picker, and toggle buttons
+<Toolbar
+  variant="compact"
+  items={[
+    { type: 'select', id: 'font', value: 'Arial', options: [
+      { value: 'Arial', label: 'Arial' },
+      { value: 'Times New Roman', label: 'Times New Roman' },
+    ], width: 120 },
+    { type: 'select', id: 'size', value: '12', options: [
+      { value: '10', label: '10' },
+      { value: '12', label: '12' },
+      { value: '14', label: '14' },
+    ], width: 50 },
+    { type: 'separator' },
+    { type: 'button', id: 'bold', icon: '/icons/bold.png', active: isBold, action: 'format:bold' },
+    { type: 'button', id: 'italic', icon: '/icons/italic.png', active: isItalic, action: 'format:italic' },
+    { type: 'color', id: 'textColor', value: '#000000', title: 'Text Color' },
+    { type: 'spacer', width: 16 },
+    { type: 'button', id: 'left', icon: '/icons/left.png', active: isLeft, action: 'align:left' },
+  ]}
+  onAction={(action) => handleFormat(action)}
+  onChange={(id, value) => handleChange(id, value)}
+/>
 ```
+
+#### Toolbar Item Types
+
+| Type | Properties | Description |
+|------|------------|-------------|
+| `button` | `id`, `icon`, `label?`, `disabled?`, `active?`, `action` | Clickable button with icon |
+| `separator` | - | Vertical divider line |
+| `spacer` | `width?` | Empty space (default 8px) |
+| `select` | `id`, `value`, `options`, `width?`, `disabled?`, `title?` | Dropdown selector |
+| `color` | `id`, `value`, `title?`, `disabled?` | Color picker input |
+
+#### Toolbar Variants
+
+- `default` - Standard explorer toolbar (48px height, 25x25 icons)
+- `compact` - WordPad-style toolbar (28px height, 16x16 icons)
 
 ### AddressBar
 
@@ -183,3 +223,86 @@ These actions are automatically handled when `windowActions` is provided:
 - `minimizeWindow` - Calls `onMinimize()`
 
 All other actions are passed to your `onAction` or `onToolbarAction` callbacks.
+
+## Multiple Toolbars (WordPad Style)
+
+For applications like WordPad that need multiple compact toolbars with selects and color pickers:
+
+```jsx
+import { ProgramLayout } from '../components';
+
+function WordpadApp({ onClose }) {
+  const [fontName, setFontName] = useState('Arial');
+  const [fontSize, setFontSize] = useState('12');
+  const [textColor, setTextColor] = useState('#000000');
+  const [isBold, setIsBold] = useState(false);
+  const [isItalic, setIsItalic] = useState(false);
+
+  const handleToolbarAction = (action, toolbarId) => {
+    switch (action) {
+      case 'format:bold': setIsBold(!isBold); break;
+      case 'format:italic': setIsItalic(!isItalic); break;
+      case 'file:new': handleNew(); break;
+      // ... handle other actions
+    }
+  };
+
+  const handleToolbarChange = (toolbarId, itemId, value) => {
+    switch (itemId) {
+      case 'font': setFontName(value); break;
+      case 'size': setFontSize(value); break;
+      case 'textColor': setTextColor(value); break;
+    }
+  };
+
+  return (
+    <ProgramLayout
+      menus={[
+        { id: 'file', label: 'File', items: [...] },
+        { id: 'edit', label: 'Edit', items: [...] },
+      ]}
+      toolbars={[
+        {
+          id: 'file-tools',
+          variant: 'compact',
+          items: [
+            { type: 'button', id: 'new', icon: '/icons/new.png', action: 'file:new', title: 'New' },
+            { type: 'button', id: 'open', icon: '/icons/open.png', action: 'file:open', title: 'Open' },
+            { type: 'button', id: 'save', icon: '/icons/save.png', action: 'file:save', title: 'Save' },
+            { type: 'separator' },
+            { type: 'button', id: 'cut', icon: '/icons/cut.png', action: 'edit:cut', title: 'Cut' },
+            { type: 'button', id: 'copy', icon: '/icons/copy.png', action: 'edit:copy', title: 'Copy' },
+            { type: 'button', id: 'paste', icon: '/icons/paste.png', action: 'edit:paste', title: 'Paste' },
+          ]
+        },
+        {
+          id: 'format-tools',
+          variant: 'compact',
+          items: [
+            { type: 'select', id: 'font', value: fontName, options: [
+              { value: 'Arial', label: 'Arial' },
+              { value: 'Times New Roman', label: 'Times New Roman' },
+              { value: 'Courier New', label: 'Courier New' },
+            ], width: 120, title: 'Font' },
+            { type: 'select', id: 'size', value: fontSize, options: [
+              { value: '10', label: '10' },
+              { value: '12', label: '12' },
+              { value: '14', label: '14' },
+              { value: '18', label: '18' },
+            ], width: 50, title: 'Size' },
+            { type: 'separator' },
+            { type: 'button', id: 'bold', icon: '/icons/bold.png', active: isBold, action: 'format:bold', title: 'Bold' },
+            { type: 'button', id: 'italic', icon: '/icons/italic.png', active: isItalic, action: 'format:italic', title: 'Italic' },
+            { type: 'color', id: 'textColor', value: textColor, title: 'Text Color' },
+          ]
+        }
+      ]}
+      onToolbarAction={handleToolbarAction}
+      onToolbarChange={handleToolbarChange}
+      windowActions={{ onClose }}
+    >
+      <EditorContent />
+    </ProgramLayout>
+  );
+}
+```

@@ -686,6 +686,24 @@ function WinXP() {
         return;
       }
 
+      // For font files, open with Font Viewer
+      const fontExtensions = ['.ttf', '.otf', '.woff', '.woff2', '.fon'];
+      if (fontExtensions.includes(ext)) {
+        const fontViewerSetting = {
+          ...appSettings['Font Viewer'],
+          header: {
+            ...appSettings['Font Viewer'].header,
+            title: icon.title,
+          },
+          injectProps: {
+            fontData: fileData,
+            fontName: icon.title,
+          },
+        };
+        dispatch({ type: ADD_APP, payload: fontViewerSetting });
+        return;
+      }
+
       // For HTML files, open with Internet Explorer
       const htmlExtensions = ['.html', '.htm'];
       if (htmlExtensions.includes(ext)) {

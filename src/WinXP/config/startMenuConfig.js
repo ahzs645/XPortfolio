@@ -199,6 +199,13 @@ export const START_MENU_CATALOG = {
     title: 'User Accounts',
     description: 'Manage user accounts',
   },
+  outlookExpress: {
+    type: 'program',
+    appKey: 'Outlook Express',
+    icon: '/icons/outlook/outlook.png',
+    title: 'Outlook Express',
+    description: 'Read email messages',
+  },
   'divider-main': {
     type: 'separator',
   },
@@ -251,6 +258,7 @@ export const START_MENU_FOLDERS = {
 // All Programs menu order
 export const ALL_PROGRAMS_ORDER = [
   'internetExplorer',
+  'outlookExpress',
   'messenger',
   'qqPenguin',
   'about',

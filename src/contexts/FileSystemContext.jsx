@@ -32,6 +32,11 @@ export const fileIcons = {
   '.html': '/icons/xp/InternetExplorer6.png',
   '.htm': '/icons/xp/InternetExplorer6.png',
   '.lnk': '/icons/xp/Shortcutoverlay.png',
+  '.ttf': '/icons/xp/font.png',
+  '.otf': '/icons/xp/font.png',
+  '.woff': '/icons/xp/font.png',
+  '.woff2': '/icons/xp/font.png',
+  '.fon': '/icons/xp/font.png',
 };
 
 // XP-style icons
@@ -819,6 +824,8 @@ export function FileSystemProvider({ children }) {
       icon = '/icons/xp/InternetExplorer6.png';
     } else if (['.txt', '.log', '.md'].includes(lowerExt)) {
       icon = XP_ICONS.notepad;
+    } else if (['.ttf', '.otf', '.woff', '.woff2', '.fon'].includes(lowerExt)) {
+      icon = '/icons/xp/font.png';
     } else if (fileContent.type) {
       if (fileContent.type.startsWith('image/')) {
         icon = '/icons/xp/JPG.png';

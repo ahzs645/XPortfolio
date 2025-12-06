@@ -62,6 +62,13 @@ const PROGRAM_CATEGORIES = {
     fileTypes: ['.zip', '.rar', '.7z', '.tar', '.gz'],
     builtIn: ['WinRAR'],
   },
+  fontViewer: {
+    title: 'Font Viewer',
+    icon: '/icons/xp/font.png',
+    description: 'Choose the default program for font files',
+    fileTypes: ['.ttf', '.otf', '.woff', '.woff2', '.fon'],
+    builtIn: ['Font Viewer'],
+  },
 };
 
 // File type icons mapping
@@ -98,6 +105,11 @@ const FILE_TYPE_ICONS = {
   '.rar': '/icons/xp/RAR.png',
   '.7z': '/icons/xp/Zipfolder.png',
   '.tar': '/icons/xp/Zipfolder.png',
+  '.ttf': '/icons/xp/font.png',
+  '.otf': '/icons/xp/font.png',
+  '.woff': '/icons/xp/font.png',
+  '.woff2': '/icons/xp/font.png',
+  '.fon': '/icons/xp/font.png',
   '.gz': '/icons/xp/Zipfolder.png',
 };
 

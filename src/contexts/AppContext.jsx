@@ -13,6 +13,7 @@ const PROGRAM_NAME_TO_APP_KEY = {
   'Image Viewer': 'Image Viewer',
   'Paint': 'Paint',
   'WinRAR': 'WinRAR',
+  'Font Viewer': 'Font Viewer',
 };
 
 export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
@@ -147,6 +148,24 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
         return true;
       }
 
+      case 'Font Viewer': {
+        dispatch({
+          type: addAppAction,
+          payload: {
+            ...appSettings['Font Viewer'],
+            header: {
+              ...appSettings['Font Viewer'].header,
+              title: name,
+            },
+            injectProps: {
+              fontData: fileData,
+              fontName: name,
+            },
+          },
+        });
+        return true;
+      }
+
       default:
         return false;
     }
@@ -158,7 +177,8 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
 
     // Load file data if not present (stored in IndexedDB)
     let fileData = fileItem.data;
-    if (!fileData && fileItem.storageKey) {
+    // Check for storageKey or storageType to load from IndexedDB
+    if (!fileData && (fileItem.storageKey || fileItem.storageType === 'local')) {
       const blob = await getFileContent(fileItem.id);
       if (blob) {
         // Convert blob to data URL
@@ -240,6 +260,24 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
         },
       };
       dispatch({ type: addAppAction, payload: winrarSetting });
+      return;
+    }
+
+    // For font files, open with Font Viewer
+    const fontExtensions = ['.ttf', '.otf', '.woff', '.woff2', '.fon'];
+    if (fontExtensions.includes(ext)) {
+      const fontViewerSetting = {
+        ...appSettings['Font Viewer'],
+        header: {
+          ...appSettings['Font Viewer'].header,
+          title: name,
+        },
+        injectProps: {
+          fontData: fileData,
+          fontName: name,
+        },
+      };
+      dispatch({ type: addAppAction, payload: fontViewerSetting });
       return;
     }
 

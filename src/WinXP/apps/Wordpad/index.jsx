@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import styled from 'styled-components';
+import { ProgramLayout } from '../../../components';
 
 const FONTS = [
   { value: 'Arial', label: 'Arial' },
@@ -10,9 +11,12 @@ const FONTS = [
   { value: 'Comic Sans MS', label: 'Comic Sans MS' },
 ];
 
-const FONT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72];
+const FONT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72].map(s => ({
+  value: String(s),
+  label: String(s),
+}));
 
-function Wordpad({ onClose }) {
+function Wordpad({ onClose, onMinimize, onMaximize }) {
   const editorRef = useRef(null);
   const [fontName, setFontName] = useState('Arial');
   const [fontSize, setFontSize] = useState('12');
@@ -58,22 +62,6 @@ function Wordpad({ onClose }) {
       setFontSize(sizeMap[size] || '12');
     }
   }, []);
-
-  const handleFontChange = (e) => {
-    setFontName(e.target.value);
-    execCommand('fontName', e.target.value);
-  };
-
-  const handleFontSizeChange = (e) => {
-    setFontSize(e.target.value);
-    const sizeMap = { '8': 1, '9': 1, '10': 2, '11': 2, '12': 3, '14': 4, '16': 4, '18': 5, '20': 5, '22': 5, '24': 6, '26': 6, '28': 6, '36': 7, '48': 7, '72': 7 };
-    execCommand('fontSize', sizeMap[e.target.value] || 3);
-  };
-
-  const handleColorChange = (e) => {
-    setTextColor(e.target.value);
-    execCommand('foreColor', e.target.value);
-  };
 
   const handleNew = () => {
     if (editorRef.current) {
@@ -138,128 +126,176 @@ function Wordpad({ onClose }) {
     }
   }, []);
 
+  // Handle toolbar button actions
+  const handleToolbarAction = useCallback((action, toolbarId) => {
+    switch (action) {
+      case 'file:new': handleNew(); break;
+      case 'file:print': handlePrint(); break;
+      case 'file:preview': handlePreview(); break;
+      case 'edit:find': handleFind(); break;
+      case 'edit:cut': execCommand('cut'); break;
+      case 'edit:copy': execCommand('copy'); break;
+      case 'edit:paste': execCommand('paste'); break;
+      case 'edit:undo': execCommand('undo'); break;
+      case 'edit:redo': execCommand('redo'); break;
+      case 'format:bold': execCommand('bold'); break;
+      case 'format:italic': execCommand('italic'); break;
+      case 'format:underline': execCommand('underline'); break;
+      case 'align:left': execCommand('justifyLeft'); break;
+      case 'align:center': execCommand('justifyCenter'); break;
+      case 'align:right': execCommand('justifyRight'); break;
+      case 'list:unordered': execCommand('insertUnorderedList'); break;
+      case 'list:ordered': execCommand('insertOrderedList'); break;
+      default: break;
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [execCommand]);
+
+  // Handle select/color changes
+  const handleToolbarChange = useCallback((toolbarId, itemId, value) => {
+    switch (itemId) {
+      case 'font':
+        setFontName(value);
+        execCommand('fontName', value);
+        break;
+      case 'size':
+        setFontSize(value);
+        const sizeMap = { '8': 1, '9': 1, '10': 2, '11': 2, '12': 3, '14': 4, '16': 4, '18': 5, '20': 5, '22': 5, '24': 6, '26': 6, '28': 6, '36': 7, '48': 7, '72': 7 };
+        execCommand('fontSize', sizeMap[value] || 3);
+        break;
+      case 'textColor':
+        setTextColor(value);
+        execCommand('foreColor', value);
+        break;
+      default: break;
+    }
+  }, [execCommand]);
+
+  // Menu configuration
+  const menus = [
+    {
+      id: 'file',
+      label: 'File',
+      items: [
+        { label: 'New', action: 'file:new' },
+        { label: 'Open...', disabled: true },
+        { label: 'Save', disabled: true },
+        { label: 'Save As...', disabled: true },
+        { separator: true },
+        { label: 'Print', action: 'file:print' },
+        { label: 'Print Preview', action: 'file:preview' },
+        { separator: true },
+        { label: 'Exit', action: 'exitProgram' },
+      ],
+    },
+    {
+      id: 'edit',
+      label: 'Edit',
+      items: [
+        { label: 'Undo', action: 'edit:undo' },
+        { label: 'Redo', action: 'edit:redo' },
+        { separator: true },
+        { label: 'Cut', action: 'edit:cut' },
+        { label: 'Copy', action: 'edit:copy' },
+        { label: 'Paste', action: 'edit:paste' },
+        { separator: true },
+        { label: 'Find...', action: 'edit:find' },
+      ],
+    },
+    {
+      id: 'view',
+      label: 'View',
+      items: [
+        { label: 'Toolbar', disabled: true },
+        { label: 'Format Bar', disabled: true },
+        { label: 'Status Bar', disabled: true },
+      ],
+    },
+    {
+      id: 'insert',
+      label: 'Insert',
+      items: [
+        { label: 'Date and Time...', disabled: true },
+        { label: 'Object...', disabled: true },
+      ],
+    },
+    {
+      id: 'format',
+      label: 'Format',
+      items: [
+        { label: 'Font...', disabled: true },
+        { label: 'Bullet Style', disabled: true },
+        { label: 'Paragraph...', disabled: true },
+      ],
+    },
+    {
+      id: 'help',
+      label: 'Help',
+      items: [
+        { label: 'Help Topics', disabled: true },
+        { separator: true },
+        { label: 'About WordPad', disabled: true },
+      ],
+    },
+  ];
+
+  // Toolbar configurations
+  const toolbars = [
+    {
+      id: 'file-tools',
+      variant: 'compact',
+      items: [
+        { type: 'button', id: 'new', icon: '/icons/xp/wordpad/new.png', action: 'file:new', title: 'New' },
+        { type: 'button', id: 'open', icon: '/icons/xp/wordpad/open.png', disabled: true, title: 'Open' },
+        { type: 'button', id: 'save', icon: '/icons/xp/wordpad/save.png', disabled: true, title: 'Save' },
+        { type: 'button', id: 'print', icon: '/icons/xp/wordpad/print.png', action: 'file:print', title: 'Print' },
+        { type: 'button', id: 'preview', icon: '/icons/xp/wordpad/preview.png', action: 'file:preview', title: 'Print Preview' },
+        { type: 'button', id: 'find', icon: '/icons/xp/wordpad/find.png', action: 'edit:find', title: 'Find' },
+        { type: 'spacer', width: 8 },
+        { type: 'button', id: 'cut', icon: '/icons/xp/wordpad/cut.png', action: 'edit:cut', title: 'Cut' },
+        { type: 'button', id: 'copy', icon: '/icons/xp/wordpad/copy.png', action: 'edit:copy', title: 'Copy' },
+        { type: 'button', id: 'paste', icon: '/icons/xp/wordpad/paste.png', action: 'edit:paste', title: 'Paste' },
+        { type: 'button', id: 'undo', icon: '/icons/xp/wordpad/undo.png', action: 'edit:undo', title: 'Undo' },
+        { type: 'button', id: 'redo', icon: '/icons/xp/wordpad/redo.png', action: 'edit:redo', title: 'Redo' },
+      ],
+    },
+    {
+      id: 'format-tools',
+      variant: 'compact',
+      items: [
+        { type: 'select', id: 'font', value: fontName, options: FONTS, width: 120, title: 'Font' },
+        { type: 'select', id: 'size', value: fontSize, options: FONT_SIZES, width: 50, title: 'Size' },
+        { type: 'separator' },
+        { type: 'button', id: 'bold', icon: '/icons/xp/wordpad/bold.png', active: activeFormats.bold, action: 'format:bold', title: 'Bold' },
+        { type: 'button', id: 'italic', icon: '/icons/xp/wordpad/italic.png', active: activeFormats.italic, action: 'format:italic', title: 'Italic' },
+        { type: 'button', id: 'underline', icon: '/icons/xp/wordpad/underline.png', active: activeFormats.underline, action: 'format:underline', title: 'Underline' },
+        { type: 'color', id: 'textColor', value: textColor, title: 'Text Color' },
+        { type: 'separator' },
+        { type: 'button', id: 'left', icon: '/icons/xp/wordpad/left.png', active: activeFormats.left, action: 'align:left', title: 'Align Left' },
+        { type: 'button', id: 'center', icon: '/icons/xp/wordpad/center.png', active: activeFormats.center, action: 'align:center', title: 'Align Center' },
+        { type: 'button', id: 'right', icon: '/icons/xp/wordpad/right.png', active: activeFormats.right, action: 'align:right', title: 'Align Right' },
+        { type: 'button', id: 'ulist', icon: '/icons/xp/wordpad/list.png', active: activeFormats.ulist, action: 'list:unordered', title: 'Bulleted List' },
+        { type: 'button', id: 'olist', icon: '/icons/xp/wordpad/list.png', active: activeFormats.olist, action: 'list:ordered', title: 'Numbered List' },
+      ],
+    },
+  ];
+
+  // Handle menu actions
+  const handleMenuAction = useCallback((action) => {
+    handleToolbarAction(action, null);
+  }, [handleToolbarAction]);
+
   return (
-    <Container>
-      <Toolbar>
-        <ToolButton onClick={handleNew} title="New">
-          <img src="/icons/xp/wordpad/new.png" alt="New" />
-        </ToolButton>
-        <ToolButton title="Open">
-          <img src="/icons/xp/wordpad/open.png" alt="Open" />
-        </ToolButton>
-        <ToolButton title="Save">
-          <img src="/icons/xp/wordpad/save.png" alt="Save" />
-        </ToolButton>
-        <ToolButton onClick={handlePrint} title="Print">
-          <img src="/icons/xp/wordpad/print.png" alt="Print" />
-        </ToolButton>
-        <ToolButton onClick={handlePreview} title="Preview">
-          <img src="/icons/xp/wordpad/preview.png" alt="Preview" />
-        </ToolButton>
-        <ToolButton onClick={handleFind} title="Find">
-          <img src="/icons/xp/wordpad/find.png" alt="Find" />
-        </ToolButton>
-        <Spacer />
-        <ToolButton onClick={() => execCommand('cut')} title="Cut">
-          <img src="/icons/xp/wordpad/cut.png" alt="Cut" />
-        </ToolButton>
-        <ToolButton onClick={() => execCommand('copy')} title="Copy">
-          <img src="/icons/xp/wordpad/copy.png" alt="Copy" />
-        </ToolButton>
-        <ToolButton onClick={() => execCommand('paste')} title="Paste">
-          <img src="/icons/xp/wordpad/paste.png" alt="Paste" />
-        </ToolButton>
-        <ToolButton onClick={() => execCommand('undo')} title="Undo">
-          <img src="/icons/xp/wordpad/undo.png" alt="Undo" />
-        </ToolButton>
-        <ToolButton onClick={() => execCommand('redo')} title="Redo">
-          <img src="/icons/xp/wordpad/redo.png" alt="Redo" />
-        </ToolButton>
-      </Toolbar>
-
-      <Toolbar>
-        <FontSelect value={fontName} onChange={handleFontChange} title="Font">
-          {FONTS.map((font) => (
-            <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
-              {font.label}
-            </option>
-          ))}
-        </FontSelect>
-
-        <SizeSelect value={fontSize} onChange={handleFontSizeChange} title="Size">
-          {FONT_SIZES.map((size) => (
-            <option key={size} value={size}>
-              {size}
-            </option>
-          ))}
-        </SizeSelect>
-
-        <ToolButton
-          $active={activeFormats.bold}
-          onClick={() => execCommand('bold')}
-          title="Bold"
-        >
-          <img src="/icons/xp/wordpad/bold.png" alt="Bold" />
-        </ToolButton>
-        <ToolButton
-          $active={activeFormats.italic}
-          onClick={() => execCommand('italic')}
-          title="Italic"
-        >
-          <img src="/icons/xp/wordpad/italic.png" alt="Italic" />
-        </ToolButton>
-        <ToolButton
-          $active={activeFormats.underline}
-          onClick={() => execCommand('underline')}
-          title="Underline"
-        >
-          <img src="/icons/xp/wordpad/underline.png" alt="Underline" />
-        </ToolButton>
-
-        <ColorInput
-          type="color"
-          value={textColor}
-          onChange={handleColorChange}
-          title="Text color"
-        />
-
-        <ToolButton
-          $active={activeFormats.left}
-          onClick={() => execCommand('justifyLeft')}
-          title="Align left"
-        >
-          <img src="/icons/xp/wordpad/left.png" alt="Left" />
-        </ToolButton>
-        <ToolButton
-          $active={activeFormats.center}
-          onClick={() => execCommand('justifyCenter')}
-          title="Align center"
-        >
-          <img src="/icons/xp/wordpad/center.png" alt="Center" />
-        </ToolButton>
-        <ToolButton
-          $active={activeFormats.right}
-          onClick={() => execCommand('justifyRight')}
-          title="Align right"
-        >
-          <img src="/icons/xp/wordpad/right.png" alt="Right" />
-        </ToolButton>
-        <ToolButton
-          $active={activeFormats.ulist}
-          onClick={() => execCommand('insertUnorderedList')}
-          title="Bulleted list"
-        >
-          <img src="/icons/xp/wordpad/list.png" alt="Bulleted" />
-        </ToolButton>
-        <ToolButton
-          $active={activeFormats.olist}
-          onClick={() => execCommand('insertOrderedList')}
-          title="Numbered list"
-        >
-          <img src="/icons/xp/wordpad/list.png" alt="Numbered" />
-        </ToolButton>
-      </Toolbar>
-
+    <ProgramLayout
+      menus={menus}
+      toolbars={toolbars}
+      onMenuAction={handleMenuAction}
+      onToolbarAction={handleToolbarAction}
+      onToolbarChange={handleToolbarChange}
+      windowActions={{ onClose, onMinimize, onMaximize }}
+      showAddressBar={false}
+      showStatusBar={false}
+    >
       <EditorContainer>
         <Editor
           ref={editorRef}
@@ -273,75 +309,9 @@ function Wordpad({ onClose }) {
           </div>
         </Editor>
       </EditorContainer>
-    </Container>
+    </ProgramLayout>
   );
 }
-
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background: #ece9d8;
-`;
-
-const Toolbar = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: #ecead5;
-  padding: 2px;
-  border-bottom: 1px solid #b1aea0;
-`;
-
-const ToolButton = styled.button`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 4px;
-  border: 1px solid transparent;
-  border-radius: 3px;
-  background: ${({ $active }) => ($active ? 'rgba(255,255,255,1)' : 'transparent')};
-  border-color: ${({ $active }) => ($active ? '#839fb4' : 'transparent')};
-  cursor: pointer;
-
-  &:hover {
-    border-color: #d7d4cb;
-    background: rgba(255, 255, 255, 0.5);
-    box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.5);
-  }
-
-  img {
-    width: 16px;
-    height: 16px;
-    object-fit: contain;
-  }
-`;
-
-const Spacer = styled.div`
-  width: 8px;
-`;
-
-const FontSelect = styled.select`
-  font-size: 11px;
-  padding: 2px;
-  min-width: 100px;
-`;
-
-const SizeSelect = styled.select`
-  font-size: 11px;
-  padding: 2px;
-  width: 50px;
-`;
-
-const ColorInput = styled.input`
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: 1px solid #919b9c;
-  cursor: pointer;
-`;
 
 const EditorContainer = styled.div`
   flex: 1;
