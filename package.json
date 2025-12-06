@@ -13,6 +13,7 @@
     "version:bump": "node scripts/generate-build-version.js --bump"
   },
   "dependencies": {
+    "dompurify": "^3.3.0",
     "idb-keyval": "^6.2.2",
     "js-yaml": "^4.1.1",
     "jszip": "^3.10.1",

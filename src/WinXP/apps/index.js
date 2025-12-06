@@ -34,6 +34,7 @@ import Wordpad from './Wordpad';
 import HelpAndSupport from './HelpAndSupport';
 import FontViewer from './FontViewer';
 import OutlookExpress from './OutlookExpress';
+import TaskbarProperties from './TaskbarProperties';
 
 // XP Icons paths
 const XP_ICONS = {
@@ -1057,6 +1058,26 @@ export const appSettings = {
     maximized: false,
     multiInstance: false,
   },
+  'Taskbar Properties': {
+    header: {
+      icon: '/icons/xp/DisplayProperties.png',
+      title: 'Taskbar and Start Menu Properties',
+      buttons: ['close'],
+    },
+    component: TaskbarProperties,
+    defaultSize: {
+      width: 408,
+      height: 480,
+    },
+    defaultOffset: {
+      x: 200,
+      y: 100,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
 };
 
 export {
@@ -1093,4 +1114,5 @@ export {
   HelpAndSupport,
   FontViewer,
   OutlookExpress,
+  TaskbarProperties,
 };

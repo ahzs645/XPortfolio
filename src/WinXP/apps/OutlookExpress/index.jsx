@@ -1,6 +1,181 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import styled from 'styled-components';
+import DOMPurify from 'dompurify';
 import ProgramLayout from '../../../components/WindowBars/ProgramLayout';
+
+// EML Parsing utilities
+function parseEmailContent(content) {
+  if (!content || typeof content !== 'string') {
+    console.error('Invalid email content:', content);
+    return { headers: {}, htmlBody: '', textBody: '', attachments: [] };
+  }
+
+  const parts = content.split(/\r?\n\r?\n/);
+  const headers = {};
+  let headersPart = parts.shift();
+  let body = parts.join('\n\n');
+
+  // Parse headers - handle multiline headers
+  let currentKey = null;
+  headersPart.split(/\r?\n/).forEach((line) => {
+    if (line.startsWith(' ') || line.startsWith('\t')) {
+      // Continuation of previous header
+      if (currentKey) {
+        headers[currentKey] += ' ' + line.trim();
+      }
+    } else {
+      const colonIndex = line.indexOf(':');
+      if (colonIndex > 0) {
+        currentKey = line.slice(0, colonIndex).trim().toLowerCase();
+        headers[currentKey] = line.slice(colonIndex + 1).trim();
+      }
+    }
+  });
+
+  // Specifically look for the "To" header
+  const toMatch = content.match(/^To:(.+?)(?:\r?\n(?!\s)|\r?\n\r?\n)/ms);
+  if (toMatch) {
+    headers.to = toMatch[1].trim();
+  }
+
+  const contentType = getContentType(headers, body);
+  let htmlBody = '';
+  let textBody = '';
+  let attachments = [];
+
+  if (contentType.includes('multipart/')) {
+    const boundaryMatch =
+      contentType.match(/boundary="?(.+?)"?(?:;|$)/i) ||
+      content.match(/--([^\s]+)/);
+    if (boundaryMatch) {
+      const boundary = boundaryMatch[1].replace(/"/g, '');
+      const bodyParts = body.split(new RegExp(`--${escapeRegex(boundary)}(?:--)?`, 'm'));
+      bodyParts.forEach((part) => {
+        if (part.trim()) {
+          const [partHeaders, ...partContentArr] = part.split(/\r?\n\r?\n/);
+          const partContent = partContentArr.join('\n\n');
+          const contentTransferEncoding = partHeaders.match(
+            /Content-Transfer-Encoding:\s*(.+?)(?:;|$)/im
+          );
+
+          if (partHeaders.toLowerCase().includes('text/html')) {
+            htmlBody = decodeContent(
+              partContent,
+              contentTransferEncoding ? contentTransferEncoding[1] : ''
+            );
+          } else if (partHeaders.toLowerCase().includes('text/plain')) {
+            textBody = decodeContent(
+              partContent,
+              contentTransferEncoding ? contentTransferEncoding[1] : ''
+            );
+          } else if (
+            partHeaders.includes('Content-Disposition: attachment')
+          ) {
+            const attachmentName = partHeaders.match(
+              /filename="?(.+?)"?(?:;|$)/im
+            );
+            if (attachmentName) {
+              const partContentType = partHeaders.match(
+                /Content-Type:\s*(.+?)(?:;|$)/im
+              );
+              const gotContent = partContentType
+                ? partContentType[1]
+                : 'application/octet-stream';
+              attachments.push({
+                name: attachmentName[1],
+                base64: partContent,
+                base_link: `data:${gotContent};base64,${partContent.replace(/[\r\n\s]/g, '')}`,
+              });
+            }
+          }
+        }
+      });
+    } else {
+      if (
+        body.toLowerCase().includes('<!doctype html>') ||
+        body.toLowerCase().includes('<html')
+      ) {
+        htmlBody = decodeContent(body, headers['content-transfer-encoding']);
+      } else {
+        textBody = decodeContent(body, headers['content-transfer-encoding']);
+      }
+    }
+  } else if (contentType.includes('text/html')) {
+    htmlBody = decodeContent(body, headers['content-transfer-encoding']);
+  } else {
+    textBody = decodeContent(body, headers['content-transfer-encoding']);
+  }
+
+  return { headers, htmlBody, textBody, attachments };
+}
+
+function escapeRegex(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function getContentType(headers, content) {
+  let contentType = headers['content-type'] || '';
+  if (!contentType) {
+    if (
+      content.toLowerCase().includes('<!doctype html>') ||
+      content.toLowerCase().includes('<html')
+    ) {
+      contentType = 'text/html';
+    } else {
+      contentType = 'text/plain';
+    }
+  }
+  return contentType;
+}
+
+function decodeContent(content, encoding) {
+  if (!encoding) return content;
+  try {
+    switch (encoding.toLowerCase().trim()) {
+      case 'base64':
+        return atob(content.replace(/[\r\n\s]/g, ''));
+      case 'quoted-printable':
+        return content
+          .replace(/=\r?\n/g, '')
+          .replace(/=([0-9A-F]{2})/gi, (_, p1) =>
+            String.fromCharCode(parseInt(p1, 16))
+          );
+      default:
+        return content;
+    }
+  } catch (error) {
+    console.error('Error decoding content:', error);
+    return content;
+  }
+}
+
+function decodeHeaderField(field) {
+  if (!field) return '';
+  // Decode RFC 2047 encoded parts
+  field = field.replace(
+    /=\?([^?]+)\?([BQ])\?([^?]+)\?=/gi,
+    function (match, charset, encoding, text) {
+      try {
+        if (encoding.toUpperCase() === 'B') {
+          return decodeURIComponent(escape(atob(text)));
+        } else if (encoding.toUpperCase() === 'Q') {
+          return decodeURIComponent(
+            text.replace(/=([0-9A-F]{2})/gi, '%$1').replace(/_/g, ' ')
+          );
+        }
+      } catch (e) {
+        console.error('Error decoding header field:', e);
+      }
+      return text;
+    }
+  );
+  return field;
+}
+
+function sanitizeEmailAddress(email) {
+  if (!email) return 'Unknown';
+  return email.replace(/</g, '').replace(/>/g, ' ').trim();
+}
 
 const OUTLOOK_ICONS = {
   inbox: '/icons/outlook/inbox.png',
@@ -110,19 +285,81 @@ const EMAILS = [
   },
 ];
 
-const FOLDERS = [
-  { id: 'inbox', name: 'Inbox', icon: OUTLOOK_ICONS.inbox, count: EMAILS.length },
-  { id: 'outbox', name: 'Outbox', icon: OUTLOOK_ICONS.outbox, count: 0 },
-  { id: 'sent', name: 'Sent Items', icon: OUTLOOK_ICONS.sent, count: 0 },
-  { id: 'deleted', name: 'Deleted Items', icon: OUTLOOK_ICONS.deleted, count: 0 },
-  { id: 'drafts', name: 'Drafts', icon: OUTLOOK_ICONS.drafts, count: 0 },
-];
-
-function OutlookExpress({ onClose, onMinimize, onMaximize }) {
+function OutlookExpress({ onClose, onMinimize, onMaximize, emlData, emlFileName }) {
   const [selectedFolder, setSelectedFolder] = useState('inbox');
   const [selectedEmail, setSelectedEmail] = useState(null);
+  const [emails, setEmails] = useState(EMAILS);
+  const fileInputRef = useRef(null);
+
+  // Parse EML data when provided via props
+  useEffect(() => {
+    if (emlData) {
+      try {
+        const parsed = parseEmailContent(emlData);
+        const newEmail = {
+          id: 'imported_' + Date.now(),
+          from: decodeHeaderField(parsed.headers.from) || 'Unknown',
+          to: sanitizeEmailAddress(parsed.headers.to),
+          subject: decodeHeaderField(parsed.headers.subject) || emlFileName || 'No Subject',
+          date: parsed.headers.date || new Date().toLocaleString(),
+          content: parsed.htmlBody
+            ? DOMPurify.sanitize(parsed.htmlBody)
+            : `<pre>${parsed.textBody || 'No content'}</pre>`,
+          attachments: parsed.attachments,
+          isImported: true,
+        };
+        setEmails([newEmail, ...EMAILS]);
+        setSelectedEmail(newEmail);
+        setSelectedFolder('inbox');
+      } catch (error) {
+        console.error('Error parsing EML file:', error);
+      }
+    }
+  }, [emlData, emlFileName]);
+
+  // Handle file input for Open menu
+  const handleFileOpen = useCallback((event) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target.result;
+        try {
+          const parsed = parseEmailContent(content);
+          const newEmail = {
+            id: 'imported_' + Date.now(),
+            from: decodeHeaderField(parsed.headers.from) || 'Unknown',
+            to: sanitizeEmailAddress(parsed.headers.to),
+            subject: decodeHeaderField(parsed.headers.subject) || file.name || 'No Subject',
+            date: parsed.headers.date || new Date().toLocaleString(),
+            content: parsed.htmlBody
+              ? DOMPurify.sanitize(parsed.htmlBody)
+              : `<pre>${parsed.textBody || 'No content'}</pre>`,
+            attachments: parsed.attachments,
+            isImported: true,
+          };
+          setEmails((prev) => {
+            // Remove previous imported email if exists, add new one at top
+            const filtered = prev.filter(e => !e.isImported);
+            return [newEmail, ...filtered];
+          });
+          setSelectedEmail(newEmail);
+          setSelectedFolder('inbox');
+        } catch (error) {
+          console.error('Error parsing EML file:', error);
+        }
+      };
+      reader.readAsText(file);
+    }
+    // Reset input so same file can be selected again
+    event.target.value = '';
+  }, []);
 
   const windowActions = { onClose, onMinimize, onMaximize };
+
+  const handleOpenFile = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
 
   const menus = [
     {
@@ -130,7 +367,7 @@ function OutlookExpress({ onClose, onMinimize, onMaximize }) {
       label: 'File',
       items: [
         { label: 'New', disabled: true },
-        { label: 'Open', disabled: true },
+        { label: 'Open...', action: 'openFile' },
         { label: 'Save As...', disabled: true },
         { separator: true },
         { label: 'Print', disabled: true },
@@ -244,7 +481,22 @@ function OutlookExpress({ onClose, onMinimize, onMaximize }) {
     setSelectedEmail(null);
   }, []);
 
-  const currentEmails = selectedFolder === 'inbox' ? EMAILS : [];
+  const handleMenuAction = useCallback((action) => {
+    if (action === 'openFile') {
+      handleOpenFile();
+    }
+  }, [handleOpenFile]);
+
+  const currentEmails = selectedFolder === 'inbox' ? emails : [];
+
+  // Dynamic folder counts
+  const folders = [
+    { id: 'inbox', name: 'Inbox', icon: OUTLOOK_ICONS.inbox, count: emails.length },
+    { id: 'outbox', name: 'Outbox', icon: OUTLOOK_ICONS.outbox, count: 0 },
+    { id: 'sent', name: 'Sent Items', icon: OUTLOOK_ICONS.sent, count: 0 },
+    { id: 'deleted', name: 'Deleted Items', icon: OUTLOOK_ICONS.deleted, count: 0 },
+    { id: 'drafts', name: 'Drafts', icon: OUTLOOK_ICONS.drafts, count: 0 },
+  ];
 
   return (
     <ProgramLayout
@@ -254,13 +506,21 @@ function OutlookExpress({ onClose, onMinimize, onMaximize }) {
       windowActions={windowActions}
       statusFields={`${currentEmails.length} message(s), 0 unread`}
       showStatusBar
+      onMenuAction={handleMenuAction}
     >
+      {/* Hidden file input for opening EML files */}
+      <HiddenFileInput
+        ref={fileInputRef}
+        type="file"
+        accept=".eml"
+        onChange={handleFileOpen}
+      />
       <OutlookContainer>
         <Sidebar>
           <SidebarContent>
             <PaneTitle>Folders</PaneTitle>
             <FolderList>
-              {FOLDERS.map((folder) => (
+              {folders.map((folder) => (
                 <FolderItem
                   key={folder.id}
                   $active={selectedFolder === folder.id}
@@ -305,9 +565,29 @@ function OutlookExpress({ onClose, onMinimize, onMaximize }) {
 
           <EmailPreviewPane>
             {selectedEmail ? (
-              <PreviewContent
-                dangerouslySetInnerHTML={{ __html: selectedEmail.content }}
-              />
+              <>
+                {selectedEmail.isImported && (
+                  <EmailHeaders>
+                    <p><strong>From:</strong> {selectedEmail.from}</p>
+                    <p><strong>To:</strong> {selectedEmail.to || 'Unknown'}</p>
+                    <p><strong>Date:</strong> {selectedEmail.date}</p>
+                    <p><strong>Subject:</strong> {selectedEmail.subject}</p>
+                    {selectedEmail.attachments && selectedEmail.attachments.length > 0 && (
+                      <p>
+                        <strong>Attachments:</strong>{' '}
+                        {selectedEmail.attachments.map((att, idx) => (
+                          <AttachmentLink key={idx} href={att.base_link} download={att.name}>
+                            {att.name}
+                          </AttachmentLink>
+                        ))}
+                      </p>
+                    )}
+                  </EmailHeaders>
+                )}
+                <PreviewContent
+                  dangerouslySetInnerHTML={{ __html: selectedEmail.content }}
+                />
+              </>
             ) : (
               <EmptyPreview>Select a message to read</EmptyPreview>
             )}
@@ -464,6 +744,36 @@ const EmptyPreview = styled.div`
   color: #888;
   font-family: Tahoma, Arial, sans-serif;
   font-size: 11px;
+`;
+
+const HiddenFileInput = styled.input`
+  display: none;
+`;
+
+const EmailHeaders = styled.div`
+  padding: 8px 12px;
+  background: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 11px;
+
+  p {
+    margin: 2px 0;
+  }
+
+  strong {
+    color: #333;
+  }
+`;
+
+const AttachmentLink = styled.a`
+  color: #0066cc;
+  text-decoration: none;
+  margin-right: 8px;
+
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 export default OutlookExpress;

@@ -14,6 +14,7 @@ const PROGRAM_NAME_TO_APP_KEY = {
   'Paint': 'Paint',
   'WinRAR': 'WinRAR',
   'Font Viewer': 'Font Viewer',
+  'Outlook Express': 'Outlook Express',
 };
 
 export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
@@ -173,6 +174,32 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
         return true;
       }
 
+      case 'Outlook Express': {
+        // Decode base64 data to text for EML files
+        let emlContent = '';
+        try {
+          const base64Data = fileData.split(',')[1] || fileData;
+          emlContent = atob(base64Data);
+        } catch (e) {
+          emlContent = fileData;
+        }
+        dispatch({
+          type: addAppAction,
+          payload: {
+            ...appSettings['Outlook Express'],
+            header: {
+              ...appSettings['Outlook Express'].header,
+              title: `${name} - Outlook Express`,
+            },
+            injectProps: {
+              emlData: emlContent,
+              emlFileName: name,
+            },
+          },
+        });
+        return true;
+      }
+
       default:
         return false;
     }
@@ -285,6 +312,32 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
         },
       };
       dispatch({ type: addAppAction, payload: fontViewerSetting });
+      return;
+    }
+
+    // For EML files, open with Outlook Express
+    if (ext === '.eml') {
+      // Decode base64 data to text
+      let emlContent = '';
+      try {
+        const base64Data = fileData.split(',')[1] || fileData;
+        emlContent = atob(base64Data);
+      } catch (e) {
+        emlContent = fileData;
+      }
+
+      const outlookSetting = {
+        ...appSettings['Outlook Express'],
+        header: {
+          ...appSettings['Outlook Express'].header,
+          title: `${name} - Outlook Express`,
+        },
+        injectProps: {
+          emlData: emlContent,
+          emlFileName: name,
+        },
+      };
+      dispatch({ type: addAppAction, payload: outlookSetting });
       return;
     }
 

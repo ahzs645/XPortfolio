@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import Balloon from '../../components/Balloon';
 import FooterMenu from './FooterMenu';
+import { ContextMenu } from '../components/ContextMenu';
 
 const getTime = () => {
   const date = new Date();
@@ -37,6 +38,7 @@ function Footer({
   const [showWelcomeBalloon, setShowWelcomeBalloon] = useState(false);
   const [hasUpdate, setHasUpdate] = useState(false);
   const [updateTooltip, setUpdateTooltip] = useState('Updates available');
+  const [startContextMenu, setStartContextMenu] = useState(null);
   const menuRef = useRef(null);
   const startButtonRef = useRef(null);
   const welcomeIconRef = useRef(null);
@@ -89,6 +91,27 @@ function Footer({
     setShowWelcomeBalloon(false);
     onClickMenuItem(appName);
   }, [onClickMenuItem]);
+
+  const handleStartContextMenu = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setMenuOn(false);
+    setStartContextMenu({ x: e.clientX, y: e.clientY });
+  }, []);
+
+  const handleStartContextMenuAction = useCallback((action) => {
+    setStartContextMenu(null);
+    if (action === 'properties') {
+      onClickMenuItem('Taskbar Properties');
+    }
+  }, [onClickMenuItem]);
+
+  const startContextMenuItems = [
+    {
+      label: 'Properties',
+      onClick: () => handleStartContextMenuAction('properties'),
+    },
+  ];
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -165,8 +188,19 @@ function Footer({
     };
   }, []);
 
+  const handleTaskbarContextMenu = useCallback((e) => {
+    // Only show context menu if clicking on the taskbar background, not on buttons
+    if (e.target.closest('.footer__window') || e.target.closest('.footer__time') || e.target.closest('img')) {
+      return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    setMenuOn(false);
+    setStartContextMenu({ x: e.clientX, y: e.clientY });
+  }, []);
+
   return (
-    <Container onMouseDown={_onMouseDown}>
+    <Container onMouseDown={_onMouseDown} onContextMenu={handleTaskbarContextMenu}>
       <div className="footer__items left">
         <div ref={menuRef} className="footer__start__menu">
           {menuOn && <FooterMenu onClick={_onClickMenuItem} onLaunchInstalledApp={onLaunchInstalledApp} />}
@@ -176,6 +210,7 @@ function Footer({
           src="/start-button.webp"
           alt="start"
           onMouseDown={toggleMenu}
+          onContextMenu={handleStartContextMenu}
           $active={menuOn}
           draggable={false}
         />
@@ -257,6 +292,16 @@ function Footer({
           {time}
         </div>
       </div>
+
+      {startContextMenu && (
+        <ContextMenu
+          position={startContextMenu}
+          items={startContextMenuItems}
+          onClose={() => setStartContextMenu(null)}
+          overlayType="fixed"
+          zIndex={10000}
+        />
+      )}
     </Container>
   );
 }
