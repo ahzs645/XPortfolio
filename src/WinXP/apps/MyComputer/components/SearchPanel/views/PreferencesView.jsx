@@ -6,6 +6,7 @@ function PreferencesView({
   onClose,
   onShowIndexingService,
   onShowInternetBehavior,
+  onShowCharacterSelect,
   showBalloonTips,
   setShowBalloonTips,
   autoCompleteOn,
@@ -31,7 +32,7 @@ function PreferencesView({
           <ArrowIcon />
           <span>Without an animated screen character</span>
         </OptionItem>
-        <OptionItem>
+        <OptionItem onClick={onShowCharacterSelect}>
           <ArrowIcon />
           <span>With a different character</span>
         </OptionItem>

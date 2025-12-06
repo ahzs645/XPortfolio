@@ -6,3 +6,4 @@ export { default as ComputersSearchView } from './ComputersSearchView';
 export { default as PreferencesView } from './PreferencesView';
 export { default as IndexingServiceView } from './IndexingServiceView';
 export { default as InternetBehaviorView } from './InternetBehaviorView';
+export { default as CharacterSelectView } from './CharacterSelectView';

@@ -19,10 +19,16 @@ import {
   PreferencesView,
   IndexingServiceView,
   InternetBehaviorView,
+  CharacterSelectView,
 } from './views';
 
 function SearchPanel({ searchQuery, onSearchChange, onClose }) {
   const inputRef = useRef(null);
+  const roverRef = useRef(null);
+
+  const handleTurnOffCharacter = () => {
+    roverRef.current?.triggerExit();
+  };
 
   // Main navigation state
   const [searchType, setSearchType] = useState(null);
@@ -65,6 +71,10 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
   // Indexing service view
   const [showIndexingService, setShowIndexingService] = useState(false);
   const [indexingEnabled, setIndexingEnabled] = useState(false);
+
+  // Character select view
+  const [showCharacterSelect, setShowCharacterSelect] = useState(false);
+  const [selectedCharacter, setSelectedCharacter] = useState('rover');
 
   // When was it modified filters
   const [modifiedFilter, setModifiedFilter] = useState('dont-remember');
@@ -131,12 +141,22 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
       );
     }
 
+    if (showCharacterSelect) {
+      return (
+        <CharacterSelectView
+          selectedCharacter={selectedCharacter}
+          setSelectedCharacter={setSelectedCharacter}
+        />
+      );
+    }
+
     if (showPreferences) {
       return (
         <PreferencesView
           onClose={onClose}
           onShowIndexingService={() => setShowIndexingService(true)}
           onShowInternetBehavior={() => setShowInternetBehavior(true)}
+          onShowCharacterSelect={() => setShowCharacterSelect(true)}
           showBalloonTips={showBalloonTips}
           setShowBalloonTips={setShowBalloonTips}
           autoCompleteOn={autoCompleteOn}
@@ -312,10 +332,19 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
       );
     }
 
-    if (showPreferences && !showIndexingService && !showInternetBehavior) {
+    if (showPreferences && !showIndexingService && !showInternetBehavior && !showCharacterSelect) {
       return (
         <ButtonRow style={{ justifyContent: 'flex-end' }}>
           <XPButton onClick={() => setShowPreferences(false)}>Back</XPButton>
+        </ButtonRow>
+      );
+    }
+
+    if (showCharacterSelect) {
+      return (
+        <ButtonRow>
+          <XPButton onClick={() => setShowCharacterSelect(false)}>OK</XPButton>
+          <XPButton onClick={() => setShowCharacterSelect(false)}>Cancel</XPButton>
         </ButtonRow>
       );
     }
@@ -353,7 +382,7 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
           </BalloonInner>
           <BalloonTip />
         </Balloon>
-        <RoverAnimation />
+        <RoverAnimation ref={roverRef} onExitComplete={onClose} />
       </Content>
     </Container>
   );

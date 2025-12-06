@@ -2,7 +2,7 @@ import React from 'react';
 import { BalloonTitle, OptionsList, OptionItem, AlsoSection, AlsoTitle, AlsoItem } from '../styles';
 import { ArrowIcon, HelpIcon, SearchComputerIcon, PreferencesIcon, DogIcon } from '../components/Icons';
 
-function MainMenuView({ onSelectType, onSearchInternet, onShowPreferences, onClose }) {
+function MainMenuView({ onSelectType, onSearchInternet, onShowPreferences, onTurnOffCharacter }) {
   return (
     <>
       <BalloonTitle>What do you want to search for?</BalloonTitle>
