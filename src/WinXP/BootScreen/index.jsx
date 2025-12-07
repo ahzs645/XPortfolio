@@ -4,6 +4,7 @@ import { BOOT_STATE } from '../constants';
 import { useConfig } from '../../contexts/ConfigContext';
 import { useUserAccounts } from '../../contexts/UserAccountsContext';
 import useSystemSounds from '../../hooks/useSystemSounds';
+import XPLogoSVG from '../../assets/xp.svg?react';
 
 function BootScreen({ bootState, onComplete }) {
   const [showLogin, setShowLogin] = useState(false);
@@ -126,7 +127,7 @@ function BootScreen({ bootState, onComplete }) {
         <LoginScreenInner>
           <LoginContainer $fadeOut={showWelcome}>
             <LoginLeft $fadeOut={showWelcome}>
-              <XPLogo src="/xp.svg" alt="Windows XP" aria-label="Windows XP" />
+              <XPLogo aria-label="Windows XP" />
               <LoginInstruction>
                 {showMultiUser ? (
                   <>
@@ -272,7 +273,7 @@ function BootScreen({ bootState, onComplete }) {
   return (
     <BootContainer>
       <BootContent>
-        <BootLogo src="/xp.svg" alt="Windows XP" aria-label="Windows XP" />
+        <BootLogo aria-label="Windows XP" />
         <LoadingBoxes>
           <LoadingBox />
           <LoadingBox />
@@ -324,7 +325,7 @@ const BootContent = styled.div`
   align-items: center;
 `;
 
-const BootLogo = styled.img`
+const BootLogo = styled(XPLogoSVG)`
   width: 350px;
   max-width: 80vw;
   max-height: 40vh;
@@ -495,12 +496,11 @@ const LoginLeft = styled.div`
   }
 `;
 
-const XPLogo = styled.img`
+const XPLogo = styled(XPLogoSVG)`
   display: block;
   height: 170px;
   max-height: 28vh;
   max-width: 100%;
-  object-fit: contain;
   width: auto;
 
   /* Mobile adjustments */
