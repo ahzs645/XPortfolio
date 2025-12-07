@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useLayoutEffect } from 'react';
 import styled from 'styled-components';
 
 /**
@@ -33,18 +33,115 @@ import styled from 'styled-components';
 function MenuBar({ menus = [], logo, onAction, windowActions = {} }) {
   const [activeMenu, setActiveMenu] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ left: 0, top: 0 });
+  const [overflowMenuOpen, setOverflowMenuOpen] = useState(false);
+  const [hiddenMenuIds, setHiddenMenuIds] = useState([]);
   const menuBarRef = useRef(null);
   const menuItemRefs = useRef({});
+  const chevronRef = useRef(null);
+  const itemWidthsRef = useRef({}); // Cache item widths to avoid flickering
+
+  // Calculate which menu items overflow
+  const calculateOverflow = useCallback(() => {
+    if (!menuBarRef.current) return;
+
+    const container = menuBarRef.current;
+    const containerWidth = container.offsetWidth;
+    const logoWidth = logo ? 40 : 0;
+    const chevronWidth = 24; // Width of chevron button
+    const padding = 8; // Right padding
+    const availableWidth = containerWidth - logoWidth - padding;
+
+    // Measure and cache item widths (only if not already cached or if visible)
+    menus.forEach((menu) => {
+      const menuEl = menuItemRefs.current[menu.id];
+      if (menuEl) {
+        const currentWidth = menuEl.offsetWidth;
+        // Only update cache if item is visible (has width > 0)
+        if (currentWidth > 0) {
+          itemWidthsRef.current[menu.id] = currentWidth;
+        }
+      }
+    });
+
+    let totalWidth = 0;
+    const hidden = [];
+
+    // Calculate total width using cached widths
+    menus.forEach((menu) => {
+      totalWidth += itemWidthsRef.current[menu.id] || 0;
+    });
+
+    const needsChevron = totalWidth > availableWidth;
+    const effectiveWidth = needsChevron ? availableWidth - chevronWidth : availableWidth;
+
+    // Determine which items to hide using cached widths
+    let usedWidth = 0;
+    menus.forEach((menu) => {
+      const itemWidth = itemWidthsRef.current[menu.id] || 0;
+      if (usedWidth + itemWidth > effectiveWidth) {
+        hidden.push(menu.id);
+      } else {
+        usedWidth += itemWidth;
+      }
+    });
+
+    setHiddenMenuIds(hidden);
+  }, [menus, logo]);
+
+  // Recalculate on resize with debouncing to prevent flickering
+  useLayoutEffect(() => {
+    let rafId = null;
+    let lastWidth = 0;
+
+    const debouncedCalculate = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        if (menuBarRef.current) {
+          const currentWidth = menuBarRef.current.offsetWidth;
+          // Only recalculate if width actually changed
+          if (currentWidth !== lastWidth) {
+            lastWidth = currentWidth;
+            calculateOverflow();
+          }
+        }
+      });
+    };
+
+    // Initial calculation
+    if (menuBarRef.current) {
+      lastWidth = menuBarRef.current.offsetWidth;
+    }
+    calculateOverflow();
+
+    const resizeObserver = new ResizeObserver(debouncedCalculate);
+
+    if (menuBarRef.current) {
+      resizeObserver.observe(menuBarRef.current);
+    }
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      resizeObserver.disconnect();
+    };
+  }, [calculateOverflow]);
+
+  // Recalculate when menus change
+  useEffect(() => {
+    // Use a small delay to ensure DOM is updated
+    const timer = setTimeout(calculateOverflow, 0);
+    return () => clearTimeout(timer);
+  }, [menus, calculateOverflow]);
 
   // Handle clicking/touching outside to close dropdown
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuBarRef.current && !menuBarRef.current.contains(e.target)) {
         setActiveMenu(null);
+        setOverflowMenuOpen(false);
       }
     };
 
-    if (activeMenu) {
+    if (activeMenu || overflowMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('touchstart', handleClickOutside);
       return () => {
@@ -52,7 +149,7 @@ function MenuBar({ menus = [], logo, onAction, windowActions = {} }) {
         document.removeEventListener('touchstart', handleClickOutside);
       };
     }
-  }, [activeMenu]);
+  }, [activeMenu, overflowMenuOpen]);
 
   const handleMenuClick = useCallback((menuId, disabled) => {
     if (disabled) return;
@@ -117,7 +214,23 @@ function MenuBar({ menus = [], logo, onAction, windowActions = {} }) {
     handleItemClick(action, disabled);
   }, [handleItemClick]);
 
+  // Handle chevron click to show overflow menu
+  const handleChevronClick = useCallback(() => {
+    setActiveMenu(null);
+    setOverflowMenuOpen(!overflowMenuOpen);
+  }, [overflowMenuOpen]);
+
+  // Handle clicking a hidden menu item from overflow dropdown
+  const handleOverflowMenuClick = useCallback((menuId, disabled) => {
+    if (disabled) return;
+    setOverflowMenuOpen(false);
+    // Open the submenu for this item
+    handleMenuClick(menuId, disabled);
+  }, [handleMenuClick]);
+
   const activeMenuData = menus.find(m => m.id === activeMenu);
+  const hiddenMenus = menus.filter(m => hiddenMenuIds.includes(m.id));
+  const hasOverflow = hiddenMenuIds.length > 0;
 
   return (
     <MenuBarContainer ref={menuBarRef}>
@@ -130,10 +243,20 @@ function MenuBar({ menus = [], logo, onAction, windowActions = {} }) {
             onClick={() => handleMenuClick(menu.id, menu.disabled)}
             onMouseEnter={() => handleMenuHover(menu.id, menu.disabled)}
             onTouchEnd={(e) => handleMenuTouchEnd(e, menu.id, menu.disabled)}
+            $hidden={hiddenMenuIds.includes(menu.id)}
           >
             {menu.label}
           </MenuItem>
         ))}
+        {hasOverflow && (
+          <ChevronButton
+            ref={chevronRef}
+            onClick={handleChevronClick}
+            className={overflowMenuOpen ? 'active' : ''}
+          >
+            »
+          </ChevronButton>
+        )}
         {logo && <MenuBarLogo src={logo} alt="Logo" />}
       </MenuBarInner>
 
@@ -154,6 +277,20 @@ function MenuBar({ menus = [], logo, onAction, windowActions = {} }) {
             )
           ))}
         </DropdownMenu>
+      )}
+
+      {overflowMenuOpen && hasOverflow && (
+        <OverflowDropdown>
+          {hiddenMenus.map((menu) => (
+            <MenuOption
+              key={menu.id}
+              className={menu.disabled ? 'disabled' : ''}
+              onClick={() => handleOverflowMenuClick(menu.id, menu.disabled)}
+            >
+              {menu.label}
+            </MenuOption>
+          ))}
+        </OverflowDropdown>
       )}
     </MenuBarContainer>
   );
@@ -188,7 +325,7 @@ const MenuBarInner = styled.div`
 
 const MenuItem = styled.div`
   align-items: center;
-  display: flex;
+  display: ${({ $hidden }) => $hidden ? 'none' : 'flex'};
   flex: 1 1 0;
   height: 100%;
   justify-content: center;
@@ -216,6 +353,39 @@ const MenuItem = styled.div`
     color: #bcbcbc;
     outline: none;
   }
+`;
+
+const ChevronButton = styled.div`
+  align-items: flex-start;
+  cursor: default;
+  display: flex;
+  font-weight: bold;
+  height: 100%;
+  justify-content: center;
+  padding: 2px 6px 0;
+  touch-action: manipulation;
+  user-select: none;
+
+  &:hover,
+  &.active {
+    background: #0a6fc2;
+    color: #fff;
+  }
+`;
+
+const OverflowDropdown = styled.div`
+  background: #f2f2f2;
+  border: 1px solid #d0d0d0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 11px;
+  min-width: 120px;
+  padding: 2px 0;
+  position: absolute;
+  right: 0;
+  top: 22px;
+  z-index: 99999;
 `;
 
 const MenuBarLogo = styled.img`

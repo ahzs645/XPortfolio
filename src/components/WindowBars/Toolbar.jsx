@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useLayoutEffect, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 
 /**
@@ -46,6 +46,125 @@ import styled, { css } from 'styled-components';
 function Toolbar({ items = [], onAction, onChange, bottomBorder = true, topBorder = false, variant = 'default' }) {
   const isCompact = variant === 'compact';
   const [pressedButton, setPressedButton] = useState(null);
+  const [overflowMenuOpen, setOverflowMenuOpen] = useState(false);
+  const [hiddenStartIndex, setHiddenStartIndex] = useState(-1); // Index from which items are hidden
+  const toolbarRef = useRef(null);
+  const itemRefs = useRef({});
+  const chevronRef = useRef(null);
+  const itemWidthsRef = useRef({}); // Cache item widths to avoid flickering
+
+  // Calculate which items overflow
+  const calculateOverflow = useCallback(() => {
+    if (!toolbarRef.current) return;
+
+    const container = toolbarRef.current;
+    const containerWidth = container.offsetWidth;
+    const padding = 16; // Left + right padding
+    const chevronWidth = 28; // Width of chevron button
+    const availableWidth = containerWidth - padding;
+
+    // Measure and cache item widths (only if not already cached or if visible)
+    items.forEach((item, index) => {
+      const itemEl = itemRefs.current[index];
+      if (itemEl) {
+        const currentWidth = itemEl.offsetWidth;
+        // Only update cache if item is visible (has width > 0)
+        if (currentWidth > 0) {
+          itemWidthsRef.current[index] = currentWidth;
+        }
+      }
+    });
+
+    // Calculate total width using cached widths
+    let totalWidth = 0;
+    items.forEach((item, index) => {
+      totalWidth += itemWidthsRef.current[index] || 0;
+    });
+
+    const needsChevron = totalWidth > availableWidth;
+    const effectiveWidth = needsChevron ? availableWidth - chevronWidth : availableWidth;
+
+    // Determine cutoff point using cached widths
+    let usedWidth = 0;
+    let cutoffIndex = -1;
+
+    for (let i = 0; i < items.length; i++) {
+      const itemWidth = itemWidthsRef.current[i] || 0;
+      if (usedWidth + itemWidth > effectiveWidth) {
+        cutoffIndex = i;
+        break;
+      }
+      usedWidth += itemWidth;
+    }
+
+    setHiddenStartIndex(cutoffIndex);
+  }, [items]);
+
+  // Recalculate on resize with debouncing to prevent flickering
+  useLayoutEffect(() => {
+    let rafId = null;
+    let lastWidth = 0;
+
+    const debouncedCalculate = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        if (toolbarRef.current) {
+          const currentWidth = toolbarRef.current.offsetWidth;
+          // Only recalculate if width actually changed
+          if (currentWidth !== lastWidth) {
+            lastWidth = currentWidth;
+            calculateOverflow();
+          }
+        }
+      });
+    };
+
+    // Initial calculation
+    if (toolbarRef.current) {
+      lastWidth = toolbarRef.current.offsetWidth;
+    }
+    calculateOverflow();
+
+    const resizeObserver = new ResizeObserver(debouncedCalculate);
+
+    if (toolbarRef.current) {
+      resizeObserver.observe(toolbarRef.current);
+    }
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      resizeObserver.disconnect();
+    };
+  }, [calculateOverflow]);
+
+  // Recalculate when items change
+  useEffect(() => {
+    const timer = setTimeout(calculateOverflow, 0);
+    return () => clearTimeout(timer);
+  }, [items, calculateOverflow]);
+
+  // Handle clicking outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (toolbarRef.current && !toolbarRef.current.contains(e.target)) {
+        setOverflowMenuOpen(false);
+      }
+    };
+
+    if (overflowMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+        document.removeEventListener('touchstart', handleClickOutside);
+      };
+    }
+  }, [overflowMenuOpen]);
+
+  // Handle chevron click
+  const handleChevronClick = useCallback(() => {
+    setOverflowMenuOpen(!overflowMenuOpen);
+  }, [overflowMenuOpen]);
 
   const handleMouseDown = useCallback((id, disabled) => {
     if (!disabled) {
@@ -92,79 +211,151 @@ function Toolbar({ items = [], onAction, onChange, bottomBorder = true, topBorde
   }, [onChange]);
 
   const iconSize = isCompact ? 16 : 25;
+  const hasOverflow = hiddenStartIndex >= 0;
+  const hiddenItems = hasOverflow ? items.slice(hiddenStartIndex).filter(item => item.type !== 'separator' && item.type !== 'spacer') : [];
+
+  const renderItem = (item, index, isInOverflow = false) => {
+    const isHidden = !isInOverflow && hiddenStartIndex >= 0 && index >= hiddenStartIndex;
+
+    if (item.type === 'separator') {
+      return (
+        <VerticalLine
+          key={`sep-${index}`}
+          ref={(el) => { itemRefs.current[index] = el; }}
+          $isCompact={isCompact}
+          $hidden={isHidden}
+        />
+      );
+    }
+
+    if (item.type === 'spacer') {
+      return (
+        <Spacer
+          key={`spacer-${index}`}
+          ref={(el) => { itemRefs.current[index] = el; }}
+          $width={item.width}
+          $hidden={isHidden}
+        />
+      );
+    }
+
+    if (item.type === 'select') {
+      return (
+        <SelectWrapper
+          key={item.id}
+          ref={(el) => { itemRefs.current[index] = el; }}
+          $hidden={isHidden}
+        >
+          <ToolbarSelect
+            value={item.value}
+            onChange={(e) => handleSelectChange(item.id, e.target.value)}
+            title={item.title}
+            $width={item.width}
+            disabled={item.disabled}
+          >
+            {item.options.map((opt) => (
+              <option key={opt.value} value={opt.value} style={opt.style}>
+                {opt.label}
+              </option>
+            ))}
+          </ToolbarSelect>
+        </SelectWrapper>
+      );
+    }
+
+    if (item.type === 'color') {
+      return (
+        <ColorWrapper
+          key={item.id}
+          ref={(el) => { itemRefs.current[index] = el; }}
+          $hidden={isHidden}
+        >
+          <ColorInput
+            type="color"
+            value={item.value}
+            onChange={(e) => handleColorChange(item.id, e.target.value)}
+            title={item.title}
+            disabled={item.disabled}
+          />
+        </ColorWrapper>
+      );
+    }
+
+    // Default: button type
+    const isPressed = pressedButton === item.id;
+    const isDisabled = item.disabled;
+    const isActive = item.active;
+
+    if (isInOverflow) {
+      // Render as dropdown menu item
+      return (
+        <OverflowMenuItem
+          key={item.id}
+          className={isDisabled ? 'disabled' : ''}
+          onClick={(e) => {
+            if (!isDisabled && onAction) {
+              onAction(item.action, e);
+              setOverflowMenuOpen(false);
+            }
+          }}
+        >
+          <img
+            src={item.icon}
+            alt={item.label || item.id}
+            width={16}
+            height={16}
+            draggable={false}
+          />
+          <span>{item.label || item.id}</span>
+        </OverflowMenuItem>
+      );
+    }
+
+    return (
+      <ToolbarButton
+        key={item.id}
+        ref={(el) => { itemRefs.current[index] = el; }}
+        className={`${isDisabled ? 'disabled' : ''} ${isPressed ? 'pressed' : ''} ${isActive ? 'active' : ''}`}
+        onMouseDown={() => handleMouseDown(item.id, isDisabled)}
+        onMouseUp={(e) => handleMouseUp(e, item.action, item.id, isDisabled)}
+        onMouseLeave={handleMouseLeave}
+        onTouchStart={(e) => handleTouchStart(e, item.id, isDisabled)}
+        onTouchEnd={(e) => handleTouchEnd(e, item.action, item.id, isDisabled)}
+        $isCompact={isCompact}
+        $hidden={isHidden}
+      >
+        <img
+          src={item.icon}
+          alt={item.label || item.id}
+          width={iconSize}
+          height={iconSize}
+          draggable={false}
+        />
+        {item.label && <span>{item.label}</span>}
+      </ToolbarButton>
+    );
+  };
 
   return (
-    <ToolbarContainer>
+    <ToolbarContainer ref={toolbarRef}>
       <ToolbarRow $bottomBorder={bottomBorder} $topBorder={topBorder} $isCompact={isCompact}>
-        {items.map((item, index) => {
-          if (item.type === 'separator') {
-            return <VerticalLine key={`sep-${index}`} $isCompact={isCompact} />;
-          }
-
-          if (item.type === 'spacer') {
-            return <Spacer key={`spacer-${index}`} $width={item.width} />;
-          }
-
-          if (item.type === 'select') {
-            return (
-              <ToolbarSelect
-                key={item.id}
-                value={item.value}
-                onChange={(e) => handleSelectChange(item.id, e.target.value)}
-                title={item.title}
-                $width={item.width}
-                disabled={item.disabled}
-              >
-                {item.options.map((opt) => (
-                  <option key={opt.value} value={opt.value} style={opt.style}>
-                    {opt.label}
-                  </option>
-                ))}
-              </ToolbarSelect>
-            );
-          }
-
-          if (item.type === 'color') {
-            return (
-              <ColorInput
-                key={item.id}
-                type="color"
-                value={item.value}
-                onChange={(e) => handleColorChange(item.id, e.target.value)}
-                title={item.title}
-                disabled={item.disabled}
-              />
-            );
-          }
-
-          // Default: button type
-          const isPressed = pressedButton === item.id;
-          const isDisabled = item.disabled;
-          const isActive = item.active;
-
-          return (
-            <ToolbarButton
-              key={item.id}
-              className={`${isDisabled ? 'disabled' : ''} ${isPressed ? 'pressed' : ''} ${isActive ? 'active' : ''}`}
-              onMouseDown={() => handleMouseDown(item.id, isDisabled)}
-              onMouseUp={(e) => handleMouseUp(e, item.action, item.id, isDisabled)}
-              onMouseLeave={handleMouseLeave}
-              onTouchStart={(e) => handleTouchStart(e, item.id, isDisabled)}
-              onTouchEnd={(e) => handleTouchEnd(e, item.action, item.id, isDisabled)}
-              $isCompact={isCompact}
-            >
-              <img
-                src={item.icon}
-                alt={item.label || item.id}
-                width={iconSize}
-                height={iconSize}
-                draggable={false}
-              />
-              {item.label && <span>{item.label}</span>}
-            </ToolbarButton>
-          );
-        })}
+        {items.map((item, index) => renderItem(item, index))}
+        {hasOverflow && (
+          <ChevronButton
+            ref={chevronRef}
+            onClick={handleChevronClick}
+            className={overflowMenuOpen ? 'active' : ''}
+            $isCompact={isCompact}
+          >
+            »
+          </ChevronButton>
+        )}
       </ToolbarRow>
+      {overflowMenuOpen && hasOverflow && (
+        <OverflowDropdown $isCompact={isCompact}>
+          {hiddenItems.map((item, index) => renderItem(item, hiddenStartIndex + index, true))}
+        </OverflowDropdown>
+      )}
     </ToolbarContainer>
   );
 }
@@ -176,7 +367,7 @@ const ToolbarContainer = styled.div`
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  position: static;
+  position: relative;
   width: 100%;
   z-index: auto;
   font-family: Tahoma, Arial, sans-serif;
@@ -223,7 +414,7 @@ const ToolbarButton = styled.div`
   border-radius: ${props => props.$isCompact ? '3px' : '5px'};
   box-shadow: none;
   color: #222;
-  display: flex;
+  display: ${props => props.$hidden ? 'none' : 'flex'};
   font-family: Tahoma, Arial, sans-serif;
   font-size: 11px;
   justify-content: center;
@@ -285,14 +476,84 @@ const ToolbarButton = styled.div`
 const VerticalLine = styled.div`
   background: none;
   border-left: 1px solid #d7d4ca;
+  display: ${props => props.$hidden ? 'none' : 'block'};
   height: ${props => props.$isCompact ? '18px' : '26px'};
   margin: 0 2px;
   width: 0;
 `;
 
 const Spacer = styled.div`
+  display: ${props => props.$hidden ? 'none' : 'block'};
   width: ${props => props.$width ? `${props.$width}px` : '8px'};
   flex-shrink: 0;
+`;
+
+const SelectWrapper = styled.div`
+  display: ${props => props.$hidden ? 'none' : 'flex'};
+  align-items: center;
+`;
+
+const ColorWrapper = styled.div`
+  display: ${props => props.$hidden ? 'none' : 'flex'};
+  align-items: center;
+`;
+
+const ChevronButton = styled.div`
+  align-items: flex-start;
+  cursor: default;
+  display: flex;
+  font-weight: bold;
+  height: 100%;
+  justify-content: center;
+  padding: 4px 6px 0;
+  touch-action: manipulation;
+  user-select: none;
+  margin-left: auto;
+
+  &:hover,
+  &.active {
+    background: #0a6fc2;
+    color: #fff;
+  }
+`;
+
+const OverflowDropdown = styled.div`
+  background: #f2f2f2;
+  border: 1px solid #d0d0d0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 11px;
+  min-width: 160px;
+  padding: 4px 0;
+  position: absolute;
+  right: 0;
+  top: ${props => props.$isCompact ? '28px' : '48px'};
+  z-index: 99999;
+`;
+
+const OverflowMenuItem = styled.div`
+  align-items: center;
+  cursor: default;
+  display: flex;
+  gap: 8px;
+  padding: 4px 12px;
+  white-space: nowrap;
+
+  &:hover:not(.disabled) {
+    background: #0a6fc2;
+    color: #fff;
+  }
+
+  &.disabled {
+    color: #bcbcbc;
+  }
+
+  img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+  }
 `;
 
 const ToolbarSelect = styled.select`
