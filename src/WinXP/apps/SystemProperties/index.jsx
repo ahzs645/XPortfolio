@@ -53,7 +53,7 @@ function SystemProperties({ onClose, onMinimize }) {
                 <RightColumn>
                   <InfoSection>
                     <InfoLabel>System:</InfoLabel>
-                    <InfoText>{getOSName()} Windows XP</InfoText>
+                    <InfoText>{getOSName()}</InfoText>
                     <InfoText>Professional x64 Edition</InfoText>
                     <InfoText>Version 1.0.0</InfoText>
                     <InfoText>Service Pack 3</InfoText>
