@@ -28,7 +28,7 @@ export const fileIcons = {
   '.png': '/icons/image-viewer.png',
   '.gif': '/icons/image-viewer.png',
   '.bmp': '/icons/paint.webp',
-  '.pdf': '/icons/adobe/acrobat.svg',
+  '.pdf': '/icons/pdf/PDF.ico',
   '.html': '/icons/xp/InternetExplorer6.png',
   '.htm': '/icons/xp/InternetExplorer6.png',
   '.url': '/icons/xp/InternetExplorer6.png',
@@ -124,7 +124,7 @@ export const DESKTOP_SHORTCUT_CATALOG = {
   soundRecorder: { id: 'shortcut-sound-recorder', name: 'Sound Recorder.lnk', icon: '/icons/xp/SoundRecorder.webp', target: 'Sound Recorder', size: SHORTCUT_SIZE },
   winamp: { id: 'shortcut-winamp', name: 'Winamp.lnk', icon: '/icons/winamp.png', target: 'Winamp', size: SHORTCUT_SIZE },
   displayProperties: { id: 'shortcut-display', name: 'Display Properties.lnk', icon: XP_ICONS.displayProperties, target: 'Display Properties', size: SHORTCUT_SIZE },
-  adobeReader: { id: 'shortcut-adobe-reader', name: 'Adobe Reader.lnk', icon: '/icons/adobe/acrobat.svg', target: 'Adobe Reader', size: SHORTCUT_SIZE },
+  adobeReader: { id: 'shortcut-adobe-reader', name: 'Adobe Reader.lnk', icon: '/icons/pdf/acroaum_grp107_lang1033.ico', target: 'Adobe Reader', size: SHORTCUT_SIZE },
 };
 
 // Default desktop programs if not specified in config (excludes system icons like My Computer and Recycle Bin)
@@ -1104,7 +1104,7 @@ export function FileSystemProvider({ children }) {
       } else if (fileContent.type.startsWith('video/')) {
         icon = '/icons/media-player.png';
       } else if (fileContent.type === 'application/pdf') {
-        icon = '/icons/resume.webp';
+        icon = '/icons/pdf/PDF.ico';
       } else if (fileContent.type === 'application/zip' || fileContent.type === 'application/x-rar-compressed') {
         icon = XP_ICONS.rar;
       } else if (fileContent.type === 'text/plain') {

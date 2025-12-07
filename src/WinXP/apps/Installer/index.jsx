@@ -176,6 +176,18 @@ const BUILTIN_PROGRAMS = [
     isBuiltIn: true,
     size: 73728,
   },
+  {
+    id: 'builtin-adobereader',
+    appKey: 'Adobe Reader',
+    name: 'Adobe Reader',
+    icon: '/icons/pdf/acroaum_grp107_lang1033.ico',
+    description: 'View and print PDF documents.',
+    version: '7.0',
+    author: 'Adobe Systems',
+    category: 'Utilities',
+    isBuiltIn: true,
+    size: 15728640,
+  },
 ];
 
 // Helper to get disabled apps from localStorage
