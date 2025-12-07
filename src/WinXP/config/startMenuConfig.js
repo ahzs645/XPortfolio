@@ -21,9 +21,9 @@ export const START_MENU_CATALOG = {
   resume: {
     type: 'program',
     appKey: 'Resume',
-    icon: '/icons/resume.webp',
+    icon: '/icons/pdf/PDF.ico',
     title: 'My Resume',
-    description: null,
+    description: 'View my CV',
   },
   contact: {
     type: 'program',

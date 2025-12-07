@@ -109,7 +109,7 @@ export const SYSTEM_DESKTOP_ICONS = {
 // Note: 'projects' removed - now using Projects briefcase folder instead
 export const DESKTOP_SHORTCUT_CATALOG = {
   about: { id: 'shortcut-about', name: 'About Me.lnk', icon: '/icons/about.webp', target: 'About Me', size: SHORTCUT_SIZE },
-  resume: { id: 'shortcut-resume', name: 'Resume.lnk', icon: '/icons/resume.webp', target: 'Resume', size: SHORTCUT_SIZE },
+  resume: { id: 'shortcut-resume', name: 'Resume.lnk', icon: '/icons/pdf/PDF.ico', target: 'Resume', size: SHORTCUT_SIZE },
   contact: { id: 'shortcut-contact', name: 'Contact.lnk', icon: '/icons/contact.webp', target: 'Contact', size: SHORTCUT_SIZE },
   calculator: { id: 'shortcut-calculator', name: 'Calculator.lnk', icon: XP_ICONS.calculator, target: 'Calculator', size: SHORTCUT_SIZE },
   minesweeper: { id: 'shortcut-minesweeper', name: 'Minesweeper.lnk', icon: XP_ICONS.minesweeper, target: 'Minesweeper', size: SHORTCUT_SIZE },
@@ -520,8 +520,9 @@ export function FileSystemProvider({ children }) {
       } else {
         // Migrate existing items to be proper shortcuts
         const item = fs[shortcut.id];
-        if (item.type !== 'shortcut') {
-          fs[shortcut.id].type = 'shortcut';
+        // Force type to 'shortcut' if missing, undefined, or incorrect
+        if (!item.type || item.type !== 'shortcut') {
+          fs[shortcut.id] = { ...fs[shortcut.id], type: 'shortcut' };
           modified = true;
         }
         if (!item.ext) {
@@ -537,11 +538,12 @@ export function FileSystemProvider({ children }) {
           fs[shortcut.id].name = item.name + '.lnk';
           modified = true;
         }
-        // Ensure icon and target are set
-        if (!item.icon) {
+        // Always update icon from catalog (allows icon updates to propagate)
+        if (item.icon !== shortcut.icon) {
           fs[shortcut.id].icon = shortcut.icon;
           modified = true;
         }
+        // Ensure target is set
         if (!item.target) {
           fs[shortcut.id].target = shortcut.target;
           modified = true;

@@ -302,14 +302,18 @@ export const appSettings = {
   },
   Resume: {
     header: {
-      icon: '/icons/resume.webp',
-      title: 'Resume',
+      icon: '/icons/pdf/acroaum_grp107_lang1033.ico',
+      title: 'Adobe Reader - [CV.pdf]',
       buttons: ['minimize', 'maximize', 'close'],
     },
-    component: Resume,
+    component: AdobeReader,
+    injectProps: {
+      pdfPath: '/CV.pdf',
+      pdfName: 'CV.pdf',
+    },
     defaultSize: {
-      width: 700,
-      height: 550,
+      width: 800,
+      height: 600,
     },
     defaultOffset: {
       x: 120,
