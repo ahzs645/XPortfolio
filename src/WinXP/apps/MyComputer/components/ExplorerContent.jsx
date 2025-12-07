@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import { IconItem, ListItem, DetailsRow, TileItem, DetailsHeader } from './FileItemViews';
 import { VIEW_MODES } from '../constants';
+import { isMobileDevice } from '../../../../utils/deviceDetection';
+
+const DOUBLE_TAP_DELAY = 400; // ms for double-tap detection
 
 function ExplorerContent({
   items,
@@ -38,6 +41,44 @@ function ExplorerContent({
   onContentMouseDown,
   onBackgroundContextMenu,
 }) {
+  const lastTapRef = useRef(null);
+  const isMobile = isMobileDevice();
+
+  // Handle touch start for double-tap detection
+  const handleTouchStart = useCallback((e, item) => {
+    if (!isMobile) return;
+    if (e.touches.length !== 1) return;
+
+    const now = Date.now();
+
+    // Check for double-tap on same item
+    if (lastTapRef.current &&
+        lastTapRef.current.id === item.id &&
+        now - lastTapRef.current.time < DOUBLE_TAP_DELAY) {
+      // Double-tap detected
+      e.preventDefault();
+      e.stopPropagation();
+      lastTapRef.current = null;
+      // Trigger double-click action
+      setTimeout(() => onItemDoubleClick(item), 0);
+      return;
+    }
+
+    // Record this tap for potential double-tap
+    lastTapRef.current = { id: item.id, time: now };
+
+    // Also trigger the click/select
+    onItemClick(e, item);
+  }, [isMobile, onItemClick, onItemDoubleClick]);
+
+  // Handle touch end
+  const handleTouchEnd = useCallback((e) => {
+    // Prevent synthetic click on mobile after double-tap
+    if (isMobile && e.cancelable) {
+      // Don't prevent default for normal taps, only if needed
+    }
+  }, [isMobile]);
+
   const renderItem = (item) => {
     const commonProps = {
       key: item.id,
@@ -51,13 +92,15 @@ function ExplorerContent({
       onRenameChange,
       onRenameSubmit,
       onClick: (e) => onItemClick(e, item),
-      onDoubleClick: () => onItemDoubleClick(item),
+      onDoubleClick: () => !isMobile && onItemDoubleClick(item), // Disable on mobile, use touch instead
       onContextMenu: (e) => onContextMenu(e, item),
       onDragStart: (e) => onItemDragStart(e, item),
       onDragEnd: onItemDragEnd,
       onDragOver: (e) => onItemDragOver(e, item),
       onDragLeave: onItemDragLeave,
       onDrop: (e) => onItemDrop(e, item),
+      onTouchStart: (e) => handleTouchStart(e, item),
+      onTouchEnd: handleTouchEnd,
       itemRef: (el) => { itemRefs.current[item.id] = el; },
     };
 

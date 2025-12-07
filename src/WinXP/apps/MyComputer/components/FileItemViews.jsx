@@ -33,6 +33,8 @@ export function IconItem({
   onDragOver,
   onDragLeave,
   onDrop,
+  onTouchStart,
+  onTouchEnd,
   itemRef,
 }) {
   return (
@@ -51,6 +53,8 @@ export function IconItem({
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
     >
       <IconImageWrapper>
         <IconImage src={item.icon || XP_ICONS.folder} alt="" />
@@ -92,6 +96,8 @@ export function ListItem({
   onDragOver,
   onDragLeave,
   onDrop,
+  onTouchStart,
+  onTouchEnd,
   itemRef,
 }) {
   return (
@@ -110,6 +116,8 @@ export function ListItem({
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
     >
       <ListIconWrapper>
         <ListIcon src={item.icon || XP_ICONS.folder} alt="" />
@@ -151,6 +159,8 @@ export function DetailsRow({
   onDragOver,
   onDragLeave,
   onDrop,
+  onTouchStart,
+  onTouchEnd,
   itemRef,
   fileSystem,
 }) {
@@ -174,6 +184,8 @@ export function DetailsRow({
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
     >
       <DetailsCell $width="40%">
         <DetailsIconWrapper>
@@ -222,6 +234,8 @@ export function TileItem({
   onDragOver,
   onDragLeave,
   onDrop,
+  onTouchStart,
+  onTouchEnd,
   itemRef,
 }) {
   return (
@@ -240,6 +254,8 @@ export function TileItem({
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
     >
       <TileIconWrapper>
         <TileIcon src={item.icon || XP_ICONS.folder} alt="" />

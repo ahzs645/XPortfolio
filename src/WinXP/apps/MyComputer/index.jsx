@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../../../contexts/FileSystemContext';
 import { useApp } from '../../../contexts/AppContext';
 import { useConfig } from '../../../contexts/ConfigContext';
+import { isMobileDevice } from '../../../utils/deviceDetection';
 import { ProgramLayout, TaskPanel } from '../../../components';
 import { ContextMenu } from '../../components/ContextMenu';
 import { useFileContextMenu, useBackgroundContextMenu } from '../../hooks/useFileContextMenu';
@@ -59,6 +60,8 @@ import {
   MyComputerTileType,
 } from './styles';
 
+const DOUBLE_TAP_DELAY = 400; // ms for double-tap detection
+
 function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPath }) {
   const {
     fileSystem,
@@ -86,6 +89,10 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   const containerRef = useRef(null);
   const contentRef = useRef(null);
   const itemRefs = useRef({});
+  const lastTapRef = useRef(null); // For mobile double-tap detection
+
+  // Mobile detection
+  const isMobile = isMobileDevice();
 
   // View state
   const [viewMode, setViewMode] = useState('icons');
@@ -509,12 +516,38 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     ? `${visibleItems} of ${totalItems} object(s)`
     : `${visibleItems} object(s)`;
 
+  // Mobile touch handler for My Computer root view
+  const handleMyComputerItemTouchStart = useCallback((e, item) => {
+    if (!isMobile) return;
+    if (e.touches.length !== 1) return;
+
+    const now = Date.now();
+
+    // Check for double-tap
+    if (lastTapRef.current &&
+        lastTapRef.current.id === item.id &&
+        now - lastTapRef.current.time < DOUBLE_TAP_DELAY) {
+      e.preventDefault();
+      e.stopPropagation();
+      lastTapRef.current = null;
+      setTimeout(() => handleItemDoubleClick(item), 0);
+      return;
+    }
+
+    // Record this tap
+    lastTapRef.current = { id: item.id, time: now };
+
+    // Trigger click/select
+    handleItemClick(e, item);
+  }, [isMobile, handleItemClick, handleItemDoubleClick]);
+
   // Render item for My Computer root view
   const renderMyComputerItem = (item) => {
     const commonProps = {
       $selected: selectedItems.includes(item.id),
       onClick: (e) => handleItemClick(e, item),
-      onDoubleClick: () => handleItemDoubleClick(item),
+      onDoubleClick: () => !isMobile && handleItemDoubleClick(item),
+      onTouchStart: (e) => handleMyComputerItemTouchStart(e, item),
     };
 
     switch (viewMode) {

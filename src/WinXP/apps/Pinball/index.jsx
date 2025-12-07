@@ -19,11 +19,15 @@ const Container = styled.div`
   height: 100%;
   overflow: hidden;
   background: #000;
+  /* Allow touch events to pass through to iframe for mobile support */
+  touch-action: none;
 
   iframe {
     width: 100%;
     height: 100%;
     border: none;
+    /* Ensure iframe can handle its own touch events */
+    touch-action: none;
   }
 `;
 

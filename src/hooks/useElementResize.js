@@ -412,6 +412,19 @@ function useElementResize(ref, options) {
 
     function onTouchStart(e) {
       if (e.touches.length !== 1) return;
+
+      // Check if this touch should be handled for drag/resize
+      // Only prevent default if we're actually going to handle it
+      const touchTarget = e.target;
+      const isDragTarget = dragTarget && (touchTarget === dragTarget || dragTarget.contains(touchTarget));
+      const isResizeTarget = touchTarget === target && resizable && cursorPos;
+
+      // Don't interfere with touches on interactive elements inside the window
+      if (!isDragTarget && !isResizeTarget) return;
+
+      // Don't prevent default on title bar controls
+      if (touchTarget.closest('.title-bar-controls')) return;
+
       e.preventDefault(); // Prevent scrolling while dragging
       onMouseDown(e);
     }

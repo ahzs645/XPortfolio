@@ -1,6 +1,9 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../../contexts/FileSystemContext';
+import { isMobileDevice } from '../../utils/deviceDetection';
+
+const DOUBLE_TAP_DELAY = 400; // ms for double-tap detection
 
 const QUICK_ACCESS = [
   { id: SYSTEM_IDS.DESKTOP, name: 'Desktop', icon: XP_ICONS.desktop },
@@ -126,6 +129,31 @@ function FileChooser({
       handleOpen([item.id]);
     }
   }, [navigateTo, isDesiredFile]);
+
+  // Mobile touch handling for double-tap
+  const lastTapRef = useRef(null);
+  const isMobile = isMobileDevice();
+
+  const handleItemTouchStart = useCallback((e, item, action) => {
+    if (!isMobile) return;
+    if (e.touches.length !== 1) return;
+
+    const now = Date.now();
+
+    // Check for double-tap
+    if (lastTapRef.current &&
+        lastTapRef.current.id === item.id &&
+        now - lastTapRef.current.time < DOUBLE_TAP_DELAY) {
+      e.preventDefault();
+      e.stopPropagation();
+      lastTapRef.current = null;
+      setTimeout(() => action(item), 0);
+      return;
+    }
+
+    // Record this tap
+    lastTapRef.current = { id: item.id, time: now };
+  }, [isMobile]);
 
   const handleOpen = useCallback(async (itemIds = selectedItems) => {
     if (!itemIds || itemIds.length === 0) return;
@@ -318,7 +346,8 @@ function FileChooser({
                       $selected={selectedItems.includes(item.id)}
                       $dimmed={!isDesiredFile(item)}
                       onClick={(e) => { e.stopPropagation(); handleItemClick(e, item); }}
-                      onDoubleClick={() => handleItemDoubleClick(item)}
+                      onDoubleClick={() => !isMobile && handleItemDoubleClick(item)}
+                      onTouchStart={(e) => handleItemTouchStart(e, item, handleItemDoubleClick)}
                     >
                       <FileIcon src={item.icon || XP_ICONS.file} alt="" />
                       <FileName $selected={selectedItems.includes(item.id)}>
@@ -339,7 +368,8 @@ function FileChooser({
                   {MY_COMPUTER_FOLDERS.map((item) => (
                     <MyComputerItem
                       key={item.id}
-                      onDoubleClick={() => navigateTo(item.id)}
+                      onDoubleClick={() => !isMobile && navigateTo(item.id)}
+                      onTouchStart={(e) => handleItemTouchStart(e, item, () => navigateTo(item.id))}
                     >
                       <MyComputerIcon src={item.icon} alt="" />
                       <MyComputerName>{item.name}</MyComputerName>
@@ -353,7 +383,8 @@ function FileChooser({
                   {MY_COMPUTER_DRIVES.map((item) => (
                     <MyComputerItem
                       key={item.id}
-                      onDoubleClick={() => navigateTo(item.id)}
+                      onDoubleClick={() => !isMobile && navigateTo(item.id)}
+                      onTouchStart={(e) => handleItemTouchStart(e, item, () => navigateTo(item.id))}
                     >
                       <MyComputerDriveIcon src={item.icon} alt="" />
                       <MyComputerName>{item.name}</MyComputerName>

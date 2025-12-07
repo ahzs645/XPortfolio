@@ -59,12 +59,16 @@ const Container = styled.div`
 const IframeWrapper = styled.div`
   flex: 1;
   overflow: hidden;
+  /* Allow touch events to pass through to iframe for mobile drag support */
+  touch-action: none;
 
   iframe {
     width: 100%;
     height: 100%;
     border: none;
     display: block;
+    /* Ensure iframe can handle its own touch events */
+    touch-action: none;
   }
 `;
 
