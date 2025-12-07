@@ -9,7 +9,7 @@ const AppContext = createContext(null);
 const PROGRAM_NAME_TO_APP_KEY = {
   'Internet Explorer': 'Internet Explorer',
   'Notepad': 'Notepad',
-  'Windows Media Player': 'Media Player',
+  'Windows Media Player': 'Windows Media Player',
   'Winamp': 'Winamp',
   'Image Viewer': 'Image Viewer',
   'Paint': 'Paint',
@@ -139,7 +139,7 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
 
       case 'Windows Media Player':
       case 'Winamp': {
-        const playerKey = programName === 'Winamp' ? 'Winamp' : 'Media Player';
+        const playerKey = programName === 'Winamp' ? 'Winamp' : 'Windows Media Player';
         if (!appSettings[playerKey]) return false;
         dispatch({
           type: addAppAction,
@@ -150,7 +150,8 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
               title: `${name} - ${programName}`,
             },
             injectProps: {
-              initialTrack: { src: fileData, title: name },
+              fileData: fileData,
+              fileName: name,
             },
           },
         });

@@ -620,14 +620,14 @@ function WinXP() {
           });
           handled = true;
         } else if (defaultProgram === 'Windows Media Player' || defaultProgram === 'Winamp') {
-          const playerKey = defaultProgram === 'Winamp' ? 'Winamp' : 'Media Player';
+          const playerKey = defaultProgram === 'Winamp' ? 'Winamp' : 'Windows Media Player';
           if (appSettings[playerKey]) {
             dispatch({
               type: ADD_APP,
               payload: {
                 ...appSettings[playerKey],
                 header: { ...appSettings[playerKey].header, title: `${icon.title} - ${defaultProgram}` },
-                injectProps: { initialTrack: { src: fileData, title: icon.title } },
+                injectProps: { fileData: fileData, fileName: icon.title },
               },
             });
             handled = true;

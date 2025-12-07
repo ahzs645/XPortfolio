@@ -174,6 +174,32 @@ export function openFileWithApp({
     return true;
   }
 
+  // For audio/video files
+  const audioExts = ['.mp3', '.wav', '.ogg', '.m4a', '.flac', '.aac'];
+  const videoExts = ['.mp4', '.webm', '.mkv', '.avi', '.mov'];
+  const mediaExts = [...audioExts, ...videoExts];
+  const audioTypes = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/flac', 'audio/aac'];
+  const videoTypes = ['video/mp4', 'video/webm', 'video/x-matroska', 'video/avi', 'video/quicktime'];
+  const mediaTypes = [...audioTypes, ...videoTypes];
+
+  if (mediaTypes.includes(contentType) || mediaExts.includes(ext)) {
+    dispatch({
+      type: addAppAction,
+      payload: {
+        ...appSettings['Windows Media Player'],
+        header: {
+          ...appSettings['Windows Media Player'].header,
+          title: `${fileName} - Windows Media Player`,
+        },
+        injectProps: {
+          fileData: fileData,
+          fileName: fileName,
+        },
+      },
+    });
+    return true;
+  }
+
   // For PDF files
   if (ext === '.pdf' || contentType === 'application/pdf') {
     if (appSettings['Adobe Reader']) {
