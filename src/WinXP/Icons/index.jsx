@@ -6,6 +6,7 @@ import { isMobileDevice } from '../../utils/deviceDetection';
 const DRAG_THRESHOLD_DESKTOP = 4;
 const DRAG_THRESHOLD_MOBILE = 10;
 const DOUBLE_TAP_DELAY = 400; // ms for double-tap detection on touch
+const LONG_PRESS_DELAY = 500; // ms for long-press context menu on mobile
 
 function Icons({
   icons,
@@ -34,9 +35,18 @@ function Icons({
   const [touchState, setTouchState] = useState(null); // { id, startX, startY, startTime }
   const [hasDragStarted, setHasDragStarted] = useState(false); // Track if drag has exceeded threshold
   const lastTapRef = useRef(null); // For double-tap detection
+  const longPressTimerRef = useRef(null); // For long-press context menu
   const iconRefs = useRef([]);
   const containerRef = useRef(null);
   const isMobile = isMobileDevice();
+
+  // Clear long press timer
+  const clearLongPressTimer = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
   const dragThreshold = isMobile ? DRAG_THRESHOLD_MOBILE : DRAG_THRESHOLD_DESKTOP;
 
   // Update icon rectangles for selection detection
@@ -225,6 +235,9 @@ function Icons({
     const touch = e.touches[0];
     const now = Date.now();
 
+    // Clear any existing long press timer
+    clearLongPressTimer();
+
     // Check for double-tap
     if (lastTapRef.current &&
         lastTapRef.current.id === icon.id &&
@@ -248,6 +261,25 @@ function Icons({
       onMouseDown(icon.id);
     }
 
+    // Start long press timer for context menu
+    if (isMobile && onContextMenu) {
+      longPressTimerRef.current = setTimeout(() => {
+        // Create a synthetic event with touch coordinates for context menu positioning
+        const syntheticEvent = {
+          preventDefault: () => {},
+          stopPropagation: () => {},
+          clientX: touch.clientX,
+          clientY: touch.clientY,
+          pageX: touch.pageX,
+          pageY: touch.pageY,
+        };
+        onContextMenu(syntheticEvent, icon);
+        // Clear touch state to prevent further actions
+        setTouchState(null);
+        lastTapRef.current = null;
+      }, LONG_PRESS_DELAY);
+    }
+
     // Start tracking touch for potential drag
     setTouchState({
       id: icon.id,
@@ -256,7 +288,7 @@ function Icons({
       startTime: now,
     });
     setHasDragStarted(false);
-  }, [icons, onMouseDown, onDoubleClick]);
+  }, [icons, onMouseDown, onDoubleClick, onContextMenu, isMobile, clearLongPressTimer]);
 
   const handleTouchMove = useCallback((e, icon) => {
     if (!touchState || touchState.id !== icon.id) return;
@@ -270,8 +302,9 @@ function Icons({
     // Check if drag threshold exceeded
     if (!hasDragStarted && distance > dragThreshold) {
       setHasDragStarted(true);
-      // Clear the double-tap timer since we're dragging
+      // Clear the double-tap timer and long press timer since we're dragging
       lastTapRef.current = null;
+      clearLongPressTimer();
 
       // Start the actual drag
       const selectedIcons = icons.filter((i) => i.isFocus);
@@ -335,6 +368,9 @@ function Icons({
   }, [touchState, hasDragStarted, dragThreshold, icons, dragging, iconsRect]);
 
   const handleTouchEnd = useCallback((e, icon) => {
+    // Always clear long press timer on touch end
+    clearLongPressTimer();
+
     if (!touchState || touchState.id !== icon.id) return;
 
     // If we were dragging, finalize the drag
@@ -355,7 +391,7 @@ function Icons({
     setDragging(null);
     setDragPositions({});
     setDropTargetId(null);
-  }, [touchState, hasDragStarted, dropTargetId, onMoveToFolder, icons, dragPositions, onUpdatePositions]);
+  }, [touchState, hasDragStarted, dropTargetId, onMoveToFolder, icons, dragPositions, onUpdatePositions, clearLongPressTimer]);
 
   // Get position for an icon (use drag position if dragging, otherwise use icon position)
   const getIconPosition = (icon) => {

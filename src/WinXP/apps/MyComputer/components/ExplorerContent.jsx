@@ -5,6 +5,7 @@ import { VIEW_MODES } from '../constants';
 import { isMobileDevice } from '../../../../utils/deviceDetection';
 
 const DOUBLE_TAP_DELAY = 400; // ms for double-tap detection
+const LONG_PRESS_DELAY = 500; // ms for long-press context menu
 
 function ExplorerContent({
   items,
@@ -42,14 +43,27 @@ function ExplorerContent({
   onBackgroundContextMenu,
 }) {
   const lastTapRef = useRef(null);
+  const longPressTimerRef = useRef(null);
   const isMobile = isMobileDevice();
 
-  // Handle touch start for double-tap detection
+  // Clear long press timer
+  const clearLongPressTimer = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
+
+  // Handle touch start for double-tap and long-press detection
   const handleTouchStart = useCallback((e, item) => {
     if (!isMobile) return;
     if (e.touches.length !== 1) return;
 
+    const touch = e.touches[0];
     const now = Date.now();
+
+    // Clear any existing long press timer
+    clearLongPressTimer();
 
     // Check for double-tap on same item
     if (lastTapRef.current &&
@@ -67,17 +81,30 @@ function ExplorerContent({
     // Record this tap for potential double-tap
     lastTapRef.current = { id: item.id, time: now };
 
+    // Start long press timer for context menu
+    longPressTimerRef.current = setTimeout(() => {
+      // Create a synthetic event with touch coordinates
+      const syntheticEvent = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+        pageX: touch.pageX,
+        pageY: touch.pageY,
+      };
+      onContextMenu(syntheticEvent, item);
+      lastTapRef.current = null;
+    }, LONG_PRESS_DELAY);
+
     // Also trigger the click/select
     onItemClick(e, item);
-  }, [isMobile, onItemClick, onItemDoubleClick]);
+  }, [isMobile, onItemClick, onItemDoubleClick, onContextMenu, clearLongPressTimer]);
 
   // Handle touch end
-  const handleTouchEnd = useCallback((e) => {
-    // Prevent synthetic click on mobile after double-tap
-    if (isMobile && e.cancelable) {
-      // Don't prevent default for normal taps, only if needed
-    }
-  }, [isMobile]);
+  const handleTouchEnd = useCallback(() => {
+    // Clear long press timer
+    clearLongPressTimer();
+  }, [clearLongPressTimer]);
 
   const renderItem = (item) => {
     const commonProps = {

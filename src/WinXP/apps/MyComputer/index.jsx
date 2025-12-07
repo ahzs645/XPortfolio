@@ -61,6 +61,7 @@ import {
 } from './styles';
 
 const DOUBLE_TAP_DELAY = 400; // ms for double-tap detection
+const LONG_PRESS_DELAY = 500; // ms for long-press context menu
 
 function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPath }) {
   const {
@@ -90,9 +91,18 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   const contentRef = useRef(null);
   const itemRefs = useRef({});
   const lastTapRef = useRef(null); // For mobile double-tap detection
+  const longPressTimerRef = useRef(null); // For long-press context menu
 
   // Mobile detection
   const isMobile = isMobileDevice();
+
+  // Clear long press timer
+  const clearLongPressTimer = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
 
   // View state
   const [viewMode, setViewMode] = useState('icons');
@@ -521,7 +531,11 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     if (!isMobile) return;
     if (e.touches.length !== 1) return;
 
+    const touch = e.touches[0];
     const now = Date.now();
+
+    // Clear any existing long press timer
+    clearLongPressTimer();
 
     // Check for double-tap
     if (lastTapRef.current &&
@@ -537,9 +551,29 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     // Record this tap
     lastTapRef.current = { id: item.id, time: now };
 
+    // Start long press timer for context menu
+    longPressTimerRef.current = setTimeout(() => {
+      // Create a synthetic event with touch coordinates
+      const syntheticEvent = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+        pageX: touch.pageX,
+        pageY: touch.pageY,
+      };
+      handleContextMenu(syntheticEvent, item);
+      lastTapRef.current = null;
+    }, LONG_PRESS_DELAY);
+
     // Trigger click/select
     handleItemClick(e, item);
-  }, [isMobile, handleItemClick, handleItemDoubleClick]);
+  }, [isMobile, handleItemClick, handleItemDoubleClick, handleContextMenu, clearLongPressTimer]);
+
+  // Mobile touch end handler
+  const handleMyComputerItemTouchEnd = useCallback(() => {
+    clearLongPressTimer();
+  }, [clearLongPressTimer]);
 
   // Render item for My Computer root view
   const renderMyComputerItem = (item) => {
@@ -548,6 +582,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
       onClick: (e) => handleItemClick(e, item),
       onDoubleClick: () => !isMobile && handleItemDoubleClick(item),
       onTouchStart: (e) => handleMyComputerItemTouchStart(e, item),
+      onTouchEnd: handleMyComputerItemTouchEnd,
     };
 
     switch (viewMode) {
