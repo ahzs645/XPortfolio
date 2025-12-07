@@ -192,6 +192,98 @@ import { StatusBar } from '../components';
 />
 ```
 
+## PDF Viewer / Adobe Reader Style Toolbar
+
+For applications like PDF viewers that need icon-only compact toolbars with zoom controls:
+
+```jsx
+import { ProgramLayout } from '../components';
+
+function PDFViewerApp({ onClose, onMinimize, onMaximize }) {
+  const [pageNumber, setPageNumber] = useState(1);
+  const [numPages, setNumPages] = useState(10);
+  const [scale, setScale] = useState(100);
+
+  // SVG icons for zoom (magnifying glass with +/-)
+  const zoomOutIcon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Ccircle cx='6' cy='6' r='5' fill='none' stroke='%23333' stroke-width='1.5'/%3E%3Cline x1='10' y1='10' x2='14' y2='14' stroke='%23333' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='3' y1='6' x2='9' y2='6' stroke='%23333' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E";
+  const zoomInIcon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Ccircle cx='6' cy='6' r='5' fill='none' stroke='%23333' stroke-width='1.5'/%3E%3Cline x1='10' y1='10' x2='14' y2='14' stroke='%23333' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='3' y1='6' x2='9' y2='6' stroke='%23333' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='6' y1='3' x2='6' y2='9' stroke='%23333' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E";
+
+  const toolbarItems = [
+    { type: 'button', id: 'open', icon: '/icons/pdf/AcroRd32_grp18534_lang1033.ico', action: 'open', title: 'Open' },
+    { type: 'button', id: 'print', icon: '/gui/toolbar/print.webp', action: 'print', title: 'Print' },
+    { type: 'separator' },
+    { type: 'button', id: 'prevPage', icon: '/gui/toolbar/back.webp', action: 'prevPage', disabled: pageNumber <= 1, title: 'Previous Page' },
+    { type: 'button', id: 'nextPage', icon: '/gui/toolbar/forward.webp', action: 'nextPage', disabled: pageNumber >= numPages, title: 'Next Page' },
+    { type: 'separator' },
+    { type: 'button', id: 'zoomOut', icon: zoomOutIcon, action: 'zoomOut', title: 'Zoom Out' },
+    { type: 'select', id: 'zoom', value: String(scale), options: [
+      { value: '50', label: '50%' },
+      { value: '75', label: '75%' },
+      { value: '100', label: '100%' },
+      { value: '125', label: '125%' },
+      { value: '150', label: '150%' },
+      { value: '200', label: '200%' },
+    ], width: 65 },
+    { type: 'button', id: 'zoomIn', icon: zoomInIcon, action: 'zoomIn', title: 'Zoom In' },
+  ];
+
+  const handleToolbarAction = (action) => {
+    switch (action) {
+      case 'open': handleFileOpen(); break;
+      case 'print': window.print(); break;
+      case 'prevPage': setPageNumber(p => Math.max(p - 1, 1)); break;
+      case 'nextPage': setPageNumber(p => Math.min(p + 1, numPages)); break;
+      case 'zoomOut': setScale(s => Math.max(s - 10, 50)); break;
+      case 'zoomIn': setScale(s => Math.min(s + 10, 200)); break;
+    }
+  };
+
+  const handleZoomChange = (id, value) => {
+    if (id === 'zoom') setScale(Number(value));
+  };
+
+  return (
+    <ProgramLayout
+      menus={[
+        { id: 'file', label: 'File', items: [
+          { label: 'Open...', action: 'open' },
+          { label: 'Print...', action: 'print' },
+          { separator: true },
+          { label: 'Exit', action: 'exitProgram' },
+        ]},
+        { id: 'view', label: 'View', items: [
+          { label: 'Zoom In', action: 'zoomIn' },
+          { label: 'Zoom Out', action: 'zoomOut' },
+        ]},
+      ]}
+      toolbarItems={toolbarItems}
+      onToolbarAction={handleToolbarAction}
+      onToolbarChange={handleZoomChange}
+      windowActions={{ onClose, onMinimize, onMaximize }}
+      showAddressBar={false}
+      showStatusBar={false}
+    >
+      <PDFContent />
+    </ProgramLayout>
+  );
+}
+```
+
+### Using SVG Data URIs for Custom Icons
+
+You can use inline SVG data URIs for custom icons like zoom magnifying glasses:
+
+```jsx
+// Magnifying glass with minus sign (zoom out)
+const zoomOutIcon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Ccircle cx='6' cy='6' r='5' fill='none' stroke='%23333' stroke-width='1.5'/%3E%3Cline x1='10' y1='10' x2='14' y2='14' stroke='%23333' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='3' y1='6' x2='9' y2='6' stroke='%23333' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E";
+
+// Magnifying glass with plus sign (zoom in)
+const zoomInIcon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Ccircle cx='6' cy='6' r='5' fill='none' stroke='%23333' stroke-width='1.5'/%3E%3Cline x1='10' y1='10' x2='14' y2='14' stroke='%23333' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='3' y1='6' x2='9' y2='6' stroke='%23333' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='6' y1='3' x2='6' y2='9' stroke='%23333' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E";
+
+// Use in toolbar items
+{ type: 'button', id: 'zoomOut', icon: zoomOutIcon, action: 'zoomOut', title: 'Zoom Out' }
+```
+
 ## Available Toolbar Icons
 
 Located in `/public/gui/toolbar/`:
