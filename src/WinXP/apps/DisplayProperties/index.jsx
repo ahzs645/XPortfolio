@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { ProgramLayout, FileChooser } from '../../../components';
 import { useUserSettings } from '../../../contexts/UserSettingsContext';
 import { useScreensaver } from '../../../contexts/ScreensaverContext';
+import WindowsScreensaver from '../../../components/Screensavers/WindowsScreensaver';
 
 const WALLPAPERS = [
   { id: 'none', name: '(None)', path: null },
@@ -72,7 +73,7 @@ const SCREENSAVERS = [
   {
     id: 'windows',
     name: 'Windows Logo',
-    embed: '/screensavers/canvas/windows.html',
+    component: WindowsScreensaver,
   },
   {
     id: 'starfield',
@@ -283,20 +284,32 @@ function DisplayProperties({ onClose, onMinimize }) {
                 <ScreensaverPane>
                   <ScreensaverMonitor>
                     <ScreensaverMonitorFrame />
-                    {SCREENSAVERS.find(s => s.id === screensaverName)?.embed ? (
-                      <ScreensaverIframe
-                        src={SCREENSAVERS.find(s => s.id === screensaverName)?.embed}
-                        title="Screensaver preview"
-                      />
-                    ) : (
-                      <ScreensaverPreviewImg
-                        style={{
-                          backgroundImage: `url(${
-                            SCREENSAVERS.find(s => s.id === screensaverName)?.preview || '/gui/display/sample.png'
-                          })`,
-                        }}
-                      />
-                    )}
+                    {(() => {
+                      const screensaver = SCREENSAVERS.find(s => s.id === screensaverName);
+                      if (screensaver?.component) {
+                        const Component = screensaver.component;
+                        return (
+                          <ScreensaverComponentPreview>
+                            <Component />
+                          </ScreensaverComponentPreview>
+                        );
+                      }
+                      if (screensaver?.embed) {
+                        return (
+                          <ScreensaverIframe
+                            src={screensaver.embed}
+                            title="Screensaver preview"
+                          />
+                        );
+                      }
+                      return (
+                        <ScreensaverPreviewImg
+                          style={{
+                            backgroundImage: `url(${screensaver?.preview || '/gui/display/sample.png'})`,
+                          }}
+                        />
+                      );
+                    })()}
                   </ScreensaverMonitor>
 
                   <Fieldset>
@@ -796,6 +809,16 @@ const ScreensaverPreviewImg = styled.div`
   background-size: cover;
   background-position: center;
   background-color: #000;
+`;
+
+const ScreensaverComponentPreview = styled.div`
+  position: absolute;
+  top: 15px;
+  left: 12px;
+  width: 152px;
+  height: 112px;
+  overflow: hidden;
+  background: #000;
 `;
 
 const ScreensaverRow = styled.div`

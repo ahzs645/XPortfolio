@@ -2,8 +2,14 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { createPortal } from 'react-dom';
 import styled from 'styled-components';
 import { useUserSettings } from './UserSettingsContext';
+import WindowsScreensaver from '../components/Screensavers/WindowsScreensaver';
 
 const ScreensaverContext = createContext(null);
+
+// React component screensavers (rendered inline, have access to fonts)
+const SCREENSAVER_COMPONENTS = {
+  windows: WindowsScreensaver,
+};
 
 export function useScreensaver() {
   const context = useContext(ScreensaverContext);
@@ -16,7 +22,6 @@ export function useScreensaver() {
 const SCREENSAVER_EMBEDS = {
   pipes: '/screensavers/pipes/index.html',
   flowerbox: '/screensavers/flowerbox/index.html',
-  windows: '/screensavers/canvas/windows.html',
   starfield: '/screensavers/canvas/starfield.html',
   mystify: '/screensavers/canvas/mystify.html',
   ribbons: '/screensavers/canvas/ribbons.html',
@@ -131,7 +136,9 @@ export function ScreensaverProvider({ children }) {
           onKeyDown={clearScreensaver}
           tabIndex={-1}
         >
-          {SCREENSAVER_EMBEDS[screensaverName] ? (
+          {SCREENSAVER_COMPONENTS[screensaverName] ? (
+            React.createElement(SCREENSAVER_COMPONENTS[screensaverName])
+          ) : SCREENSAVER_EMBEDS[screensaverName] ? (
             <ScreensaverFrame
               src={SCREENSAVER_EMBEDS[screensaverName]}
               title={`${screensaverName} screensaver`}
