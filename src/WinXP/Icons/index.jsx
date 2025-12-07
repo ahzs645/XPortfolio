@@ -39,6 +39,7 @@ function Icons({
   const iconRefs = useRef([]);
   const containerRef = useRef(null);
   const isMobile = isMobileDevice();
+  const prevSelectedIdsRef = useRef([]);
 
   // Clear long press timer
   const clearLongPressTimer = useCallback(() => {
@@ -76,7 +77,11 @@ function Icons({
 
   // Handle bounding box selection
   useEffect(() => {
-    if (!selecting) return;
+    if (!selecting) {
+      // Reset when selection ends
+      prevSelectedIdsRef.current = [];
+      return;
+    }
     const { x: sx, y: sy } = selecting;
     const { docX: x, docY: y } = mouse;
     const sw = Math.abs(x - sx);
@@ -94,7 +99,15 @@ function Icons({
       );
     }).map((rect) => rect.id);
 
-    setSelectedIcons(selectedIds);
+    // Only update if selection actually changed to prevent infinite loop
+    const prevIds = prevSelectedIdsRef.current;
+    const idsChanged = selectedIds.length !== prevIds.length ||
+      selectedIds.some((id, i) => id !== prevIds[i]);
+
+    if (idsChanged) {
+      prevSelectedIdsRef.current = selectedIds;
+      setSelectedIcons(selectedIds);
+    }
   }, [selecting, mouse.docX, mouse.docY, iconsRect, setSelectedIcons]);
 
   // Handle dragging
