@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import * as idb from 'idb-keyval';
 import { v4 as uuidv4 } from 'uuid';
 import { useConfig } from './ConfigContext';
@@ -560,6 +560,30 @@ export function FileSystemProvider({ children }) {
     return modified;
   };
 
+  // Force update all shortcuts to have correct type and icon from catalog
+  const migrateShortcuts = (fs, desktopShortcuts) => {
+    if (!fs) return fs;
+    let modified = false;
+
+    desktopShortcuts.forEach(shortcut => {
+      if (fs[shortcut.id]) {
+        const item = fs[shortcut.id];
+        // Force update type, icon, and target from catalog
+        if (item.type !== 'shortcut' || item.icon !== shortcut.icon || item.target !== shortcut.target) {
+          fs[shortcut.id] = {
+            ...item,
+            type: 'shortcut',
+            icon: shortcut.icon,
+            target: shortcut.target,
+          };
+          modified = true;
+        }
+      }
+    });
+
+    return modified ? fs : fs;
+  };
+
   // Migrate old file sizes from KB to bytes
   const migrateFileSizes = (fs) => {
     if (!fs || fs._sizesMigrated) return fs;
@@ -619,6 +643,8 @@ export function FileSystemProvider({ children }) {
         } else {
           // Ensure desktop shortcuts exist
           ensureDesktopShortcuts(fs, desktopShortcuts);
+          // Force update shortcuts to have correct type/icon/target
+          migrateShortcuts(fs, desktopShortcuts);
           // Ensure Projects folder exists for existing users
           ensureProjectsFolder(fs, folderProjects);
           // Migrate old file sizes from KB to bytes

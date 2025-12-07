@@ -108,13 +108,14 @@ const ADOBE_MENUS = [
 function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPath, onUpdateTitle }) {
   const [pageNumber, setPageNumber] = useState(1);
   const [numPages, setNumPages] = useState(null);
-  const [scale, setScale] = useState(1.0);
+  const [scale, setScale] = useState(null); // Start with null to calculate fit-to-width
   const [layoutMode, setLayoutMode] = useState('continuous');
   const [pdfDocument, setPdfDocument] = useState(null);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
+  const viewerRef = useRef(null);
 
   const displayName = pdfName || (pdfPath ? pdfPath.split('/').pop() : 'Adobe Reader');
 
@@ -165,8 +166,8 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
     }
   }, [onUpdateTitle]);
 
-  const handleZoomIn = useCallback(() => setScale(s => Math.min(s + 0.1, 3.0)), []);
-  const handleZoomOut = useCallback(() => setScale(s => Math.max(s - 0.1, 0.5)), []);
+  const handleZoomIn = useCallback(() => setScale(s => Math.min((s || 1.0) + 0.1, 3.0)), []);
+  const handleZoomOut = useCallback(() => setScale(s => Math.max((s || 1.0) - 0.1, 0.5)), []);
   const handlePrevPage = useCallback(() => setPageNumber(p => Math.max(p - 1, 1)), []);
   const handleNextPage = useCallback(() => setPageNumber(p => Math.min(p + 1, numPages || 1)), [numPages]);
 
@@ -174,11 +175,25 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
     window.print();
   }, []);
 
-  const onDocumentLoadSuccess = useCallback((pdf) => {
+  const onDocumentLoadSuccess = useCallback(async (pdf) => {
     setNumPages(pdf.numPages);
     setPdfDocument(pdf);
     setIsLoading(false);
-  }, []);
+
+    // Calculate fit-to-width scale based on first page
+    if (viewerRef.current && scale === null) {
+      try {
+        const firstPage = await pdf.getPage(1);
+        const viewport = firstPage.getViewport({ scale: 1.0 });
+        // Subtract padding (32px), scrollbar (~17px), and shadow margin (~10px)
+        const containerWidth = viewerRef.current.clientWidth - 60;
+        const fitScale = containerWidth / viewport.width;
+        setScale(Math.min(Math.max(fitScale, 0.5), 2.0)); // Clamp between 0.5 and 2.0
+      } catch (err) {
+        setScale(1.0); // Fallback to 100%
+      }
+    }
+  }, [scale]);
 
   // Menu action handler
   const handleMenuAction = useCallback((action) => {
@@ -245,17 +260,20 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
     }
   }, []);
 
+  // SVG icons for zoom (magnifying glass with +/-)
+  const zoomOutIcon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Ccircle cx='6' cy='6' r='5' fill='none' stroke='%23333' stroke-width='1.5'/%3E%3Cline x1='10' y1='10' x2='14' y2='14' stroke='%23333' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='3' y1='6' x2='9' y2='6' stroke='%23333' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E";
+  const zoomInIcon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Ccircle cx='6' cy='6' r='5' fill='none' stroke='%23333' stroke-width='1.5'/%3E%3Cline x1='10' y1='10' x2='14' y2='14' stroke='%23333' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='3' y1='6' x2='9' y2='6' stroke='%23333' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='6' y1='3' x2='6' y2='9' stroke='%23333' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E";
+
   // Toolbar items - using existing toolbar icons where possible
   const toolbarItems = [
     { type: 'button', id: 'open', icon: '/icons/pdf/AcroRd32_grp18534_lang1033.ico', action: 'open', title: 'Open' },
-    { type: 'button', id: 'save', icon: '/gui/toolbar/save.webp', action: 'save', disabled: true, title: 'Save' },
     { type: 'button', id: 'print', icon: '/gui/toolbar/print.webp', action: 'print', title: 'Print' },
     { type: 'separator' },
     { type: 'button', id: 'prevPage', icon: '/gui/toolbar/back.webp', action: 'prevPage', disabled: pageNumber <= 1, title: 'Previous Page' },
     { type: 'button', id: 'nextPage', icon: '/gui/toolbar/forward.webp', action: 'nextPage', disabled: pageNumber >= (numPages || 1), title: 'Next Page' },
     { type: 'separator' },
-    { type: 'button', id: 'zoomOut', icon: '/icons/pdf/AcroRd32_grp18545_lang1033.ico', action: 'zoomOut', title: 'Zoom Out' },
-    { type: 'select', id: 'zoom', value: String(Math.round(scale * 100)), options: [
+    { type: 'button', id: 'zoomOut', icon: zoomOutIcon, action: 'zoomOut', title: 'Zoom Out' },
+    { type: 'select', id: 'zoom', value: scale !== null ? String(Math.round(scale * 100)) : '100', options: [
       { value: '50', label: '50%' },
       { value: '75', label: '75%' },
       { value: '100', label: '100%' },
@@ -263,9 +281,7 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
       { value: '150', label: '150%' },
       { value: '200', label: '200%' },
     ], width: 65 },
-    { type: 'button', id: 'zoomIn', icon: '/icons/pdf/AcroRd32_grp18546_lang1033.ico', action: 'zoomIn', title: 'Zoom In' },
-    { type: 'separator' },
-    { type: 'button', id: 'search', icon: '/gui/toolbar/search.webp', action: 'search', disabled: true, title: 'Search' },
+    { type: 'button', id: 'zoomIn', icon: zoomInIcon, action: 'zoomIn', title: 'Zoom In' },
   ];
 
   const pageStyle = useMemo(() => ({
@@ -297,12 +313,21 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
         {/* Sidebar */}
         <Sidebar
           pdfDocument={pdfDocument}
-          onPageClick={(page) => setPageNumber(page)}
+          onPageClick={(page) => {
+            setPageNumber(page);
+            // In continuous mode, scroll to the page
+            if (layoutMode === 'continuous') {
+              const pageElement = document.getElementById(`page-${page}`);
+              if (pageElement) {
+                pageElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }
+          }}
           activePage={pageNumber}
         />
 
         {/* PDF Viewer */}
-        <ViewerArea>
+        <ViewerArea ref={viewerRef}>
           {isLoading ? (
             <LoadingMessage>
               <LoadingSpinner />
@@ -318,7 +343,7 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
                 loading={<LoadingMessage>Loading PDF...</LoadingMessage>}
                 error={<ErrorMessage>Failed to load PDF.</ErrorMessage>}
               >
-                {layoutMode === 'continuous' && numPages ? (
+                {scale !== null && layoutMode === 'continuous' && numPages ? (
                   Array.from(new Array(numPages), (_, index) => (
                     <PageWrapper key={`page_${index + 1}`} style={pageStyle} id={`page-${index + 1}`}>
                       <Page
@@ -330,7 +355,7 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
                       <PageIndicator>{index + 1}</PageIndicator>
                     </PageWrapper>
                   ))
-                ) : (
+                ) : scale !== null ? (
                   <PageWrapper style={pageStyle}>
                     <Page
                       pageNumber={pageNumber}
@@ -339,7 +364,7 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
                       renderAnnotationLayer={true}
                     />
                   </PageWrapper>
-                )}
+                ) : null}
               </Document>
             </DocumentContainer>
           ) : (
@@ -365,8 +390,22 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
           </PageInfo>
         </StatusSection>
         <StatusSection>
-          <ZoomInfo>{Math.round(scale * 100)}%</ZoomInfo>
+          <ZoomInfo>{scale !== null ? Math.round(scale * 100) : '--'}%</ZoomInfo>
         </StatusSection>
+        <ResizeGrip>
+          <ResizeGripRow>
+            <ResizeGripDot />
+          </ResizeGripRow>
+          <ResizeGripRow>
+            <ResizeGripDot />
+            <ResizeGripDot />
+          </ResizeGripRow>
+          <ResizeGripRow>
+            <ResizeGripDot />
+            <ResizeGripDot />
+            <ResizeGripDot />
+          </ResizeGripRow>
+        </ResizeGrip>
       </StatusBarContainer>
 
       {/* Hidden file input */}
@@ -390,6 +429,28 @@ const Container = styled.div`
   background: #808080;
   font-family: Tahoma, sans-serif;
   font-size: 11px;
+`;
+
+const ResizeGrip = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  padding: 2px;
+  margin-left: auto;
+  cursor: se-resize;
+  pointer-events: none; /* Allow clicks to pass through to window edge */
+`;
+
+const ResizeGripRow = styled.div`
+  display: flex;
+  gap: 1px;
+`;
+
+const ResizeGripDot = styled.div`
+  width: 2px;
+  height: 2px;
+  background: linear-gradient(135deg, #808080 0%, #808080 50%, #fff 50%, #fff 100%);
 `;
 
 const MainArea = styled.div`
@@ -422,11 +483,13 @@ const PageWrapper = styled.div`
 
 const PageIndicator = styled.div`
   position: absolute;
-  top: 0;
-  right: -30px;
-  color: #fff;
-  font-size: 12px;
-  opacity: 0.5;
+  bottom: 4px;
+  right: 4px;
+  color: #666;
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 1px 4px;
+  border-radius: 2px;
 `;
 
 const LoadingMessage = styled.div`
@@ -534,6 +597,7 @@ const StatusBarContainer = styled.div`
   padding: 3px 8px;
   flex-shrink: 0;
   min-height: 24px;
+  margin-bottom: 3px; /* Leave space for window resize edge */
 `;
 
 const StatusSection = styled.div`

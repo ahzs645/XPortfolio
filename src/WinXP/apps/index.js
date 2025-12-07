@@ -244,6 +244,40 @@ export function saveIconPositions(icons) {
   localStorage.setItem('desktopIconPositions', JSON.stringify(positions));
 }
 
+// Map catalog IDs to appSettings keys for target
+const CATALOG_TO_APP_KEY = {
+  about: 'About Me',
+  resume: 'Resume',
+  projects: 'Projects',
+  contact: 'Contact',
+  calculator: 'Calculator',
+  notepad: 'Notepad',
+  displayProperties: 'Display Properties',
+  minesweeper: 'Minesweeper',
+  solitaire: 'Solitaire',
+  spiderSolitaire: 'Spider Solitaire',
+  pinball: 'Pinball',
+  cmd: 'Command Prompt',
+  mediaPlayer: 'Windows Media Player',
+  imageViewer: 'Image Viewer',
+  paint: 'Paint',
+  winamp: 'Winamp',
+  myComputer: 'My Computer',
+  recycleBin: 'Recycle Bin',
+  internetExplorer: 'Internet Explorer',
+  soundRecorder: 'Sound Recorder',
+  qqPenguin: 'QQ Penguin',
+  installer: 'App Installer',
+  messenger: 'Windows Messenger',
+  speechProperties: 'Speech Properties',
+  systemProperties: 'System Properties',
+  userAccounts: 'User Accounts',
+  wordpad: 'WordPad',
+  helpAndSupport: 'Help and Support',
+  outlookExpress: 'Outlook Express',
+  adobeReader: 'Adobe Reader',
+};
+
 // Generate desktop icon state from program list
 export function generateIconState(programIds = ['about', 'resume', 'projects', 'contact']) {
   const savedPositions = loadIconPositions();
@@ -251,6 +285,9 @@ export function generateIconState(programIds = ['about', 'resume', 'projects', '
   const iconGap = 10;
   const startX = 10;
   const startY = 10;
+
+  // System icons (My Computer, Recycle Bin) get type 'system', others get 'shortcut'
+  const systemIconIds = ['myComputer', 'recycleBin'];
 
   return programIds
     .map((id, index) => {
@@ -260,6 +297,7 @@ export function generateIconState(programIds = ['about', 'resume', 'projects', '
       // Use saved position or calculate default grid position
       const savedPos = savedPositions[id];
       const defaultY = startY + index * (iconSize + iconGap);
+      const isSystem = systemIconIds.includes(id);
 
       return {
         id: index,
@@ -270,6 +308,8 @@ export function generateIconState(programIds = ['about', 'resume', 'projects', '
         isFocus: false,
         x: savedPos?.x ?? startX,
         y: savedPos?.y ?? defaultY,
+        type: isSystem ? 'system' : 'shortcut',
+        target: CATALOG_TO_APP_KEY[id] || catalogEntry.title,
       };
     })
     .filter(Boolean);

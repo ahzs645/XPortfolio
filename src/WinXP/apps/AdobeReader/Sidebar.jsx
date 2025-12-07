@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import { Page } from 'react-pdf';
 
@@ -6,9 +6,13 @@ const PDF_ICON = "/icons/pdf/PDF.ico";
 
 const Sidebar = ({ pdfDocument, onPageClick, activePage }) => {
   const [activeTab, setActiveTab] = useState("bookmarks");
-  const [panelWidth] = useState(250);
+  const [panelWidth, setPanelWidth] = useState(250);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [bookmarks, setBookmarks] = useState(null);
+  const [isResizing, setIsResizing] = useState(false);
+  const resizeRef = useRef(null);
+  const startXRef = useRef(0);
+  const startWidthRef = useRef(0);
 
   const handleTabClick = (tabId) => {
     if (activeTab === tabId) {
@@ -18,6 +22,41 @@ const Sidebar = ({ pdfDocument, onPageClick, activePage }) => {
       setIsCollapsed(false);
     }
   };
+
+  // Sidebar resize handlers
+  const handleResizeStart = useCallback((e) => {
+    e.preventDefault();
+    setIsResizing(true);
+    startXRef.current = e.clientX || e.touches?.[0]?.clientX || 0;
+    startWidthRef.current = panelWidth;
+  }, [panelWidth]);
+
+  const handleResizeMove = useCallback((e) => {
+    if (!isResizing) return;
+    const clientX = e.clientX || e.touches?.[0]?.clientX || 0;
+    const delta = clientX - startXRef.current;
+    const newWidth = Math.min(Math.max(startWidthRef.current + delta, 150), 500);
+    setPanelWidth(newWidth);
+  }, [isResizing]);
+
+  const handleResizeEnd = useCallback(() => {
+    setIsResizing(false);
+  }, []);
+
+  useEffect(() => {
+    if (isResizing) {
+      window.addEventListener('mousemove', handleResizeMove);
+      window.addEventListener('mouseup', handleResizeEnd);
+      window.addEventListener('touchmove', handleResizeMove);
+      window.addEventListener('touchend', handleResizeEnd);
+      return () => {
+        window.removeEventListener('mousemove', handleResizeMove);
+        window.removeEventListener('mouseup', handleResizeEnd);
+        window.removeEventListener('touchmove', handleResizeMove);
+        window.removeEventListener('touchend', handleResizeEnd);
+      };
+    }
+  }, [isResizing, handleResizeMove, handleResizeEnd]);
 
   useEffect(() => {
     if (pdfDocument) {
@@ -145,7 +184,11 @@ const Sidebar = ({ pdfDocument, onPageClick, activePage }) => {
       )}
 
       {!isCollapsed && (
-        <ResizeHandle>
+        <ResizeHandle
+          ref={resizeRef}
+          onMouseDown={handleResizeStart}
+          onTouchStart={handleResizeStart}
+        >
           {[...Array(5)].map((_, i) => (
             <ResizeDot key={i} />
           ))}
@@ -412,7 +455,7 @@ const PanelContent = styled.div`
 `;
 
 const ResizeHandle = styled.div`
-  width: 4px;
+  width: 6px;
   background: #D4D0C8;
   cursor: col-resize;
   height: 100%;
@@ -423,6 +466,15 @@ const ResizeHandle = styled.div`
   justify-content: center;
   align-items: center;
   gap: 2px;
+  flex-shrink: 0;
+
+  &:hover {
+    background: #E0DCD4;
+  }
+
+  &:active {
+    background: #C8C4BC;
+  }
 `;
 
 const ResizeDot = styled.div`
