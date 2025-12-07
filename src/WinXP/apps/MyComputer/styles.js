@@ -12,6 +12,7 @@ export const OuterWrapper = styled.div`
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-height: 0; /* Required for nested flex scrolling */
   position: relative;
   overflow: visible;
 `;
@@ -20,6 +21,7 @@ export const Container = styled.div`
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-height: 0; /* Required for nested flex scrolling */
   outline: none;
   position: relative;
   overflow: hidden;
@@ -128,6 +130,7 @@ export const DetailsSpacer = styled.div`
 export const FolderLayout = styled.div`
   display: flex;
   flex: 1;
+  min-height: 0; /* Required for nested flex scrolling */
   overflow: hidden;
 `;
 
@@ -135,11 +138,13 @@ export const FolderLayout = styled.div`
 export const MyComputerLayout = styled.div`
   display: flex;
   flex: 1;
+  min-height: 0; /* Required for nested flex scrolling */
   overflow: hidden;
 `;
 
 export const MyComputerContent = styled.div`
   flex: 1;
+  min-height: 0; /* Required for overflow to work in flex container */
   padding: 8px 16px;
   overflow: auto;
   background: white;
