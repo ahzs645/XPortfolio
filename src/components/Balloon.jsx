@@ -40,7 +40,7 @@ const BalloonFrame = styled.div`
   &::after {
     content: '';
     position: absolute;
-    bottom: -18px;
+    bottom: -17px;
     right: ${({ $arrowOffset = 15 }) => `${$arrowOffset}px`};
     border-width: 0 17px 18px 0;
     border-style: solid;
@@ -230,7 +230,7 @@ export default function Balloon({
     computedArrowOffset = bubbleWidth - arrowFromLeft;
 
     anchorStyle = {
-      position: 'absolute',
+      position: 'fixed',
       left: clampedLeft,
       top,
       transform: placement === 'top' ? 'translateY(-100%)' : 'translateY(0)',

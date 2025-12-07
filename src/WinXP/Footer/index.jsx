@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import styled from 'styled-components';
 import Balloon from '../../components/Balloon';
 import FooterMenu from './FooterMenu';
@@ -36,6 +37,7 @@ function Footer({
   const [time, setTime] = useState(getTime);
   const [menuOn, setMenuOn] = useState(false);
   const [showWelcomeBalloon, setShowWelcomeBalloon] = useState(false);
+  const [welcomeAnchor, setWelcomeAnchor] = useState(null);
   const [hasUpdate, setHasUpdate] = useState(false);
   const [updateTooltip, setUpdateTooltip] = useState('Updates available');
   const [startContextMenu, setStartContextMenu] = useState(null);
@@ -44,6 +46,21 @@ function Footer({
   const welcomeIconRef = useRef(null);
   const updateIconRef = useRef(null);
   const balloonTimeoutRef = useRef(null);
+
+  const computeWelcomeAnchor = useCallback(() => {
+    const el = welcomeIconRef.current;
+    if (!el) {
+      setWelcomeAnchor(null);
+      return;
+    }
+    const rect = el.getBoundingClientRect();
+    setWelcomeAnchor({
+      x: rect.left,
+      y: rect.top,
+      width: rect.width,
+      height: rect.height,
+    });
+  }, []);
 
   function toggleMenu(e) {
     e.stopPropagation();
@@ -61,6 +78,9 @@ function Footer({
   }
 
   const handleWelcomeClick = useCallback(() => {
+    // Compute anchor first before showing
+    computeWelcomeAnchor();
+
     setShowWelcomeBalloon((prev) => {
       // Play balloon sound when showing (not hiding)
       if (!prev && playBalloonSound) {
@@ -76,7 +96,7 @@ function Footer({
     balloonTimeoutRef.current = setTimeout(() => {
       setShowWelcomeBalloon(false);
     }, 10000);
-  }, [playBalloonSound]);
+  }, [playBalloonSound, computeWelcomeAnchor]);
 
   const handleFullscreenClick = useCallback(() => {
     setShowWelcomeBalloon(false);
@@ -150,8 +170,15 @@ function Footer({
       setShowWelcomeBalloon(false);
     }
 
-    window.addEventListener('mousedown', handleClickOutside);
-    return () => window.removeEventListener('mousedown', handleClickOutside);
+    // Small delay to prevent the current click from triggering close
+    const timeoutId = setTimeout(() => {
+      window.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('mousedown', handleClickOutside);
+    };
   }, [showWelcomeBalloon]);
 
   // Cleanup timeout
@@ -230,31 +257,6 @@ function Footer({
       </div>
 
       <div className="footer__items right">
-        {showWelcomeBalloon && (
-          <WelcomeBalloon
-            className="welcome-balloon"
-            title="Welcome to XPortfolio"
-            icon="/gui/taskbar/welcome.webp"
-            iconAlt="welcome"
-            width={260}
-            arrowOffset={40}
-            onClose={() => setShowWelcomeBalloon(false)}
-          >
-            <p className="balloon__text">
-              A faithful XP-inspired interface, custom-built to showcase my work and attention to detail.
-            </p>
-            <p className="balloon__links">
-              Get Started:{' '}
-              <a href="#" onClick={(e) => { e.preventDefault(); handleBalloonLinkClick('About Me'); }}>
-                About Me
-              </a>{' '}
-              |{' '}
-              <a href="#" onClick={(e) => { e.preventDefault(); handleBalloonLinkClick('Projects'); }}>
-                My Projects
-              </a>
-            </p>
-          </WelcomeBalloon>
-        )}
         <TrayIcon
           ref={welcomeIconRef}
           src="/gui/taskbar/welcome.webp"
@@ -301,6 +303,36 @@ function Footer({
           overlayType="fixed"
           zIndex={10000}
         />
+      )}
+
+      {showWelcomeBalloon && createPortal(
+        <WelcomeBalloon
+          className="welcome-balloon"
+          title="Welcome to XPortfolio"
+          icon="/gui/taskbar/welcome.webp"
+          iconAlt="welcome"
+          width={260}
+          anchor={welcomeAnchor}
+          offset={{ y: 0 }}
+          placement="top"
+          onClose={() => setShowWelcomeBalloon(false)}
+          style={welcomeAnchor ? { position: 'static', bottom: 'auto', right: 'auto' } : undefined}
+        >
+          <p className="balloon__text">
+            A faithful XP-inspired interface, custom-built to showcase my work and attention to detail.
+          </p>
+          <p className="balloon__links">
+            Get Started:{' '}
+            <a href="#" onClick={(e) => { e.preventDefault(); handleBalloonLinkClick('About Me'); }}>
+              About Me
+            </a>{' '}
+            |{' '}
+            <a href="#" onClick={(e) => { e.preventDefault(); handleBalloonLinkClick('Projects'); }}>
+              My Projects
+            </a>
+          </p>
+        </WelcomeBalloon>,
+        document.body
       )}
     </Container>
   );
@@ -361,9 +393,9 @@ const TrayIcon = styled.img`
 `;
 
 const WelcomeBalloon = styled(Balloon)`
-  position: absolute;
-  bottom: 40px;
-  right: 10px;
+  position: fixed;
+  bottom: 50px;
+  right: 16px;
   z-index: 9999;
 `;
 
