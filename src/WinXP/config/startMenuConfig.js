@@ -217,7 +217,7 @@ export const START_MENU_CATALOG = {
   adobeReader: {
     type: 'program',
     appKey: 'Adobe Reader',
-    icon: '/icons/adobe/acrobat.svg',
+    icon: '/icons/pdf/acroaum_grp107_lang1033.ico',
     title: 'Adobe Reader',
     description: 'View PDF files',
   },

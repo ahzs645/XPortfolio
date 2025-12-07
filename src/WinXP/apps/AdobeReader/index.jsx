@@ -1,6 +1,13 @@
-import React, { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
+import { Document, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/Page/TextLayer.css';
 import { MenuBar, Toolbar } from '../../../components';
+import Sidebar from './Sidebar';
+
+// Configure PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 // Menu configuration for Adobe Reader
 const ADOBE_MENUS = [
@@ -13,7 +20,7 @@ const ADOBE_MENUS = [
       { separator: true },
       { label: 'Save a Copy...', disabled: true },
       { separator: true },
-      { label: 'Print...', disabled: true },
+      { label: 'Print...', action: 'print' },
       { label: 'Print Setup...', disabled: true },
       { separator: true },
       { label: 'Document Properties...', disabled: true },
@@ -43,9 +50,8 @@ const ADOBE_MENUS = [
     id: 'view',
     label: 'View',
     items: [
-      { label: 'Fit Page', action: 'fitPage' },
-      { label: 'Fit Width', action: 'fitWidth' },
-      { label: 'Actual Size', action: 'actualSize' },
+      { label: 'Single Page', action: 'singlePage' },
+      { label: 'Continuous', action: 'continuous' },
       { separator: true },
       { label: 'Zoom In', action: 'zoomIn' },
       { label: 'Zoom Out', action: 'zoomOut' },
@@ -99,52 +105,28 @@ const ADOBE_MENUS = [
   },
 ];
 
-// Icon paths
-const ICONS = {
-  open: '/icons/adobe/open.svg',
-  save: '/icons/adobe/save.svg',
-  print: '/icons/adobe/print.svg',
-  email: '/icons/adobe/email.svg',
-  hand: '/icons/adobe/hand.svg',
-  select: '/icons/adobe/select.svg',
-  zoomIn: '/icons/adobe/zoom-in.svg',
-  zoomOut: '/icons/adobe/zoom-out.svg',
-  fitPage: '/icons/adobe/fit-page.svg',
-  actualSize: '/icons/adobe/actual-size.svg',
-  find: '/icons/adobe/find.svg',
-  firstPage: '/icons/adobe/first-page.svg',
-  prevPage: '/icons/adobe/prev-page.svg',
-  nextPage: '/icons/adobe/next-page.svg',
-  lastPage: '/icons/adobe/last-page.svg',
-  bookmark: '/icons/adobe/bookmark.svg',
-  pages: '/icons/adobe/pages.svg',
-  attachments: '/icons/adobe/attachments.svg',
-  comments: '/icons/adobe/comments.svg',
-};
-
 function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPath, onUpdateTitle }) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [zoom, setZoom] = useState(100);
-  const [sidebarTab, setSidebarTab] = useState('bookmarks');
-  const [showSidebar, setShowSidebar] = useState(true);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [numPages, setNumPages] = useState(null);
+  const [scale, setScale] = useState(1.0);
+  const [layoutMode, setLayoutMode] = useState('continuous');
+  const [pdfDocument, setPdfDocument] = useState(null);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [tool, setTool] = useState('hand');
   const fileInputRef = useRef(null);
 
   const displayName = pdfName || (pdfPath ? pdfPath.split('/').pop() : 'Adobe Reader');
 
   // Update window title when PDF is loaded
-  React.useEffect(() => {
+  useEffect(() => {
     if (onUpdateTitle && pdfUrl) {
       onUpdateTitle(`Adobe Reader - [${displayName}]`);
     }
   }, [pdfUrl, displayName, onUpdateTitle]);
 
   // Load PDF from data or path
-  React.useEffect(() => {
+  useEffect(() => {
     if (pdfData) {
       setIsLoading(true);
       try {
@@ -183,16 +165,20 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
     }
   }, [onUpdateTitle]);
 
-  const handleZoomIn = useCallback(() => setZoom(z => Math.min(z + 25, 400)), []);
-  const handleZoomOut = useCallback(() => setZoom(z => Math.max(z - 25, 25)), []);
-  const handleFitPage = useCallback(() => setZoom(100), []);
-  const handleActualSize = useCallback(() => setZoom(100), []);
-  const handleFitWidth = useCallback(() => setZoom(125), []);
+  const handleZoomIn = useCallback(() => setScale(s => Math.min(s + 0.1, 3.0)), []);
+  const handleZoomOut = useCallback(() => setScale(s => Math.max(s - 0.1, 0.5)), []);
+  const handlePrevPage = useCallback(() => setPageNumber(p => Math.max(p - 1, 1)), []);
+  const handleNextPage = useCallback(() => setPageNumber(p => Math.min(p + 1, numPages || 1)), [numPages]);
 
-  const handlePrevPage = useCallback(() => setCurrentPage(p => Math.max(p - 1, 1)), []);
-  const handleNextPage = useCallback(() => setCurrentPage(p => Math.min(p + 1, totalPages)), [totalPages]);
-  const handleFirstPage = useCallback(() => setCurrentPage(1), []);
-  const handleLastPage = useCallback(() => setCurrentPage(totalPages), [totalPages]);
+  const handlePrint = useCallback(() => {
+    window.print();
+  }, []);
+
+  const onDocumentLoadSuccess = useCallback((pdf) => {
+    setNumPages(pdf.numPages);
+    setPdfDocument(pdf);
+    setIsLoading(false);
+  }, []);
 
   // Menu action handler
   const handleMenuAction = useCallback((action) => {
@@ -206,19 +192,19 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
       case 'zoomOut':
         handleZoomOut();
         break;
-      case 'fitPage':
-        handleFitPage();
+      case 'singlePage':
+        setLayoutMode('single');
         break;
-      case 'fitWidth':
-        handleFitWidth();
+      case 'continuous':
+        setLayoutMode('continuous');
         break;
-      case 'actualSize':
-        handleActualSize();
+      case 'print':
+        handlePrint();
         break;
       default:
         break;
     }
-  }, [handleFileOpen, handleZoomIn, handleZoomOut, handleFitPage, handleFitWidth, handleActualSize]);
+  }, [handleFileOpen, handleZoomIn, handleZoomOut, handlePrint]);
 
   // Toolbar action handler
   const handleToolbarAction = useCallback((action) => {
@@ -226,26 +212,14 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
       case 'open':
         handleFileOpen();
         break;
+      case 'print':
+        handlePrint();
+        break;
       case 'zoomIn':
         handleZoomIn();
         break;
       case 'zoomOut':
         handleZoomOut();
-        break;
-      case 'fitPage':
-        handleFitPage();
-        break;
-      case 'actualSize':
-        handleActualSize();
-        break;
-      case 'handTool':
-        setTool('hand');
-        break;
-      case 'selectTool':
-        setTool('select');
-        break;
-      case 'firstPage':
-        handleFirstPage();
         break;
       case 'prevPage':
         handlePrevPage();
@@ -253,48 +227,52 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
       case 'nextPage':
         handleNextPage();
         break;
-      case 'lastPage':
-        handleLastPage();
+      case 'singlePage':
+        setLayoutMode('single');
+        break;
+      case 'continuous':
+        setLayoutMode('continuous');
         break;
       default:
         break;
     }
-  }, [handleFileOpen, handleZoomIn, handleZoomOut, handleFitPage, handleActualSize, handleFirstPage, handlePrevPage, handleNextPage, handleLastPage]);
+  }, [handleFileOpen, handlePrint, handleZoomIn, handleZoomOut, handlePrevPage, handleNextPage]);
 
   // Zoom select change handler
   const handleZoomChange = useCallback((id, value) => {
     if (id === 'zoom') {
-      setZoom(Number(value));
+      setScale(Number(value) / 100);
     }
   }, []);
 
-  // Toolbar items
+  // Toolbar items - using existing toolbar icons where possible
   const toolbarItems = [
-    { type: 'button', id: 'open', icon: ICONS.open, action: 'open' },
-    { type: 'button', id: 'save', icon: ICONS.save, disabled: true, action: 'save' },
-    { type: 'button', id: 'print', icon: ICONS.print, disabled: true, action: 'print' },
-    { type: 'button', id: 'email', icon: ICONS.email, disabled: true, action: 'email' },
+    { type: 'button', id: 'open', icon: '/icons/pdf/AcroRd32_grp18534_lang1033.ico', action: 'open', title: 'Open' },
+    { type: 'button', id: 'save', icon: '/gui/toolbar/save.webp', action: 'save', disabled: true, title: 'Save' },
+    { type: 'button', id: 'print', icon: '/gui/toolbar/print.webp', action: 'print', title: 'Print' },
     { type: 'separator' },
-    { type: 'button', id: 'hand', icon: ICONS.hand, active: tool === 'hand', action: 'handTool' },
-    { type: 'button', id: 'select', icon: ICONS.select, active: tool === 'select', action: 'selectTool' },
+    { type: 'button', id: 'prevPage', icon: '/gui/toolbar/back.webp', action: 'prevPage', disabled: pageNumber <= 1, title: 'Previous Page' },
+    { type: 'button', id: 'nextPage', icon: '/gui/toolbar/forward.webp', action: 'nextPage', disabled: pageNumber >= (numPages || 1), title: 'Next Page' },
     { type: 'separator' },
-    { type: 'button', id: 'zoomOut', icon: ICONS.zoomOut, action: 'zoomOut' },
-    { type: 'select', id: 'zoom', value: String(zoom), options: [
-      { value: '25', label: '25%' },
+    { type: 'button', id: 'zoomOut', icon: '/icons/pdf/AcroRd32_grp18545_lang1033.ico', action: 'zoomOut', title: 'Zoom Out' },
+    { type: 'select', id: 'zoom', value: String(Math.round(scale * 100)), options: [
       { value: '50', label: '50%' },
       { value: '75', label: '75%' },
       { value: '100', label: '100%' },
       { value: '125', label: '125%' },
       { value: '150', label: '150%' },
       { value: '200', label: '200%' },
-      { value: '400', label: '400%' },
     ], width: 65 },
-    { type: 'button', id: 'zoomIn', icon: ICONS.zoomIn, action: 'zoomIn' },
-    { type: 'button', id: 'actualSize', icon: ICONS.actualSize, action: 'actualSize' },
-    { type: 'button', id: 'fitPage', icon: ICONS.fitPage, action: 'fitPage' },
+    { type: 'button', id: 'zoomIn', icon: '/icons/pdf/AcroRd32_grp18546_lang1033.ico', action: 'zoomIn', title: 'Zoom In' },
     { type: 'separator' },
-    { type: 'button', id: 'find', icon: ICONS.find, disabled: true, action: 'find' },
+    { type: 'button', id: 'search', icon: '/gui/toolbar/search.webp', action: 'search', disabled: true, title: 'Search' },
   ];
+
+  const pageStyle = useMemo(() => ({
+    boxShadow: '2px 2px 5px rgba(0,0,0,0.5)',
+    marginTop: '10px',
+    marginBottom: '10px'
+  }), []);
 
   return (
     <Container>
@@ -303,6 +281,7 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
         menus={ADOBE_MENUS}
         onAction={handleMenuAction}
         windowActions={{ onClose, onMinimize, onMaximize }}
+        logo="/icons/pdf/PDF.ico"
       />
 
       {/* Toolbar */}
@@ -316,182 +295,11 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
       {/* Main Content Area */}
       <MainArea>
         {/* Sidebar */}
-        {showSidebar && (
-          <Sidebar>
-            <SidebarTabStrip>
-              <TabButton
-                $active={sidebarTab === 'bookmarks'}
-                onClick={() => setSidebarTab('bookmarks')}
-                title="Bookmarks"
-              >
-                <TabIconImg src={ICONS.bookmark} alt="" />
-                <TabText>Bookmarks</TabText>
-              </TabButton>
-              <TabButton
-                $active={sidebarTab === 'pages'}
-                onClick={() => setSidebarTab('pages')}
-                title="Pages"
-              >
-                <TabIconImg src={ICONS.pages} alt="" />
-                <TabText>Pages</TabText>
-              </TabButton>
-              <TabButton
-                $active={sidebarTab === 'attachments'}
-                onClick={() => setSidebarTab('attachments')}
-                title="Attachments"
-              >
-                <TabIconImg src={ICONS.attachments} alt="" />
-                <TabText>Attachments</TabText>
-              </TabButton>
-              <TabButton
-                $active={sidebarTab === 'comments'}
-                onClick={() => setSidebarTab('comments')}
-                title="Comments"
-              >
-                <TabIconImg src={ICONS.comments} alt="" />
-                <TabText>Comments</TabText>
-              </TabButton>
-            </SidebarTabStrip>
-            <SidebarContent>
-              <SidebarPanel>
-                <OptionsBar>
-                  <OptionsLeft>
-                    <OptionsMenuBtn>
-                      <OptionsMenuIcon>☰</OptionsMenuIcon>
-                    </OptionsMenuBtn>
-                    <OptionsDropdown>Options ▼</OptionsDropdown>
-                  </OptionsLeft>
-                  <CloseButton onClick={() => setShowSidebar(false)}>✕</CloseButton>
-                </OptionsBar>
-                {sidebarTab === 'bookmarks' && (
-                  <PanelContent>
-                    {pdfUrl ? (
-                      <BookmarkTree>
-                        <TreeItem>
-                          <TreeRow>
-                            <TreeSpacer />
-                            <DocIcon $type="page" />
-                            <TreeLabel>Table of Contents</TreeLabel>
-                          </TreeRow>
-                        </TreeItem>
-                        <TreeItem>
-                          <TreeRow>
-                            <ExpandBox $expanded>−</ExpandBox>
-                            <DocIcon $type="folder" />
-                            <TreeLabel>Current Solutions for A...</TreeLabel>
-                          </TreeRow>
-                          <TreeChildren>
-                            <TreeItem>
-                              <TreeRow $indent={1}>
-                                <TreeSpacer />
-                                <DocIcon $type="link" />
-                                <TreeLabel>access.adobe.com</TreeLabel>
-                              </TreeRow>
-                            </TreeItem>
-                            <TreeItem>
-                              <TreeRow $indent={1}>
-                                <TreeSpacer />
-                                <DocIcon $type="page" />
-                                <TreeLabel>Acrobat Access ™ P...</TreeLabel>
-                              </TreeRow>
-                            </TreeItem>
-                            <TreeItem>
-                              <TreeRow $indent={1}>
-                                <TreeSpacer />
-                                <DocIcon $type="page" />
-                                <TreeLabel>Demonstration of Ac...</TreeLabel>
-                              </TreeRow>
-                            </TreeItem>
-                          </TreeChildren>
-                        </TreeItem>
-                        <TreeItem>
-                          <TreeRow>
-                            <ExpandBox $expanded>−</ExpandBox>
-                            <DocIcon $type="folder" />
-                            <TreeLabel>Optimizing Adobe PDF F...</TreeLabel>
-                          </TreeRow>
-                          <TreeChildren>
-                            <TreeItem>
-                              <TreeRow $indent={1}>
-                                <TreeSpacer />
-                                <DocIcon $type="page" />
-                                <TreeLabel>Web Capture</TreeLabel>
-                              </TreeRow>
-                            </TreeItem>
-                            <TreeItem>
-                              <TreeRow $indent={1}>
-                                <TreeSpacer />
-                                <DocIcon $type="page" />
-                                <TreeLabel>PDFMaker for Micro...</TreeLabel>
-                              </TreeRow>
-                            </TreeItem>
-                            <TreeItem>
-                              <TreeRow $indent={1}>
-                                <TreeSpacer />
-                                <DocIcon $type="page" />
-                                <TreeLabel>Optimization Guideli...</TreeLabel>
-                              </TreeRow>
-                            </TreeItem>
-                          </TreeChildren>
-                        </TreeItem>
-                        <TreeItem>
-                          <TreeRow>
-                            <ExpandBox>+</ExpandBox>
-                            <DocIcon $type="page" />
-                            <TreeLabel>Future Enhancements ...</TreeLabel>
-                          </TreeRow>
-                        </TreeItem>
-                      </BookmarkTree>
-                    ) : (
-                      <EmptyMessage>No bookmarks available</EmptyMessage>
-                    )}
-                  </PanelContent>
-                )}
-                {sidebarTab === 'pages' && (
-                  <PanelContent $gray>
-                    {pdfUrl ? (
-                      <PageThumbnails>
-                        {[...Array(Math.min(totalPages, 5))].map((_, i) => (
-                          <PageThumbWrapper key={i} $selected={currentPage === i + 1} onClick={() => setCurrentPage(i + 1)}>
-                            <PageThumb>
-                              <PageThumbContent>
-                                <PageLine />
-                                <PageLine $short />
-                                <PageLine />
-                                <PageLine $shorter />
-                              </PageThumbContent>
-                            </PageThumb>
-                            <PageNumber>{i + 1}</PageNumber>
-                          </PageThumbWrapper>
-                        ))}
-                      </PageThumbnails>
-                    ) : (
-                      <EmptyMessage>No pages available</EmptyMessage>
-                    )}
-                  </PanelContent>
-                )}
-                {sidebarTab === 'attachments' && (
-                  <PanelContent>
-                    <EmptyMessage>No attachments in this document</EmptyMessage>
-                  </PanelContent>
-                )}
-                {sidebarTab === 'comments' && (
-                  <PanelContent>
-                    <EmptyMessage>No comments in this document</EmptyMessage>
-                  </PanelContent>
-                )}
-              </SidebarPanel>
-            </SidebarContent>
-          </Sidebar>
-        )}
-
-        {/* Toggle Sidebar Button */}
-        <SidebarToggle
-          onClick={() => setShowSidebar(!showSidebar)}
-          title={showSidebar ? "Hide Navigation Pane" : "Show Navigation Pane"}
-        >
-          {showSidebar ? '◀' : '▶'}
-        </SidebarToggle>
+        <Sidebar
+          pdfDocument={pdfDocument}
+          onPageClick={(page) => setPageNumber(page)}
+          activePage={pageNumber}
+        />
 
         {/* PDF Viewer */}
         <ViewerArea>
@@ -503,13 +311,37 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
           ) : error ? (
             <ErrorMessage>{error}</ErrorMessage>
           ) : pdfUrl ? (
-            <PDFContainer>
-              <PDFEmbed
-                src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1`}
-                type="application/pdf"
-                title={displayName}
-              />
-            </PDFContainer>
+            <DocumentContainer>
+              <Document
+                file={pdfUrl}
+                onLoadSuccess={onDocumentLoadSuccess}
+                loading={<LoadingMessage>Loading PDF...</LoadingMessage>}
+                error={<ErrorMessage>Failed to load PDF.</ErrorMessage>}
+              >
+                {layoutMode === 'continuous' && numPages ? (
+                  Array.from(new Array(numPages), (_, index) => (
+                    <PageWrapper key={`page_${index + 1}`} style={pageStyle} id={`page-${index + 1}`}>
+                      <Page
+                        pageNumber={index + 1}
+                        scale={scale}
+                        renderTextLayer={true}
+                        renderAnnotationLayer={true}
+                      />
+                      <PageIndicator>{index + 1}</PageIndicator>
+                    </PageWrapper>
+                  ))
+                ) : (
+                  <PageWrapper style={pageStyle}>
+                    <Page
+                      pageNumber={pageNumber}
+                      scale={scale}
+                      renderTextLayer={true}
+                      renderAnnotationLayer={true}
+                    />
+                  </PageWrapper>
+                )}
+              </Document>
+            </DocumentContainer>
           ) : (
             <WelcomeScreen>
               <AdobeLogo>
@@ -517,7 +349,7 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
                   <LogoA>A</LogoA>
                 </LogoIcon>
               </AdobeLogo>
-              <WelcomeTitle>Adobe Reader 6.0</WelcomeTitle>
+              <WelcomeTitle>Adobe Reader</WelcomeTitle>
               <WelcomeText>Open a PDF file to view it</WelcomeText>
               <OpenButton onClick={handleFileOpen}>Open PDF File...</OpenButton>
             </WelcomeScreen>
@@ -526,35 +358,16 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
       </MainArea>
 
       {/* Status Bar */}
-      <StatusBar>
+      <StatusBarContainer>
         <StatusSection>
-          <NavButton onClick={handleFirstPage} disabled={currentPage === 1} title="First Page">
-            <NavIcon src={ICONS.firstPage} alt="First" />
-          </NavButton>
-          <NavButton onClick={handlePrevPage} disabled={currentPage === 1} title="Previous Page">
-            <NavIcon src={ICONS.prevPage} alt="Prev" />
-          </NavButton>
           <PageInfo>
-            <PageInput
-              type="number"
-              value={currentPage}
-              onChange={(e) => setCurrentPage(Math.max(1, Math.min(totalPages, Number(e.target.value))))}
-              min={1}
-              max={totalPages}
-            />
-            <PageTotal>of {totalPages}</PageTotal>
+            Page {pageNumber} of {numPages || '--'}
           </PageInfo>
-          <NavButton onClick={handleNextPage} disabled={currentPage === totalPages} title="Next Page">
-            <NavIcon src={ICONS.nextPage} alt="Next" />
-          </NavButton>
-          <NavButton onClick={handleLastPage} disabled={currentPage === totalPages} title="Last Page">
-            <NavIcon src={ICONS.lastPage} alt="Last" />
-          </NavButton>
         </StatusSection>
         <StatusSection>
-          <ZoomInfo>{zoom}%</ZoomInfo>
+          <ZoomInfo>{Math.round(scale * 100)}%</ZoomInfo>
         </StatusSection>
-      </StatusBar>
+      </StatusBarContainer>
 
       {/* Hidden file input */}
       <input
@@ -586,329 +399,34 @@ const MainArea = styled.div`
   position: relative;
 `;
 
-const Sidebar = styled.div`
-  width: 220px;
-  display: flex;
-  flex-direction: row;
-  background: #f0f0f0;
-  border-right: 1px solid #808080;
-  flex-shrink: 0;
-  overflow: hidden;
-`;
-
-const SidebarTabStrip = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 21px;
-  min-width: 21px;
-  max-width: 21px;
-  background: #7a7a7a;
-  flex-shrink: 0;
-`;
-
-const TabButton = styled.button`
-  width: 21px;
-  height: 85px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding-top: 6px;
-  gap: 4px;
-  background: ${props => props.$active ? '#f0f0f0' : 'transparent'};
-  border: none;
-  border-left: ${props => props.$active ? '2px solid #ee8800' : '2px solid transparent'};
-  cursor: pointer;
-
-  &:hover {
-    background: ${props => props.$active ? '#f0f0f0' : 'rgba(255,255,255,0.1)'};
-  }
-`;
-
-const TabIconImg = styled.img`
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-`;
-
-const TabText = styled.span`
-  font-size: 10px;
-  font-family: Tahoma, sans-serif;
-  color: #000;
-  writing-mode: vertical-lr;
-  transform: rotate(180deg);
-  white-space: nowrap;
-  flex: 1;
-`;
-
-const SidebarContent = styled.div`
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: #fff;
-  border-left: 1px solid #606060;
-`;
-
-const SidebarPanel = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-`;
-
-const OptionsBar = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 3px 4px;
-  background: linear-gradient(to bottom, #fafafa 0%, #e8e8e8 100%);
-  border-bottom: 1px solid #b0b0b0;
-  min-height: 22px;
-`;
-
-const OptionsLeft = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 2px;
-`;
-
-const OptionsMenuBtn = styled.button`
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: 1px solid transparent;
-  cursor: pointer;
-  padding: 0;
-
-  &:hover {
-    background: #cce8ff;
-    border-color: #99ccff;
-  }
-`;
-
-const OptionsMenuIcon = styled.span`
-  font-size: 12px;
-  color: #666;
-`;
-
-const OptionsDropdown = styled.button`
-  display: flex;
-  align-items: center;
-  font-size: 11px;
-  font-family: Tahoma, sans-serif;
-  background: transparent;
-  border: 1px solid transparent;
-  cursor: pointer;
-  padding: 2px 6px;
-  color: #000;
-
-  &:hover {
-    background: #cce8ff;
-    border-color: #99ccff;
-  }
-`;
-
-const CloseButton = styled.button`
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: 1px solid transparent;
-  cursor: pointer;
-  font-size: 12px;
-  color: #666;
-  padding: 0;
-
-  &:hover {
-    background: #ffcccc;
-    border-color: #ff9999;
-    color: #cc0000;
-  }
-`;
-
-const PanelContent = styled.div`
-  flex: 1;
-  overflow: auto;
-  background: ${props => props.$gray ? '#c0c0c0' : '#fff'};
-`;
-
-const BookmarkTree = styled.div`
-  padding: 4px 2px;
-  font-size: 11px;
-  font-family: Tahoma, sans-serif;
-`;
-
-const TreeItem = styled.div``;
-
-const TreeRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  padding: 1px 2px;
-  padding-left: ${props => (props.$indent || 0) * 18 + 2}px;
-  cursor: pointer;
-  white-space: nowrap;
-
-  &:hover {
-    background: #d4e8fc;
-  }
-`;
-
-const TreeSpacer = styled.span`
-  width: 11px;
-  height: 11px;
-  flex-shrink: 0;
-`;
-
-const ExpandBox = styled.span`
-  width: 9px;
-  height: 9px;
-  border: 1px solid #808080;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 9px;
-  font-weight: bold;
-  line-height: 1;
-  color: #000;
-  flex-shrink: 0;
-  cursor: pointer;
-
-  &:hover {
-    border-color: #0066cc;
-  }
-`;
-
-const DocIcon = styled.span`
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-
-  ${props => props.$type === 'page' && `
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 1h7l3 3v11H3V1z' fill='%23fff' stroke='%23808080'/%3E%3Cpath d='M10 1v3h3' fill='none' stroke='%23808080'/%3E%3Cpath d='M5 6h6M5 8h6M5 10h4' stroke='%23ccc' stroke-width='1'/%3E%3Cpolygon points='4,6 6,9 4,12' fill='%23cc3300'/%3E%3C/svg%3E");
-  `}
-
-  ${props => props.$type === 'folder' && `
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M1 3h5l1 2h8v10H1V3z' fill='%23ffcc66' stroke='%23cc9933' stroke-width='0.5'/%3E%3Cpath d='M3 6h10M3 8h10M3 10h8' stroke='%23cc9933' stroke-width='0.5' opacity='0.5'/%3E%3Cpolygon points='2,5 4,8 2,11' fill='%23cc3300'/%3E%3C/svg%3E");
-  `}
-
-  ${props => props.$type === 'link' && `
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 1h7l3 3v11H3V1z' fill='%23fff' stroke='%23808080'/%3E%3Cpath d='M10 1v3h3' fill='none' stroke='%23808080'/%3E%3Cpolygon points='4,6 6,9 4,12' fill='%23cc3300'/%3E%3Ccircle cx='10' cy='10' r='3' fill='%234488ff' stroke='%23336699'/%3E%3Cpath d='M8 10h4M10 8v4' stroke='%23fff' stroke-width='1.5'/%3E%3C/svg%3E");
-  `}
-`;
-
-const TreeLabel = styled.span`
-  font-size: 11px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: #000;
-`;
-
-const TreeChildren = styled.div`
-  border-left: 1px dotted #808080;
-  margin-left: 6px;
-`;
-
-const PageThumbnails = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 8px;
-`;
-
-const PageThumbWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-  padding: 4px;
-  border: 2px solid ${props => props.$selected ? '#316ac5' : 'transparent'};
-  background: ${props => props.$selected ? '#cce8ff' : 'transparent'};
-
-  &:hover {
-    border-color: #316ac5;
-  }
-`;
-
-const PageThumb = styled.div`
-  width: 85px;
-  height: 110px;
-  background: #fff;
-  border: 1px solid #808080;
-  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 8px 6px;
-`;
-
-const PageThumbContent = styled.div`
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-`;
-
-const PageLine = styled.div`
-  height: 2px;
-  background: #ccc;
-  width: ${props => props.$shorter ? '40%' : props.$short ? '70%' : '100%'};
-`;
-
-const PageNumber = styled.span`
-  font-size: 10px;
-  color: #333;
-`;
-
-const EmptyMessage = styled.div`
-  padding: 16px;
-  text-align: center;
-  color: #666;
-  font-size: 11px;
-`;
-
-const SidebarToggle = styled.button`
-  position: absolute;
-  left: ${props => props.$showSidebar !== false ? '200px' : '0'};
-  top: 50%;
-  transform: translateY(-50%);
-  width: 12px;
-  height: 50px;
-  background: linear-gradient(to right, #6b7280 0%, #5a6370 100%);
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  z-index: 2;
-  font-size: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  &:hover {
-    background: linear-gradient(to right, #5a6370 0%, #4a5360 100%);
-  }
-`;
-
 const ViewerArea = styled.div`
   flex: 1;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   background: #525252;
   overflow: auto;
+  padding: 16px;
+`;
+
+const DocumentContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+const PageWrapper = styled.div`
+  position: relative;
+  background: #fff;
+`;
+
+const PageIndicator = styled.div`
+  position: absolute;
+  top: 0;
+  right: -30px;
+  color: #fff;
+  font-size: 12px;
+  opacity: 0.5;
 `;
 
 const LoadingMessage = styled.div`
@@ -938,24 +456,6 @@ const LoadingSpinner = styled.div`
 const ErrorMessage = styled.div`
   color: #ff6b6b;
   font-size: 14px;
-`;
-
-const PDFContainer = styled.div`
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  overflow: auto;
-  padding: 20px;
-`;
-
-const PDFEmbed = styled.iframe`
-  width: 100%;
-  height: 100%;
-  border: none;
-  background: #fff;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 `;
 
 const WelcomeScreen = styled.div`
@@ -1025,7 +525,7 @@ const OpenButton = styled.button`
   }
 `;
 
-const StatusBar = styled.div`
+const StatusBarContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1042,61 +542,7 @@ const StatusSection = styled.div`
   gap: 4px;
 `;
 
-const NavButton = styled.button`
-  width: 20px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(to bottom, #f5f5f5 0%, #e0e0e0 100%);
-  border: 1px solid #999;
-  border-radius: 2px;
-  cursor: pointer;
-  padding: 0;
-
-  &:hover:not(:disabled) {
-    background: linear-gradient(to bottom, #fff 0%, #f0f0f0 100%);
-    border-color: #666;
-  }
-
-  &:active:not(:disabled) {
-    background: linear-gradient(to bottom, #e0e0e0 0%, #d0d0d0 100%);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: default;
-  }
-`;
-
-const NavIcon = styled.img`
-  width: 12px;
-  height: 12px;
-`;
-
-const PageInfo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 4px;
-`;
-
-const PageInput = styled.input`
-  width: 40px;
-  padding: 2px 4px;
-  font-size: 11px;
-  font-family: Tahoma, sans-serif;
-  border: 1px solid #999;
-  text-align: center;
-  background: #fff;
-
-  &::-webkit-outer-spin-button,
-  &::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-`;
-
-const PageTotal = styled.span`
+const PageInfo = styled.span`
   font-size: 11px;
   color: #333;
 `;

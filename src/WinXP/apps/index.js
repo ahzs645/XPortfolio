@@ -58,7 +58,7 @@ const XP_ICONS = {
   helpAndSupport: '/icons/help.png',
   fontViewer: '/icons/xp/font.png',
   outlookExpress: '/icons/outlook/outlook.png',
-  adobeReader: '/icons/adobe/acrobat.svg',
+  adobeReader: '/icons/pdf/acroaum_grp107_lang1033.ico',
 };
 
 // Default apps open on startup (empty for now - user opens via desktop icons)
