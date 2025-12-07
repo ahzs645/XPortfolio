@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
 import styled from 'styled-components';
 
 /**
@@ -35,12 +36,15 @@ function MenuBar({ menus = [], logo, onAction, windowActions = {} }) {
   const [dropdownPosition, setDropdownPosition] = useState({ left: 0, top: 0 });
   const [overflowMenuOpen, setOverflowMenuOpen] = useState(false);
   const [hiddenMenuIds, setHiddenMenuIds] = useState([]);
+  const [overflowDropdownPos, setOverflowDropdownPos] = useState({ top: 0, left: 0 });
   const menuBarRef = useRef(null);
   const menuItemRefs = useRef({});
   const chevronRef = useRef(null);
   const itemWidthsRef = useRef({}); // Cache item widths to avoid flickering
+  const lastWidthRef = useRef(0);
+  const hiddenMenuIdsRef = useRef([]); // Track hidden items without causing re-renders
 
-  // Calculate which menu items overflow
+  // Calculate which menu items overflow - using ref to avoid re-render loops
   const calculateOverflow = useCallback(() => {
     if (!menuBarRef.current) return;
 
@@ -85,33 +89,42 @@ function MenuBar({ menus = [], logo, onAction, windowActions = {} }) {
       }
     });
 
-    setHiddenMenuIds(hidden);
+    // Only update state if hidden items actually changed
+    const prevHidden = hiddenMenuIdsRef.current;
+    const hasChanged = prevHidden.length !== hidden.length || !prevHidden.every((id, i) => id === hidden[i]);
+
+    if (hasChanged) {
+      hiddenMenuIdsRef.current = hidden;
+      setHiddenMenuIds(hidden);
+    }
   }, [menus, logo]);
 
-  // Recalculate on resize with debouncing to prevent flickering
+  // Recalculate on resize - only observe, don't depend on calculateOverflow
   useLayoutEffect(() => {
     let rafId = null;
-    let lastWidth = 0;
+
+    const doCalculate = () => {
+      if (!menuBarRef.current) return;
+      const currentWidth = menuBarRef.current.offsetWidth;
+      // Only recalculate if width actually changed
+      if (currentWidth !== lastWidthRef.current) {
+        lastWidthRef.current = currentWidth;
+        calculateOverflow();
+      }
+    };
 
     const debouncedCalculate = () => {
       if (rafId) cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(() => {
-        if (menuBarRef.current) {
-          const currentWidth = menuBarRef.current.offsetWidth;
-          // Only recalculate if width actually changed
-          if (currentWidth !== lastWidth) {
-            lastWidth = currentWidth;
-            calculateOverflow();
-          }
-        }
-      });
+      rafId = requestAnimationFrame(doCalculate);
     };
 
-    // Initial calculation
-    if (menuBarRef.current) {
-      lastWidth = menuBarRef.current.offsetWidth;
-    }
-    calculateOverflow();
+    // Initial calculation after mount
+    const timer = setTimeout(() => {
+      if (menuBarRef.current) {
+        lastWidthRef.current = menuBarRef.current.offsetWidth;
+      }
+      calculateOverflow();
+    }, 0);
 
     const resizeObserver = new ResizeObserver(debouncedCalculate);
 
@@ -120,17 +133,12 @@ function MenuBar({ menus = [], logo, onAction, windowActions = {} }) {
     }
 
     return () => {
+      clearTimeout(timer);
       if (rafId) cancelAnimationFrame(rafId);
       resizeObserver.disconnect();
     };
-  }, [calculateOverflow]);
-
-  // Recalculate when menus change
-  useEffect(() => {
-    // Use a small delay to ensure DOM is updated
-    const timer = setTimeout(calculateOverflow, 0);
-    return () => clearTimeout(timer);
-  }, [menus, calculateOverflow]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [menus, logo]); // Only re-run when menus or logo change, not calculateOverflow
 
   // Handle clicking/touching outside to close dropdown
   useEffect(() => {
@@ -217,6 +225,13 @@ function MenuBar({ menus = [], logo, onAction, windowActions = {} }) {
   // Handle chevron click to show overflow menu
   const handleChevronClick = useCallback(() => {
     setActiveMenu(null);
+    if (!overflowMenuOpen && chevronRef.current) {
+      const rect = chevronRef.current.getBoundingClientRect();
+      setOverflowDropdownPos({
+        top: rect.bottom,
+        left: rect.right - 120, // 120 is min-width of dropdown, align right edge
+      });
+    }
     setOverflowMenuOpen(!overflowMenuOpen);
   }, [overflowMenuOpen]);
 
@@ -279,8 +294,8 @@ function MenuBar({ menus = [], logo, onAction, windowActions = {} }) {
         </DropdownMenu>
       )}
 
-      {overflowMenuOpen && hasOverflow && (
-        <OverflowDropdown>
+      {overflowMenuOpen && hasOverflow && createPortal(
+        <OverflowDropdown style={{ top: overflowDropdownPos.top, left: overflowDropdownPos.left }}>
           {hiddenMenus.map((menu) => (
             <MenuOption
               key={menu.id}
@@ -290,7 +305,8 @@ function MenuBar({ menus = [], logo, onAction, windowActions = {} }) {
               {menu.label}
             </MenuOption>
           ))}
-        </OverflowDropdown>
+        </OverflowDropdown>,
+        document.body
       )}
     </MenuBarContainer>
   );
@@ -382,9 +398,7 @@ const OverflowDropdown = styled.div`
   font-size: 11px;
   min-width: 120px;
   padding: 2px 0;
-  position: absolute;
-  right: 0;
-  top: 22px;
+  position: fixed;
   z-index: 99999;
 `;
 

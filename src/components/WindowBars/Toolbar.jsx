@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef, useLayoutEffect, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import styled, { css } from 'styled-components';
 
 /**
@@ -48,10 +49,13 @@ function Toolbar({ items = [], onAction, onChange, bottomBorder = true, topBorde
   const [pressedButton, setPressedButton] = useState(null);
   const [overflowMenuOpen, setOverflowMenuOpen] = useState(false);
   const [hiddenStartIndex, setHiddenStartIndex] = useState(-1); // Index from which items are hidden
+  const [overflowDropdownPos, setOverflowDropdownPos] = useState({ top: 0, left: 0 });
   const toolbarRef = useRef(null);
   const itemRefs = useRef({});
   const chevronRef = useRef(null);
   const itemWidthsRef = useRef({}); // Cache item widths to avoid flickering
+  const lastWidthRef = useRef(0);
+  const hiddenStartIndexRef = useRef(-1); // Track cutoff without causing re-renders
 
   // Calculate which items overflow
   const calculateOverflow = useCallback(() => {
@@ -97,33 +101,39 @@ function Toolbar({ items = [], onAction, onChange, bottomBorder = true, topBorde
       usedWidth += itemWidth;
     }
 
-    setHiddenStartIndex(cutoffIndex);
+    // Only update state if cutoff actually changed
+    if (hiddenStartIndexRef.current !== cutoffIndex) {
+      hiddenStartIndexRef.current = cutoffIndex;
+      setHiddenStartIndex(cutoffIndex);
+    }
   }, [items]);
 
-  // Recalculate on resize with debouncing to prevent flickering
+  // Recalculate on resize - only observe, don't depend on calculateOverflow
   useLayoutEffect(() => {
     let rafId = null;
-    let lastWidth = 0;
+
+    const doCalculate = () => {
+      if (!toolbarRef.current) return;
+      const currentWidth = toolbarRef.current.offsetWidth;
+      // Only recalculate if width actually changed
+      if (currentWidth !== lastWidthRef.current) {
+        lastWidthRef.current = currentWidth;
+        calculateOverflow();
+      }
+    };
 
     const debouncedCalculate = () => {
       if (rafId) cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(() => {
-        if (toolbarRef.current) {
-          const currentWidth = toolbarRef.current.offsetWidth;
-          // Only recalculate if width actually changed
-          if (currentWidth !== lastWidth) {
-            lastWidth = currentWidth;
-            calculateOverflow();
-          }
-        }
-      });
+      rafId = requestAnimationFrame(doCalculate);
     };
 
-    // Initial calculation
-    if (toolbarRef.current) {
-      lastWidth = toolbarRef.current.offsetWidth;
-    }
-    calculateOverflow();
+    // Initial calculation after mount
+    const timer = setTimeout(() => {
+      if (toolbarRef.current) {
+        lastWidthRef.current = toolbarRef.current.offsetWidth;
+      }
+      calculateOverflow();
+    }, 0);
 
     const resizeObserver = new ResizeObserver(debouncedCalculate);
 
@@ -132,16 +142,12 @@ function Toolbar({ items = [], onAction, onChange, bottomBorder = true, topBorde
     }
 
     return () => {
+      clearTimeout(timer);
       if (rafId) cancelAnimationFrame(rafId);
       resizeObserver.disconnect();
     };
-  }, [calculateOverflow]);
-
-  // Recalculate when items change
-  useEffect(() => {
-    const timer = setTimeout(calculateOverflow, 0);
-    return () => clearTimeout(timer);
-  }, [items, calculateOverflow]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items]); // Only re-run when items change, not calculateOverflow
 
   // Handle clicking outside to close dropdown
   useEffect(() => {
@@ -163,6 +169,13 @@ function Toolbar({ items = [], onAction, onChange, bottomBorder = true, topBorde
 
   // Handle chevron click
   const handleChevronClick = useCallback(() => {
+    if (!overflowMenuOpen && chevronRef.current) {
+      const rect = chevronRef.current.getBoundingClientRect();
+      setOverflowDropdownPos({
+        top: rect.bottom,
+        left: rect.right - 160, // 160 is min-width of dropdown, align right edge
+      });
+    }
     setOverflowMenuOpen(!overflowMenuOpen);
   }, [overflowMenuOpen]);
 
@@ -351,10 +364,11 @@ function Toolbar({ items = [], onAction, onChange, bottomBorder = true, topBorde
           </ChevronButton>
         )}
       </ToolbarRow>
-      {overflowMenuOpen && hasOverflow && (
-        <OverflowDropdown $isCompact={isCompact}>
+      {overflowMenuOpen && hasOverflow && createPortal(
+        <OverflowDropdown $isCompact={isCompact} style={{ top: overflowDropdownPos.top, left: overflowDropdownPos.left }}>
           {hiddenItems.map((item, index) => renderItem(item, hiddenStartIndex + index, true))}
-        </OverflowDropdown>
+        </OverflowDropdown>,
+        document.body
       )}
     </ToolbarContainer>
   );
@@ -526,9 +540,7 @@ const OverflowDropdown = styled.div`
   font-size: 11px;
   min-width: 160px;
   padding: 4px 0;
-  position: absolute;
-  right: 0;
-  top: ${props => props.$isCompact ? '28px' : '48px'};
+  position: fixed;
   z-index: 99999;
 `;
 
