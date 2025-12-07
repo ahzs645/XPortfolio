@@ -78,18 +78,21 @@ function BootScreen({ bootState, onComplete }) {
 
     const result = await loginUser(selectedUserId, password);
     if (result.success) {
-      await performLogin(selectedUserId);
+      // Skip the login call in performLogin since we already authenticated with password
+      await performLogin(selectedUserId, true);
     } else {
       setPasswordError(result.error || 'Incorrect password');
       setPassword('');
     }
   };
 
-  const performLogin = async (userId) => {
-    const result = await loginUser(userId);
-    if (!result.success && result.requiresPassword) {
-      setShowPasswordInput(true);
-      return;
+  const performLogin = async (userId, skipLogin = false) => {
+    if (!skipLogin) {
+      const result = await loginUser(userId);
+      if (!result.success && result.requiresPassword) {
+        setShowPasswordInput(true);
+        return;
+      }
     }
 
     // Don't hide login screen - just show welcome overlay on top
@@ -162,13 +165,27 @@ function BootScreen({ bootState, onComplete }) {
                         <UserCard
                           $locked={isLocked}
                           $selected={isSelected}
-                          onClick={() => handleUserClick(user.id)}
+                          onClick={(e) => {
+                            // Don't trigger handleUserClick if password input is already showing
+                            if (isSelected) {
+                              e.stopPropagation();
+                              return;
+                            }
+                            handleUserClick(user.id);
+                          }}
                         >
                           <UserIcon src={user.picture} alt={user.name} />
                           <UserInfo>
                             <UserNameText>{user.name}</UserNameText>
                             {isSelected ? (
-                              <InlinePasswordContainer>
+                              <InlinePasswordForm
+                                onSubmit={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handlePasswordSubmit(e);
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
                                 <InlinePasswordInput
                                   type="password"
                                   value={password}
@@ -177,24 +194,19 @@ function BootScreen({ bootState, onComplete }) {
                                     setPassword(e.target.value);
                                   }}
                                   onClick={(e) => e.stopPropagation()}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      e.preventDefault();
-                                      handlePasswordSubmit(e);
-                                    }
-                                  }}
                                   placeholder="Type your password..."
                                   autoFocus
                                 />
                                 <InlinePasswordButton
-                                  src="/apps/openlair-viewer/static/images/interface/explorer/go.png"
-                                  alt="Go"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handlePasswordSubmit(e);
-                                  }}
-                                />
-                              </InlinePasswordContainer>
+                                  type="submit"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <img
+                                    src="/apps/openlair-viewer/static/images/interface/explorer/go.png"
+                                    alt="Go"
+                                  />
+                                </InlinePasswordButton>
+                              </InlinePasswordForm>
                             ) : (
                               <UserTitleText className="user-title">
                                 {user.accountType === 'admin' ? 'Computer Administrator' : 'Limited Account'}
@@ -755,10 +767,10 @@ const UserTitleText = styled.div`
 `;
 
 // Inline password input for locked accounts (shown when selected)
-const InlinePasswordContainer = styled.div`
+const InlinePasswordForm = styled.form`
   display: flex;
-  align-items: stretch;
-  gap: 10px;
+  align-items: center;
+  gap: 6px;
   margin-top: 4px;
 `;
 
@@ -780,16 +792,28 @@ const InlinePasswordInput = styled.input`
   }
 `;
 
-const InlinePasswordButton = styled.img`
-  width: auto;
-  height: 28px;
-  border: 1px solid #FFFFFF;
-  border-radius: 5px;
-  box-sizing: border-box;
+const InlinePasswordButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  box-shadow: none;
   cursor: pointer;
+  flex-shrink: 0;
+  min-width: 0;
+  min-height: 0;
+
+  img {
+    width: auto;
+    height: 24px;
+    display: block;
+  }
 
   &:hover {
-    opacity: 0.9;
+    opacity: 0.8;
   }
 `;
 
