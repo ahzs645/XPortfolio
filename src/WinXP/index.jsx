@@ -357,7 +357,7 @@ function WinXP() {
     removeFromStartup,
     isInStartup,
   } = useStartMenu();
-  const { activeUserId } = useUserAccounts();
+  const { activeUserId, sessionRestored, isLoading: userAccountsLoading } = useUserAccounts();
 
   // Track previous user ID to detect user changes
   const prevUserIdRef = useRef(activeUserId);
@@ -476,6 +476,14 @@ function WinXP() {
       setDesktopIconPositions(positions);
     }
   }, [state.icons, setDesktopIconPositions]);
+
+  // Skip boot sequence if session was restored from cache
+  useEffect(() => {
+    if (sessionRestored && !userAccountsLoading && state.bootState === BOOT_STATE.BOOTING) {
+      console.log('[Session] Skipping boot - session restored, jumping to desktop');
+      dispatch({ type: SET_BOOT_STATE, payload: BOOT_STATE.DESKTOP });
+    }
+  }, [sessionRestored, userAccountsLoading, state.bootState]);
 
   // Run startup folder apps when desktop loads (once per session)
   useEffect(() => {

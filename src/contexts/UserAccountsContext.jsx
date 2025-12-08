@@ -1,7 +1,19 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useConfig } from './ConfigContext';
 
 const UserAccountsContext = createContext(null);
+
+// Session timeout in milliseconds (5 hours default - can be configured)
+// Set to 0 to disable session caching
+export const SESSION_TIMEOUT_HOURS = 5;
+const SESSION_TIMEOUT_MS = SESSION_TIMEOUT_HOURS * 60 * 60 * 1000;
+
+// localStorage keys for session
+const SESSION_KEYS = {
+  TIMESTAMP: 'sessionTimestamp',
+  USER_ID: 'sessionUserId',
+  LOGGED_IN: 'sessionLoggedIn',
+};
 
 // Default user pictures available in XP (matching OpenLair)
 const DEFAULT_USER_PICTURES = [
@@ -69,6 +81,53 @@ export function UserAccountsProvider({ children }) {
   const [activeUserId, setActiveUserId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // Flag to indicate if we restored from a cached session (skip boot animation)
+  const [sessionRestored, setSessionRestored] = useState(false);
+  const sessionChecked = useRef(false);
+
+  // Check if a session is valid (not expired)
+  const isSessionValid = useCallback(() => {
+    if (SESSION_TIMEOUT_MS === 0) return false; // Session caching disabled
+
+    try {
+      const timestamp = localStorage.getItem(SESSION_KEYS.TIMESTAMP);
+      const wasLoggedIn = localStorage.getItem(SESSION_KEYS.LOGGED_IN) === 'true';
+      const sessionUserId = localStorage.getItem(SESSION_KEYS.USER_ID);
+
+      if (!timestamp || !wasLoggedIn || !sessionUserId) return false;
+
+      const sessionTime = parseInt(timestamp, 10);
+      const now = Date.now();
+      const elapsed = now - sessionTime;
+
+      // Session is valid if within timeout period
+      return elapsed < SESSION_TIMEOUT_MS;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  // Save session to localStorage
+  const saveSession = useCallback((userId) => {
+    try {
+      localStorage.setItem(SESSION_KEYS.TIMESTAMP, Date.now().toString());
+      localStorage.setItem(SESSION_KEYS.USER_ID, userId);
+      localStorage.setItem(SESSION_KEYS.LOGGED_IN, 'true');
+    } catch (err) {
+      console.error('Failed to save session:', err);
+    }
+  }, []);
+
+  // Clear session from localStorage
+  const clearSession = useCallback(() => {
+    try {
+      localStorage.removeItem(SESSION_KEYS.TIMESTAMP);
+      localStorage.removeItem(SESSION_KEYS.USER_ID);
+      localStorage.removeItem(SESSION_KEYS.LOGGED_IN);
+    } catch (err) {
+      console.error('Failed to clear session:', err);
+    }
+  }, []);
 
   // Load users from localStorage once config is ready
   useEffect(() => {
@@ -78,9 +137,10 @@ export function UserAccountsProvider({ children }) {
     try {
       const savedUsers = localStorage.getItem('userAccounts');
       const savedActiveId = localStorage.getItem('activeUserId');
+      let parsedUsers = [];
 
       if (savedUsers) {
-        const parsedUsers = JSON.parse(savedUsers);
+        parsedUsers = JSON.parse(savedUsers);
         setUsers(parsedUsers);
 
         // Check if there's a valid active user
@@ -93,8 +153,31 @@ export function UserAccountsProvider({ children }) {
           getDisplayName(),
           getUserLoginIcon()
         );
-        setUsers([defaultUser]);
-        localStorage.setItem('userAccounts', JSON.stringify([defaultUser]));
+        parsedUsers = [defaultUser];
+        setUsers(parsedUsers);
+        localStorage.setItem('userAccounts', JSON.stringify(parsedUsers));
+      }
+
+      // Check for valid session to restore (only once)
+      if (!sessionChecked.current) {
+        sessionChecked.current = true;
+
+        if (isSessionValid()) {
+          const sessionUserId = localStorage.getItem(SESSION_KEYS.USER_ID);
+          const sessionUser = parsedUsers.find(u => u.id === sessionUserId);
+
+          if (sessionUser) {
+            console.log('[Session] Restoring session for user:', sessionUser.name);
+            setActiveUserId(sessionUserId);
+            setIsLoggedIn(true);
+            setSessionRestored(true);
+            // Update session timestamp to extend it
+            saveSession(sessionUserId);
+          } else {
+            // User no longer exists, clear session
+            clearSession();
+          }
+        }
       }
     } catch (err) {
       console.error('Failed to load user accounts:', err);
@@ -103,7 +186,7 @@ export function UserAccountsProvider({ children }) {
     } finally {
       setIsLoading(false);
     }
-  }, [configLoading, getDisplayName, getUserLoginIcon]);
+  }, [configLoading, getDisplayName, getUserLoginIcon, isSessionValid, saveSession, clearSession]);
 
   // Persist users to localStorage
   useEffect(() => {
@@ -143,20 +226,28 @@ export function UserAccountsProvider({ children }) {
 
     setActiveUserId(userId);
     setIsLoggedIn(true);
+    // Save session for quick restore on page refresh
+    saveSession(userId);
     return { success: true };
-  }, [users]);
+  }, [users, saveSession]);
 
   // Logout current user
   const logoutUser = useCallback(() => {
     setIsLoggedIn(false);
+    setSessionRestored(false);
+    // Clear session so user must log in again next time
+    clearSession();
     // Keep activeUserId for "switch user" functionality
-  }, []);
+  }, [clearSession]);
 
   // Switch user (log out and go to login screen)
   const switchUser = useCallback(() => {
     setIsLoggedIn(false);
+    setSessionRestored(false);
     setActiveUserId(null);
-  }, []);
+    // Clear session when switching users
+    clearSession();
+  }, [clearSession]);
 
   // Create new user account
   const createUser = useCallback(async ({ name, picture, password = null, accountType = 'limited' }) => {
@@ -344,6 +435,7 @@ export function UserAccountsProvider({ children }) {
     activeUserId,
     isLoading,
     isLoggedIn,
+    sessionRestored, // True if session was restored from cache (skip boot/login)
 
     // User getters
     getCurrentUser,
