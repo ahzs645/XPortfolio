@@ -36,6 +36,9 @@ import FontViewer from './FontViewer';
 import OutlookExpress from './OutlookExpress';
 import TaskbarProperties from './TaskbarProperties';
 import AdobeReader from './AdobeReader';
+import ShortcutWizard from './ShortcutWizard';
+import BrowseForFolder from './BrowseForFolder';
+// ControlPanel is now integrated into MyComputer as a navigable view
 
 // XP Icons paths
 const XP_ICONS = {
@@ -59,6 +62,89 @@ const XP_ICONS = {
   fontViewer: '/icons/xp/font.png',
   outlookExpress: '/icons/outlook/outlook.png',
   adobeReader: '/icons/pdf/acroaum_grp107_lang1033.ico',
+};
+
+// App categories for organization
+export const APP_CATEGORIES = {
+  SYSTEM: 'system',         // Windows system apps (Control Panel, User Accounts, etc.)
+  ACCESSORY: 'accessory',   // Windows accessories (Notepad, Calculator, Paint, etc.)
+  GAME: 'game',             // Games (Minesweeper, Solitaire, Pinball, etc.)
+  MEDIA: 'media',           // Media apps (Media Player, Winamp, Sound Recorder)
+  INTERNET: 'internet',     // Internet apps (Internet Explorer, Outlook, Messenger)
+  PORTFOLIO: 'portfolio',   // Portfolio apps (About Me, Resume, Contact, Projects)
+  UTILITY: 'utility',       // Utilities and dialogs
+};
+
+// Map app names to categories
+export const appCategoryMap = {
+  // Portfolio apps
+  'About Me': APP_CATEGORIES.PORTFOLIO,
+  'Resume': APP_CATEGORIES.PORTFOLIO,
+  'Projects': APP_CATEGORIES.PORTFOLIO,
+  'Contact': APP_CATEGORIES.PORTFOLIO,
+
+  // Windows Accessories
+  'Calculator': APP_CATEGORIES.ACCESSORY,
+  'Notepad': APP_CATEGORIES.ACCESSORY,
+  'Paint': APP_CATEGORIES.ACCESSORY,
+  'WordPad': APP_CATEGORIES.ACCESSORY,
+  'Command Prompt': APP_CATEGORIES.ACCESSORY,
+
+  // Games
+  'Minesweeper': APP_CATEGORIES.GAME,
+  'Solitaire': APP_CATEGORIES.GAME,
+  'Spider Solitaire': APP_CATEGORIES.GAME,
+  'Pinball': APP_CATEGORIES.GAME,
+
+  // Media
+  'Windows Media Player': APP_CATEGORIES.MEDIA,
+  'Winamp': APP_CATEGORIES.MEDIA,
+  'Sound Recorder': APP_CATEGORIES.MEDIA,
+  'Image Viewer': APP_CATEGORIES.MEDIA,
+  'Picture and Fax Viewer (Classic)': APP_CATEGORIES.MEDIA,
+
+  // Internet
+  'Internet Explorer': APP_CATEGORIES.INTERNET,
+  'Outlook Express': APP_CATEGORIES.INTERNET,
+  'Windows Messenger': APP_CATEGORIES.INTERNET,
+
+  // System apps
+  'My Computer': APP_CATEGORIES.SYSTEM,
+  'Recycle Bin': APP_CATEGORIES.SYSTEM,
+  'Control Panel': APP_CATEGORIES.SYSTEM,
+  'Display Properties': APP_CATEGORIES.SYSTEM,
+  'Date/Time Properties': APP_CATEGORIES.SYSTEM,
+  'System Properties': APP_CATEGORIES.SYSTEM,
+  'Speech Properties': APP_CATEGORIES.SYSTEM,
+  'Taskbar Properties': APP_CATEGORIES.SYSTEM,
+  'User Accounts': APP_CATEGORIES.SYSTEM,
+  'Add or Remove Programs': APP_CATEGORIES.SYSTEM,
+  'App Installer': APP_CATEGORIES.SYSTEM,
+  'Help and Support': APP_CATEGORIES.SYSTEM,
+  'System Recovery': APP_CATEGORIES.SYSTEM,
+
+  // Utilities
+  'Properties': APP_CATEGORIES.UTILITY,
+  'WinRAR': APP_CATEGORIES.UTILITY,
+  'Font Viewer': APP_CATEGORIES.UTILITY,
+  'Adobe Reader': APP_CATEGORIES.UTILITY,
+  'Create Shortcut': APP_CATEGORIES.UTILITY,
+  'Browse For Folder': APP_CATEGORIES.UTILITY,
+
+  // Fun/Extra
+  'QQ Penguin': APP_CATEGORIES.GAME,
+};
+
+// Helper to get app category
+export const getAppCategory = (appName) => {
+  return appCategoryMap[appName] || APP_CATEGORIES.UTILITY;
+};
+
+// Get all apps by category
+export const getAppsByCategory = (category) => {
+  return Object.entries(appCategoryMap)
+    .filter(([, cat]) => cat === category)
+    .map(([name]) => name);
 };
 
 // Default apps open on startup (empty for now - user opens via desktop icons)
@@ -1149,6 +1235,48 @@ export const appSettings = {
     maximized: false,
     multiInstance: true,
   },
+  'Create Shortcut': {
+    header: {
+      icon: '/icons/xp/Shortcutoverlay.png',
+      title: 'Create Shortcut',
+      buttons: ['close'],
+    },
+    component: ShortcutWizard,
+    defaultSize: {
+      width: 500,
+      height: 380,
+    },
+    defaultOffset: {
+      x: 200,
+      y: 100,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'Browse For Folder': {
+    header: {
+      icon: '/icons/xp/Folder.png',
+      title: 'Browse For Folder',
+      buttons: ['help', 'close'],
+    },
+    component: BrowseForFolder,
+    defaultSize: {
+      width: 320,
+      height: 400,
+    },
+    defaultOffset: {
+      x: 250,
+      y: 120,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  // Control Panel is now integrated into MyComputer as a navigable view
+  // Access via My Computer sidebar > Control Panel
 };
 
 export {
@@ -1187,4 +1315,6 @@ export {
   OutlookExpress,
   TaskbarProperties,
   AdobeReader,
+  ShortcutWizard,
+  BrowseForFolder,
 };

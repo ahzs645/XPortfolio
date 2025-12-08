@@ -7,7 +7,7 @@ import { ProgramLayout, TaskPanel } from '../../../components';
 import { ContextMenu } from '../../components/ContextMenu';
 import { useFileContextMenu, useBackgroundContextMenu } from '../../hooks/useFileContextMenu';
 import { createArchive, extractArchive } from '../../../utils/archiveUtils';
-import { ExplorerContent, ViewMenu, SearchPanel, FolderTree } from './components';
+import { ExplorerContent, ViewMenu, SearchPanel, FolderTree, ControlPanelView } from './components';
 import { getFileExtension, getSimpleFileType, sortItems, filterItems, formatDetailDate } from './utils';
 import {
   useNavigation,
@@ -82,7 +82,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     moveItem,
   } = useFileSystem();
 
-  const { openFile } = useApp();
+  const { openFile, openApp } = useApp();
   const { isFileDropUploadEnabled, isFileDropOverlayEnabled } = useConfig();
 
   // Refs
@@ -113,11 +113,13 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [showFoldersPane, setShowFoldersPane] = useState(false);
+  const [controlPanelCategoryView, setControlPanelCategoryView] = useState(true);
 
   // Navigation hook
   const {
     currentFolder,
     isMyComputerRoot,
+    isControlPanel,
     currentFolderData,
     history,
     historyIndex,
@@ -126,14 +128,15 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     goForward,
     goUp,
     goToRoot,
+    goToControlPanel,
     handleTreeNavigate,
     canGoBack,
     canGoForward,
   } = useNavigation({ fileSystem, initialPath });
 
   // Computed values
-  const contents = isMyComputerRoot ? [] : getFolderContents(currentFolder);
-  const pathString = isMyComputerRoot ? 'My Computer' : getPath(currentFolder);
+  const contents = isMyComputerRoot || isControlPanel ? [] : getFolderContents(currentFolder);
+  const pathString = isMyComputerRoot ? 'My Computer' : isControlPanel ? 'Control Panel' : getPath(currentFolder);
 
   // Selection hook
   const {
@@ -286,7 +289,13 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   // Update window header when folder changes
   useEffect(() => {
     if (onUpdateHeader) {
-      if (isMyComputerRoot) {
+      if (isControlPanel) {
+        onUpdateHeader({
+          icon: XP_ICONS.controlPanel,
+          title: 'Control Panel',
+          buttons: ['minimize', 'maximize', 'close'],
+        });
+      } else if (isMyComputerRoot) {
         onUpdateHeader({
           icon: XP_ICONS.myComputer,
           title: 'My Computer',
@@ -300,7 +309,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
         });
       }
     }
-  }, [currentFolder, currentFolderData, isMyComputerRoot, onUpdateHeader]);
+  }, [currentFolder, currentFolderData, isMyComputerRoot, isControlPanel, onUpdateHeader]);
 
   const handleItemDoubleClick = useCallback((item) => {
     if (item.type === 'folder' || item.type === 'drive') {
@@ -657,7 +666,17 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
             onChange={handleFileInputChange}
           />
 
-          {isMyComputerRoot ? (
+          {isControlPanel ? (
+            <ControlPanelView
+              viewMode={viewMode}
+              selectedItems={selectedItems}
+              onItemClick={handleItemClick}
+              onItemDoubleClick={handleItemDoubleClick}
+              onNavigateBack={goBack}
+              isCategoryView={controlPanelCategoryView}
+              onToggleView={() => setControlPanelCategoryView(prev => !prev)}
+            />
+          ) : isMyComputerRoot ? (
             <MyComputerLayout>
               {isSearching ? (
                 <SearchPanel
@@ -675,13 +694,13 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
               ) : (
                 <TaskPanel width={180}>
                   <TaskPanel.Section title="System Tasks" variant="primary">
-                    <TaskPanel.Item icon={XP_ICONS.help} onClick={() => console.log('View system info')}>
+                    <TaskPanel.Item icon={XP_ICONS.help} onClick={() => openApp('System Properties')}>
                       View system information
                     </TaskPanel.Item>
-                    <TaskPanel.Item icon={XP_ICONS.programs} onClick={() => console.log('Add/remove programs')}>
+                    <TaskPanel.Item icon={XP_ICONS.programs} onClick={() => openApp('Add or Remove Programs')}>
                       Add or remove programs
                     </TaskPanel.Item>
-                    <TaskPanel.Item icon={XP_ICONS.controlPanel} onClick={() => console.log('Change a setting')}>
+                    <TaskPanel.Item icon={XP_ICONS.controlPanel} onClick={goToControlPanel}>
                       Change a setting
                     </TaskPanel.Item>
                   </TaskPanel.Section>
@@ -692,7 +711,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
                     <TaskPanel.Item icon={XP_ICONS.myDocuments} onClick={() => navigateTo(SYSTEM_IDS.MY_DOCUMENTS)}>
                       My Documents
                     </TaskPanel.Item>
-                    <TaskPanel.Item icon={XP_ICONS.controlPanel} onClick={() => console.log('Control Panel')}>
+                    <TaskPanel.Item icon={XP_ICONS.controlPanel} onClick={goToControlPanel}>
                       Control Panel
                     </TaskPanel.Item>
                   </TaskPanel.Section>

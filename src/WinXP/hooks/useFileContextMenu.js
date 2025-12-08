@@ -507,6 +507,7 @@ export function useBackgroundContextMenu({
   onNewTextDoc,
   onNewRichTextDoc,
   onNewBitmapImage,
+  onNewShortcut,
   onPaste,
   onRefresh,
   onUpload,
@@ -636,6 +637,15 @@ export function useBackgroundContextMenu({
       disabled: !onNewBitmapImage,
     });
 
+    // Shortcut option
+    if (onNewShortcut) {
+      newSubmenu.push({
+        label: 'Shortcut',
+        icon: XP_ICONS.shortcut,
+        onClick: onNewShortcut,
+      });
+    }
+
     newSubmenu.push({ type: 'divider' });
 
     // Upload (file explorer only)
@@ -669,6 +679,7 @@ export function useBackgroundContextMenu({
     onNewTextDoc,
     onNewRichTextDoc,
     onNewBitmapImage,
+    onNewShortcut,
     onPaste,
     onRefresh,
     onUpload,

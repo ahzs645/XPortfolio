@@ -7,6 +7,7 @@ import { useUserSettings } from '../contexts/UserSettingsContext';
 import MobileRestrictionPopup from '../components/MobileRestrictionPopup';
 import { useFileSystem, SYSTEM_IDS, XP_ICONS, SYSTEM_DESKTOP_ICONS } from '../contexts/FileSystemContext';
 import { useInstalledApps } from '../contexts/InstalledAppsContext';
+import { useUserAccounts } from '../contexts/UserAccountsContext';
 import { AppProvider } from '../contexts/AppContext';
 import { ContextMenu } from './components/ContextMenu';
 import { parseFileStructure } from '../utils/fileDropParser';
@@ -88,6 +89,7 @@ import {
   FOCUS_APP,
   MINIMIZE_APP,
   TOGGLE_MAXIMIZE_APP,
+  CLOSE_ALL_APPS,
   FOCUS_ICON,
   SELECT_ICONS,
   SET_ICONS,
@@ -202,6 +204,12 @@ const reducer = (state, action = { type: '' }) => {
         focusing: FOCUSING.WINDOW,
       };
     }
+    case CLOSE_ALL_APPS:
+      return {
+        ...state,
+        apps: [],
+        focusing: FOCUSING.DESKTOP,
+      };
     case FOCUS_ICON: {
       const icons = state.icons.map((icon) => ({
         ...icon,
@@ -328,6 +336,19 @@ function WinXP() {
   } = useFileSystem();
 
   const { registerLaunchCallback, launchInstalledApp } = useInstalledApps();
+  const { activeUserId } = useUserAccounts();
+
+  // Track previous user ID to detect user changes
+  const prevUserIdRef = useRef(activeUserId);
+
+  // Close all apps when user changes (switching accounts)
+  useEffect(() => {
+    if (prevUserIdRef.current !== null && prevUserIdRef.current !== activeUserId) {
+      // User changed - close all apps
+      dispatch({ type: CLOSE_ALL_APPS });
+    }
+    prevUserIdRef.current = activeUserId;
+  }, [activeUserId]);
 
   // Mobile restriction handling
   const {
@@ -821,6 +842,10 @@ function WinXP() {
         // Open Display Properties dialog
         dispatch({ type: ADD_APP, payload: appSettings['Display Properties'] });
         break;
+      case 'newShortcut':
+        // Open Create Shortcut wizard
+        dispatch({ type: ADD_APP, payload: appSettings['Create Shortcut'] });
+        break;
       default:
         console.log('Desktop action:', action);
     }
@@ -1203,6 +1228,7 @@ function WinXP() {
     onNewFolder: () => handleDesktopMenuAction('newFolder'),
     onNewBriefcase: () => handleDesktopMenuAction('newBriefcase'),
     onNewTextDoc: () => handleDesktopMenuAction('newTextDoc'),
+    onNewShortcut: () => handleDesktopMenuAction('newShortcut'),
     onProperties: () => handleDesktopMenuAction('properties'),
     // Arrange icons handlers
     onArrangeByName: handleArrangeByName,
