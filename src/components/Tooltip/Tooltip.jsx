@@ -4,7 +4,7 @@ import { useTooltip } from '../../contexts/TooltipContext';
 const CURSOR_OFFSET_X = 12;
 const CURSOR_OFFSET_Y = 20;
 
-export default function Tooltip({ children, text, delay = 400, multiline = false, disabled = false }) {
+export default function Tooltip({ children, text, delay = 1000, multiline = false, disabled = false }) {
   const { showTooltip, hideTooltip } = useTooltip();
   const elementRef = useRef(null);
 

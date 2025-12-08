@@ -19,7 +19,7 @@ const CURSOR_OFFSET_Y = 20;
  * return <div {...tooltipProps}>Hover me</div>;
  */
 export default function useTooltipTrigger(text, options = {}) {
-  const { delay = 400, multiline = false, disabled = false } = options;
+  const { delay = 1000, multiline = false, disabled = false } = options;
   const { showTooltip, hideTooltip } = useTooltip();
 
   const onMouseEnter = useCallback(

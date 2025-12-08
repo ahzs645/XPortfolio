@@ -46,6 +46,7 @@ function useSystemSounds() {
     });
   }, []);
 
+  // Volume is now handled globally by audioManager.js
   const playSound = useCallback((soundName, volume = 1) => {
     const sound = soundsRef.current[soundName] || audioCache[soundName];
     if (!sound) return;
@@ -53,7 +54,7 @@ function useSystemSounds() {
     try {
       sound.pause();
       sound.currentTime = 0;
-      sound.volume = volume;
+      sound.volume = volume; // audioManager will apply master volume
 
       // Firefox needs a small delay
       const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');

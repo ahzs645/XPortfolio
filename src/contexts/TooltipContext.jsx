@@ -17,8 +17,7 @@ const TooltipBox = styled.div`
   z-index: 99999;
   pointer-events: none;
   box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-  max-width: 300px;
-  white-space: ${({ $multiline }) => ($multiline ? 'normal' : 'nowrap')};
+  white-space: nowrap;
   visibility: ${({ $measured }) => ($measured ? 'visible' : 'hidden')};
 `;
 
@@ -104,7 +103,7 @@ export function TooltipProvider({ children }) {
       showTimeoutRef.current = null;
     }
 
-    const delay = options.delay ?? 400; // Default XP tooltip delay
+    const delay = options.delay ?? 1000; // Default XP tooltip delay (1 second)
 
     if (delay > 0) {
       showTimeoutRef.current = setTimeout(() => {

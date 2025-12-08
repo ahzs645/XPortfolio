@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import { isMobileDevice } from '../../utils/deviceDetection';
+import { useFileSystem } from '../../contexts/FileSystemContext';
+import { useTooltip } from '../../contexts/TooltipContext';
 
 // Different drag thresholds for desktop vs mobile
 const DRAG_THRESHOLD_DESKTOP = 4;
@@ -40,6 +42,59 @@ function Icons({
   const containerRef = useRef(null);
   const isMobile = isMobileDevice();
   const prevSelectedIdsRef = useRef([]);
+
+  // Tooltip support
+  const { getPath } = useFileSystem();
+  const { showTooltip, hideTooltip } = useTooltip();
+  const CURSOR_OFFSET_X = 12;
+  const CURSOR_OFFSET_Y = 20;
+
+  // Get tooltip text for an icon
+  const getTooltipText = useCallback((icon) => {
+    // System icons have special tooltips
+    if (icon.type === 'system') {
+      if (icon.id === 'recycle-bin') {
+        return 'Contains the files and folders that you have deleted.';
+      }
+      if (icon.id === 'my-computer') {
+        return 'Displays the contents of your computer.';
+      }
+      return null;
+    }
+    // Folders show their location
+    if (icon.type === 'folder') {
+      const path = getPath(icon.id);
+      return path ? `Location: ${path}` : null;
+    }
+    return null;
+  }, [getPath]);
+
+  // Handle tooltip on mouse enter
+  const handleIconMouseEnter = useCallback((e, icon) => {
+    if (dragging || isMobile) return;
+    const tooltipText = getTooltipText(icon);
+    if (tooltipText) {
+      const x = e.clientX + CURSOR_OFFSET_X;
+      const y = e.clientY + CURSOR_OFFSET_Y;
+      showTooltip(tooltipText, x, y, { delay: 1000 });
+    }
+  }, [dragging, isMobile, getTooltipText, showTooltip]);
+
+  // Handle tooltip position update on mouse move
+  const handleIconMouseMove = useCallback((e, icon) => {
+    if (dragging || isMobile) return;
+    const tooltipText = getTooltipText(icon);
+    if (tooltipText) {
+      const x = e.clientX + CURSOR_OFFSET_X;
+      const y = e.clientY + CURSOR_OFFSET_Y;
+      showTooltip(tooltipText, x, y, { delay: 0 });
+    }
+  }, [dragging, isMobile, getTooltipText, showTooltip]);
+
+  // Handle tooltip hide on mouse leave
+  const handleIconMouseLeave = useCallback(() => {
+    hideTooltip(true);
+  }, [hideTooltip]);
 
   // Clear long press timer
   const clearLongPressTimer = useCallback(() => {
@@ -196,6 +251,9 @@ function Icons({
   const handleMouseDown = useCallback((e, icon) => {
     e.stopPropagation();
 
+    // Hide tooltip when starting to drag
+    hideTooltip(true);
+
     // Check if this icon is already part of a multi-selection
     const selectedIcons = icons.filter((i) => i.isFocus);
     const isPartOfSelection = selectedIcons.some((i) => i.id === icon.id);
@@ -221,7 +279,7 @@ function Icons({
       startY: e.clientY,
       iconStartPositions,
     });
-  }, [icons, onMouseDown]);
+  }, [icons, onMouseDown, hideTooltip]);
 
   const handleDoubleClick = useCallback((icon) => {
     // On mobile, double-click is handled by touch events to avoid duplicate firing
@@ -486,6 +544,9 @@ function Icons({
             onDrag={handleDrag}
             onDragEnd={handleDragEnd}
             onMouseDown={(e) => !isRenaming && handleMouseDown(e, icon)}
+            onMouseEnter={(e) => handleIconMouseEnter(e, icon)}
+            onMouseMove={(e) => handleIconMouseMove(e, icon)}
+            onMouseLeave={handleIconMouseLeave}
             onDoubleClick={() => !isRenaming && handleDoubleClick(icon)}
             onContextMenu={(e) => handleContextMenu(e, icon)}
             onTouchStart={(e) => !isRenaming && handleTouchStart(e, icon)}
