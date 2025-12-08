@@ -429,13 +429,42 @@ function Icons({
     e.dataTransfer.setData('text/plain', icon.title);
   }, []);
 
+  // Handle HTML5 drag - update positions during native drag
+  const handleDrag = useCallback((e) => {
+    // During drag, e.clientX/Y can be 0 at the end, so ignore those
+    if (!dragging || e.clientX === 0 && e.clientY === 0) return;
+
+    const deltaX = e.clientX - dragging.startX;
+    const deltaY = e.clientY - dragging.startY;
+
+    // Get all selected icons or just the dragged one
+    const selectedIcons = icons.filter((icon) => icon.isFocus);
+    const iconsToMove = selectedIcons.length > 0 ? selectedIcons : [icons.find((i) => i.id === dragging.id)];
+
+    const newPositions = {};
+    iconsToMove.forEach((icon) => {
+      if (!icon) return;
+      const startPos = dragging.iconStartPositions[icon.id] || { x: icon.x, y: icon.y };
+      newPositions[icon.id] = {
+        x: Math.max(0, startPos.x + deltaX),
+        y: Math.max(0, startPos.y + deltaY),
+      };
+    });
+
+    setDragPositions(newPositions);
+  }, [dragging, icons]);
+
   // Handle HTML5 drag end - clean up state when native drag ends
   const handleDragEnd = useCallback(() => {
+    // Commit the drag positions if any
+    if (Object.keys(dragPositions).length > 0) {
+      onUpdatePositions(dragPositions);
+    }
     // Clean up all drag state
     setDragging(null);
     setDragPositions({});
     setDropTargetId(null);
-  }, []);
+  }, [dragPositions, onUpdatePositions]);
 
   // Check if an icon is in the cut clipboard
   const isCutIcon = (iconId) => clipboardOp === 'cut' && clipboard?.includes(iconId);
@@ -454,6 +483,7 @@ function Icons({
             ref={(el) => (iconRefs.current[index] = el)}
             draggable={!isRenaming && !isMobile}
             onDragStart={(e) => handleDragStart(e, icon)}
+            onDrag={handleDrag}
             onDragEnd={handleDragEnd}
             onMouseDown={(e) => !isRenaming && handleMouseDown(e, icon)}
             onDoubleClick={() => !isRenaming && handleDoubleClick(icon)}
