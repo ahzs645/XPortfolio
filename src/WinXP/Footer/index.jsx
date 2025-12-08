@@ -3,7 +3,10 @@ import { createPortal } from 'react-dom';
 import styled from 'styled-components';
 import Balloon from '../../components/Balloon';
 import FooterMenu from './FooterMenu';
+import QuickLaunch from './QuickLaunch';
 import { ContextMenu } from '../components/ContextMenu';
+
+const QUICK_LAUNCH_ENABLED_KEY = 'xp-quick-launch-enabled';
 
 const getTime = () => {
   const date = new Date();
@@ -30,6 +33,7 @@ function Footer({
   onMouseDown,
   onClickMenuItem,
   onLaunchInstalledApp,
+  onMinimizeAll,
   crtEnabled,
   onToggleCRT,
   playBalloonSound,
@@ -41,11 +45,28 @@ function Footer({
   const [hasUpdate, setHasUpdate] = useState(false);
   const [updateTooltip, setUpdateTooltip] = useState('Updates available');
   const [startContextMenu, setStartContextMenu] = useState(null);
+  const [quickLaunchEnabled, setQuickLaunchEnabled] = useState(() => {
+    try {
+      const saved = localStorage.getItem(QUICK_LAUNCH_ENABLED_KEY);
+      return saved !== null ? JSON.parse(saved) : true;
+    } catch {
+      return true;
+    }
+  });
   const menuRef = useRef(null);
   const startButtonRef = useRef(null);
   const welcomeIconRef = useRef(null);
   const updateIconRef = useRef(null);
   const balloonTimeoutRef = useRef(null);
+
+  // Persist Quick Launch enabled state
+  useEffect(() => {
+    try {
+      localStorage.setItem(QUICK_LAUNCH_ENABLED_KEY, JSON.stringify(quickLaunchEnabled));
+    } catch (e) {
+      console.error('Failed to save Quick Launch state:', e);
+    }
+  }, [quickLaunchEnabled]);
 
   const computeWelcomeAnchor = useCallback(() => {
     const el = welcomeIconRef.current;
@@ -126,7 +147,74 @@ function Footer({
     }
   }, [onClickMenuItem]);
 
-  const startContextMenuItems = [
+  const taskbarContextMenuItems = [
+    {
+      label: 'Toolbars',
+      submenu: [
+        {
+          label: 'Links',
+          checked: false,
+          disabled: true,
+          onClick: () => {},
+        },
+        {
+          label: 'Language bar',
+          checked: false,
+          disabled: true,
+          onClick: () => {},
+        },
+        {
+          label: 'Desktop',
+          checked: false,
+          disabled: true,
+          onClick: () => {},
+        },
+        {
+          label: 'Quick Launch',
+          checked: quickLaunchEnabled,
+          onClick: () => setQuickLaunchEnabled(prev => !prev),
+        },
+        { type: 'divider' },
+        {
+          label: 'New Toolbar...',
+          disabled: true,
+          onClick: () => {},
+        },
+      ],
+    },
+    { type: 'divider' },
+    {
+      label: 'Cascade Windows',
+      disabled: true,
+      onClick: () => {},
+    },
+    {
+      label: 'Tile Windows Horizontally',
+      disabled: true,
+      onClick: () => {},
+    },
+    {
+      label: 'Tile Windows Vertically',
+      disabled: true,
+      onClick: () => {},
+    },
+    {
+      label: 'Show the Desktop',
+      onClick: () => onMinimizeAll?.(),
+    },
+    { type: 'divider' },
+    {
+      label: 'Task Manager',
+      disabled: true,
+      onClick: () => {},
+    },
+    { type: 'divider' },
+    {
+      label: 'Lock the Taskbar',
+      checked: true,
+      disabled: true,
+      onClick: () => {},
+    },
     {
       label: 'Properties',
       onClick: () => handleStartContextMenuAction('properties'),
@@ -241,6 +329,11 @@ function Footer({
           $active={menuOn}
           draggable={false}
         />
+        <QuickLaunch
+          enabled={quickLaunchEnabled}
+          onClickMenuItem={_onClickMenuItem}
+          onMinimizeAll={onMinimizeAll}
+        />
         {[...apps].map(
           (app) =>
             !app.header.noFooterWindow && (
@@ -298,7 +391,7 @@ function Footer({
       {startContextMenu && (
         <ContextMenu
           position={startContextMenu}
-          items={startContextMenuItems}
+          items={taskbarContextMenuItems}
           onClose={() => setStartContextMenu(null)}
           overlayType="fixed"
           zIndex={10000}

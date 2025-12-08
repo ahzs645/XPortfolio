@@ -24,6 +24,14 @@ export function useFileContextMenu({
   onAddToArchive,
   onExtractHere,
 
+  // Start Menu operations
+  onPinToStartMenu,
+  onUnpinFromStartMenu,
+  onAddToStartup,
+  onRemoveFromStartup,
+  isPinnedToStartMenu = false,
+  isInStartup = false,
+
   // Clipboard state
   clipboard = [],
   clipboardOp = 'copy',
@@ -32,6 +40,7 @@ export function useFileContextMenu({
   isMultiSelect = false,
   isMyComputer = false,
   isRecycleBin = false,
+  isShortcut = false,
 }) {
   // Get file extension
   const getFileExtension = useCallback((name) => {
@@ -396,6 +405,39 @@ export function useFileContextMenu({
       });
     }
 
+    // Pin to Start Menu / Add to Startup (for shortcuts)
+    if (isShortcut || selectedItem?.type === 'shortcut') {
+      items.push({ type: 'divider' });
+
+      // Pin to Start Menu
+      if (isPinnedToStartMenu && onUnpinFromStartMenu) {
+        items.push({
+          label: 'Unpin from Start Menu',
+          icon: XP_ICONS.startMenu,
+          onClick: onUnpinFromStartMenu,
+        });
+      } else if (onPinToStartMenu) {
+        items.push({
+          label: 'Pin to Start Menu',
+          icon: XP_ICONS.startMenu,
+          onClick: onPinToStartMenu,
+        });
+      }
+
+      // Add to Startup folder
+      if (isInStartup && onRemoveFromStartup) {
+        items.push({
+          label: 'Remove from Startup',
+          onClick: onRemoveFromStartup,
+        });
+      } else if (onAddToStartup) {
+        items.push({
+          label: 'Add to Startup',
+          onClick: onAddToStartup,
+        });
+      }
+    }
+
     items.push({ type: 'divider' });
 
     // WinRAR options
@@ -484,6 +526,9 @@ export function useFileContextMenu({
     isMultiSelect,
     isMyComputer,
     isRecycleBin,
+    isShortcut,
+    isPinnedToStartMenu,
+    isInStartup,
     onOpen,
     onExplore,
     onCut,
@@ -493,6 +538,10 @@ export function useFileContextMenu({
     onProperties,
     onAddToArchive,
     onExtractHere,
+    onPinToStartMenu,
+    onUnpinFromStartMenu,
+    onAddToStartup,
+    onRemoveFromStartup,
   ]);
 
   return menuItems;

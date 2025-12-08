@@ -3,6 +3,7 @@ export const ADD_APP = 'ADD_APP';
 export const DEL_APP = 'DEL_APP';
 export const FOCUS_APP = 'FOCUS_APP';
 export const MINIMIZE_APP = 'MINIMIZE_APP';
+export const MINIMIZE_ALL_APPS = 'MINIMIZE_ALL_APPS';
 export const TOGGLE_MAXIMIZE_APP = 'TOGGLE_MAXIMIZE_APP';
 export const CLOSE_ALL_APPS = 'CLOSE_ALL_APPS';
 export const FOCUS_ICON = 'FOCUS_ICON';

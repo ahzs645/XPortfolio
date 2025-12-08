@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { useConfig } from '../../contexts/ConfigContext';
 import { useInstalledApps } from '../../contexts/InstalledAppsContext';
 import { useUserAccounts } from '../../contexts/UserAccountsContext';
+import { useStartMenu } from '../../contexts/StartMenuContext';
 import { isAppDisabled } from '../apps/Installer';
 import {
   START_MENU_CATALOG,
@@ -35,6 +36,7 @@ function FooterMenu({ className, onClick, onLaunchInstalledApp }) {
   const { getDisplayName, getStartMenuIcon } = useConfig();
   const { getInstalledAppsList } = useInstalledApps();
   const { getCurrentUser, isLoggedIn } = useUserAccounts();
+  const { menuItems: dynamicMenuItems } = useStartMenu();
 
   const installedApps = getInstalledAppsList();
   const currentUser = getCurrentUser();
@@ -85,22 +87,24 @@ function FooterMenu({ className, onClick, onLaunchInstalledApp }) {
   };
 
   // Build left column items (filter out disabled apps)
-  const leftItems = PINNED_LEFT.map((key) => ({
+  // Use dynamic menu items from StartMenuContext with fallback to static config
+  const leftItems = (dynamicMenuItems?.leftItems || PINNED_LEFT.map((key) => ({
     key,
     ...getMenuItem(key),
-  })).filter((item) => item.type && isItemEnabled(item));
+  }))).filter((item) => item.type && isItemEnabled(item));
 
   // Build right column items (filter out disabled apps)
-  const rightItems = PINNED_RIGHT.map((key) => ({
+  const rightItems = (dynamicMenuItems?.rightItems || PINNED_RIGHT.map((key) => ({
     key,
     ...getMenuItem(key),
-  })).filter((item) => item.type && isItemEnabled(item));
+  }))).filter((item) => item.type && isItemEnabled(item));
 
   // Build all programs items (filter out disabled apps)
-  const allProgramsItems = ALL_PROGRAMS_ORDER.map((key) => ({
+  // This includes both filesystem-based shortcuts and static catalog items
+  const allProgramsItems = (dynamicMenuItems?.allProgramsItems || ALL_PROGRAMS_ORDER.map((key) => ({
     key,
     ...getMenuItem(key),
-  })).filter((item) => item.type && isItemEnabled(item));
+  }))).filter((item) => item.type && isItemEnabled(item));
 
   return (
     <div className={className}>

@@ -1,5 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import { useFileSystem, SYSTEM_IDS, XP_ICONS } from './FileSystemContext';
 import { useInstalledApps } from './InstalledAppsContext';
 import {
@@ -11,24 +10,20 @@ import {
   getMenuItem,
 } from '../WinXP/config/startMenuConfig';
 
-// System folder IDs for Start Menu structure
+// Re-export relevant SYSTEM_IDS for Start Menu
 export const START_MENU_IDS = {
-  PROGRAMS: 'start-menu-programs',
-  STARTUP: 'start-menu-startup',
-  ACCESSORIES: 'start-menu-accessories',
-  GAMES: 'start-menu-games',
-  ENTERTAINMENT: 'start-menu-entertainment',
-  WEB_PROJECTS: 'start-menu-web-projects',
+  PROGRAMS: SYSTEM_IDS.START_MENU_PROGRAMS,
+  STARTUP: SYSTEM_IDS.START_MENU_STARTUP,
+  ACCESSORIES: SYSTEM_IDS.START_MENU_ACCESSORIES,
+  GAMES: SYSTEM_IDS.START_MENU_GAMES,
+  ENTERTAINMENT: SYSTEM_IDS.START_MENU_ENTERTAINMENT,
 };
-
-// Shortcut file size
-const SHORTCUT_SIZE = 90;
 
 const StartMenuContext = createContext(null);
 
 export function StartMenuProvider({ children }) {
-  const { fileSystem, createItem, deleteItem, getFolderContents, moveItem } = useFileSystem();
-  const { getInstalledAppsList, launchInstalledApp } = useInstalledApps();
+  const { fileSystem, createItem, deleteItem, getFolderContents } = useFileSystem();
+  useInstalledApps(); // Hook needed for context connection
   const [startupAppsRun, setStartupAppsRun] = useState(false);
   const [startMenuVersion, setStartMenuVersion] = useState(0);
 
@@ -235,12 +230,13 @@ export function StartMenuProvider({ children }) {
       rightItems: staticRightItems,
       allProgramsItems,
     };
-  }, [fileSystem, getFolderContents, startMenuVersion]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fileSystem, getFolderContents]);
 
-  // Memoized menu items
+  // Memoized menu items - rebuilds when filesystem changes or when startMenuVersion is incremented
   const menuItems = useMemo(() => {
     return buildDynamicMenuItems();
-  }, [buildDynamicMenuItems]);
+  }, [buildDynamicMenuItems, startMenuVersion]);
 
   // Get recently used programs (from filesystem or static list)
   const getRecentPrograms = useCallback(() => {

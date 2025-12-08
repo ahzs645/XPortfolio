@@ -7,6 +7,7 @@ import { useUserSettings } from '../contexts/UserSettingsContext';
 import MobileRestrictionPopup from '../components/MobileRestrictionPopup';
 import { useFileSystem, SYSTEM_IDS, XP_ICONS, SYSTEM_DESKTOP_ICONS } from '../contexts/FileSystemContext';
 import { useInstalledApps } from '../contexts/InstalledAppsContext';
+import { useStartMenu } from '../contexts/StartMenuContext';
 import { useUserAccounts } from '../contexts/UserAccountsContext';
 import { AppProvider } from '../contexts/AppContext';
 import { ContextMenu } from './components/ContextMenu';
@@ -88,6 +89,7 @@ import {
   DEL_APP,
   FOCUS_APP,
   MINIMIZE_APP,
+  MINIMIZE_ALL_APPS,
   TOGGLE_MAXIMIZE_APP,
   CLOSE_ALL_APPS,
   FOCUS_ICON,
@@ -191,6 +193,14 @@ const reducer = (state, action = { type: '' }) => {
         ...state,
         apps,
         focusing: FOCUSING.WINDOW,
+      };
+    }
+    case MINIMIZE_ALL_APPS: {
+      const apps = state.apps.map((app) => ({ ...app, minimized: true }));
+      return {
+        ...state,
+        apps,
+        focusing: FOCUSING.DESKTOP,
       };
     }
     case TOGGLE_MAXIMIZE_APP: {
@@ -336,6 +346,17 @@ function WinXP() {
   } = useFileSystem();
 
   const { registerLaunchCallback, launchInstalledApp } = useInstalledApps();
+  const {
+    getStartupItems,
+    startupAppsRun,
+    setStartupAppsRun,
+    pinToStartMenu,
+    unpinFromStartMenu,
+    isAppPinnedToStartMenu,
+    addToStartup,
+    removeFromStartup,
+    isInStartup,
+  } = useStartMenu();
   const { activeUserId } = useUserAccounts();
 
   // Track previous user ID to detect user changes
@@ -456,6 +477,35 @@ function WinXP() {
     }
   }, [state.icons, setDesktopIconPositions]);
 
+  // Run startup folder apps when desktop loads (once per session)
+  useEffect(() => {
+    if (state.bootState === BOOT_STATE.DESKTOP && !startupAppsRun && !fsLoading && fileSystem) {
+      // Mark startup apps as run to prevent running again
+      setStartupAppsRun(true);
+
+      // Get items from the Startup folder
+      const startupItems = getStartupItems();
+      if (startupItems && startupItems.length > 0) {
+        console.log('[Startup] Running startup apps:', startupItems.map(i => i.name));
+
+        // Slight delay to let desktop fully initialize
+        setTimeout(() => {
+          startupItems.forEach((item, index) => {
+            // Stagger launches to avoid overwhelming the system
+            setTimeout(() => {
+              if (item.type === 'shortcut' && item.target) {
+                const appSetting = appSettings[item.target];
+                if (appSetting) {
+                  dispatch({ type: ADD_APP, payload: appSetting });
+                }
+              }
+            }, index * 500); // 500ms between each app launch
+          });
+        }, 1000); // 1 second delay after desktop loads
+      }
+    }
+  }, [state.bootState, startupAppsRun, fsLoading, fileSystem, getStartupItems, setStartupAppsRun]);
+
   const handleToggleCRT = useCallback(() => {
     setCrtEnabled((prev) => !prev);
   }, []);
@@ -490,6 +540,10 @@ function WinXP() {
     },
     [focusedAppId]
   );
+
+  const onMinimizeAll = useCallback(() => {
+    dispatch({ type: MINIMIZE_ALL_APPS });
+  }, []);
 
   function onMouseDownFooterApp(id) {
     if (focusedAppId === id) {
@@ -1016,10 +1070,44 @@ function WinXP() {
         }
         break;
       }
+      case 'pinToStartMenu': {
+        // Pin the shortcut's target app to Start Menu
+        if (icon.type === 'shortcut' && icon.target) {
+          pinToStartMenu(icon.target, {
+            name: icon.title,
+            icon: icon.icon,
+          });
+        }
+        break;
+      }
+      case 'unpinFromStartMenu': {
+        // Unpin the shortcut's target app from Start Menu
+        if (icon.type === 'shortcut' && icon.target) {
+          unpinFromStartMenu(icon.target);
+        }
+        break;
+      }
+      case 'addToStartup': {
+        // Add the shortcut's target app to Startup folder
+        if (icon.type === 'shortcut' && icon.target) {
+          addToStartup(icon.target, {
+            name: icon.title,
+            icon: icon.icon,
+          });
+        }
+        break;
+      }
+      case 'removeFromStartup': {
+        // Remove the shortcut's target app from Startup folder
+        if (icon.type === 'shortcut' && icon.target) {
+          removeFromStartup(icon.target);
+        }
+        break;
+      }
       default:
         console.log('Icon action:', action);
     }
-  }, [iconContextMenu, state.icons, fileSystem, copy, cut, moveToRecycleBin, getFileContent, createFile, createItem]);
+  }, [iconContextMenu, state.icons, fileSystem, copy, cut, moveToRecycleBin, getFileContent, createFile, createItem, pinToStartMenu, unpinFromStartMenu, addToStartup, removeFromStartup]);
 
   const closeIconContextMenu = useCallback(() => setIconContextMenu(null), []);
 
@@ -1058,12 +1146,24 @@ function WinXP() {
   const isMyComputerIcon = iconContextMenuItem?.target === 'My Computer' || iconContextMenuItem?.name === 'My Computer';
   const isRecycleBinIcon = iconContextMenuItem?.target === 'Recycle Bin' || iconContextMenuItem?.name === 'Recycle Bin';
 
+  // Check if the icon is pinned to start menu or in startup
+  const isIconPinnedToStartMenu = iconContextMenuItem?.target
+    ? isAppPinnedToStartMenu(iconContextMenuItem.target)
+    : false;
+  const isIconInStartup = iconContextMenuItem?.target
+    ? isInStartup(iconContextMenuItem.target)
+    : false;
+  const isShortcutIcon = iconContextMenuItem?.type === 'shortcut';
+
   // Use the shared hook for icon context menu
   const iconMenuItems = useFileContextMenu({
     selectedItem: iconContextMenuItem,
     isMultiSelect: selectedIconCount > 1,
     isMyComputer: isMyComputerIcon,
     isRecycleBin: isRecycleBinIcon,
+    isShortcut: isShortcutIcon,
+    isPinnedToStartMenu: isIconPinnedToStartMenu,
+    isInStartup: isIconInStartup,
     clipboard,
     clipboardOp,
     onOpen: () => handleIconMenuAction('open'),
@@ -1075,6 +1175,10 @@ function WinXP() {
     onProperties: () => handleIconMenuAction('properties'),
     onAddToArchive: () => handleIconMenuAction('addToArchive'),
     onExtractHere: () => handleIconMenuAction('extractHere'),
+    onPinToStartMenu: () => handleIconMenuAction('pinToStartMenu'),
+    onUnpinFromStartMenu: () => handleIconMenuAction('unpinFromStartMenu'),
+    onAddToStartup: () => handleIconMenuAction('addToStartup'),
+    onRemoveFromStartup: () => handleIconMenuAction('removeFromStartup'),
   });
 
   // Close icon context menu when clicking elsewhere
@@ -1521,6 +1625,7 @@ function WinXP() {
         onMouseDown={onMouseDownFooter}
         onClickMenuItem={onClickMenuItem}
         onLaunchInstalledApp={launchInstalledApp}
+        onMinimizeAll={onMinimizeAll}
         crtEnabled={crtEnabled}
         onToggleCRT={handleToggleCRT}
         playBalloonSound={playBalloon}

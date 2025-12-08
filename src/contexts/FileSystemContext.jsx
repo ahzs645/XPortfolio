@@ -73,6 +73,7 @@ export const XP_ICONS = {
   help: '/icons/xp/HelpandSupport.png',
   programs: '/icons/xp/Programs.png',
   run: '/icons/xp/Run.png',
+  startMenu: '/icons/xp/StartMenu.png',
 };
 
 // Special folder IDs
@@ -84,6 +85,11 @@ export const SYSTEM_IDS = {
   PROGRAM_FILES: 'program-files',
   FAVORITES: 'favorites',
   START_MENU: 'start-menu',
+  START_MENU_PROGRAMS: 'start-menu-programs',
+  START_MENU_STARTUP: 'start-menu-startup',
+  START_MENU_ACCESSORIES: 'start-menu-accessories',
+  START_MENU_GAMES: 'start-menu-games',
+  START_MENU_ENTERTAINMENT: 'start-menu-entertainment',
   MY_DOCUMENTS: 'my-documents',
   MY_PICTURES: 'my-pictures',
   MY_MUSIC: 'my-music',
@@ -101,6 +107,11 @@ const PROTECTED_ITEMS = [
   SYSTEM_IDS.PROGRAM_FILES,
   SYSTEM_IDS.FAVORITES,
   SYSTEM_IDS.START_MENU,
+  SYSTEM_IDS.START_MENU_PROGRAMS,
+  SYSTEM_IDS.START_MENU_STARTUP,
+  SYSTEM_IDS.START_MENU_ACCESSORIES,
+  SYSTEM_IDS.START_MENU_GAMES,
+  SYSTEM_IDS.START_MENU_ENTERTAINMENT,
   SYSTEM_IDS.MY_DOCUMENTS,
   SYSTEM_IDS.MY_PICTURES,
   SYSTEM_IDS.MY_MUSIC,
@@ -471,6 +482,71 @@ const createInitialFileSystem = (desktopShortcuts, projects = [], userName = 'Us
       name: 'Start Menu',
       icon: XP_ICONS.folder,
       parent: SYSTEM_IDS.USER_PROFILE,
+      children: [SYSTEM_IDS.START_MENU_PROGRAMS],
+      dateCreated: now,
+      dateModified: now,
+    },
+
+    // Start Menu Programs folder
+    [SYSTEM_IDS.START_MENU_PROGRAMS]: {
+      id: SYSTEM_IDS.START_MENU_PROGRAMS,
+      type: 'folder',
+      name: 'Programs',
+      icon: XP_ICONS.folder,
+      parent: SYSTEM_IDS.START_MENU,
+      children: [
+        SYSTEM_IDS.START_MENU_STARTUP,
+        SYSTEM_IDS.START_MENU_ACCESSORIES,
+        SYSTEM_IDS.START_MENU_GAMES,
+        SYSTEM_IDS.START_MENU_ENTERTAINMENT,
+      ],
+      dateCreated: now,
+      dateModified: now,
+    },
+
+    // Startup folder (apps here run on login)
+    [SYSTEM_IDS.START_MENU_STARTUP]: {
+      id: SYSTEM_IDS.START_MENU_STARTUP,
+      type: 'folder',
+      name: 'Startup',
+      icon: XP_ICONS.folder,
+      parent: SYSTEM_IDS.START_MENU_PROGRAMS,
+      children: [],
+      dateCreated: now,
+      dateModified: now,
+    },
+
+    // Accessories folder
+    [SYSTEM_IDS.START_MENU_ACCESSORIES]: {
+      id: SYSTEM_IDS.START_MENU_ACCESSORIES,
+      type: 'folder',
+      name: 'Accessories',
+      icon: XP_ICONS.folder,
+      parent: SYSTEM_IDS.START_MENU_PROGRAMS,
+      children: [],
+      dateCreated: now,
+      dateModified: now,
+    },
+
+    // Games folder
+    [SYSTEM_IDS.START_MENU_GAMES]: {
+      id: SYSTEM_IDS.START_MENU_GAMES,
+      type: 'folder',
+      name: 'Games',
+      icon: XP_ICONS.folder,
+      parent: SYSTEM_IDS.START_MENU_PROGRAMS,
+      children: [],
+      dateCreated: now,
+      dateModified: now,
+    },
+
+    // Entertainment folder
+    [SYSTEM_IDS.START_MENU_ENTERTAINMENT]: {
+      id: SYSTEM_IDS.START_MENU_ENTERTAINMENT,
+      type: 'folder',
+      name: 'Entertainment',
+      icon: XP_ICONS.folder,
+      parent: SYSTEM_IDS.START_MENU_PROGRAMS,
       children: [],
       dateCreated: now,
       dateModified: now,
@@ -768,11 +844,113 @@ export function FileSystemProvider({ children }) {
         name: 'Start Menu',
         icon: XP_ICONS.folder,
         parent: SYSTEM_IDS.USER_PROFILE,
+        children: [SYSTEM_IDS.START_MENU_PROGRAMS],
+        dateCreated: now,
+        dateModified: now,
+      };
+      modified = true;
+    }
+
+    // Ensure Start Menu has Programs folder as child
+    if (fs[SYSTEM_IDS.START_MENU] && !fs[SYSTEM_IDS.START_MENU].children?.includes(SYSTEM_IDS.START_MENU_PROGRAMS)) {
+      fs[SYSTEM_IDS.START_MENU].children = [SYSTEM_IDS.START_MENU_PROGRAMS];
+      modified = true;
+    }
+
+    // Create Start Menu Programs folder
+    if (!fs[SYSTEM_IDS.START_MENU_PROGRAMS]) {
+      fs[SYSTEM_IDS.START_MENU_PROGRAMS] = {
+        id: SYSTEM_IDS.START_MENU_PROGRAMS,
+        type: 'folder',
+        name: 'Programs',
+        icon: XP_ICONS.folder,
+        parent: SYSTEM_IDS.START_MENU,
+        children: [
+          SYSTEM_IDS.START_MENU_STARTUP,
+          SYSTEM_IDS.START_MENU_ACCESSORIES,
+          SYSTEM_IDS.START_MENU_GAMES,
+          SYSTEM_IDS.START_MENU_ENTERTAINMENT,
+        ],
+        dateCreated: now,
+        dateModified: now,
+      };
+      modified = true;
+    }
+
+    // Create Startup folder
+    if (!fs[SYSTEM_IDS.START_MENU_STARTUP]) {
+      fs[SYSTEM_IDS.START_MENU_STARTUP] = {
+        id: SYSTEM_IDS.START_MENU_STARTUP,
+        type: 'folder',
+        name: 'Startup',
+        icon: XP_ICONS.folder,
+        parent: SYSTEM_IDS.START_MENU_PROGRAMS,
         children: [],
         dateCreated: now,
         dateModified: now,
       };
       modified = true;
+    }
+
+    // Create Accessories folder
+    if (!fs[SYSTEM_IDS.START_MENU_ACCESSORIES]) {
+      fs[SYSTEM_IDS.START_MENU_ACCESSORIES] = {
+        id: SYSTEM_IDS.START_MENU_ACCESSORIES,
+        type: 'folder',
+        name: 'Accessories',
+        icon: XP_ICONS.folder,
+        parent: SYSTEM_IDS.START_MENU_PROGRAMS,
+        children: [],
+        dateCreated: now,
+        dateModified: now,
+      };
+      modified = true;
+    }
+
+    // Create Games folder
+    if (!fs[SYSTEM_IDS.START_MENU_GAMES]) {
+      fs[SYSTEM_IDS.START_MENU_GAMES] = {
+        id: SYSTEM_IDS.START_MENU_GAMES,
+        type: 'folder',
+        name: 'Games',
+        icon: XP_ICONS.folder,
+        parent: SYSTEM_IDS.START_MENU_PROGRAMS,
+        children: [],
+        dateCreated: now,
+        dateModified: now,
+      };
+      modified = true;
+    }
+
+    // Create Entertainment folder
+    if (!fs[SYSTEM_IDS.START_MENU_ENTERTAINMENT]) {
+      fs[SYSTEM_IDS.START_MENU_ENTERTAINMENT] = {
+        id: SYSTEM_IDS.START_MENU_ENTERTAINMENT,
+        type: 'folder',
+        name: 'Entertainment',
+        icon: XP_ICONS.folder,
+        parent: SYSTEM_IDS.START_MENU_PROGRAMS,
+        children: [],
+        dateCreated: now,
+        dateModified: now,
+      };
+      modified = true;
+    }
+
+    // Ensure Programs folder has all subfolders as children
+    if (fs[SYSTEM_IDS.START_MENU_PROGRAMS]) {
+      const requiredChildren = [
+        SYSTEM_IDS.START_MENU_STARTUP,
+        SYSTEM_IDS.START_MENU_ACCESSORIES,
+        SYSTEM_IDS.START_MENU_GAMES,
+        SYSTEM_IDS.START_MENU_ENTERTAINMENT,
+      ];
+      const currentChildren = fs[SYSTEM_IDS.START_MENU_PROGRAMS].children || [];
+      const missingChildren = requiredChildren.filter(c => !currentChildren.includes(c));
+      if (missingChildren.length > 0) {
+        fs[SYSTEM_IDS.START_MENU_PROGRAMS].children = [...currentChildren, ...missingChildren];
+        modified = true;
+      }
     }
 
     // Update C: drive children to new structure

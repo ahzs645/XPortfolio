@@ -6,6 +6,7 @@ import { UserAccountsProvider } from './contexts/UserAccountsContext';
 import { UserSettingsProvider } from './contexts/UserSettingsContext';
 import { FileSystemProvider } from './contexts/FileSystemContext';
 import { InstalledAppsProvider } from './contexts/InstalledAppsContext';
+import { StartMenuProvider } from './contexts/StartMenuContext';
 import { ScreensaverProvider } from './contexts/ScreensaverContext';
 import { UpdateToast } from './components/UpdateToast';
 import { initializeDeviceDetection } from './utils/deviceDetection';
@@ -51,11 +52,13 @@ function App() {
         <UserSettingsProvider>
           <FileSystemProvider>
             <InstalledAppsProvider>
-              <ScreensaverProvider>
-                <GlobalStyle />
-                <WinXP />
-                <UpdateToast />
-              </ScreensaverProvider>
+              <StartMenuProvider>
+                <ScreensaverProvider>
+                  <GlobalStyle />
+                  <WinXP />
+                  <UpdateToast />
+                </ScreensaverProvider>
+              </StartMenuProvider>
             </InstalledAppsProvider>
           </FileSystemProvider>
         </UserSettingsProvider>
