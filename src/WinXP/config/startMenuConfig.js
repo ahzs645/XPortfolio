@@ -190,7 +190,7 @@ export const START_MENU_CATALOG = {
   qqArcade: {
     type: 'program',
     appKey: 'QQ Arcade',
-    icon: '/icons/xp/Minesweeper.png',
+    icon: '/games/QQArcade/icon.png',
     title: 'QQ Arcade',
     description: '29 classic mini-games',
   },

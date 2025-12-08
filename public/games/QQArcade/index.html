@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QQ Games Arcade</title>
+    <link rel="stylesheet" href="https://unpkg.com/xp.css@0.2.6/dist/XP.css">
     <style>
         * {
             margin: 0;
@@ -12,171 +13,216 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Tahoma', 'Segoe UI', sans-serif;
+            font-size: 11px;
+            background: #ece9d8;
             min-height: 100vh;
-            color: white;
+            color: #000;
         }
 
-        /* Header */
-        .header {
-            background: rgba(0,0,0,0.3);
-            padding: 15px 20px;
+        /* XP-style toolbar */
+        .toolbar {
+            background: linear-gradient(180deg, #f6f9fe 0%, #d3e5fa 50%, #d3e5fa 50%, #d0e3fa 100%);
+            border-bottom: 1px solid #89a5c1;
+            padding: 4px 8px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            border-bottom: 2px solid rgba(255,255,255,0.1);
+            gap: 8px;
         }
 
-        .header h1 {
-            font-size: 24px;
-            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .lang-toggle {
-            padding: 8px 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 20px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .lang-toggle:hover {
-            transform: scale(1.05);
-        }
-
-        /* Tabs */
-        .tabs {
+        .toolbar-title {
             display: flex;
-            gap: 10px;
-            padding: 15px 20px;
-            background: rgba(0,0,0,0.2);
+            align-items: center;
+            gap: 6px;
+            font-weight: bold;
+            color: #0046d5;
+        }
+
+        .toolbar-title img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .toolbar-spacer {
+            flex: 1;
+        }
+
+        /* XP-style tabs */
+        .tabs {
+            background: #ece9d8;
+            padding: 8px 8px 0;
+            display: flex;
+            gap: 2px;
+            border-bottom: 1px solid #aca899;
         }
 
         .tab {
-            padding: 10px 24px;
-            background: rgba(255,255,255,0.1);
-            border: none;
-            border-radius: 25px;
-            color: white;
-            font-size: 14px;
+            background: linear-gradient(180deg, #faf8f5 0%, #ece9d8 100%);
+            border: 1px solid #aca899;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            padding: 6px 16px;
+            font-size: 11px;
+            font-family: inherit;
             cursor: pointer;
-            transition: all 0.3s;
+            color: #000;
+            position: relative;
+            top: 1px;
         }
 
         .tab:hover {
-            background: rgba(255,255,255,0.2);
+            background: linear-gradient(180deg, #fff 0%, #f5f4ef 100%);
         }
 
         .tab.active {
-            background: linear-gradient(135deg, #00d4ff 0%, #7b2cbf 100%);
+            background: #fff;
+            border-bottom: 1px solid #fff;
+            font-weight: bold;
         }
 
-        /* Game Gallery */
+        /* XP-style panel */
+        .panel {
+            background: #fff;
+            border: 1px solid #aca899;
+            border-top: none;
+            margin: 0 8px 8px;
+        }
+
+        /* Game gallery */
         .gallery {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 20px;
-            padding: 20px;
-            max-height: calc(100vh - 180px);
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            padding: 12px;
+            max-height: calc(100vh - 100px);
             overflow-y: auto;
         }
 
         .game-card {
-            background: rgba(255,255,255,0.1);
-            border-radius: 12px;
-            overflow: hidden;
+            background: #fff;
+            border: 1px solid #d4d0c8;
+            border-radius: 3px;
             cursor: pointer;
-            transition: all 0.3s;
-            border: 2px solid transparent;
+            transition: all 0.15s;
+            overflow: hidden;
         }
 
         .game-card:hover {
-            transform: translateY(-5px);
-            border-color: #00d4ff;
-            box-shadow: 0 10px 30px rgba(0,212,255,0.3);
+            border-color: #0078d7;
+            box-shadow: 0 0 0 1px #0078d7;
+        }
+
+        .game-card:hover .game-title {
+            background: #0078d7;
+            color: #fff;
         }
 
         .game-card img {
             width: 100%;
-            height: 120px;
+            height: 90px;
             object-fit: cover;
+            display: block;
+            background: #f0f0f0;
         }
 
-        .game-card .info {
-            padding: 12px;
+        .game-title {
+            padding: 6px 8px;
+            font-size: 11px;
+            text-align: center;
+            background: #ece9d8;
+            border-top: 1px solid #d4d0c8;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .game-card .title {
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 4px;
+        .game-subtitle {
+            font-size: 10px;
+            color: #666;
+            padding: 0 8px 4px;
+            text-align: center;
+            background: #ece9d8;
         }
 
-        .game-card .title-zh {
-            font-size: 12px;
-            opacity: 0.7;
-        }
-
-        /* Game Player Modal */
+        /* Game modal */
         .modal {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.5);
             z-index: 1000;
-            flex-direction: column;
         }
 
         .modal.active {
             display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .modal-header {
+        .modal-window {
+            background: #ece9d8;
+            border: 2px solid #0055e5;
+            border-radius: 6px 6px 0 0;
+            width: 95%;
+            height: 90%;
+            max-width: 1000px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.4);
+            overflow: hidden;
+        }
+
+        .modal-titlebar {
+            background: linear-gradient(180deg, #0a246a 0%, #0a246a 3%, #1157cd 6%, #0a50c3 10%, #0a50c3 90%, #0a246a 94%, #0a246a 100%);
+            padding: 4px 6px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 15px 20px;
-            background: rgba(0,0,0,0.5);
+            gap: 6px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 12px;
         }
 
-        .modal-title {
-            font-size: 18px;
+        .modal-titlebar img {
+            width: 16px;
+            height: 16px;
         }
 
-        .modal-close {
-            padding: 8px 20px;
-            background: #e74c3c;
-            border: none;
-            border-radius: 5px;
-            color: white;
+        .modal-titlebar-spacer {
+            flex: 1;
+        }
+
+        .modal-close-btn {
+            background: linear-gradient(180deg, #e57061 0%, #c72e1c 50%, #c72e1c 50%, #c33425 100%);
+            border: 1px solid #3c0c03;
+            border-radius: 3px;
+            width: 21px;
+            height: 21px;
+            color: #fff;
+            font-size: 14px;
             font-weight: bold;
             cursor: pointer;
-        }
-
-        .modal-close:hover {
-            background: #c0392b;
-        }
-
-        .player-container {
-            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            line-height: 1;
         }
 
-        .player-container ruffle-player {
-            max-width: 100%;
-            max-height: 100%;
-            width: 800px;
-            height: 600px;
+        .modal-close-btn:hover {
+            background: linear-gradient(180deg, #ff8878 0%, #dc4535 50%, #dc4535 50%, #dc4535 100%);
+        }
+
+        .modal-content {
+            flex: 1;
+            background: #000;
+            display: flex;
+            align-items: stretch;
+            justify-content: stretch;
+        }
+
+        .modal-content ruffle-player {
+            width: 100% !important;
+            height: 100% !important;
         }
 
         /* Loading */
@@ -185,15 +231,18 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 20px;
+            gap: 12px;
             padding: 40px;
+            width: 100%;
+            height: 100%;
+            background: #fff;
         }
 
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(255,255,255,0.2);
-            border-top-color: #00d4ff;
+        .loading-icon {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #ece9d8;
+            border-top-color: #0078d7;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -202,79 +251,70 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Back button */
-        .back-btn {
-            padding: 8px 16px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 5px;
-            color: white;
-            cursor: pointer;
-            margin-right: 15px;
-        }
-
-        .back-btn:hover {
-            background: rgba(255,255,255,0.2);
-        }
-
-        /* Scrollbar */
-        .gallery::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .gallery::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.1);
-            border-radius: 4px;
-        }
-
-        .gallery::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.3);
-            border-radius: 4px;
-        }
-
-        .gallery::-webkit-scrollbar-thumb:hover {
-            background: rgba(255,255,255,0.5);
+        /* Fix xp.css double scrollbar buttons - show only single arrows */
+        ::-webkit-scrollbar-button:vertical:start:increment,
+        ::-webkit-scrollbar-button:vertical:end:decrement,
+        ::-webkit-scrollbar-button:horizontal:start:increment,
+        ::-webkit-scrollbar-button:horizontal:end:decrement {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1 id="headerTitle">QQ Games Arcade</h1>
-        <button class="lang-toggle" onclick="toggleLang()" id="langBtn">中文</button>
+    <div class="toolbar">
+        <div class="toolbar-title">
+            <img src="icon.png" alt="">
+            <span id="headerTitle">QQ Games Arcade</span>
+        </div>
+        <div class="toolbar-spacer"></div>
+        <button onclick="toggleLang()" id="langBtn">中文</button>
     </div>
 
     <div class="tabs">
         <button class="tab active" data-tab="classical" onclick="switchTab('classical')">
             <span class="tab-text" data-en="Classic Games" data-zh="经典游戏">Classic Games</span>
-            <span id="classicalCount"></span>
+            (<span id="classicalCount">0</span>)
         </button>
         <button class="tab" data-tab="reskin" onclick="switchTab('reskin')">
             <span class="tab-text" data-en="More Games" data-zh="更多游戏">More Games</span>
-            <span id="reskinCount"></span>
+            (<span id="reskinCount">0</span>)
         </button>
     </div>
 
-    <div class="gallery" id="gallery">
-        <div class="loading">
-            <div class="spinner"></div>
-            <span>Loading games...</span>
-        </div>
-    </div>
-
-    <!-- Game Player Modal -->
-    <div class="modal" id="gameModal">
-        <div class="modal-header">
-            <div style="display:flex;align-items:center;">
-                <button class="back-btn" onclick="closeGame()">← Back</button>
-                <span class="modal-title" id="modalTitle">Game</span>
+    <div class="panel">
+        <div class="gallery" id="gallery">
+            <div class="loading">
+                <div class="loading-icon"></div>
+                <span>Loading games...</span>
             </div>
-            <button class="modal-close" onclick="closeGame()">Close</button>
-        </div>
-        <div class="player-container" id="playerContainer">
-            <!-- Ruffle player will be inserted here -->
         </div>
     </div>
 
+    <!-- Game Modal -->
+    <div class="modal" id="gameModal">
+        <div class="modal-window">
+            <div class="modal-titlebar">
+                <img src="icon.png" alt="">
+                <span id="modalTitle">Game</span>
+                <div class="modal-titlebar-spacer"></div>
+                <button class="modal-close-btn" onclick="closeGame()">×</button>
+            </div>
+            <div class="modal-content" id="playerContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        window.RufflePlayer = window.RufflePlayer || {};
+        window.RufflePlayer.config = {
+            autoplay: "on",
+            unmuteOverlay: "hidden",
+            splashScreen: false,
+            preloader: false,
+            contextMenu: "on",
+            warnOnUnsupportedContent: false,
+            showSwfDownload: false,
+        };
+    </script>
     <script src="/games/qqpenguin/Ruffle/ruffle.js"></script>
     <script>
         let games = { classical: [], reskin: [] };
@@ -282,41 +322,21 @@
         let currentLang = 'en';
         let player = null;
 
-        // Language translations
         const translations = {
-            en: {
-                title: 'QQ Games Arcade',
-                classical: 'Classic Games',
-                reskin: 'More Games',
-                loading: 'Loading games...',
-                langBtn: '中文'
-            },
-            zh: {
-                title: 'QQ游戏厅',
-                classical: '经典游戏',
-                reskin: '更多游戏',
-                loading: '加载游戏中...',
-                langBtn: 'EN'
-            }
+            en: { title: 'QQ Games Arcade', langBtn: '中文' },
+            zh: { title: 'QQ游戏厅', langBtn: 'EN' }
         };
 
-        // Toggle language
         function toggleLang() {
             currentLang = currentLang === 'en' ? 'zh' : 'en';
-            updateLanguage();
-            renderGames();
-        }
-
-        function updateLanguage() {
-            const t = translations[currentLang];
-            document.getElementById('headerTitle').textContent = t.title;
-            document.getElementById('langBtn').textContent = t.langBtn;
+            document.getElementById('headerTitle').textContent = translations[currentLang].title;
+            document.getElementById('langBtn').textContent = translations[currentLang].langBtn;
             document.querySelectorAll('.tab-text').forEach(el => {
                 el.textContent = el.dataset[currentLang];
             });
+            renderGames();
         }
 
-        // Switch tabs
         function switchTab(tab) {
             currentTab = tab;
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -324,7 +344,6 @@
             renderGames();
         }
 
-        // Render game cards
         function renderGames() {
             const gallery = document.getElementById('gallery');
             const gameList = games[currentTab];
@@ -336,25 +355,21 @@
 
             gallery.innerHTML = gameList.map(game => `
                 <div class="game-card" onclick="playGame('${game.id}', '${game.swfUrl}', '${currentLang === 'zh' ? game.titleZh : game.title}')">
-                    <img src="${game.cover}" alt="${game.title}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 150%22><rect fill=%22%23333%22 width=%22200%22 height=%22150%22/><text fill=%22%23666%22 x=%22100%22 y=%2275%22 text-anchor=%22middle%22>No Image</text></svg>'">
-                    <div class="info">
-                        <div class="title">${currentLang === 'zh' ? game.titleZh : game.title}</div>
-                        <div class="title-zh">${currentLang === 'zh' ? game.title : game.titleZh}</div>
-                    </div>
+                    <img src="${game.cover}" alt="${game.title}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 140 90%22><rect fill=%22%23ece9d8%22 width=%22140%22 height=%2290%22/><text fill=%22%23888%22 x=%2270%22 y=%2250%22 text-anchor=%22middle%22 font-size=%2212%22>No Image</text></svg>'">
+                    <div class="game-title">${currentLang === 'zh' ? game.titleZh : game.title}</div>
+                    <div class="game-subtitle">${currentLang === 'zh' ? game.title : game.titleZh}</div>
                 </div>
             `).join('');
         }
 
-        // Wait for Ruffle to be ready
         function waitForRuffle(timeout = 10000) {
             return new Promise((resolve, reject) => {
-                const startTime = Date.now();
-
+                const start = Date.now();
                 function check() {
                     if (window.RufflePlayer && window.RufflePlayer.newest) {
                         resolve(window.RufflePlayer.newest());
-                    } else if (Date.now() - startTime > timeout) {
-                        reject(new Error('Ruffle failed to load. Please refresh the page.'));
+                    } else if (Date.now() - start > timeout) {
+                        reject(new Error('Ruffle failed to load'));
                     } else {
                         setTimeout(check, 100);
                     }
@@ -363,82 +378,55 @@
             });
         }
 
-        // Play game
         async function playGame(id, swfUrl, title) {
             const modal = document.getElementById('gameModal');
             const container = document.getElementById('playerContainer');
-            const modalTitle = document.getElementById('modalTitle');
-
-            modalTitle.textContent = title;
+            document.getElementById('modalTitle').textContent = title;
             modal.classList.add('active');
-
-            container.innerHTML = '<div class="loading"><div class="spinner"></div><span>Loading Ruffle player...</span></div>';
+            container.innerHTML = '<div class="loading"><div class="loading-icon"></div><span>Loading game...</span></div>';
 
             try {
-                // Wait for Ruffle to be ready
                 const ruffle = await waitForRuffle();
-
-                container.innerHTML = '<div class="loading"><div class="spinner"></div><span>Loading game...</span></div>';
-
                 player = ruffle.createPlayer();
-                player.style.width = '800px';
-                player.style.height = '600px';
-
+                player.style.width = '100%';
+                player.style.height = '100%';
                 container.innerHTML = '';
                 container.appendChild(player);
-
                 await player.load({
                     url: swfUrl,
                     autoplay: 'on',
                     unmuteOverlay: 'hidden',
-                    contextMenu: 'on',
-                    warnOnUnsupportedContent: false,
+                    splashScreen: false,
+                    preloader: false,
                     scale: 'showAll',
                     forceScale: true,
+                    letterbox: 'on',
                 });
             } catch (e) {
-                container.innerHTML = '<div class="loading"><span style="color:#ff6b6b;">Failed to load game: ' + e.message + '</span><br><button onclick="closeGame()" style="margin-top:20px;padding:10px 20px;cursor:pointer;">Go Back</button></div>';
+                container.innerHTML = '<div class="loading"><span style="color:#c00;">Error: ' + e.message + '</span><br><button onclick="closeGame()" style="margin-top:16px;">Go Back</button></div>';
             }
         }
 
-        // Close game
         function closeGame() {
-            const modal = document.getElementById('gameModal');
-            const container = document.getElementById('playerContainer');
-
-            modal.classList.remove('active');
-
-            if (player) {
-                try {
-                    player.remove();
-                } catch (e) {}
-                player = null;
-            }
-            container.innerHTML = '';
+            document.getElementById('gameModal').classList.remove('active');
+            if (player) { try { player.remove(); } catch(e){} player = null; }
+            document.getElementById('playerContainer').innerHTML = '';
         }
 
-        // Load games
         async function loadGames() {
             try {
-                const response = await fetch('games.json');
-                games = await response.json();
-
-                document.getElementById('classicalCount').textContent = `(${games.classical.length})`;
-                document.getElementById('reskinCount').textContent = `(${games.reskin.length})`;
-
+                const res = await fetch('games.json');
+                games = await res.json();
+                document.getElementById('classicalCount').textContent = games.classical.length;
+                document.getElementById('reskinCount').textContent = games.reskin.length;
                 renderGames();
             } catch (e) {
                 document.getElementById('gallery').innerHTML = '<div class="loading"><span>Failed to load games</span></div>';
             }
         }
 
-        // Initialize
         loadGames();
-
-        // Close modal on escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeGame();
-        });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeGame(); });
     </script>
 </body>
 </html>

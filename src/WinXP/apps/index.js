@@ -269,7 +269,7 @@ export const desktopIconCatalog = {
     component: QQPet13,
   },
   qqArcade: {
-    icon: '/icons/xp/Minesweeper.png',
+    icon: '/games/QQArcade/icon.png',
     title: 'QQ Arcade',
     component: QQArcade,
   },
@@ -989,7 +989,7 @@ export const appSettings = {
   },
   'QQ Arcade': {
     header: {
-      icon: '/icons/xp/Minesweeper.png',
+      icon: '/games/QQArcade/icon.png',
       title: 'QQ Arcade',
       buttons: ['minimize', 'maximize', 'close'],
     },
