@@ -193,6 +193,145 @@ const OUTLOOK_ICONS = {
   localFolders: '/icons/folder-icon.png',
 };
 
+// Email content components - rendered directly in React (no iframes)
+const EmailContent = {
+  chain_email: () => (
+    <div style={{ fontFamily: '"Courier New", monospace', fontSize: '10pt', color: '#000', backgroundColor: '#CCFFCC', padding: '10px', height: '100%' }}>
+      <h2 style={{ fontFamily: '"Comic Sans MS", cursive', color: '#FF6600' }}>FW: FW: FW: MUST READ!!!</h2>
+      <p>This is the funniest joke of the year!</p>
+      <p><span style={{ fontWeight: 'bold', color: '#FF00FF' }}>Q: Why did the chicken cross the road?</span><br />
+      A: To send this email to you!</p>
+      <p>Forward to 10 friends or your computer will freeze forever!</p>
+      <marquee behavior="scroll" direction="left" style={{ color: '#0000FF', fontWeight: 'bold' }}>LOL LOL LOL ~*~*~*~ FORWARD THIS ~*~*~*~ LOL LOL LOL</marquee>
+    </div>
+  ),
+  bank_alert: () => (
+    <div style={{ fontFamily: 'Georgia, serif', fontSize: '11pt', color: '#000080', backgroundColor: '#FFCCCC', padding: '10px', height: '100%' }}>
+      <h2 style={{ color: '#8B0000', fontWeight: 'bold' }}>IMPORTANT NOTICE</h2>
+      <table style={{ border: '2px inset #999', padding: '10px', backgroundColor: '#fff' }}>
+        <tbody>
+          <tr><td>Dear Valued Customer,</td></tr>
+          <tr><td>&nbsp;</td></tr>
+          <tr><td>Your bank account has been temporarily <span style={{ fontWeight: 'bold', color: '#FF0000' }}>LOCKED</span> due to suspicious activity.</td></tr>
+          <tr><td>To restore access, please click the link below and verify your account information immediately:</td></tr>
+          <tr><td>&nbsp;</td></tr>
+          <tr><td><a href="#" style={{ color: '#0000FF', textDecoration: 'underline' }}>www.totally-legit-bank-security.com/verify</a></td></tr>
+          <tr><td>&nbsp;</td></tr>
+          <tr><td><span style={{ fontWeight: 'bold', color: '#FF0000', animation: 'blink 1s linear infinite' }}>Failure to respond may result in permanent account closure!</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  ),
+  virus_hoax: () => (
+    <div style={{ fontFamily: '"Arial Black", Gadget, sans-serif', fontSize: '11pt', color: '#FF0000', backgroundColor: '#FFFF66', padding: '10px', height: '100%' }}>
+      <h2 style={{ color: '#FF0000', textTransform: 'uppercase' }}>!!! VIRUS ALERT !!!</h2>
+      <p style={{ fontWeight: 'bold', textDecoration: 'underline', animation: 'blink 0.5s linear infinite' }}>WARNING! WARNING! WARNING!</p>
+      <p>Your computer may be infected with a deadly virus called <span style={{ fontWeight: 'bold', textDecoration: 'underline' }}>"JDBGMGR.EXE"</span>!</p>
+      <p>It looks like a TEDDY BEAR but it will DELETE YOUR ENTIRE HARD DRIVE in 14 days!!!</p>
+      <p>Forward this message to <span style={{ fontWeight: 'bold', textDecoration: 'underline' }}>10 friends</span> immediately to protect yourself!</p>
+      <hr />
+      <p><span style={{ fontWeight: 'bold', textDecoration: 'underline' }}>THIS IS NOT A HOAX!</span> AOL and Microsoft have confirmed it!</p>
+    </div>
+  ),
+  lottery_win: () => (
+    <div style={{ fontFamily: '"Times New Roman", serif', fontSize: '12pt', color: '#000080', backgroundColor: '#FFFFCC', padding: '10px', height: '100%' }}>
+      <p style={{ color: '#FFD700', fontSize: '18pt', textAlign: 'center' }}>★ ★ ★ ★ ★ ★ ★ ★ ★ ★</p>
+      <h1 style={{ color: '#FFD700', textShadow: '2px 2px #000', fontSize: '24pt', textAlign: 'center' }}>CONGRATULATIONS!!!</h1>
+      <h2 style={{ color: '#008000', textAlign: 'center' }}>YOU HAVE WON THE MEGA ONLINE LOTTERY!</h2>
+      <table style={{ border: '3px ridge #FFD700', padding: '15px', backgroundColor: '#fff', margin: '10px auto' }}>
+        <tbody>
+          <tr><td style={{ textAlign: 'center' }}><span style={{ color: '#FFD700', fontWeight: 'bold' }}>Prize Amount:</span> <span style={{ fontWeight: 'bold', color: '#FF0000', backgroundColor: '#FFFF00' }}>$1,000,000.00 USD</span></td></tr>
+          <tr><td style={{ textAlign: 'center' }}>Winning Ticket Number: <b>XJ-4892-KL-2847</b></td></tr>
+          <tr><td style={{ textAlign: 'center' }}>Reference Code: <b>MLOT/2008/WIN/USA</b></td></tr>
+        </tbody>
+      </table>
+      <p style={{ textAlign: 'center' }}>Your email was selected from over <span style={{ fontWeight: 'bold', color: '#FF0000', backgroundColor: '#FFFF00' }}>5,000,000 entries</span> worldwide!</p>
+      <p style={{ textAlign: 'center' }}>To claim your prize, email: <a href="#" style={{ color: '#0000FF' }}>claims@mega-lottery-winner.com</a></p>
+      <p style={{ textAlign: 'center', fontWeight: 'bold', color: '#FF0000', backgroundColor: '#FFFF00', animation: 'blink 0.8s linear infinite' }}>Offer expires in 24 hours! Act NOW!</p>
+      <p style={{ color: '#FFD700', fontSize: '18pt', textAlign: 'center' }}>★ ★ ★ ★ ★ ★ ★ ★ ★ ★</p>
+    </div>
+  ),
+  nigerian_prince: () => (
+    <div style={{ fontFamily: 'Verdana, sans-serif', fontSize: '10pt', color: '#000', backgroundColor: '#FFF8DC', padding: '10px', height: '100%' }}>
+      <h2 style={{ color: '#8B0000' }}>URGENT BUSINESS PROPOSAL</h2>
+      <p>Dear Friend,</p>
+      <p>I am <span style={{ backgroundColor: '#FFFF00', fontWeight: 'bold' }}>Prince Adewale of Nigeria</span>. I have a large sum of money totaling <span style={{ backgroundColor: '#FFFF00', fontWeight: 'bold' }}>$4,500,000 USD</span> which I need to transfer out of my country due to a financial emergency.</p>
+      <p>Because of your trustworthiness and integrity, I am seeking your assistance. In return, you will receive <span style={{ backgroundColor: '#FFFF00', fontWeight: 'bold' }}>30% of the total funds</span> as a reward.</p>
+      <p>All I need is your <span style={{ backgroundColor: '#FFFF00', fontWeight: 'bold' }}>full name, address, phone number, and bank account details</span>.</p>
+      <p>Please reply immediately to <a href="#" style={{ color: '#0000FF', textDecoration: 'underline' }}>prince_adewale@royalmail.ng</a>.</p>
+      <p style={{ marginTop: '20px', fontStyle: 'italic' }}>Sincerely,<br />Prince Adewale<br />Royal Family of Nigeria</p>
+    </div>
+  ),
+  outlook_welcome: () => (
+    <div style={{ margin: 0, backgroundColor: '#fff', fontFamily: 'Verdana, sans-serif', fontSize: '8pt', color: '#000', height: '100%' }}>
+      <table border="0" cellPadding="0" cellSpacing="0" style={{ width: '100%', height: '100%' }}>
+        <tbody>
+          <tr>
+            <td colSpan="4" valign="top">
+              <table border="0" cellPadding="0" cellSpacing="0" style={{ width: '100%', height: '50px', backgroundColor: '#fff' }}>
+                <tbody>
+                  <tr>
+                    <td style={{ width: '141px' }}><img src="/outlook/outlook_welcome/oelogo1.gif" alt="Logo 1" /></td>
+                    <td colSpan="2" style={{ height: '25px', textAlign: 'right' }}>&nbsp;</td>
+                  </tr>
+                  <tr>
+                    <td style={{ width: '141px' }}><img src="/outlook/outlook_welcome/oelogo2.gif" alt="Logo 2" /></td>
+                    <td valign="bottom" style={{ height: '22px', backgroundColor: '#000', paddingBottom: '2px', color: '#fff', fontWeight: 'bold' }}>
+                      The solution for all your messaging needs
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style={{ width: '100%' }}>
+              <table border="0" cellPadding="0" cellSpacing="0" style={{ width: '100%', height: '100%' }}>
+                <tbody>
+                  <tr>
+                    <td valign="top" style={{ padding: '10px' }}>
+                      <div style={{ backgroundColor: '#ccc', width: '140px', height: '18px', padding: '0 4px' }}>
+                        <span style={{ fontWeight: 'bold' }}>Featuring</span>
+                      </div>
+                      <div style={{ paddingLeft: '15%', paddingTop: '10px' }}>
+                        <p><img src="/outlook/outlook_welcome/dot.gif" alt="" /> E-mail and Newsgroups</p>
+                        <p><img src="/outlook/outlook_welcome/dot.gif" alt="" /> Multiple accounts and Identities</p>
+                        <p><img src="/outlook/outlook_welcome/dot.gif" alt="" /> HTML message support</p>
+                        <p><img src="/outlook/outlook_welcome/dot.gif" alt="" /> Address Book and directory services</p>
+                        <p><img src="/outlook/outlook_welcome/dot.gif" alt="" /> Offline synchronization</p>
+                        <p><img src="/outlook/outlook_welcome/dot.gif" alt="" /> Improved Inbox rules</p>
+                      </div>
+                      <div style={{ marginTop: '20px', backgroundColor: '#ccc', width: '140px', height: '18px', padding: '0 4px' }}>
+                        <span style={{ fontWeight: 'bold' }}>More Information</span>
+                      </div>
+                      <div style={{ paddingLeft: '15%', paddingTop: '10px' }}>
+                        <p>For the most current Outlook Express information, go to the Help menu, and then click Read Me.</p>
+                        <p>For Feedback, frequently asked questions, and tips visit our newsgroup.</p>
+                      </div>
+                      <hr style={{ width: '100%', height: '1px' }} />
+                      <p style={{ padding: '6px' }}>Thank you for choosing Internet Explorer and Outlook Express 6.</p>
+                      <p style={{ padding: '6px', fontWeight: 'bold' }}>The Microsoft Outlook Express Team</p>
+                    </td>
+                    <td style={{ height: '100%', backgroundColor: '#003399', width: '8px' }}>&nbsp;</td>
+                    <td style={{ height: '100%', width: '160px', backgroundColor: '#fff', padding: '10px' }} valign="top">
+                      <img src="/outlook/outlook_welcome/hotmail.gif" alt="Hotmail" /><br />
+                      <p style={{ fontSize: '8pt' }}>Tired of sharing your e-mail account? <a href="#" style={{ color: '#0099FF' }}>Get a free Hotmail account!</a></p>
+                      <img src="/outlook/outlook_welcome/infobeat.gif" alt="InfoBeat" style={{ marginTop: '10px' }} /><br />
+                      <p style={{ fontSize: '8pt' }}>Surf, search and sift no more! <a href="#" style={{ color: '#0099FF' }}>InfoBeat</a> delivers personalized news.</p>
+                      <img src="/outlook/outlook_welcome/verisign.gif" alt="VeriSign" style={{ marginTop: '10px' }} /><br />
+                      <p style={{ fontSize: '8pt' }}>Obtain a free trial personal digital ID from <a href="#" style={{ color: '#0099FF' }}>VeriSign</a>.</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  ),
+};
+
 // Sample emails data
 const EMAILS = [
   {
@@ -200,91 +339,36 @@ const EMAILS = [
     from: 'Friend',
     subject: "FW: You Won't Believe This!",
     date: '02/04/2008 4:32 PM',
-    content: `<div style="font-family: Arial, sans-serif; padding: 20px;">
-      <p>OMG you have to see this!! Forward to 10 friends or bad luck for 7 years!!</p>
-      <p>---------- Forwarded Message ----------</p>
-      <p>This email has been around the world 7 times! Send it to everyone you know!</p>
-    </div>`,
   },
   {
     id: 'bank_alert',
     from: 'Bank Security Dept.',
     subject: 'Your Bank Account Has Been Locked',
     date: '02/04/2008 2:50 PM',
-    content: `<div style="font-family: Arial, sans-serif; padding: 20px;">
-      <p>Dear Valued Customer,</p>
-      <p>We have detected suspicious activity on your account. Please click the link below to verify your identity:</p>
-      <p><a href="#" style="color: blue;">www.totally-not-a-scam.com/verify</a></p>
-      <p>If you do not verify within 24 hours, your account will be permanently suspended.</p>
-      <p>Bank Security Team</p>
-    </div>`,
-  },
-  {
-    id: 'work_from_home',
-    from: 'FastCash Online',
-    subject: 'Make $500 a Day From Home!!!',
-    date: '02/03/2008 11:07 AM',
-    content: `<div style="font-family: Arial, sans-serif; padding: 20px;">
-      <h2 style="color: green;">$$$ WORK FROM HOME $$$</h2>
-      <p>I made $50,000 in my first month working from home!</p>
-      <p>All you need is a computer and an internet connection!</p>
-      <p>Send $49.99 to get started TODAY!</p>
-    </div>`,
   },
   {
     id: 'virus_hoax',
     from: 'System Alert',
     subject: 'WARNING! Delete This Email or Lose Everything!',
     date: '02/02/2008 5:23 PM',
-    content: `<div style="font-family: Arial, sans-serif; padding: 20px;">
-      <h1 style="color: red;">!!! VIRUS ALERT !!!</h1>
-      <p>A new virus called "KILLER.EXE" is spreading! It will delete your entire hard drive!</p>
-      <p>Forward this to everyone in your contacts to warn them!</p>
-      <p>This is NOT a hoax! Microsoft confirmed it!</p>
-    </div>`,
   },
   {
     id: 'lottery_win',
     from: 'Mega Online Lottery',
     subject: 'CONGRATULATIONS! You Won $1,000,000 USD!',
     date: '02/02/2008 9:46 AM',
-    content: `<div style="font-family: Arial, sans-serif; padding: 20px;">
-      <h1 style="color: gold; text-shadow: 1px 1px black;">CONGRATULATIONS!!!</h1>
-      <p>You have been selected as the winner of our MEGA LOTTERY!</p>
-      <p>Prize: $1,000,000 USD</p>
-      <p>To claim your prize, please send your bank details to: claims@mega-lottery-totally-real.com</p>
-    </div>`,
   },
   {
     id: 'nigerian_prince',
     from: 'Prince Adewale',
     subject: 'URGENT: Business Proposal For You',
     date: '02/01/2008 12:18 PM',
-    content: `<div style="font-family: Arial, sans-serif; padding: 20px;">
-      <p>Dear Friend,</p>
-      <p>I am Prince Adewale, son of the late King of Nigeria. I have $45,000,000 USD that I need to transfer out of the country.</p>
-      <p>If you help me, I will give you 30% of the funds.</p>
-      <p>Please reply with your full name, address, and bank account number.</p>
-      <p>God bless you,</p>
-      <p>Prince Adewale</p>
-    </div>`,
   },
   {
     id: 'outlook_welcome',
     from: 'Microsoft',
     subject: 'Welcome to Outlook Express',
     date: '01/01/2008 12:00 PM',
-    content: `<div style="font-family: Arial, sans-serif; padding: 20px;">
-      <h2>Welcome to Outlook Express!</h2>
-      <p>Thank you for using Outlook Express, the fast and easy way to send and receive email.</p>
-      <p>Features:</p>
-      <ul>
-        <li>Send and receive email</li>
-        <li>Organize your messages with folders</li>
-        <li>Manage your contacts</li>
-      </ul>
-      <p>- The Microsoft Team</p>
-    </div>`,
   },
 ];
 
@@ -537,8 +621,11 @@ function OutlookExpress({ onClose, onMinimize, onMaximize, emlData, emlFileName 
       />
       <OutlookContainer>
         <Sidebar>
+          <FoldersPaneHeader>
+            <span>Folders</span>
+            <PaneCloseButton>&times;</PaneCloseButton>
+          </FoldersPaneHeader>
           <SidebarContent>
-            <PaneTitle>Folders</PaneTitle>
             <TreeViewContainer>
               <ul className="tree-view">
                 <li>
@@ -626,9 +713,15 @@ function OutlookExpress({ onClose, onMinimize, onMaximize, emlData, emlFileName 
                     )}
                   </EmailHeaders>
                 )}
-                <PreviewContent
-                  dangerouslySetInnerHTML={{ __html: selectedEmail.content }}
-                />
+                {EmailContent[selectedEmail.id] ? (
+                  <EmailContentWrapper>
+                    {EmailContent[selectedEmail.id]()}
+                  </EmailContentWrapper>
+                ) : selectedEmail.content ? (
+                  <PreviewContent
+                    dangerouslySetInnerHTML={{ __html: selectedEmail.content }}
+                  />
+                ) : null}
               </>
             ) : (
               <EmptyPreview>Select a message to read</EmptyPreview>
@@ -658,28 +751,71 @@ const Sidebar = styled.div`
 
 const SidebarContent = styled.div`
   background: #fff;
-  margin: 4px;
-  border: 2px inset #c7c5b2;
+  margin: 0 2px 2px 2px;
+  border: 1px solid #919b9c;
+  border-top: none;
   flex: 1;
   overflow-y: auto;
 `;
 
-const PaneTitle = styled.div`
-  background: #0a246a;
-  background: linear-gradient(180deg, #0a246a 0%, #a6caf0 100%);
-  color: #fff;
+const FoldersPaneHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(180deg, #ede8da 0%, #d8d0c4 100%);
+  color: #000;
   font-family: Tahoma, Arial, sans-serif;
   font-size: 11px;
   font-weight: bold;
-  padding: 4px 8px;
+  padding: 3px 4px 3px 6px;
+  border: 1px solid #919b9c;
+  border-bottom: 1px solid #b5b5a5;
+  margin: 2px 2px 0 2px;
+`;
+
+const PaneCloseButton = styled.button`
+  background: #d4d0c8;
+  border: 1px solid #808080;
+  border-top-color: #fff;
+  border-left-color: #fff;
+  font-size: 9px;
+  font-family: Marlett, sans-serif;
+  min-width: 0;
+  width: 13px;
+  height: 11px;
+  line-height: 9px;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  flex-shrink: 0;
+  box-sizing: content-box;
+
+  &:hover {
+    background: #e0dcd4;
+  }
+
+  &:active {
+    background: #c0bcb4;
+    border-top-color: #808080;
+    border-left-color: #808080;
+    border-bottom-color: #fff;
+    border-right-color: #fff;
+  }
 `;
 
 const TreeViewContainer = styled.div`
-  padding: 2px;
+  padding: 4px;
 
-  .tree-view {
+  ul.tree-view {
     font-family: Tahoma, Arial, sans-serif;
     font-size: 11px;
+    border: none;
+    padding: 0;
+    margin: 0;
+    background: transparent;
   }
 
   .tree-view li {
@@ -790,6 +926,8 @@ const EmailPreviewPane = styled.div`
   margin: 2px 4px 4px 0;
   overflow: auto;
   background: #fff;
+  display: flex;
+  flex-direction: column;
 `;
 
 const PreviewContent = styled.div`
@@ -799,6 +937,15 @@ const PreviewContent = styled.div`
 
   a {
     color: #0066cc;
+  }
+`;
+
+const EmailContentWrapper = styled.div`
+  flex: 1;
+  overflow: auto;
+
+  @keyframes blink {
+    50% { opacity: 0; }
   }
 `;
 

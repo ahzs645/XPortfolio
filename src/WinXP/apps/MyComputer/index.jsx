@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../../../contexts/FileSystemContext';
 import { useApp } from '../../../contexts/AppContext';
 import { useConfig } from '../../../contexts/ConfigContext';
+import { useTooltip } from '../../../contexts/TooltipContext';
 import { isMobileDevice } from '../../../utils/deviceDetection';
 import { ProgramLayout, TaskPanel } from '../../../components';
 import { ContextMenu } from '../../components/ContextMenu';
@@ -99,6 +100,77 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
 
   // Mobile detection
   const isMobile = isMobileDevice();
+
+  // Tooltip support for My Computer root view
+  const { tooltip, showTooltip, hideTooltip, updatePosition } = useTooltip();
+  const CURSOR_OFFSET_X = 12;
+  const CURSOR_OFFSET_Y = 20;
+
+  // Get tooltip text for My Computer items
+  const getMyComputerTooltipText = useCallback((item) => {
+    if (!item) return null;
+
+    if (item.type === 'folder') {
+      const children = item.children || [];
+      const childNames = children
+        .map(id => fileSystem[id]?.name)
+        .filter(Boolean)
+        .slice(0, 3);
+
+      let filesText = childNames.join(', ');
+      if (children.length > 3) {
+        filesText += ', ...';
+      }
+
+      // Calculate folder size
+      let totalSize = 0;
+      const calcSize = (folderId) => {
+        const folder = fileSystem[folderId];
+        if (!folder?.children) return;
+        for (const childId of folder.children) {
+          const child = fileSystem[childId];
+          if (!child) continue;
+          if (child.type === 'folder') {
+            calcSize(childId);
+          } else {
+            totalSize += child.size || 0;
+          }
+        }
+      };
+      calcSize(item.id);
+
+      const sizeStr = totalSize === 0 ? '0 KB' :
+        totalSize < 1024 ? '1 KB' :
+        totalSize < 1024 * 1024 ? `${Math.round(totalSize / 1024)} KB` :
+        `${(totalSize / (1024 * 1024)).toFixed(1)} MB`;
+
+      return `Size: ${sizeStr}\nFiles: ${filesText || '(empty)'}`;
+    }
+
+    return null;
+  }, [fileSystem]);
+
+  // Tooltip handlers for My Computer items
+  const handleMyComputerMouseEnter = useCallback((e, item) => {
+    if (isMobile) return;
+    const tooltipText = getMyComputerTooltipText(item);
+    if (tooltipText) {
+      const x = e.clientX + CURSOR_OFFSET_X;
+      const y = e.clientY + CURSOR_OFFSET_Y;
+      showTooltip(tooltipText, x, y, { delay: 1000 });
+    }
+  }, [isMobile, getMyComputerTooltipText, showTooltip]);
+
+  const handleMyComputerMouseMove = useCallback((e) => {
+    if (isMobile || !tooltip.visible) return;
+    const x = e.clientX + CURSOR_OFFSET_X;
+    const y = e.clientY + CURSOR_OFFSET_Y;
+    updatePosition(x, y);
+  }, [isMobile, tooltip.visible, updatePosition]);
+
+  const handleMyComputerMouseLeave = useCallback(() => {
+    hideTooltip(true);
+  }, [hideTooltip]);
 
   // Clear long press timer
   const clearLongPressTimer = useCallback(() => {
@@ -617,6 +689,9 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
       onDoubleClick: () => !isMobile && handleItemDoubleClick(item),
       onTouchStart: (e) => handleMyComputerItemTouchStart(e, item),
       onTouchEnd: handleMyComputerItemTouchEnd,
+      onMouseEnter: (e) => handleMyComputerMouseEnter(e, item),
+      onMouseMove: handleMyComputerMouseMove,
+      onMouseLeave: handleMyComputerMouseLeave,
     };
 
     switch (viewMode) {

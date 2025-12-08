@@ -50,7 +50,7 @@ function MenuBar({ menus = [], logo, onAction, windowActions = {} }) {
 
     const container = menuBarRef.current;
     const containerWidth = container.offsetWidth;
-    const logoWidth = logo ? 40 : 0;
+    const logoWidth = logo ? 44 : 0; // 32px max-width + 8px padding + 4px margin
     const chevronWidth = 24; // Width of chevron button
     const padding = 8; // Right padding
     const availableWidth = containerWidth - logoWidth - padding;
@@ -403,16 +403,15 @@ const OverflowDropdown = styled.div`
 `;
 
 const MenuBarLogo = styled.img`
-  background: none;
+  background: #fff;
   border-radius: 0;
   display: block;
-  height: 100%;
-  margin-left: 0;
+  height: 16px;
+  margin-left: auto;
   object-fit: contain;
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 40px;
+  padding: 2px 4px;
+  width: auto;
+  max-width: 32px;
   z-index: 2;
 `;
 
@@ -461,5 +460,10 @@ const MenuSeparator = styled.div`
   height: 0;
   margin: 2px 0;
 `;
+
+// Reusable MenuLogo component for use in other contexts
+export const MenuLogo = ({ src, alt = "Logo", className }) => (
+  <MenuBarLogo src={src} alt={alt} className={className} />
+);
 
 export default MenuBar;

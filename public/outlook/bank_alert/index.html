@@ -9,16 +9,21 @@ h2 { color:#8B0000; font-weight:bold; }
 .highlight { font-weight:bold; color:#FF0000; }
 table { border:2px inset #999999; padding:10px; background-color:#FFFFFF; }
 a { color:#0000FF; text-decoration:underline; }
+.blink { animation: blink 1s linear infinite; }
+@keyframes blink { 50% { opacity: 0; } }
 </style>
 </head>
 <body>
 <h2>IMPORTANT NOTICE</h2>
 <table>
-<tr><td>Your bank account has been temporarily <span class="highlight">locked</span> due to suspicious activity.</td></tr>
+<tr><td>Dear Valued Customer,</td></tr>
+<tr><td>&nbsp;</td></tr>
+<tr><td>Your bank account has been temporarily <span class="highlight">LOCKED</span> due to suspicious activity.</td></tr>
 <tr><td>To restore access, please click the link below and verify your account information immediately:</td></tr>
-<tr><td><a href="/cdn-cgi/l/email-protection#a7d1c2d5cec1dee7c5c6c9cc8ad4c2c4d2d5c289c4c8ca">Verify Your Account</a></td></tr>
-<tr><td><blink>Failure to respond may result in permanent account closure!</blink></td></tr>
+<tr><td>&nbsp;</td></tr>
+<tr><td><a href="#">www.totally-legit-bank-security.com/verify</a></td></tr>
+<tr><td>&nbsp;</td></tr>
+<tr><td><span class="blink highlight">Failure to respond may result in permanent account closure!</span></td></tr>
 </table>
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"version":"2024.11.0","token":"d5b57d93a35048c7997e6c11ff45af4b","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
