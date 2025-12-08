@@ -7,6 +7,8 @@ import QuickLaunch from './QuickLaunch';
 import { ContextMenu } from '../components/ContextMenu';
 
 const QUICK_LAUNCH_ENABLED_KEY = 'xp-quick-launch-enabled';
+const VOLUME_KEY = 'xp-volume';
+const MUTED_KEY = 'xp-muted';
 
 const getTime = () => {
   const date = new Date();
@@ -53,11 +55,30 @@ function Footer({
       return true;
     }
   });
+  const [showVolumePopup, setShowVolumePopup] = useState(false);
+  const [volume, setVolume] = useState(() => {
+    try {
+      const saved = localStorage.getItem(VOLUME_KEY);
+      return saved !== null ? parseInt(saved, 10) : 50;
+    } catch {
+      return 50;
+    }
+  });
+  const [muted, setMuted] = useState(() => {
+    try {
+      const saved = localStorage.getItem(MUTED_KEY);
+      return saved !== null ? JSON.parse(saved) : false;
+    } catch {
+      return false;
+    }
+  });
   const menuRef = useRef(null);
   const startButtonRef = useRef(null);
   const welcomeIconRef = useRef(null);
   const updateIconRef = useRef(null);
   const balloonTimeoutRef = useRef(null);
+  const volumeIconRef = useRef(null);
+  const volumePopupRef = useRef(null);
 
   // Persist Quick Launch enabled state
   useEffect(() => {
@@ -67,6 +88,42 @@ function Footer({
       console.error('Failed to save Quick Launch state:', e);
     }
   }, [quickLaunchEnabled]);
+
+  // Persist volume settings
+  useEffect(() => {
+    try {
+      localStorage.setItem(VOLUME_KEY, String(volume));
+    } catch (e) {
+      console.error('Failed to save volume:', e);
+    }
+  }, [volume]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(MUTED_KEY, JSON.stringify(muted));
+    } catch (e) {
+      console.error('Failed to save muted state:', e);
+    }
+  }, [muted]);
+
+  // Dispatch volume change event for other components to listen
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('xp:volume-change', {
+      detail: { volume: muted ? 0 : volume, muted }
+    }));
+  }, [volume, muted]);
+
+  const handleVolumeClick = useCallback(() => {
+    setShowVolumePopup(prev => !prev);
+  }, []);
+
+  const handleVolumeChange = useCallback((e) => {
+    setVolume(parseInt(e.target.value, 10));
+  }, []);
+
+  const handleMuteToggle = useCallback(() => {
+    setMuted(prev => !prev);
+  }, []);
 
   const computeWelcomeAnchor = useCallback(() => {
     const el = welcomeIconRef.current;
@@ -269,6 +326,28 @@ function Footer({
     };
   }, [showWelcomeBalloon]);
 
+  // Close volume popup when clicking outside
+  useEffect(() => {
+    if (!showVolumePopup) return;
+
+    function handleClickOutside(e) {
+      const volumeEl = volumeIconRef.current;
+      const popupEl = volumePopupRef.current;
+      if (volumeEl && volumeEl.contains(e.target)) return;
+      if (popupEl && popupEl.contains(e.target)) return;
+      setShowVolumePopup(false);
+    }
+
+    const timeoutId = setTimeout(() => {
+      window.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showVolumePopup]);
+
   // Cleanup timeout
   useEffect(() => {
     return () => {
@@ -379,6 +458,13 @@ function Footer({
           title="Toggle Fullscreen"
           onClick={handleFullscreenClick}
         />
+        <TrayIcon
+          ref={volumeIconRef}
+          src="/gui/taskbar/speaker.png"
+          alt="Volume"
+          title={muted ? 'Volume: Muted' : `Volume: ${volume}%`}
+          onClick={handleVolumeClick}
+        />
         <div
           className="footer__time"
           onClick={() => onClickMenuItem('Date and Time Properties')}
@@ -387,6 +473,35 @@ function Footer({
           {time}
         </div>
       </div>
+
+      {showVolumePopup && createPortal(
+        <VolumePopup ref={volumePopupRef}>
+          <div className="volume-label">Volume</div>
+          <div className="field-row">
+            <div className="is-vertical">
+              <input
+                id="volume-slider"
+                className={`has-box-indicator ${muted ? 'disabled' : ''}`}
+                type="range"
+                min="0"
+                max="100"
+                value={volume}
+                onChange={handleVolumeChange}
+              />
+            </div>
+          </div>
+          <div className="field-row mute-row">
+            <input
+              type="checkbox"
+              id="volume-mute"
+              checked={muted}
+              onChange={handleMuteToggle}
+            />
+            <label htmlFor="volume-mute">Mute</label>
+          </div>
+        </VolumePopup>,
+        document.body
+      )}
 
       {startContextMenu && (
         <ContextMenu
@@ -490,6 +605,46 @@ const WelcomeBalloon = styled(Balloon)`
   bottom: 50px;
   right: 16px;
   z-index: 9999;
+`;
+
+const VolumePopup = styled.div`
+  position: fixed;
+  bottom: 34px;
+  right: 80px;
+  z-index: 10001;
+  background: #ece9d8;
+  border: 1px solid #888;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Tahoma', sans-serif;
+  font-size: 11px;
+
+  .volume-label {
+    color: #000;
+    margin-bottom: 4px;
+  }
+
+  .field-row {
+    display: flex;
+    justify-content: center;
+  }
+
+  .is-vertical {
+    display: flex;
+    justify-content: center;
+    height: 100px;
+  }
+
+  .mute-row {
+    margin-top: 8px;
+  }
+
+  .disabled {
+    opacity: 0.5;
+  }
 `;
 
 const Container = styled.footer`

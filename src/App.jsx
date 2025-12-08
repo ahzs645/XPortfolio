@@ -8,6 +8,7 @@ import { FileSystemProvider } from './contexts/FileSystemContext';
 import { InstalledAppsProvider } from './contexts/InstalledAppsContext';
 import { StartMenuProvider } from './contexts/StartMenuContext';
 import { ScreensaverProvider } from './contexts/ScreensaverContext';
+import { TooltipProvider } from './contexts/TooltipContext';
 import { UpdateToast } from './components/UpdateToast';
 import { initializeDeviceDetection } from './utils/deviceDetection';
 
@@ -54,9 +55,11 @@ function App() {
             <InstalledAppsProvider>
               <StartMenuProvider>
                 <ScreensaverProvider>
-                  <GlobalStyle />
-                  <WinXP />
-                  <UpdateToast />
+                  <TooltipProvider>
+                    <GlobalStyle />
+                    <WinXP />
+                    <UpdateToast />
+                  </TooltipProvider>
                 </ScreensaverProvider>
               </StartMenuProvider>
             </InstalledAppsProvider>
