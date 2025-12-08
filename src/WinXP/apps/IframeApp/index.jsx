@@ -408,7 +408,7 @@ function IframeApp({
         src={appUrl}
         onLoad={handleLoad}
         onError={handleError}
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
         allow="clipboard-read; clipboard-write"
         title={app?.name || 'Web App'}
       />

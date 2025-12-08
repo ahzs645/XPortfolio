@@ -480,6 +480,10 @@ const ImageArea = styled.div`
   align-items: center;
   justify-content: center;
   overflow: hidden;
+
+  @media (max-width: 600px) {
+    bottom: 120px;
+  }
 `;
 
 const StyledImg = styled.img`
@@ -501,6 +505,15 @@ const Toolbar = styled.div`
   align-items: center;
   background: #eef2fb;
   z-index: 1;
+
+  @media (max-width: 600px) {
+    height: auto;
+    min-height: 120px;
+    flex-wrap: wrap;
+    padding: 8px 4px;
+    gap: 6px;
+    align-content: center;
+  }
 `;
 
 const Button = styled.button`
@@ -547,6 +560,21 @@ const Button = styled.button`
     height: 100%;
     object-fit: contain;
   }
+
+  @media (max-width: 600px) {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    max-width: 44px;
+    min-height: 44px;
+    max-height: 44px;
+    flex: 0 0 44px;
+    padding: 8px;
+    margin: 0;
+    border: 1px solid #c0c0c0;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 6px;
+  }
 `;
 
 const Separator = styled.div`
@@ -554,6 +582,10 @@ const Separator = styled.div`
   height: 20px;
   background-color: silver;
   margin: 0 5px;
+
+  @media (max-width: 600px) {
+    display: none;
+  }
 `;
 
 const Loading = styled.div`
