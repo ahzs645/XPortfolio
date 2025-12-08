@@ -53,6 +53,13 @@ function FooterMenu({ className, onClick, onLaunchInstalledApp }) {
       onClick(item.appKey, { initialPath: item.folderId });
       return;
     }
+    if (item.type === 'externalProject' && item.projectId) {
+      // Launch external project via installed apps system
+      if (onLaunchInstalledApp) {
+        onLaunchInstalledApp(item.projectId);
+      }
+      return;
+    }
     if (item.type === 'program' && item.appKey) {
       onClick(item.appKey);
     }
@@ -70,6 +77,7 @@ function FooterMenu({ className, onClick, onLaunchInstalledApp }) {
     if (item.type === 'separator') return true;
     if (item.type === 'folder') return true; // Folders are always shown
     if (item.type === 'openFolder') return true; // Open folder items are always shown
+    if (item.type === 'externalProject') return true; // External projects are always shown
     if (item.type === 'program' && item.appKey) {
       return !isAppDisabled(item.appKey);
     }

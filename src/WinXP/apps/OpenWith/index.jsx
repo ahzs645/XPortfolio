@@ -18,7 +18,7 @@ const AVAILABLE_PROGRAMS = [
   { id: 'pinball', name: 'Pinball', icon: '/icons/pinball-icon.png' },
   { id: 'player', name: 'Windows Media Player', icon: '/icons/xp/WindowsMediaPlayer9.png' },
   { id: 'solitaire', name: 'Solitaire', icon: '/icons/solitaire-icon.png' },
-  { id: 'viewer', name: 'Windows Picture and Fax Viewer', icon: '/icons/image-viewer.png' },
+  { id: 'viewer', name: 'Windows Picture and Fax Viewer', icon: '/apps/openlair-viewer/static/images/icon/viewer.png' },
   { id: 'winamp', name: 'Winamp', icon: '/icons/winamp.png' },
   { id: 'wordpad', name: 'WordPad', icon: '/icons/xp/wordpad.png' },
 ];

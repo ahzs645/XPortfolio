@@ -1,7 +1,22 @@
 // Start Menu Configuration
 // Maps menu items to app settings keys and defines menu structure
 
+import { EXTERNAL_PROJECTS, DEFAULT_PROJECT_ICON } from './externalProjects';
+
+// Generate menu entries for external projects
+const externalProjectEntries = EXTERNAL_PROJECTS.reduce((acc, project) => {
+  acc[`project-${project.id}`] = {
+    type: 'externalProject',
+    projectId: `builtin-${project.id}`,
+    icon: project.icon || DEFAULT_PROJECT_ICON,
+    title: project.name,
+    description: project.description,
+  };
+  return acc;
+}, {});
+
 export const START_MENU_CATALOG = {
+  ...externalProjectEntries,
   about: {
     type: 'program',
     appKey: 'About Me',
@@ -105,16 +120,9 @@ export const START_MENU_CATALOG = {
   imageViewer: {
     type: 'program',
     appKey: 'Image Viewer',
-    icon: '/icons/image-viewer.png',
-    title: 'Picture and Fax Viewer',
-    description: null,
-  },
-  classicViewer: {
-    type: 'program',
-    appKey: 'Classic Picture Viewer',
     icon: '/apps/openlair-viewer/static/images/icon/viewer.png',
-    title: 'Picture and Fax Viewer (Classic)',
-    description: 'Static OpenLair port',
+    title: 'Windows Picture and Fax Viewer',
+    description: 'View images and photos',
   },
   winamp: {
     type: 'program',
@@ -248,6 +256,9 @@ export const PINNED_RIGHT = [
   'help',
 ];
 
+// Generate project folder items from external projects
+const externalProjectMenuItems = EXTERNAL_PROJECTS.map(p => `project-${p.id}`);
+
 // Folder definitions for All Programs submenu
 export const START_MENU_FOLDERS = {
   games: {
@@ -260,13 +271,19 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Accessories',
     icon: '/icons/xp/FolderClosed.png',
-    items: ['calculator', 'notepad', 'wordpad', 'displayProperties', 'speechProperties', 'systemProperties', 'systemRecovery', 'userAccounts', 'paint', 'cmd', 'imageViewer', 'classicViewer', 'installer'],
+    items: ['calculator', 'notepad', 'wordpad', 'displayProperties', 'speechProperties', 'systemProperties', 'systemRecovery', 'userAccounts', 'paint', 'cmd', 'imageViewer', 'installer'],
   },
   entertainment: {
     type: 'folder',
     title: 'Entertainment',
     icon: '/icons/xp/FolderClosed.png',
     items: ['mediaPlayer', 'winamp', 'soundRecorder'],
+  },
+  webProjects: {
+    type: 'folder',
+    title: 'My Web Projects',
+    icon: '/icons/xp/Briefcase.png',
+    items: externalProjectMenuItems,
   },
 };
 
@@ -282,6 +299,7 @@ export const ALL_PROGRAMS_ORDER = [
   'resume',
   'contact',
   'divider-main',
+  'webProjects', // folder with external web projects
   'accessories', // folder with Calculator, Notepad, Paint, CMD, Image Viewer
   'entertainment', // folder with Media Player
   'games', // folder with Minesweeper, Solitaire, Spider Solitaire, Pinball

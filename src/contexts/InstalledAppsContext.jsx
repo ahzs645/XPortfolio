@@ -1,9 +1,37 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import * as idb from 'idb-keyval';
 import { v4 as uuidv4 } from 'uuid';
+import { EXTERNAL_PROJECTS, DEFAULT_PROJECT_ICON } from '../WinXP/config/externalProjects';
 
 // Store for installed apps
 const INSTALLED_APPS_KEY = 'xportfolio-installed-apps';
+
+// Convert external projects to built-in apps format
+const BUILT_IN_PROJECTS = EXTERNAL_PROJECTS.reduce((acc, project) => {
+  acc[`builtin-${project.id}`] = {
+    id: `builtin-${project.id}`,
+    url: project.url,
+    name: project.name,
+    icon: project.icon || DEFAULT_PROJECT_ICON,
+    description: project.description || '',
+    author: 'Ahmad Jalil',
+    version: '1.0.0',
+    manifest: null,
+    permissions: [],
+    installedAt: 0, // Built-in apps have timestamp 0
+    lastRun: null,
+    isBuiltIn: true, // Flag to identify built-in projects
+    category: project.category,
+    windowSettings: {
+      width: project.windowSettings?.width || 800,
+      height: project.windowSettings?.height || 600,
+      resizable: project.windowSettings?.resizable ?? true,
+      minWidth: project.windowSettings?.minWidth || 400,
+      minHeight: project.windowSettings?.minHeight || 300,
+    },
+  };
+  return acc;
+}, {});
 
 const InstalledAppsContext = createContext(null);
 
@@ -344,23 +372,48 @@ export function InstalledAppsProvider({ children }) {
     updateApp(appId, { lastRun: Date.now() });
   }, [updateApp]);
 
-  // Get all installed apps as array
+  // Merge built-in projects with user-installed apps
+  const allApps = useMemo(() => {
+    return { ...BUILT_IN_PROJECTS, ...installedApps };
+  }, [installedApps]);
+
+  // Get all installed apps as array (includes built-in)
   const getInstalledAppsList = useCallback(() => {
+    return Object.values(allApps).sort((a, b) => {
+      // Built-in apps first, then by install date
+      if (a.isBuiltIn && !b.isBuiltIn) return -1;
+      if (!a.isBuiltIn && b.isBuiltIn) return 1;
+      return b.installedAt - a.installedAt;
+    });
+  }, [allApps]);
+
+  // Get only user-installed apps (not built-in)
+  const getUserInstalledAppsList = useCallback(() => {
     return Object.values(installedApps).sort((a, b) => b.installedAt - a.installedAt);
   }, [installedApps]);
 
-  // Get app by ID
-  const getApp = useCallback((appId) => {
-    return installedApps[appId] || null;
-  }, [installedApps]);
+  // Get only built-in projects
+  const getBuiltInProjectsList = useCallback(() => {
+    return Object.values(BUILT_IN_PROJECTS);
+  }, []);
 
-  // Check if URL is already installed
+  // Get built-in projects by category
+  const getBuiltInProjectsByCategory = useCallback((category) => {
+    return Object.values(BUILT_IN_PROJECTS).filter(app => app.category === category);
+  }, []);
+
+  // Get app by ID (checks both built-in and installed)
+  const getApp = useCallback((appId) => {
+    return allApps[appId] || null;
+  }, [allApps]);
+
+  // Check if URL is already installed (checks both built-in and installed)
   const isInstalled = useCallback((url) => {
     const normalizedUrl = url.replace(/\/$/, '');
-    return Object.values(installedApps).some(
+    return Object.values(allApps).some(
       app => app.url.replace(/\/$/, '') === normalizedUrl
     );
-  }, [installedApps]);
+  }, [allApps]);
 
   // Register a callback for launching apps (called by WinXP)
   // Uses a ref to avoid triggering re-renders and infinite loops
@@ -368,25 +421,29 @@ export function InstalledAppsProvider({ children }) {
     launchCallbackRef.current = callback;
   }, []);
 
-  // Launch an installed app
+  // Launch an installed app (works with both built-in and user-installed)
   const launchInstalledApp = useCallback((appId) => {
-    const app = installedApps[appId];
+    const app = allApps[appId];
     if (!app) {
       console.error('App not found:', appId);
       return;
     }
 
-    markAppRun(appId);
+    // Only track lastRun for user-installed apps
+    if (!app.isBuiltIn) {
+      markAppRun(appId);
+    }
 
     if (launchCallbackRef.current) {
       launchCallbackRef.current(app);
     } else {
       console.error('No launch callback registered');
     }
-  }, [installedApps, markAppRun]);
+  }, [allApps, markAppRun]);
 
   const value = {
     installedApps,
+    allApps,
     isLoading,
     fetchManifest,
     installApp,
@@ -394,6 +451,9 @@ export function InstalledAppsProvider({ children }) {
     updateApp,
     markAppRun,
     getInstalledAppsList,
+    getUserInstalledAppsList,
+    getBuiltInProjectsList,
+    getBuiltInProjectsByCategory,
     getApp,
     isInstalled,
     registerLaunchCallback,

@@ -13,7 +13,6 @@ import Pinball from './Pinball';
 import CMD from './CMD';
 import MediaPlayer from './MediaPlayer';
 import ImageViewer from './ImageViewer';
-import OpenLairViewer from './OpenLairViewer';
 import Paint from './Paint';
 import Winamp from './Winamp';
 import MyComputer from './MyComputer';
@@ -104,7 +103,6 @@ export const appCategoryMap = {
   'Winamp': APP_CATEGORIES.MEDIA,
   'Sound Recorder': APP_CATEGORIES.MEDIA,
   'Image Viewer': APP_CATEGORIES.MEDIA,
-  'Picture and Fax Viewer (Classic)': APP_CATEGORIES.MEDIA,
 
   // Internet
   'Internet Explorer': APP_CATEGORIES.INTERNET,
@@ -221,14 +219,9 @@ export const desktopIconCatalog = {
     title: 'Windows Media Player',
     component: MediaPlayer,
   },
-  classicViewer: {
-    icon: '/apps/openlair-viewer/static/images/icon/viewer.png',
-    title: 'Picture and Fax Viewer (Classic)',
-    component: OpenLairViewer,
-  },
   imageViewer: {
-    icon: '/icons/image-viewer.png',
-    title: 'Image Viewer',
+    icon: '/apps/openlair-viewer/static/images/icon/viewer.png',
+    title: 'Windows Picture and Fax Viewer',
     component: ImageViewer,
   },
   paint: {
@@ -760,14 +753,14 @@ export const appSettings = {
   },
   'Image Viewer': {
     header: {
-      icon: '/icons/image-viewer.png',
+      icon: '/apps/openlair-viewer/static/images/icon/viewer.png',
       title: 'Windows Picture and Fax Viewer',
       buttons: ['minimize', 'maximize', 'close'],
     },
     component: ImageViewer,
     defaultSize: {
-      width: 600,
-      height: 450,
+      width: 700,
+      height: 540,
     },
     defaultOffset: {
       x: 120,
@@ -817,26 +810,6 @@ export const appSettings = {
     minimized: false,
     maximized: false,
     multiInstance: false,
-  },
-  'Classic Picture Viewer': {
-    header: {
-      icon: '/apps/openlair-viewer/static/images/icon/viewer.png',
-      title: 'Windows Picture and Fax Viewer',
-      buttons: ['minimize', 'maximize', 'close'],
-    },
-    component: OpenLairViewer,
-    defaultSize: {
-      width: 700,
-      height: 540,
-    },
-    defaultOffset: {
-      x: 170,
-      y: 70,
-    },
-    resizable: true,
-    minimized: false,
-    maximized: false,
-    multiInstance: true,
   },
   'Recycle Bin': {
     header: {
