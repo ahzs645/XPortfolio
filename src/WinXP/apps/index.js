@@ -22,6 +22,7 @@ import InternetExplorer from './InternetExplorer';
 import Properties from './Properties';
 import SoundRecorder from './SoundRecorder';
 import QQPenguin from './QQPenguin';
+import QQPet13 from './QQPet13';
 import Installer from './Installer';
 import IframeApp from './IframeApp';
 import Messenger from './Messenger';
@@ -135,6 +136,7 @@ export const appCategoryMap = {
 
   // Fun/Extra
   'QQ Penguin': APP_CATEGORIES.GAME,
+  'QQ Pet 13': APP_CATEGORIES.GAME,
 };
 
 // Helper to get app category
@@ -259,6 +261,11 @@ export const desktopIconCatalog = {
     title: 'QQ Pet',
     component: QQPenguin,
   },
+  qqPet13: {
+    icon: '/games/QQPet13/logo.png',
+    title: 'QQ Pet 13',
+    component: QQPet13,
+  },
   installer: {
     icon: '/icons/xp/programs/add.png',
     title: 'Add or Remove Programs',
@@ -350,6 +357,7 @@ const CATALOG_TO_APP_KEY = {
   internetExplorer: 'Internet Explorer',
   soundRecorder: 'Sound Recorder',
   qqPenguin: 'QQ Penguin',
+  qqPet13: 'QQ Pet 13',
   installer: 'App Installer',
   messenger: 'Windows Messenger',
   speechProperties: 'Speech Properties',
@@ -951,6 +959,26 @@ export const appSettings = {
     maximized: false,
     multiInstance: false,
   },
+  'QQ Pet 13': {
+    header: {
+      icon: '/games/QQPet13/logo.png',
+      title: 'QQ Pet 13',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: QQPet13,
+    defaultSize: {
+      width: 960,
+      height: 600,
+    },
+    defaultOffset: {
+      x: 100,
+      y: 50,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
   'Add or Remove Programs': {
     header: {
       icon: '/icons/xp/programs/add.png',
@@ -1340,6 +1368,7 @@ export {
   Properties,
   SoundRecorder,
   QQPenguin,
+  QQPet13,
   Installer,
   IframeApp,
   Messenger,

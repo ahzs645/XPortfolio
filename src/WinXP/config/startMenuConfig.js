@@ -180,6 +180,13 @@ export const START_MENU_CATALOG = {
     title: 'QQ Pet',
     description: 'Virtual pet app',
   },
+  qqPet13: {
+    type: 'program',
+    appKey: 'QQ Pet 13',
+    icon: '/games/QQPet13/logo.png',
+    title: 'QQ Pet 13',
+    description: 'HTML5 virtual pet',
+  },
   installer: {
     type: 'program',
     appKey: 'App Installer',
@@ -282,7 +289,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Games',
     icon: '/icons/xp/FolderClosed.png',
-    items: ['minesweeper', 'solitaire', 'spiderSolitaire', 'pinball'],
+    items: ['minesweeper', 'solitaire', 'spiderSolitaire', 'pinball', 'qqPet13'],
   },
   accessories: {
     type: 'folder',
