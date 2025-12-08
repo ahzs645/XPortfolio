@@ -23,9 +23,12 @@ const TreeContainer = styled.div`
   min-height: 200px;
 
   .tree-view {
-    border: none;
-    padding: 0;
+    border: 1px solid #7f9db9;
+    padding: 2px 5px;
     margin: 0;
+    background: #fff;
+    height: 100%;
+    box-sizing: border-box;
   }
 
   .tree-view summary {
