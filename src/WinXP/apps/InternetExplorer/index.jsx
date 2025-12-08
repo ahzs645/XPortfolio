@@ -5,6 +5,30 @@ import { ProgramLayout } from '../../../components';
 // Special URL for home page
 const HOME_PAGE = 'about:home';
 
+// Helper function to process URLs for iframe embedding
+// Adds ?igu=1 to Google URLs to bypass X-Frame-Options restrictions
+const processUrlForIframe = (url) => {
+  try {
+    const urlObj = new URL(url);
+
+    // Check if it's a Google domain (google.com, google.co.uk, google.de, etc.)
+    const isGoogleDomain = /^(www\.)?google\.[a-z]{2,3}(\.[a-z]{2})?$/i.test(urlObj.hostname);
+
+    if (isGoogleDomain) {
+      // For Google homepage or search, add igu=1 parameter
+      // This tells Google to serve headers that allow iframe embedding
+      if (!urlObj.searchParams.has('igu')) {
+        urlObj.searchParams.set('igu', '1');
+      }
+      return urlObj.toString();
+    }
+
+    return url;
+  } catch {
+    return url;
+  }
+};
+
 // Menu configuration for Internet Explorer
 const IE_MENUS = [
   {
@@ -78,6 +102,7 @@ const IE_MENUS = [
 // Welcome page component
 function WelcomePage({ onNavigate }) {
   const quickLinks = [
+    { title: 'Google', url: 'https://www.google.com', icon: '🔍' },
     { title: 'Wikipedia', url: 'https://en.wikipedia.org', icon: '📚' },
     { title: 'GitHub', url: 'https://github.com', icon: '💻' },
     { title: 'Reddit', url: 'https://old.reddit.com', icon: '🔗' },
@@ -109,7 +134,7 @@ function WelcomePage({ onNavigate }) {
           </WelcomeText>
           <WelcomeNote>
             Note: Some websites may not display due to security restrictions (X-Frame-Options).
-            Sites like Wikipedia, GitHub, and many others work great!
+            Sites like Google, Wikipedia, GitHub, and many others work great!
           </WelcomeNote>
         </WelcomeSection>
       </WelcomeContent>
@@ -202,6 +227,11 @@ function InternetExplorer({ onClose, onMinimize, onMaximize, isFocus, initialUrl
         // Treat as search query - use DuckDuckGo as it works in iframes
         finalUrl = `https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(finalUrl)}`;
       }
+    }
+
+    // Process URL for iframe embedding (e.g., add ?igu=1 for Google)
+    if (finalUrl !== HOME_PAGE) {
+      finalUrl = processUrlForIframe(finalUrl);
     }
 
     // Update history
