@@ -51,7 +51,16 @@ const Window = memo(function ({
   // State for dynamic header updates from child components
   const [dynamicHeader, setDynamicHeader] = React.useState(null);
   const currentHeader = dynamicHeader || header;
-  function _onMouseDown() {
+  function _onMouseDown(e) {
+    // Stop propagation to prevent desktop from receiving the event
+    // This ensures clicking anywhere in the window (not just the title bar) activates it
+    e.stopPropagation();
+    onMouseDown(id);
+  }
+
+  function _onFocusCapture() {
+    // Capture focus events from descendants (including iframes)
+    // This ensures clicking inside an iframe also activates the window
     onMouseDown(id);
   }
 
@@ -115,6 +124,7 @@ const Window = memo(function ({
       className={currentHeader.invisible ? 'frameless' : `window ${isFocus ? '' : 'inactive'}`}
       onMouseDown={_onMouseDown}
       onTouchStart={_onMouseDown}
+      onFocusCapture={_onFocusCapture}
       style={{
         transform: `translate(${x}px,${y}px)`,
         ...(width && { width: `${width}px` }),
@@ -171,6 +181,13 @@ const Window = memo(function ({
         </div>
       )}
       <div className="window-body" style={currentHeader.invisible ? { margin: 0 } : undefined}>
+        {!isFocus && (
+          <div
+            className="window-focus-overlay"
+            onMouseDown={_onMouseDown}
+            onTouchStart={_onMouseDown}
+          />
+        )}
         <Component
           onClose={_onMouseUpClose}
           onMinimize={_onMouseUpMinimize}
@@ -224,6 +241,14 @@ const WindowContainer = styled.div`
     margin: 0 3px 0 3px;
     padding: 0;
     min-height: 0;
+    position: relative;
+  }
+
+  .window-focus-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 9999;
+    cursor: default;
   }
 `;
 
