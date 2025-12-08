@@ -14,6 +14,17 @@ import {
   getMenuItem,
 } from '../config/startMenuConfig';
 
+// Helper to get a menu item, checking both catalog and folders
+function getMenuItemOrFolder(key) {
+  if (START_MENU_FOLDERS[key]) {
+    return { ...START_MENU_FOLDERS[key], key };
+  }
+  if (START_MENU_CATALOG[key]) {
+    return { ...START_MENU_CATALOG[key], key };
+  }
+  return null;
+}
+
 // Vanity "Recently Used" items - disabled software icons for visual effect
 const RECENTLY_USED_ITEMS = [
   { key: 'photoshop', title: 'Adobe Photoshop', icon: '/icons/vanity/photoshop.webp', disabled: true },
@@ -247,13 +258,11 @@ function AllProgramsMenu({ items, activeFolder, onItemClick, onFolderHover }) {
             return <li key={`sep-all-${index}`} className="all-programs-separator" />;
           }
           if (item.type === 'folder') {
-            // Filter out disabled apps from folder items
+            // Filter out disabled apps from folder items (supports nested folders)
             const folderItems = item.items
-              .map((itemKey) => ({
-                key: itemKey,
-                ...START_MENU_CATALOG[itemKey],
-              }))
+              .map((itemKey) => getMenuItemOrFolder(itemKey))
               .filter((subItem) => {
+                if (!subItem) return false;
                 if (subItem.type === 'program' && subItem.appKey) {
                   return !isAppDisabled(subItem.appKey);
                 }
@@ -272,6 +281,8 @@ function AllProgramsMenu({ items, activeFolder, onItemClick, onFolderHover }) {
                 onHover={() => onFolderHover(item)}
                 onLeave={() => onFolderHover(null)}
                 onItemClick={onItemClick}
+                onFolderHover={onFolderHover}
+                activeFolder={activeFolder}
               />
             );
           }
@@ -291,14 +302,16 @@ function AllProgramsMenu({ items, activeFolder, onItemClick, onFolderHover }) {
   );
 }
 
-function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemClick }) {
+function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemClick, onFolderHover, activeFolder }) {
   const itemRef = useRef(null);
   const submenuRef = useRef(null);
   const [submenuOffset, setSubmenuOffset] = useState(0);
+  const [activeSubfolder, setActiveSubfolder] = useState(null);
 
   useLayoutEffect(() => {
     if (!isOpen) {
       setSubmenuOffset(0);
+      setActiveSubfolder(null);
       return;
     }
 
@@ -332,6 +345,10 @@ function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemC
     };
   }, [isOpen, folderItems.length]);
 
+  const handleSubfolderHover = (subfolder) => {
+    setActiveSubfolder(subfolder?.key || null);
+  };
+
   return (
     <li
       className={`all-programs-item folder ${isOpen ? 'active' : ''}`}
@@ -348,6 +365,108 @@ function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemC
           ref={submenuRef}
           style={{ transform: `translateY(${submenuOffset}px)` }}
         >
+          {folderItems.map((item) => {
+            // Handle nested folders
+            if (item.type === 'folder') {
+              const nestedItems = item.items
+                .map((itemKey) => getMenuItemOrFolder(itemKey))
+                .filter((subItem) => {
+                  if (!subItem) return false;
+                  if (subItem.type === 'program' && subItem.appKey) {
+                    return !isAppDisabled(subItem.appKey);
+                  }
+                  return true;
+                });
+
+              if (nestedItems.length === 0) return null;
+
+              return (
+                <NestedFolderItem
+                  key={item.key}
+                  folder={item}
+                  isOpen={activeSubfolder === item.key}
+                  folderItems={nestedItems}
+                  onHover={() => handleSubfolderHover(item)}
+                  onLeave={() => handleSubfolderHover(null)}
+                  onItemClick={onItemClick}
+                />
+              );
+            }
+
+            return (
+              <div
+                key={item.key}
+                className="folder-submenu-item"
+                onClick={() => onItemClick(item)}
+              >
+                <img src={item.icon} alt="" />
+                <span>{item.title}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </li>
+  );
+}
+
+function NestedFolderItem({ folder, isOpen, folderItems, onHover, onLeave, onItemClick }) {
+  const itemRef = useRef(null);
+  const submenuRef = useRef(null);
+  const [submenuOffset, setSubmenuOffset] = useState(0);
+
+  useLayoutEffect(() => {
+    if (!isOpen) {
+      setSubmenuOffset(0);
+      return;
+    }
+
+    const repositionSubmenu = () => {
+      if (!submenuRef.current || !itemRef.current) return;
+
+      const submenuRect = submenuRef.current.getBoundingClientRect();
+      const itemRect = itemRef.current.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const padding = 8;
+
+      let desiredTop = itemRect.top;
+
+      if (desiredTop + submenuRect.height + padding > viewportHeight) {
+        desiredTop = viewportHeight - submenuRect.height - padding;
+      }
+
+      if (desiredTop < padding) {
+        desiredTop = padding;
+      }
+
+      setSubmenuOffset(desiredTop - itemRect.top);
+    };
+
+    repositionSubmenu();
+    window.addEventListener('resize', repositionSubmenu);
+
+    return () => {
+      window.removeEventListener('resize', repositionSubmenu);
+    };
+  }, [isOpen, folderItems.length]);
+
+  return (
+    <div
+      className={`folder-submenu-item nested-folder ${isOpen ? 'active' : ''}`}
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
+      ref={itemRef}
+    >
+      <img src={folder.icon} alt="" />
+      <span>{folder.title}</span>
+      <span className="nested-arrow">►</span>
+      {isOpen && (
+        <div
+          className="folder-submenu nested-submenu"
+          onMouseEnter={onHover}
+          ref={submenuRef}
+          style={{ transform: `translateY(${submenuOffset}px)` }}
+        >
           {folderItems.map((item) => (
             <div
               key={item.key}
@@ -360,7 +479,7 @@ function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemC
           ))}
         </div>
       )}
-    </li>
+    </div>
   );
 }
 
@@ -838,7 +957,7 @@ export default styled(FooterMenu)`
     min-width: 180px;
     z-index: 11;
     padding: 4px 0;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .folder-submenu::before {
@@ -890,6 +1009,50 @@ export default styled(FooterMenu)`
     left: 8px;
     top: 50%;
     transform: translateY(-50%);
+  }
+
+  /* Nested folder styles */
+  .folder-submenu-item.nested-folder {
+    padding-right: 25px;
+    position: relative;
+  }
+
+  .folder-submenu-item.nested-folder .nested-arrow {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%) scaleX(0.6);
+    font-size: 10px;
+    color: inherit;
+  }
+
+  .folder-submenu-item.nested-folder.active {
+    background-color: #2f71cd;
+    color: #fff;
+  }
+
+  .nested-submenu {
+    position: absolute;
+    left: 100%;
+    top: 0;
+    background: #f2f2f2;
+    border: 1px solid #d0d0d0;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15);
+    min-width: 180px;
+    z-index: 20;
+    padding: 4px 0;
+  }
+
+  .nested-submenu::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, #1c57ad 0%, #2a70ce 50%, #5b9fe2 100%);
+    z-index: 1;
+    pointer-events: none;
   }
 
   /* Recently Used Container */
