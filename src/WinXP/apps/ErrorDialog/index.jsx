@@ -21,7 +21,7 @@ function ErrorDialog({ title = 'Error', message = '', icon = 'error', onClose, o
           ? '/icons/xp/Warning.png'
           : icon === 'info'
           ? '/icons/xp/Info.png'
-          : '/icons/xp/Error.png',
+          : '/icons/xp/Critical.png',
         buttons: ['close'],
       });
     }
@@ -35,7 +35,7 @@ function ErrorDialog({ title = 'Error', message = '', icon = 'error', onClose, o
     ? '/icons/xp/Warning.png'
     : icon === 'info'
     ? '/icons/xp/Info.png'
-    : '/icons/xp/Error.png';
+    : '/icons/xp/Critical.png';
 
   return (
     <DialogContainer>
