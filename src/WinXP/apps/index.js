@@ -23,6 +23,7 @@ import Properties from './Properties';
 import SoundRecorder from './SoundRecorder';
 import QQPenguin from './QQPenguin';
 import QQPet13 from './QQPet13';
+import QQArcade from './QQArcade';
 import Installer from './Installer';
 import IframeApp from './IframeApp';
 import Messenger from './Messenger';
@@ -137,6 +138,7 @@ export const appCategoryMap = {
   // Fun/Extra
   'QQ Penguin': APP_CATEGORIES.GAME,
   'QQ Pet 13': APP_CATEGORIES.GAME,
+  'QQ Arcade': APP_CATEGORIES.GAME,
 };
 
 // Helper to get app category
@@ -266,6 +268,11 @@ export const desktopIconCatalog = {
     title: 'QQ Pet 13',
     component: QQPet13,
   },
+  qqArcade: {
+    icon: '/icons/xp/Minesweeper.png',
+    title: 'QQ Arcade',
+    component: QQArcade,
+  },
   installer: {
     icon: '/icons/xp/programs/add.png',
     title: 'Add or Remove Programs',
@@ -358,6 +365,7 @@ const CATALOG_TO_APP_KEY = {
   soundRecorder: 'Sound Recorder',
   qqPenguin: 'QQ Penguin',
   qqPet13: 'QQ Pet 13',
+  qqArcade: 'QQ Arcade',
   installer: 'App Installer',
   messenger: 'Windows Messenger',
   speechProperties: 'Speech Properties',
@@ -967,12 +975,32 @@ export const appSettings = {
     },
     component: QQPet13,
     defaultSize: {
-      width: 960,
-      height: 600,
+      width: 890,
+      height: 530,
     },
     defaultOffset: {
       x: 100,
       y: 50,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'QQ Arcade': {
+    header: {
+      icon: '/icons/xp/Minesweeper.png',
+      title: 'QQ Arcade',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: QQArcade,
+    defaultSize: {
+      width: 900,
+      height: 650,
+    },
+    defaultOffset: {
+      x: 80,
+      y: 30,
     },
     resizable: true,
     minimized: false,
@@ -1369,6 +1397,7 @@ export {
   SoundRecorder,
   QQPenguin,
   QQPet13,
+  QQArcade,
   Installer,
   IframeApp,
   Messenger,

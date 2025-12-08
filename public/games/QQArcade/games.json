@@ -1,0 +1,209 @@
+{
+  "classical": [
+    {
+      "id": "guardian",
+      "title": "Pet Guardian",
+      "titleZh": "Q宠守护使",
+      "swfUrl": "https://cdn.wzhecnu.cn/classical_games/Q%E5%AE%A0%E5%AE%88%E6%8A%A4%E4%BD%BF.swf",
+      "cover": "covers/Q宠守护使.jpg"
+    },
+    {
+      "id": "magpie",
+      "title": "Magpie Bridge",
+      "titleZh": "搭鹊桥",
+      "swfUrl": "https://cdn.wzhecnu.cn/classical_games/QQ%E6%8A%93%E5%96%9C%E9%B9%8A.swf",
+      "cover": "covers/搭鹊桥.png"
+    },
+    {
+      "id": "racing",
+      "title": "QQ Racing",
+      "titleZh": "QQ飞车",
+      "swfUrl": "https://cdn.wzhecnu.cn/classical_games/QQ%E9%A3%9E%E8%BD%A6.swf",
+      "cover": "covers/宠爱飞车.jpg"
+    },
+    {
+      "id": "challenge",
+      "title": "Penguin Challenge",
+      "titleZh": "企鹅的挑战",
+      "swfUrl": "https://cdn.wzhecnu.cn/classical_games/%E4%BC%81%E9%B9%85%E7%9A%84%E6%8C%91%E6%88%98.swf",
+      "cover": "covers/企鹅的挑战.jpg"
+    },
+    {
+      "id": "spotdiff",
+      "title": "Spot Difference",
+      "titleZh": "Q宠邀你来找茬",
+      "swfUrl": "https://cdn.wzhecnu.cn/classical_games/Q%E5%AE%A0%E9%82%80%E4%BD%A0%E6%9D%A5%E6%89%BE%E8%8C%AC.swf",
+      "cover": "covers/Q宠邀你来找茬.jpg"
+    },
+    {
+      "id": "plates",
+      "title": "Plate Carrying",
+      "titleZh": "QQ端盘子",
+      "swfUrl": "https://cdn.wzhecnu.cn/classical_games/Q%E5%AE%A0%E7%AB%AF%E7%9B%98%E5%AD%90.swf",
+      "cover": "covers/Q宠端盘子.jpg"
+    },
+    {
+      "id": "taekwondo",
+      "title": "Taekwondo",
+      "titleZh": "QQ跆拳道",
+      "swfUrl": "https://cdn.wzhecnu.cn/classical_games/QQ%E8%B7%86%E6%8B%B3%E9%81%93.swf",
+      "cover": "covers/Q宠跆拳道.png"
+    },
+    {
+      "id": "fishing",
+      "title": "Fish Catching",
+      "titleZh": "Q宠抓鱼",
+      "swfUrl": "https://cdn.wzhecnu.cn/classical_games/Q%E5%AE%A0%E6%8A%93%E9%B1%BC.swf",
+      "cover": "covers/Q宠抓鱼.jpg"
+    },
+    {
+      "id": "nanny",
+      "title": "Pet Nanny",
+      "titleZh": "Q宠保姆",
+      "swfUrl": "https://cdn.wzhecnu.cn/classical_games/Q%E5%AE%A0%E4%BF%9D%E5%A7%86.swf",
+      "cover": "covers/Q宠保姆.jpg"
+    },
+    {
+      "id": "blocks",
+      "title": "Block Stacking",
+      "titleZh": "企鹅搭积木",
+      "swfUrl": "https://cdn.wzhecnu.cn/classical_games/Q%E5%AE%A0%E6%90%AD%E7%A7%AF%E6%9C%A8.swf",
+      "cover": "covers/Q宠搭积木.jpg"
+    },
+    {
+      "id": "hunting",
+      "title": "Hunting",
+      "titleZh": "QQ宠物狩猎场",
+      "swfUrl": "https://cdn.wzhecnu.cn/classical_games/QQ%E5%AE%9D%E5%AE%9D%E5%AE%88%E7%8C%8E.swf",
+      "cover": "covers/Q宠守猎.jpg"
+    },
+    {
+      "id": "clouds",
+      "title": "Cloud Flying",
+      "titleZh": "QQ企鹅穿云",
+      "swfUrl": "https://cdn.wzhecnu.cn/classical_games/QQ%E4%BC%81%E9%B9%85%E7%A9%BF%E4%BA%91.swf",
+      "cover": "covers/Q宠穿云.png"
+    },
+    {
+      "id": "mining",
+      "title": "Mining",
+      "titleZh": "QQ宠物挖矿",
+      "swfUrl": "https://cdn.wzhecnu.cn/classical_games/Q%E5%AE%A0%E6%8C%96%E7%9F%BF.swf",
+      "cover": "covers/Q宠挖矿.jpg"
+    },
+    {
+      "id": "matching",
+      "title": "Speed Matching",
+      "titleZh": "Q宠速配",
+      "swfUrl": "https://cdn.wzhecnu.cn/classical_games/Q%E5%AE%A0%E9%80%9F%E9%85%8D.swf",
+      "cover": "covers/Q宠速配.jpg"
+    },
+    {
+      "id": "stars",
+      "title": "Star Picking",
+      "titleZh": "Q宠摘星星",
+      "swfUrl": "https://cdn.wzhecnu.cn/classical_games/QQ%E6%8A%93%E5%96%9C%E9%B9%8A.swf",
+      "cover": "covers/Q宠摘星星.jpg"
+    },
+    {
+      "id": "starrysky",
+      "title": "Starry Sky",
+      "titleZh": "满天星",
+      "swfUrl": "https://cdn.wzhecnu.cn/classical_games/%E6%BB%A1%E5%A4%A9%E6%98%9F.swf",
+      "cover": "covers/满天星.jpg"
+    }
+  ],
+  "reskin": [
+    {
+      "id": "fishing-island",
+      "title": "Fishing Island",
+      "titleZh": "钓鱼小岛",
+      "swfUrl": "https://cdn.wzhecnu.cn/reskin_games/swf/%E5%A4%8F%E5%B8%95%E6%B5%B7%E5%B2%B8/%E6%91%A9%E8%A5%BF-QQ%E9%92%93%E9%B1%BC.swf",
+      "cover": "reskin/钓鱼小岛.jpg"
+    },
+    {
+      "id": "curling",
+      "title": "Desktop Curling",
+      "titleZh": "桌面冰壶球",
+      "swfUrl": "https://cdn.wzhecnu.cn/reskin_games/swf/%E5%A4%8F%E5%B8%95%E6%B5%B7%E5%B2%B8/%E6%A1%8C%E9%9D%A2%E5%86%B0%E5%A3%B6%E7%90%83.swf",
+      "cover": "reskin/桌面冰壶球.jpg"
+    },
+    {
+      "id": "parachute",
+      "title": "Sheep Parachute",
+      "titleZh": "喜羊羊跳伞",
+      "swfUrl": "https://cdn.wzhecnu.cn/reskin_games/swf/%E5%A4%8F%E5%B8%95%E6%B5%B7%E5%B2%B8/Q%E5%AE%A0%E8%B7%B3%E4%BC%9E/%E5%96%9C%E7%BE%8A%E7%BE%8A%E8%B7%B3%E4%BC%9E.swf",
+      "cover": "reskin/喜羊羊跳伞.jpg"
+    },
+    {
+      "id": "cutrope",
+      "title": "Cut the Rope",
+      "titleZh": "割绳子",
+      "swfUrl": "https://cdn.wzhecnu.cn/reskin_games/swf/%E9%A3%8E%E8%AF%AD%E5%B9%BF%E5%9C%BA/%E5%89%B2%E7%BB%B3%E5%AD%90.swf",
+      "cover": "reskin/割绳子.jpg"
+    },
+    {
+      "id": "100floors",
+      "title": "100 Floors Down",
+      "titleZh": "喜羊羊下100层",
+      "swfUrl": "https://cdn.wzhecnu.cn/reskin_games/swf/%E9%A3%8E%E8%AF%AD%E5%B9%BF%E5%9C%BA/%E4%B8%8B100%E5%B1%82/%E5%96%9C%E7%BE%8A%E7%BE%8A%E4%B8%8B100%E5%B1%82.swf",
+      "cover": "reskin/喜羊羊下100层.jpg"
+    },
+    {
+      "id": "clawmachine",
+      "title": "Claw Machine",
+      "titleZh": "喜羊羊抓娃娃",
+      "swfUrl": "https://cdn.wzhecnu.cn/reskin_games/swf/%E5%A4%8F%E5%B8%95%E6%B5%B7%E5%B2%B8/%E6%8A%93%E5%A8%83%E5%A8%83/%E5%96%9C%E7%BE%8A%E7%BE%8A%E6%8A%93%E5%A8%83%E5%A8%83.swf",
+      "cover": "reskin/喜羊羊抓娃娃.jpg"
+    },
+    {
+      "id": "ninjacat",
+      "title": "Flying Ninja Cat",
+      "titleZh": "飞天忍者猫",
+      "swfUrl": "https://cdn.wzhecnu.cn/reskin_games/swf/%E5%A4%8F%E5%B8%95%E6%B5%B7%E5%B2%B8/%E9%A3%9E%E5%A4%A9%E5%BF%8D%E8%80%85%E7%8C%AB.swf",
+      "cover": "reskin/飞天忍者猫.jpg"
+    },
+    {
+      "id": "burgerracing",
+      "title": "Burger Racing",
+      "titleZh": "海绵宝宝汉堡赛车",
+      "swfUrl": "https://cdn.wzhecnu.cn/reskin_games/swf/%E5%A4%8F%E5%B8%95%E6%B5%B7%E5%B2%B8/%E6%B5%B7%E7%BB%B5%E5%AE%9D%E5%AE%9D%E6%B1%89%E5%A0%A1%E8%B5%9B%E8%BD%A6.swf",
+      "cover": "reskin/海绵宝宝汉堡赛车.jpg"
+    },
+    {
+      "id": "turtlebash",
+      "title": "Turtle Baseball",
+      "titleZh": "灰太狼打乌龟",
+      "swfUrl": "https://cdn.wzhecnu.cn/reskin_games/swf/%E5%A4%8F%E5%B8%95%E6%B5%B7%E5%B2%B8/%E7%81%B0%E5%A4%AA%E7%8B%BC%E6%89%93%E4%B9%8C%E9%BE%9F.swf",
+      "cover": "reskin/灰太狼打乌龟.jpg"
+    },
+    {
+      "id": "beans",
+      "title": "Bean Picking",
+      "titleZh": "夹豆子",
+      "swfUrl": "https://cdn.wzhecnu.cn/reskin_games/swf/%E5%A4%8F%E5%B8%95%E6%B5%B7%E5%B2%B8/%E5%A4%B9%E8%B1%86%E5%AD%90.swf",
+      "cover": "reskin/夹豆子.jpg"
+    },
+    {
+      "id": "stuntflight",
+      "title": "Stunt Flight",
+      "titleZh": "特技飞行",
+      "swfUrl": "https://cdn.wzhecnu.cn/reskin_games/swf/%E5%A4%8F%E5%B8%95%E6%B5%B7%E5%B2%B8/%E7%89%B9%E6%8A%80%E9%A3%9E%E8%A1%8C.swf",
+      "cover": "reskin/特技飞行.jpg"
+    },
+    {
+      "id": "veggies",
+      "title": "Veggie Sorting",
+      "titleZh": "蔬菜分类",
+      "swfUrl": "https://cdn.wzhecnu.cn/reskin_games/swf/%E7%B2%89%E9%92%BB%E9%9B%AA%E5%B1%B1/%E4%BA%AE%E4%BA%AE-%E9%9A%90%E8%97%8F%E6%B8%B8%E6%88%8F.swf",
+      "cover": "reskin/蔬菜分类.jpg"
+    },
+    {
+      "id": "icesmash",
+      "title": "Ice Smashing",
+      "titleZh": "砸冰块",
+      "swfUrl": "https://cdn.wzhecnu.cn/reskin_games/swf/%E7%B2%89%E9%92%BB%E9%9B%AA%E5%B1%B1/%E7%A0%B8%E5%86%B0%E5%9D%97.swf",
+      "cover": "reskin/砸冰块.jpg"
+    }
+  ]
+}

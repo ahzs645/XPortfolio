@@ -3,7 +3,7 @@
 <head>
 	<link  rel="shortcut icon" href="logo.png" type="image/x-icon"/>
 	<meta charset='utf-8' />
-	<title>《QQ宠物》相伴十三载</title>
+	<title>QQ Pet - 13 Years Together</title>
 	<meta name='viewport' content='width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no'
 	/>
 	<meta name="renderer" content="webkit"/>
@@ -17,10 +17,34 @@
 	<meta http-equiv="Cache-Control" content="no-siteapp"/>
 </head>
 <style>
-	html,body{width:100%;height:100%;background-size:100% 100%;margin:0 ;padding:0;}
+	html,body{width:100%;height:100%;background-size:100% 100%;margin:0 ;padding:0;overflow:hidden;}
 	#soundBg,#soundBg{position:absolute;width:0;height:0;}
+	#langToggleBtn {
+		position: fixed;
+		top: 10px;
+		right: 10px;
+		z-index: 9999;
+		padding: 8px 16px;
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		color: white;
+		border: none;
+		border-radius: 20px;
+		font-size: 14px;
+		font-weight: bold;
+		cursor: pointer;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+		transition: transform 0.2s, box-shadow 0.2s;
+	}
+	#langToggleBtn:hover {
+		transform: scale(1.05);
+		box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+	}
+	#langToggleBtn:active {
+		transform: scale(0.95);
+	}
 </style>
 <body>
+	<button id="langToggleBtn" onclick="toggleLanguage()">EN</button>
 	<audio id="soundBg"  >
 	</audio>
 	<audio id="soundEffect"   >

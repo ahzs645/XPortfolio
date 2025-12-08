@@ -187,6 +187,13 @@ export const START_MENU_CATALOG = {
     title: 'QQ Pet 13',
     description: 'HTML5 virtual pet',
   },
+  qqArcade: {
+    type: 'program',
+    appKey: 'QQ Arcade',
+    icon: '/icons/xp/Minesweeper.png',
+    title: 'QQ Arcade',
+    description: '29 classic mini-games',
+  },
   installer: {
     type: 'program',
     appKey: 'App Installer',
@@ -285,11 +292,17 @@ const appletMenuItems = APPLETS.map(a => `applet-${a.id}`);
 
 // Folder definitions for All Programs submenu
 export const START_MENU_FOLDERS = {
+  qqGames: {
+    type: 'folder',
+    title: 'QQ Games',
+    icon: '/games/QQPet13/logo.png',
+    items: ['qqPet13', 'qqArcade', 'qqPenguin'],
+  },
   games: {
     type: 'folder',
     title: 'Games',
     icon: '/icons/xp/FolderClosed.png',
-    items: ['minesweeper', 'solitaire', 'spiderSolitaire', 'pinball', 'qqPet13'],
+    items: ['minesweeper', 'solitaire', 'spiderSolitaire', 'pinball', 'qqGames'],
   },
   accessories: {
     type: 'folder',
@@ -319,12 +332,12 @@ export const START_MENU_FOLDERS = {
 
 // All Programs menu order
 // Note: 'projects' removed - it's now a folder, not an app
+// Note: QQ apps moved to Games > QQ Games subfolder
 export const ALL_PROGRAMS_ORDER = [
   'internetExplorer',
   'outlookExpress',
   'adobeReader',
   'messenger',
-  'qqPenguin',
   'about',
   'resume',
   'contact',
@@ -333,7 +346,7 @@ export const ALL_PROGRAMS_ORDER = [
   'webProjects', // folder with external web projects
   'accessories', // folder with Calculator, Notepad, Paint, CMD, Image Viewer
   'entertainment', // folder with Media Player
-  'games', // folder with Minesweeper, Solitaire, Spider Solitaire, Pinball
+  'games', // folder with Minesweeper, Solitaire, Spider Solitaire, Pinball, QQ Games
   'divider-trailing',
   'help',
 ];

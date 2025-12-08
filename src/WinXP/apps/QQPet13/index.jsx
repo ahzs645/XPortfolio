@@ -6,15 +6,16 @@ const Container = styled.div`
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: #000;
+  background: linear-gradient(135deg, #87CEEB 0%, #E0F7FA 100%);
   overflow: hidden;
 `;
 
 const AppFrame = styled.iframe`
   flex: 1;
   width: 100%;
+  height: 100%;
   border: none;
-  background: #000;
+  background: transparent;
 `;
 
 const LoadingOverlay = styled.div`
@@ -64,7 +65,7 @@ function QQPet13({ onClose, onMinimize }) {
             alt="QQ Pet"
             onError={(e) => { e.target.style.display = 'none'; }}
           />
-          <span className="loading-text">QQ宠物 - 相伴十三载</span>
+          <span className="loading-text">QQ Pet - 13 Years Together</span>
           <span className="loading-subtitle">Loading...</span>
         </LoadingOverlay>
       )}
