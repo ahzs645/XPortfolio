@@ -98,6 +98,109 @@ export function useNavigation({ fileSystem, initialPath = null }) {
     navigateTo(CONTROL_PANEL_ID);
   }, [navigateTo]);
 
+  // Navigate to a path string (e.g., "C:\Documents and Settings\Ahmad\My Documents")
+  const navigateToPath = useCallback((pathString) => {
+    if (!pathString || !fileSystem) return false;
+
+    const normalizedPath = pathString.trim();
+
+    // Handle special locations
+    if (normalizedPath.toLowerCase() === 'my computer') {
+      goToRoot();
+      return true;
+    }
+
+    if (normalizedPath.toLowerCase() === 'control panel') {
+      goToControlPanel();
+      return true;
+    }
+
+    // Try to find the folder by matching the path
+    // First, check for exact path matches in the file system
+    for (const [id, item] of Object.entries(fileSystem)) {
+      if (!item) continue;
+
+      // Check if this item's full path matches
+      // Build the path for this item
+      let itemPath = item.name;
+      let current = item;
+      while (current.parent && fileSystem[current.parent]) {
+        current = fileSystem[current.parent];
+        if (current.type === 'drive') {
+          itemPath = `${current.name}\\${itemPath}`;
+        } else {
+          itemPath = `${current.name}\\${itemPath}`;
+        }
+      }
+
+      // Normalize paths for comparison
+      const normalizedItemPath = itemPath.replace(/\//g, '\\').toLowerCase();
+      const searchPath = normalizedPath.replace(/\//g, '\\').toLowerCase();
+
+      if (normalizedItemPath === searchPath) {
+        if (item.type === 'folder' || item.type === 'drive') {
+          navigateTo(id);
+          return true;
+        }
+      }
+    }
+
+    // Try matching by name alone for special folders
+    const specialFolders = {
+      'my documents': SYSTEM_IDS.MY_DOCUMENTS,
+      'my pictures': SYSTEM_IDS.MY_PICTURES,
+      'my music': SYSTEM_IDS.MY_MUSIC,
+      'desktop': SYSTEM_IDS.DESKTOP,
+      'c:': SYSTEM_IDS.C_DRIVE,
+      'local disk (c:)': SYSTEM_IDS.C_DRIVE,
+    };
+
+    const lowerPath = normalizedPath.toLowerCase();
+    if (specialFolders[lowerPath]) {
+      navigateTo(specialFolders[lowerPath]);
+      return true;
+    }
+
+    // If path starts with C: or C:\, try to resolve it
+    if (lowerPath.startsWith('c:')) {
+      const pathParts = normalizedPath.replace(/^[Cc]:[\\/]?/, '').split(/[\\/]/).filter(Boolean);
+
+      if (pathParts.length === 0) {
+        navigateTo(SYSTEM_IDS.C_DRIVE);
+        return true;
+      }
+
+      // Start from C: drive and navigate through path parts
+      let currentId = SYSTEM_IDS.C_DRIVE;
+      for (const part of pathParts) {
+        const currentItem = fileSystem[currentId];
+        if (!currentItem || !currentItem.children) {
+          return false; // Path not found
+        }
+
+        // Find child with matching name
+        const childId = currentItem.children.find(childId => {
+          const child = fileSystem[childId];
+          return child && child.name.toLowerCase() === part.toLowerCase();
+        });
+
+        if (!childId) {
+          return false; // Path not found
+        }
+
+        currentId = childId;
+      }
+
+      const targetItem = fileSystem[currentId];
+      if (targetItem && (targetItem.type === 'folder' || targetItem.type === 'drive')) {
+        navigateTo(currentId);
+        return true;
+      }
+    }
+
+    return false; // Path not found
+  }, [fileSystem, navigateTo, goToRoot, goToControlPanel]);
+
   return {
     currentFolder,
     setCurrentFolder,
@@ -107,6 +210,7 @@ export function useNavigation({ fileSystem, initialPath = null }) {
     history,
     historyIndex,
     navigateTo,
+    navigateToPath,
     goBack,
     goForward,
     goUp,

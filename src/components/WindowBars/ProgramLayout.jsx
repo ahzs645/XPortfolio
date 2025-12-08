@@ -111,6 +111,8 @@ function ProgramLayout({
   addressIcon,
   addressLoading = false,
   addressProgress,
+  onAddressNavigate,
+  addressEditable = true,
 
   // Status Bar
   statusFields,
@@ -183,6 +185,8 @@ function ProgramLayout({
           icon={addressIcon}
           loading={addressLoading}
           progress={addressProgress}
+          onNavigate={onAddressNavigate}
+          editable={addressEditable}
         />
       )}
 

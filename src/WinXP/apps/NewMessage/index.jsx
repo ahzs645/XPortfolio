@@ -11,6 +11,14 @@ const ICONS = {
   contacts: '/icons/outlook/contacts.png',
   envelope: '/icons/outlook/envelope.png',
   flag: '/icons/outlook/flag.png',
+  // Format icons from WordPad
+  bold: '/icons/xp/wordpad/bold.png',
+  italic: '/icons/xp/wordpad/italic.png',
+  underline: '/icons/xp/wordpad/underline.png',
+  left: '/icons/xp/wordpad/left.png',
+  center: '/icons/xp/wordpad/center.png',
+  right: '/icons/xp/wordpad/right.png',
+  list: '/icons/xp/wordpad/list.png',
 };
 
 function NewMessage({ onClose, onMinimize, onMaximize }) {
@@ -22,10 +30,15 @@ function NewMessage({ onClose, onMinimize, onMaximize }) {
 
   const [composeData, setComposeData] = useState({
     to: `${ownerName} <${ownerEmail}>`,
+    from: '',
     cc: '',
     subject: '',
     message: '',
   });
+
+  // Format state (visual only, not functional)
+  const [fontName, setFontName] = useState('Arial');
+  const [fontSize, setFontSize] = useState('10');
 
   const handleComposeChange = useCallback((e) => {
     const { name, value } = e.target;
@@ -127,35 +140,129 @@ function NewMessage({ onClose, onMinimize, onMaximize }) {
     },
   ];
 
-  const toolbarItems = [
+  // Multiple toolbars - main and format bar
+  const toolbars = [
     {
-      type: 'button',
-      id: 'send',
-      icon: ICONS.send,
-      label: 'Send',
-      action: 'sendMessage',
+      id: 'main-toolbar',
+      items: [
+        {
+          type: 'button',
+          id: 'send',
+          icon: ICONS.send,
+          label: 'Send',
+          action: 'sendMessage',
+        },
+        { type: 'separator' },
+        {
+          type: 'button',
+          id: 'cut',
+          icon: ICONS.cut,
+          label: 'Cut',
+          disabled: true,
+        },
+        {
+          type: 'button',
+          id: 'copy',
+          icon: ICONS.copy,
+          label: 'Copy',
+          disabled: true,
+        },
+        {
+          type: 'button',
+          id: 'paste',
+          icon: ICONS.paste,
+          label: 'Paste',
+          disabled: true,
+        },
+      ],
     },
-    { type: 'separator' },
     {
-      type: 'button',
-      id: 'cut',
-      icon: ICONS.cut,
-      label: 'Cut',
-      disabled: true,
-    },
-    {
-      type: 'button',
-      id: 'copy',
-      icon: ICONS.copy,
-      label: 'Copy',
-      disabled: true,
-    },
-    {
-      type: 'button',
-      id: 'paste',
-      icon: ICONS.paste,
-      label: 'Paste',
-      disabled: true,
+      id: 'format-toolbar',
+      variant: 'compact',
+      items: [
+        {
+          type: 'select',
+          id: 'font',
+          value: fontName,
+          options: [
+            { value: 'Arial', label: 'Arial' },
+            { value: 'Times New Roman', label: 'Times New Roman' },
+            { value: 'Verdana', label: 'Verdana' },
+            { value: 'Tahoma', label: 'Tahoma' },
+            { value: 'Courier New', label: 'Courier New' },
+          ],
+          width: 130,
+          title: 'Font',
+        },
+        {
+          type: 'select',
+          id: 'size',
+          value: fontSize,
+          options: [
+            { value: '8', label: '8' },
+            { value: '10', label: '10' },
+            { value: '12', label: '12' },
+            { value: '14', label: '14' },
+            { value: '16', label: '16' },
+            { value: '18', label: '18' },
+            { value: '24', label: '24' },
+          ],
+          width: 50,
+          title: 'Size',
+        },
+        { type: 'separator' },
+        {
+          type: 'button',
+          id: 'bold',
+          icon: ICONS.bold,
+          title: 'Bold',
+          disabled: true,
+        },
+        {
+          type: 'button',
+          id: 'italic',
+          icon: ICONS.italic,
+          title: 'Italic',
+          disabled: true,
+        },
+        {
+          type: 'button',
+          id: 'underline',
+          icon: ICONS.underline,
+          title: 'Underline',
+          disabled: true,
+        },
+        { type: 'separator' },
+        {
+          type: 'button',
+          id: 'left',
+          icon: ICONS.left,
+          title: 'Align Left',
+          disabled: true,
+        },
+        {
+          type: 'button',
+          id: 'center',
+          icon: ICONS.center,
+          title: 'Center',
+          disabled: true,
+        },
+        {
+          type: 'button',
+          id: 'right',
+          icon: ICONS.right,
+          title: 'Align Right',
+          disabled: true,
+        },
+        { type: 'separator' },
+        {
+          type: 'button',
+          id: 'list',
+          icon: ICONS.list,
+          title: 'Bullets',
+          disabled: true,
+        },
+      ],
     },
   ];
 
@@ -166,19 +273,30 @@ function NewMessage({ onClose, onMinimize, onMaximize }) {
   }, [handleSendMessage]);
 
   const handleToolbarAction = useCallback((action) => {
-    handleMenuAction(action);
-  }, [handleMenuAction]);
+    if (action === 'sendMessage') {
+      handleSendMessage();
+    }
+  }, [handleSendMessage]);
+
+  const handleToolbarChange = useCallback((toolbarId, itemId, value) => {
+    if (itemId === 'font') {
+      setFontName(value);
+    } else if (itemId === 'size') {
+      setFontSize(value);
+    }
+  }, []);
 
   return (
     <ProgramLayout
       menus={menus}
       menuLogo={ICONS.flag}
-      toolbarItems={toolbarItems}
+      toolbars={toolbars}
       windowActions={windowActions}
       statusFields="Compose a new message"
       showStatusBar
       onMenuAction={handleMenuAction}
       onToolbarAction={handleToolbarAction}
+      onToolbarChange={handleToolbarChange}
     >
       <ComposeContainer>
         <ComposeFieldsContainer>
@@ -191,6 +309,17 @@ function NewMessage({ onClose, onMinimize, onMaximize }) {
               value={composeData.to}
               readOnly
               className="readonly"
+            />
+          </ComposeField>
+          <ComposeField>
+            <ComposeFieldIcon src={ICONS.envelope} alt="" />
+            <ComposeLabel>From:</ComposeLabel>
+            <ComposeInput
+              type="email"
+              name="from"
+              value={composeData.from}
+              onChange={handleComposeChange}
+              placeholder="Your email address"
             />
           </ComposeField>
           <ComposeField>
@@ -216,28 +345,6 @@ function NewMessage({ onClose, onMinimize, onMaximize }) {
             />
           </ComposeField>
         </ComposeFieldsContainer>
-        <ComposeFormatBar>
-          <FormatSelect>
-            <option>Arial</option>
-            <option>Times New Roman</option>
-            <option>Verdana</option>
-            <option>Tahoma</option>
-          </FormatSelect>
-          <FormatSelect $small>
-            <option>10</option>
-            <option>12</option>
-            <option>14</option>
-            <option>16</option>
-          </FormatSelect>
-          <FormatDivider />
-          <FormatButton title="Bold"><b>B</b></FormatButton>
-          <FormatButton title="Italic"><i>I</i></FormatButton>
-          <FormatButton title="Underline"><u>U</u></FormatButton>
-          <FormatDivider />
-          <FormatButton title="Align Left">&#8801;</FormatButton>
-          <FormatButton title="Align Center">=</FormatButton>
-          <FormatButton title="Align Right">&#8801;</FormatButton>
-        </ComposeFormatBar>
         <ComposeTextArea
           name="message"
           value={composeData.message}
@@ -307,49 +414,6 @@ const ComposeInput = styled.input`
     background-color: #f5f5f5;
     color: #333;
   }
-`;
-
-const ComposeFormatBar = styled.div`
-  display: flex;
-  align-items: center;
-  background: #ece9d8;
-  border-bottom: 1px solid #919b9c;
-  padding: 2px 4px;
-  gap: 2px;
-`;
-
-const FormatSelect = styled.select`
-  font-family: Tahoma, Arial, sans-serif;
-  font-size: 11px;
-  padding: 1px 2px;
-  border: 1px solid #7f9db9;
-  background: #fff;
-  width: ${props => props.$small ? '50px' : '120px'};
-`;
-
-const FormatButton = styled.button`
-  width: 22px;
-  height: 22px;
-  border: 1px solid transparent;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-family: Times New Roman, serif;
-  font-size: 12px;
-
-  &:hover {
-    border: 1px solid #316ac5;
-    background: #c1d2ee;
-  }
-`;
-
-const FormatDivider = styled.div`
-  width: 1px;
-  height: 18px;
-  background: #919b9c;
-  margin: 0 4px;
 `;
 
 const ComposeTextArea = styled.textarea`

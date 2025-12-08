@@ -383,6 +383,7 @@ const PanelInner = styled.div`
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-height: 0;
   margin-left: 8px;
   margin-right: 8px;
   margin-bottom: 8px;
@@ -395,6 +396,7 @@ const PanelBox = styled.div`
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-height: 0;
   background: #fff;
   border: 1px solid #808080;
   box-shadow: inset 1px 1px 0px rgba(0, 0, 0, 0.1);
@@ -448,6 +450,7 @@ const CloseButton = styled.button`
 
 const PanelContent = styled.div`
   flex: 1;
+  min-height: 0;
   overflow: auto;
   background: #fff;
   font-size: 11px;

@@ -124,6 +124,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     history,
     historyIndex,
     navigateTo,
+    navigateToPath,
     goBack,
     goForward,
     goUp,
@@ -653,6 +654,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
       onToolbarAction={handleToolbarAction}
       addressTitle={shortPathString || 'My Computer'}
       addressIcon={currentFolderData?.icon || XP_ICONS.myComputer}
+      onAddressNavigate={navigateToPath}
       statusFields={statusText}
     >
       <OuterWrapper ref={wrapperRef}>

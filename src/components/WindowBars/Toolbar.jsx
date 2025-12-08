@@ -442,8 +442,12 @@ const ToolbarButton = styled.div`
   touch-action: manipulation;
 
   &.disabled {
-    opacity: 0.5;
     pointer-events: none;
+    color: #808080;
+
+    img {
+      filter: grayscale(100%) opacity(0.5);
+    }
   }
 
   &.disabled:active,
@@ -558,7 +562,11 @@ const OverflowMenuItem = styled.div`
   }
 
   &.disabled {
-    color: #bcbcbc;
+    color: #808080;
+
+    img {
+      filter: grayscale(100%) opacity(0.5);
+    }
   }
 
   img {

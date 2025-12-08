@@ -28,7 +28,7 @@ export const START_MENU_CATALOG = {
   contact: {
     type: 'program',
     appKey: 'Contact',
-    icon: '/icons/contact.webp',
+    icon: '/icons/outlook/write.png',
     title: 'Contact Me',
     description: 'Send me a message',
   },

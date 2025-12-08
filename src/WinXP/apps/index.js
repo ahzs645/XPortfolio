@@ -169,9 +169,9 @@ export const desktopIconCatalog = {
     component: Projects,
   },
   contact: {
-    icon: '/icons/contact.webp',
+    icon: '/icons/outlook/write.png',
     title: 'Contact',
-    component: Contact,
+    component: NewMessage,
   },
   calculator: {
     icon: XP_ICONS.calculator,
@@ -473,14 +473,14 @@ export const appSettings = {
   },
   Contact: {
     header: {
-      icon: '/icons/contact.webp',
-      title: 'Contact Me',
+      icon: '/icons/outlook/write.png',
+      title: 'New Message',
       buttons: ['minimize', 'maximize', 'close'],
     },
-    component: Contact,
+    component: NewMessage,
     defaultSize: {
-      width: 600,
-      height: 500,
+      width: 640,
+      height: 480,
     },
     defaultOffset: {
       x: 150,
@@ -489,7 +489,7 @@ export const appSettings = {
     resizable: true,
     minimized: false,
     maximized: false,
-    multiInstance: false,
+    multiInstance: true,
   },
   Calculator: {
     header: {

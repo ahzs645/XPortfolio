@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 
 /**
@@ -12,6 +12,8 @@ import styled from 'styled-components';
  * @param {number} props.progress - Progress percentage (0-100) for manual control
  * @param {boolean} props.showGoButton - Whether to show the Go button (default: true)
  * @param {Function} props.onGoClick - Callback when Go button is clicked
+ * @param {Function} props.onNavigate - Callback when user navigates to a new address: (path) => void
+ * @param {boolean} props.editable - Whether the address bar is editable (default: true)
  * @param {string} props.dropdownIcon - Custom dropdown icon path
  * @param {string} props.goIcon - Custom go button icon path
  *
@@ -21,6 +23,7 @@ import styled from 'styled-components';
  *   icon="/icons/about.webp"
  *   loading={false}
  *   showGoButton={true}
+ *   onNavigate={(path) => navigateToPath(path)}
  * />
  */
 function AddressBar({
@@ -31,11 +34,16 @@ function AddressBar({
   progress: controlledProgress,
   showGoButton = true,
   onGoClick,
+  onNavigate,
+  editable = true,
   dropdownIcon = '/gui/toolbar/tooldropdown.webp',
   goIcon = '/gui/toolbar/go.webp',
 }) {
   const [progress, setProgress] = useState(0);
   const [progressState, setProgressState] = useState('idle'); // 'idle', 'loading', 'complete'
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState('');
+  const inputRef = useRef(null);
 
   // Handle loading state with animated progress
   useEffect(() => {
@@ -86,6 +94,56 @@ function AddressBar({
     }
   }, [controlledProgress]);
 
+  // Focus input when entering edit mode
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  // Start editing
+  const handleStartEditing = useCallback(() => {
+    if (!editable) return;
+    setEditValue(title);
+    setIsEditing(true);
+  }, [editable, title]);
+
+  // Cancel editing
+  const handleCancelEditing = useCallback(() => {
+    setIsEditing(false);
+    setEditValue('');
+  }, []);
+
+  // Submit the new address
+  const handleSubmit = useCallback(() => {
+    if (editValue.trim() && onNavigate) {
+      onNavigate(editValue.trim());
+    }
+    setIsEditing(false);
+    setEditValue('');
+  }, [editValue, onNavigate]);
+
+  // Handle key presses in input
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSubmit();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleCancelEditing();
+    }
+  }, [handleSubmit, handleCancelEditing]);
+
+  // Handle Go button click
+  const handleGoClick = useCallback(() => {
+    if (isEditing) {
+      handleSubmit();
+    } else if (onGoClick) {
+      onGoClick();
+    }
+  }, [isEditing, handleSubmit, onGoClick]);
+
   return (
     <AddressBarContainer>
       <AddressBarRow>
@@ -93,13 +151,24 @@ function AddressBar({
           <span>{label}</span>
         </AddressLabel>
 
-        <AddressInput>
-          <AddressContent>
-            {icon && (
-              <AddressIcon src={icon} alt="" width={14} height={14} draggable={false} />
-            )}
-            <AddressTitle>{title}</AddressTitle>
-          </AddressContent>
+        <AddressInput onClick={!isEditing ? handleStartEditing : undefined} $editable={editable}>
+          {isEditing ? (
+            <AddressEditInput
+              ref={inputRef}
+              type="text"
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onBlur={handleCancelEditing}
+            />
+          ) : (
+            <AddressContent>
+              {icon && (
+                <AddressIcon src={icon} alt="" width={14} height={14} draggable={false} />
+              )}
+              <AddressTitle>{title}</AddressTitle>
+            </AddressContent>
+          )}
 
           <DropdownIcon
             src={dropdownIcon}
@@ -116,7 +185,7 @@ function AddressBar({
         </AddressInput>
 
         {showGoButton && (
-          <GoButton onClick={onGoClick}>
+          <GoButton onClick={handleGoClick} $active={isEditing || onNavigate}>
             <img src={goIcon} alt="go" width={20} height={20} draggable={false} />
             <span>Go</span>
           </GoButton>
@@ -178,6 +247,22 @@ const AddressInput = styled.div`
   position: relative;
   width: 100%;
   box-sizing: border-box;
+  cursor: ${props => props.$editable ? 'text' : 'default'};
+`;
+
+const AddressEditInput = styled.input`
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: #222;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
 `;
 
 const AddressContent = styled.div`
@@ -242,7 +327,7 @@ const ProgressBar = styled.div`
 
 const GoButton = styled.div`
   align-items: center;
-  color: #a0a0a0;
+  color: ${props => props.$active ? '#222' : '#a0a0a0'};
   display: flex;
   flex-shrink: 0;
   font-size: 11px;
@@ -251,10 +336,14 @@ const GoButton = styled.div`
   min-width: 55px;
   white-space: nowrap;
   width: 55px;
-  cursor: default;
+  cursor: ${props => props.$active ? 'pointer' : 'default'};
 
   & > img {
-    filter: grayscale(100%) opacity(0.6);
+    filter: ${props => props.$active ? 'none' : 'grayscale(100%) opacity(0.6)'};
+  }
+
+  &:hover {
+    color: ${props => props.$active ? '#000' : '#a0a0a0'};
   }
 `;
 
