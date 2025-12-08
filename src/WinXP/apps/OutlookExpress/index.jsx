@@ -762,12 +762,12 @@ const FoldersPaneHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(180deg, #ede8da 0%, #d8d0c4 100%);
+  background: #d6d2c6;
   color: #000;
   font-family: Tahoma, Arial, sans-serif;
   font-size: 11px;
   font-weight: bold;
-  padding: 3px 4px 3px 6px;
+  padding: 2px 3px 2px 5px;
   border: 1px solid #919b9c;
   border-bottom: 1px solid #b5b5a5;
   margin: 2px 2px 0 2px;
@@ -776,14 +776,12 @@ const FoldersPaneHeader = styled.div`
 const PaneCloseButton = styled.button`
   background: #d4d0c8;
   border: 1px solid #808080;
-  border-top-color: #fff;
-  border-left-color: #fff;
-  font-size: 9px;
-  font-family: Marlett, sans-serif;
+  font-size: 8px;
+  font-family: Tahoma, sans-serif;
   min-width: 0;
-  width: 13px;
-  height: 11px;
-  line-height: 9px;
+  width: 11px;
+  height: 9px;
+  line-height: 7px;
   padding: 0;
   cursor: pointer;
   display: flex;
@@ -791,7 +789,6 @@ const PaneCloseButton = styled.button`
   justify-content: center;
   color: #000;
   flex-shrink: 0;
-  box-sizing: content-box;
 
   &:hover {
     background: #e0dcd4;
@@ -799,10 +796,6 @@ const PaneCloseButton = styled.button`
 
   &:active {
     background: #c0bcb4;
-    border-top-color: #808080;
-    border-left-color: #808080;
-    border-bottom-color: #fff;
-    border-right-color: #fff;
   }
 `;
 

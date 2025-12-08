@@ -406,13 +406,13 @@ const MenuBarLogo = styled.img`
   background: #fff;
   border-radius: 0;
   display: block;
-  height: 16px;
+  height: 100%;
   margin-left: auto;
   object-fit: contain;
-  padding: 2px 4px;
+  padding: 0 10px;
   width: auto;
-  max-width: 32px;
   z-index: 2;
+  margin-right: -8px; /* Flush with edge (counter menubar padding) */
 `;
 
 const DropdownMenu = styled.div`

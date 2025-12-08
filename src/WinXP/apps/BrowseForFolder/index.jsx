@@ -19,67 +19,63 @@ const Description = styled.div`
 
 const TreeContainer = styled.div`
   flex: 1;
-  background: #fff;
-  border: 1px solid #7f9db9;
   overflow: auto;
   min-height: 200px;
-`;
 
-const TreeItemRow = styled.div`
-  display: flex;
-  align-items: center;
-  padding: 1px 4px;
-  padding-left: ${props => props.$level * 16 + 4}px;
-  cursor: pointer;
-  background: ${props => props.$selected ? '#316ac5' : 'transparent'};
-  color: ${props => props.$selected ? '#fff' : '#000'};
-  font-size: 11px;
-  user-select: none;
-  white-space: nowrap;
-
-  &:hover {
-    background: ${props => props.$selected ? '#316ac5' : '#e8f0fa'};
+  .tree-view {
+    border: none;
+    padding: 0;
+    margin: 0;
   }
-`;
 
-const ExpandButton = styled.span`
-  width: 9px;
-  height: 9px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 3px;
-  border: 1px solid #808080;
-  background: #fff;
-  font-size: 9px;
-  font-family: monospace;
-  line-height: 1;
-  cursor: pointer;
-  flex-shrink: 0;
-
-  &:hover {
-    border-color: #000;
+  .tree-view summary {
+    list-style: none;
   }
-`;
 
-const ExpandPlaceholder = styled.span`
-  width: 9px;
-  height: 9px;
-  margin-right: 3px;
-  flex-shrink: 0;
-`;
+  .tree-view summary::-webkit-details-marker {
+    display: none;
+  }
 
-const ItemIcon = styled.img`
-  width: 16px;
-  height: 16px;
-  margin-right: 4px;
-  flex-shrink: 0;
-`;
+  .expand-button {
+    width: 9px;
+    height: 9px;
+    margin-right: 5px;
+    border: 1px solid #808080;
+    background: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-family: monospace;
+  }
 
-const ItemLabel = styled.span`
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  .tree-item-content.selected {
+    background: #316ac5;
+    color: #fff;
+  }
+
+  .tree-item-content {
+    display: flex;
+    align-items: center;
+    padding: 1px 2px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+
+  .tree-item-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+    flex-shrink: 0;
+  }
+
+  .tree-item-label {
+    white-space: nowrap;
+  }
 `;
 
 const ButtonRow = styled.div`
@@ -88,31 +84,6 @@ const ButtonRow = styled.div`
   gap: 8px;
   margin-top: 12px;
   padding-top: 8px;
-`;
-
-const Button = styled.button`
-  min-width: 90px;
-  padding: 4px 14px;
-  background: linear-gradient(180deg, #fff 0%, #ecebe5 86%, #d8d0c4 100%);
-  border: 1px solid #003c74;
-  border-radius: 3px;
-  font-size: 11px;
-  font-family: 'Tahoma', sans-serif;
-  cursor: pointer;
-
-  &:hover:not(:disabled) {
-    background: linear-gradient(180deg, #fff0cf 0%, #fdd889 50%, #fbc761 100%);
-  }
-
-  &:active:not(:disabled) {
-    background: linear-gradient(180deg, #e5e5de 0%, #e3e3db 8%, #cdcac3 100%);
-  }
-
-  &:disabled {
-    color: #a0a0a0;
-    cursor: default;
-    border-color: #a0a0a0;
-  }
 `;
 
 const Spacer = styled.div`
@@ -135,7 +106,7 @@ const TREE_ICONS = {
 function BrowseForFolder({ onClose, onSelect, title = 'Select the target of the shortcut below:' }) {
   const { fileSystem } = useFileSystem();
   const [selectedId, setSelectedId] = useState('desktop');
-  const [expandedIds, setExpandedIds] = useState(['desktop']);
+  const [expandedIds, setExpandedIds] = useState([]);
 
   // Build tree structure from file system (handles all item types including files and executables)
   const buildTreeNode = useCallback((item) => {
@@ -240,31 +211,6 @@ function BrowseForFolder({ onClose, onSelect, title = 'Select the target of the 
     ];
   }, [fileSystem, buildTreeNode]);
 
-  const toggleExpand = useCallback((id, e) => {
-    e.stopPropagation();
-    setExpandedIds(prev =>
-      prev.includes(id)
-        ? prev.filter(i => i !== id)
-        : [...prev, id]
-    );
-  }, []);
-
-  const handleSelect = useCallback((item) => {
-    if (!item.disabled) {
-      setSelectedId(item.id);
-    }
-  }, []);
-
-  const handleDoubleClick = useCallback((item) => {
-    if (item.hasChildren) {
-      setExpandedIds(prev =>
-        prev.includes(item.id)
-          ? prev
-          : [...prev, item.id]
-      );
-    }
-  }, []);
-
   const handleOk = useCallback(() => {
     // Find selected item in tree
     const findItem = (items, id) => {
@@ -291,36 +237,55 @@ function BrowseForFolder({ onClose, onSelect, title = 'Select the target of the 
     onClose?.();
   }, [selectedId, treeData, onSelect, onClose]);
 
-  const renderTreeItem = (item, level = 0) => {
+  const renderTreeItem = (item) => {
     const hasChildren = item.hasChildren || (item.children && item.children.length > 0);
     const isExpanded = expandedIds.includes(item.id);
     const isSelected = selectedId === item.id;
 
+    if (hasChildren) {
+      return (
+        <li key={item.id}>
+          <div
+            className={`tree-item-content ${isSelected ? 'selected' : ''}`}
+            onClick={() => setSelectedId(item.id)}
+            style={{ opacity: item.disabled ? 0.5 : 1 }}
+          >
+            <span
+              className="expand-button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpandedIds(prev =>
+                  isExpanded
+                    ? prev.filter(id => id !== item.id)
+                    : [...prev, item.id]
+                );
+              }}
+            >
+              {isExpanded ? '−' : '+'}
+            </span>
+            <img src={item.icon} alt="" className="tree-item-icon" />
+            <span className="tree-item-label">{item.name}</span>
+          </div>
+          {isExpanded && (
+            <ul>
+              {item.children.map(child => renderTreeItem(child))}
+            </ul>
+          )}
+        </li>
+      );
+    }
+
     return (
-      <div key={item.id}>
-        <TreeItemRow
-          $level={level}
-          $selected={isSelected}
-          onClick={() => handleSelect(item)}
-          onDoubleClick={() => handleDoubleClick(item)}
+      <li key={item.id}>
+        <div
+          className={`tree-item-content ${isSelected ? 'selected' : ''}`}
+          onClick={() => setSelectedId(item.id)}
           style={{ opacity: item.disabled ? 0.5 : 1 }}
         >
-          {hasChildren ? (
-            <ExpandButton onClick={(e) => toggleExpand(item.id, e)}>
-              {isExpanded ? '−' : '+'}
-            </ExpandButton>
-          ) : (
-            <ExpandPlaceholder />
-          )}
-          <ItemIcon src={item.icon} alt="" />
-          <ItemLabel>{item.name}</ItemLabel>
-        </TreeItemRow>
-        {hasChildren && isExpanded && item.children && (
-          <div>
-            {item.children.map(child => renderTreeItem(child, level + 1))}
-          </div>
-        )}
-      </div>
+          <img src={item.icon} alt="" className="tree-item-icon" />
+          <span className="tree-item-label">{item.name}</span>
+        </div>
+      </li>
     );
   };
 
@@ -328,13 +293,15 @@ function BrowseForFolder({ onClose, onSelect, title = 'Select the target of the 
     <Container>
       <Description>{title}</Description>
       <TreeContainer>
-        {treeData.map(item => renderTreeItem(item))}
+        <ul className="tree-view">
+          {treeData.map(item => renderTreeItem(item))}
+        </ul>
       </TreeContainer>
       <ButtonRow>
-        <Button onClick={() => {}} disabled>Make New Folder</Button>
+        <button className="btn" onClick={() => {}} disabled>Make New Folder</button>
         <Spacer />
-        <Button onClick={handleOk}>OK</Button>
-        <Button onClick={onClose}>Cancel</Button>
+        <button className="btn" onClick={handleOk}>OK</button>
+        <button className="btn" onClick={onClose}>Cancel</button>
       </ButtonRow>
     </Container>
   );
