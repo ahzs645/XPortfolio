@@ -7,7 +7,9 @@ const AppContext = createContext(null);
 
 // Map user-friendly program names to appSettings keys
 const PROGRAM_NAME_TO_APP_KEY = {
+  'Calculator': 'Calculator',
   'Internet Explorer': 'Internet Explorer',
+  'Minesweeper': 'Minesweeper',
   'Notepad': 'Notepad',
   'Windows Media Player': 'Windows Media Player',
   'Winamp': 'Winamp',
@@ -16,6 +18,10 @@ const PROGRAM_NAME_TO_APP_KEY = {
   'WinRAR': 'WinRAR',
   'Font Viewer': 'Font Viewer',
   'Outlook Express': 'Outlook Express',
+  'Windows Messenger': 'Windows Messenger',
+  'Pinball': 'Pinball',
+  'Solitaire': 'Solitaire',
+  'WordPad': 'WordPad',
 };
 
 export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
@@ -202,6 +208,48 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
         return true;
       }
 
+      case 'WordPad': {
+        let textContent = '';
+        if (fileData) {
+          try {
+            const base64Data = fileData.split(',')[1] || fileData;
+            textContent = atob(base64Data);
+          } catch (e) {
+            textContent = fileData;
+          }
+        }
+        dispatch({
+          type: addAppAction,
+          payload: {
+            ...appSettings['WordPad'],
+            header: {
+              ...appSettings['WordPad'].header,
+              title: `${name} - WordPad`,
+            },
+            injectProps: {
+              initialContent: textContent,
+              fileName: name,
+              fileId: fileItem.id,
+            },
+          },
+        });
+        return true;
+      }
+
+      // Programs that don't really "open" files but can be launched
+      case 'Calculator':
+      case 'Minesweeper':
+      case 'Pinball':
+      case 'Solitaire':
+      case 'Windows Messenger': {
+        // Just open the app without any file-specific handling
+        dispatch({
+          type: addAppAction,
+          payload: appSettings[appKey],
+        });
+        return true;
+      }
+
       default:
         return false;
     }
@@ -257,9 +305,37 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
       addAppAction,
     });
 
-    if (!handled && fileData) {
-      // Fall back to download for unhandled file types
-      downloadFile(fileData, name);
+    if (!handled) {
+      // Show Open With dialog for unhandled file types
+      if (appSettings['Open With']) {
+        dispatch({
+          type: addAppAction,
+          payload: {
+            ...appSettings['Open With'],
+            injectProps: {
+              fileName: name,
+              fileData,
+              fileId: fileItem.id,
+              contentType,
+              inlineContent,
+              onOpenWithProgram: (params) => {
+                // Handle the selected program
+                const opened = openWithProgram(params.appName,
+                  { id: fileItem.id, name: params.fileName, parent: fileItem.parent },
+                  params.fileData
+                );
+                if (!opened && params.fileData) {
+                  // If still can't open, download as fallback
+                  downloadFile(params.fileData, params.fileName);
+                }
+              },
+            },
+          },
+        });
+      } else if (fileData) {
+        // Fallback to download if Open With dialog is not available
+        downloadFile(fileData, name);
+      }
     }
   }, [fileSystem, getFileContent, appSettings, dispatch, addAppAction, openWithProgram]);
 

@@ -346,3 +346,48 @@ export const MyComputerTileType = styled.span`
   font-size: 10px;
   color: #666;
 `;
+
+// Thumbnail view styles for My Computer root
+export const MyComputerThumbnailItem = styled.div`
+  width: 102px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  margin: 2px 10px 15px 10px;
+  vertical-align: top;
+  text-align: center;
+`;
+
+export const MyComputerThumbnailImageWrapper = styled.div`
+  width: 88px;
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid ${({ $selected }) => $selected ? '#316AC5' : '#e0dfe3'};
+  background: ${({ $selected }) => $selected ? 'rgba(49, 106, 197, 0.1)' : '#fff'};
+  margin-bottom: 4px;
+`;
+
+export const MyComputerThumbnailIcon = styled.img`
+  width: 48px;
+  height: 48px;
+`;
+
+export const MyComputerThumbnailName = styled.span`
+  font-size: 11px;
+  text-align: center;
+  word-break: break-word;
+  line-height: 1.2;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  padding: 2px 4px;
+  background: ${({ $selected }) => $selected ? '#316AC5' : 'transparent'};
+  color: ${({ $selected }) => $selected ? '#fff' : '#000'};
+`;

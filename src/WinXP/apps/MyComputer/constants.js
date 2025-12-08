@@ -50,10 +50,11 @@ export const FILE_TYPES = {
 
 // View mode options
 export const VIEW_MODES = {
+  THUMBNAILS: 'thumbnails',
+  TILES: 'tiles',
   ICONS: 'icons',
   LIST: 'list',
   DETAILS: 'details',
-  TILES: 'tiles',
 };
 
 // Sort options

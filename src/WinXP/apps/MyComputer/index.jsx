@@ -58,6 +58,10 @@ import {
   MyComputerTileInfo,
   MyComputerTileName,
   MyComputerTileType,
+  MyComputerThumbnailItem,
+  MyComputerThumbnailImageWrapper,
+  MyComputerThumbnailIcon,
+  MyComputerThumbnailName,
 } from './styles';
 
 const DOUBLE_TAP_DELAY = 400; // ms for double-tap detection
@@ -448,6 +452,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
       case 'refresh': break;
       case 'exitProgram': onClose(); break;
       case 'rename': handleRename(); break;
+      case 'viewThumbnails': setViewMode('thumbnails'); break;
       case 'viewTiles': setViewMode('tiles'); break;
       case 'viewIcons': setViewMode('icons'); break;
       case 'viewList': setViewMode('list'); break;
@@ -510,6 +515,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
       id: 'view',
       label: 'View',
       items: [
+        { label: 'Thumbnails', action: 'viewThumbnails', checked: viewMode === 'thumbnails' },
         { label: 'Tiles', action: 'viewTiles', checked: viewMode === 'tiles' },
         { label: 'Icons', action: 'viewIcons', checked: viewMode === 'icons' },
         { label: 'List', action: 'viewList', checked: viewMode === 'list' },
@@ -647,6 +653,17 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
               </MyComputerTileType>
             </MyComputerTileInfo>
           </MyComputerTileItem>
+        );
+      case 'thumbnails':
+        return (
+          <MyComputerThumbnailItem key={item.id} {...commonProps}>
+            <MyComputerThumbnailImageWrapper $selected={selectedItems.includes(item.id)}>
+              <MyComputerThumbnailIcon src={item.icon || XP_ICONS.folder} alt="" />
+            </MyComputerThumbnailImageWrapper>
+            <MyComputerThumbnailName $selected={selectedItems.includes(item.id)}>
+              {item.name}
+            </MyComputerThumbnailName>
+          </MyComputerThumbnailItem>
         );
       default:
         return (

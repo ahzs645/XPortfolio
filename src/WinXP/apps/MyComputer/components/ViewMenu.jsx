@@ -24,6 +24,13 @@ function ViewMenu({ viewMode, onViewChange, onClose, position }) {
   return ReactDOM.createPortal(
     <Container ref={menuRef} $top={position?.top} $left={position?.left}>
       <MenuItem
+        $active={viewMode === VIEW_MODES.THUMBNAILS}
+        onClick={() => handleSelect(VIEW_MODES.THUMBNAILS)}
+      >
+        <MenuIcon src="/gui/views/thumbnails.png" alt="" onError={(e) => e.target.style.display = 'none'} />
+        Thumbnails
+      </MenuItem>
+      <MenuItem
         $active={viewMode === VIEW_MODES.TILES}
         onClick={() => handleSelect(VIEW_MODES.TILES)}
       >

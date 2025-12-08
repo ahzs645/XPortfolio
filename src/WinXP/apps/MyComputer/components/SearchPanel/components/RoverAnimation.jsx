@@ -56,9 +56,12 @@ const RoverAnimation = forwardRef(({ character, onExitComplete, onShowComplete, 
 
   const {
     spritePosition,
+    overlayPositions,
     frameSize,
     play,
     hasAnimation,
+    playIdle,
+    animations,
   } = useClippyAnimation(animationData, 'Show', soundsData);
 
   // Notify parent of height changes
@@ -106,6 +109,44 @@ const RoverAnimation = forwardRef(({ character, onExitComplete, onShowComplete, 
     }
   }, [phase, hasAnimation, play, handleAnimationComplete]);
 
+  // Random idle animations - periodically play random idle variants
+  useEffect(() => {
+    if (phase !== 'idle') return;
+
+    const playRandomIdle = () => {
+      const allAnims = animations();
+      const idleAnims = allAnims.filter(a => a.startsWith('Idle'));
+      if (idleAnims.length > 0) {
+        const randomIdle = idleAnims[Math.floor(Math.random() * idleAnims.length)];
+        play(randomIdle);
+      }
+    };
+
+    // Play random idle animation every 5-10 seconds
+    const interval = setInterval(() => {
+      playRandomIdle();
+    }, 5000 + Math.random() * 5000);
+
+    return () => clearInterval(interval);
+  }, [phase, animations, play]);
+
+  // Handle click on character - play ClickedOn animation or random animation
+  const handleClick = useCallback(() => {
+    if (phase !== 'idle') return;
+
+    if (hasAnimation('ClickedOn')) {
+      play('ClickedOn');
+    } else {
+      // Play a random non-idle animation
+      const allAnims = animations();
+      const nonIdleAnims = allAnims.filter(a => !a.startsWith('Idle') && a !== 'Show' && a !== 'Hide');
+      if (nonIdleAnims.length > 0) {
+        const randomAnim = nonIdleAnims[Math.floor(Math.random() * nonIdleAnims.length)];
+        play(randomAnim);
+      }
+    }
+  }, [phase, hasAnimation, play, animations]);
+
   // Expose triggerExit method to parent
   useImperativeHandle(ref, () => ({
     triggerExit: () => {
@@ -126,16 +167,37 @@ const RoverAnimation = forwardRef(({ character, onExitComplete, onShowComplete, 
   // Calculate character area height based on frame size (min 100px)
   const characterAreaHeight = Math.max(frameSize[1] + 16, 100);
 
+  // Render nested overlay layers
+  const renderOverlays = (index = 0) => {
+    if (index >= overlayPositions.length) return null;
+    const pos = overlayPositions[index];
+    return (
+      <OverlaySprite
+        $frameWidth={frameSize[0]}
+        $frameHeight={frameSize[1]}
+        style={{
+          backgroundImage: `url(${character.spriteMap})`,
+          backgroundPosition: `-${pos[0]}px -${pos[1]}px`,
+        }}
+      >
+        {renderOverlays(index + 1)}
+      </OverlaySprite>
+    );
+  };
+
   return (
-    <CharacterArea $height={characterAreaHeight}>
+    <CharacterArea $height={characterAreaHeight} onClick={handleClick}>
       <CharacterSprite
         $frameWidth={frameSize[0]}
         $frameHeight={frameSize[1]}
         style={{
           backgroundImage: `url(${character.spriteMap})`,
           backgroundPosition: `-${spritePosition[0]}px -${spritePosition[1]}px`,
+          cursor: phase === 'idle' ? 'pointer' : 'default',
         }}
-      />
+      >
+        {renderOverlays()}
+      </CharacterSprite>
     </CharacterArea>
   );
 });
@@ -150,6 +212,17 @@ const CharacterArea = styled.div`
 `;
 
 const CharacterSprite = styled.div`
+  position: relative;
+  width: ${props => props.$frameWidth || 80}px;
+  height: ${props => props.$frameHeight || 80}px;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+`;
+
+const OverlaySprite = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
   width: ${props => props.$frameWidth || 80}px;
   height: ${props => props.$frameHeight || 80}px;
   background-repeat: no-repeat;

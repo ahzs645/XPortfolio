@@ -36,9 +36,8 @@ function CMD({ onClose }) {
 
   // Use custom welcome message if configured, otherwise use default
   const customWelcome = getTerminalWelcome();
-  const defaultWelcome = `The XPerience Project [Version 1.1.0000]
-(C) Copyright ${firstName}. All rights reserved.
-`;
+  const defaultWelcome = `${firstName} DOS
+❮C❯ Copyright ${firstName}`;
   const initialMessage = `${customWelcome || defaultWelcome}
 Type 'help' to see available commands.
 `;

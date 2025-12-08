@@ -40,6 +40,7 @@ import AdobeReader from './AdobeReader';
 import ShortcutWizard from './ShortcutWizard';
 import BrowseForFolder from './BrowseForFolder';
 import ErrorDialog from './ErrorDialog';
+import OpenWith from './OpenWith';
 // ControlPanel is now integrated into MyComputer as a navigable view
 
 // XP Icons paths
@@ -132,6 +133,7 @@ export const appCategoryMap = {
   'Adobe Reader': APP_CATEGORIES.UTILITY,
   'Create Shortcut': APP_CATEGORIES.UTILITY,
   'Browse For Folder': APP_CATEGORIES.UTILITY,
+  'Open With': APP_CATEGORIES.UTILITY,
 
   // Fun/Extra
   'QQ Penguin': APP_CATEGORIES.GAME,
@@ -1317,6 +1319,26 @@ export const appSettings = {
     maximized: false,
     multiInstance: true,
   },
+  'Open With': {
+    header: {
+      icon: '/icons/xp/Default.png',
+      title: 'Open With',
+      buttons: ['close'],
+    },
+    component: OpenWith,
+    defaultSize: {
+      width: 420,
+      height: 'auto',
+    },
+    defaultOffset: {
+      x: 250,
+      y: 150,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
+  },
   // Control Panel is now integrated into MyComputer as a navigable view
   // Access via My Computer sidebar > Control Panel
 };
@@ -1360,4 +1382,5 @@ export {
   AdobeReader,
   ShortcutWizard,
   BrowseForFolder,
+  OpenWith,
 };

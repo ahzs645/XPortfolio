@@ -215,6 +215,69 @@ export function DetailsRow({
   );
 }
 
+// Thumbnail View Item
+export function ThumbnailItem({
+  item,
+  selected,
+  isCut,
+  isDragging,
+  isDropTarget,
+  isRenaming,
+  renameValue,
+  onRenameChange,
+  onRenameSubmit,
+  onClick,
+  onDoubleClick,
+  onContextMenu,
+  onDragStart,
+  onDragEnd,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+  onTouchStart,
+  onTouchEnd,
+  itemRef,
+}) {
+  return (
+    <ThumbnailItemContainer
+      ref={itemRef}
+      $selected={selected}
+      $isCut={isCut}
+      $isDragging={isDragging}
+      $isDropTarget={isDropTarget}
+      draggable={!isRenaming}
+      onClick={onClick}
+      onDoubleClick={onDoubleClick}
+      onContextMenu={onContextMenu}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
+      <ThumbnailImageWrapper $selected={selected}>
+        <ThumbnailImage src={item.icon || XP_ICONS.folder} alt="" />
+        {isShortcut(item) && <ShortcutOverlay src="/icons/xp/Shortcutoverlay.png" alt="" />}
+      </ThumbnailImageWrapper>
+      {isRenaming ? (
+        <RenameForm onSubmit={onRenameSubmit}>
+          <RenameInput
+            value={renameValue}
+            onChange={(e) => onRenameChange(e.target.value)}
+            onBlur={onRenameSubmit}
+            autoFocus
+            onClick={(e) => e.stopPropagation()}
+          />
+        </RenameForm>
+      ) : (
+        <ThumbnailName $selected={selected}>{getDisplayName(item)}</ThumbnailName>
+      )}
+    </ThumbnailItemContainer>
+  );
+}
+
 // Tiles View Item
 export function TileItem({
   item,
@@ -581,4 +644,51 @@ const TileType = styled.span`
 const TileSize = styled.span`
   font-size: 10px;
   color: #666;
+`;
+
+// Thumbnail View Styles (Windows XP style with border around icon)
+const ThumbnailItemContainer = styled.div`
+  width: 102px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  margin: 2px 10px 15px 10px;
+  vertical-align: top;
+  text-align: center;
+  opacity: ${({ $isCut, $isDragging }) => ($isDragging ? 0.5 : $isCut ? 0.5 : 1)};
+`;
+
+const ThumbnailImageWrapper = styled.div`
+  position: relative;
+  width: 88px;
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid ${({ $selected }) => $selected ? '#316AC5' : '#e0dfe3'};
+  background: ${({ $selected }) => $selected ? 'rgba(49, 106, 197, 0.1)' : '#fff'};
+  margin-bottom: 4px;
+`;
+
+const ThumbnailImage = styled.img`
+  width: 48px;
+  height: 48px;
+`;
+
+const ThumbnailName = styled.span`
+  font-size: 11px;
+  text-align: center;
+  word-break: break-word;
+  line-height: 1.2;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  padding: 2px 4px;
+  background: ${({ $selected }) => $selected ? '#316AC5' : 'transparent'};
+  color: ${({ $selected }) => $selected ? '#fff' : '#000'};
 `;

@@ -1,6 +1,6 @@
 import React, { useRef, useCallback } from 'react';
 import styled from 'styled-components';
-import { IconItem, ListItem, DetailsRow, TileItem, DetailsHeader } from './FileItemViews';
+import { IconItem, ListItem, DetailsRow, TileItem, ThumbnailItem, DetailsHeader } from './FileItemViews';
 import { VIEW_MODES } from '../constants';
 import { isMobileDevice } from '../../../../utils/deviceDetection';
 
@@ -138,6 +138,8 @@ function ExplorerContent({
         return <ListItem {...commonProps} />;
       case VIEW_MODES.TILES:
         return <TileItem {...commonProps} />;
+      case VIEW_MODES.THUMBNAILS:
+        return <ThumbnailItem {...commonProps} />;
       default:
         return <IconItem {...commonProps} />;
     }

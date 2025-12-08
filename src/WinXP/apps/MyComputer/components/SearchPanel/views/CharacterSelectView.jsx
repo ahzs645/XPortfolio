@@ -28,6 +28,7 @@ export const CHARACTERS = [
     dataUrl: '/agents/Merlin/data.json',
     soundsUrl: '/agents/Merlin/sounds.json',
     description: 'Merlin will conjure up answers to your questions.',
+    previewOffsetX: -30,
   },
   {
     id: 'genie',
@@ -36,6 +37,7 @@ export const CHARACTERS = [
     dataUrl: '/agents/Genie/data.json',
     soundsUrl: '/agents/Genie/sounds.json',
     description: 'Your wish is my command!',
+    previewOffsetX: -20,
   },
   {
     id: 'genius',
@@ -44,6 +46,7 @@ export const CHARACTERS = [
     dataUrl: '/agents/Genius/data.json',
     soundsUrl: '/agents/Genius/sounds.json',
     description: 'Genius will help you find brilliant solutions.',
+    previewOffsetX: -15,
   },
   {
     id: 'bonzi',
@@ -52,6 +55,7 @@ export const CHARACTERS = [
     dataUrl: '/agents/Bonzi/data.json',
     soundsUrl: '/agents/Bonzi/sounds.json',
     description: 'Bonzi is here to be your friendly guide.',
+    previewOffsetX: -40,
   },
   {
     id: 'peedy',
@@ -60,6 +64,7 @@ export const CHARACTERS = [
     dataUrl: '/agents/Peedy/data.json',
     soundsUrl: '/agents/Peedy/sounds.json',
     description: 'Peedy the parrot will help you find what you need.',
+    previewOffsetX: -25,
   },
   {
     id: 'rocky',
@@ -68,6 +73,7 @@ export const CHARACTERS = [
     dataUrl: '/agents/Rocky/data.json',
     soundsUrl: '/agents/Rocky/sounds.json',
     description: 'Rocky is ready to help you on your adventure.',
+    previewOffsetX: -20,
   },
   {
     id: 'links',
@@ -76,6 +82,7 @@ export const CHARACTERS = [
     dataUrl: '/agents/Links/data.json',
     soundsUrl: '/agents/Links/sounds.json',
     description: 'Links the cat will help you prowl for information.',
+    previewOffsetX: -20,
   },
   {
     id: 'f1',
@@ -84,6 +91,7 @@ export const CHARACTERS = [
     dataUrl: '/agents/F1/data.json',
     soundsUrl: '/agents/F1/sounds.json',
     description: 'F1 the robot is programmed to assist you.',
+    previewOffsetX: -15,
   },
 ];
 
@@ -112,7 +120,7 @@ function CharacterSelectView({ previewCharacter, setPreviewCharacter }) {
       .catch(() => {});
   }, [character.dataUrl, character.soundsUrl]);
 
-  const { spritePosition, frameSize, play, hasAnimation } = useClippyAnimation(animationData, 'Idle', soundsData);
+  const { spritePosition, overlayPositions, frameSize, play, hasAnimation } = useClippyAnimation(animationData, 'Idle', soundsData);
 
   // Play greeting animation when character loads, then idle
   useEffect(() => {
@@ -154,11 +162,24 @@ function CharacterSelectView({ previewCharacter, setPreviewCharacter }) {
           <CharacterSprite
             $width={frameSize[0]}
             $height={frameSize[1]}
+            $offsetX={character.previewOffsetX || 0}
             style={{
               backgroundImage: `url(${character.spriteMap})`,
               backgroundPosition: `-${spritePosition[0]}px -${spritePosition[1]}px`,
             }}
-          />
+          >
+            {overlayPositions.map((pos, idx) => (
+              <OverlaySprite
+                key={idx}
+                $width={frameSize[0]}
+                $height={frameSize[1]}
+                style={{
+                  backgroundImage: `url(${character.spriteMap})`,
+                  backgroundPosition: `-${pos[0]}px -${pos[1]}px`,
+                }}
+              />
+            ))}
+          </CharacterSprite>
         </CharacterPreview>
         <NavButtonRow>
           <NavButton onClick={handlePrev}>Back</NavButton>
@@ -177,6 +198,7 @@ const CharacterBox = styled.div`
   background: #fff;
   margin-bottom: 8px;
   padding: 8px;
+  overflow: visible;
 `;
 
 const CharacterTab = styled.div`
@@ -196,12 +218,24 @@ const CharacterPreview = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 16px;
   min-height: ${props => props.$minHeight || 120}px;
   background: #fff;
+  overflow: visible;
 `;
 
 const CharacterSprite = styled.div`
+  position: relative;
+  width: ${props => props.$width || 80}px;
+  height: ${props => props.$height || 80}px;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  margin-left: ${props => props.$offsetX || 0}px;
+`;
+
+const OverlaySprite = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
   width: ${props => props.$width || 80}px;
   height: ${props => props.$height || 80}px;
   background-repeat: no-repeat;

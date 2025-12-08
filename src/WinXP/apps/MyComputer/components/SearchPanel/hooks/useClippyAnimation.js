@@ -3,11 +3,13 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 /**
  * React hook for ClippyJS-style sprite animations
  * Uses the same animation data format as clippyjs agent.js files
+ * Supports multiple overlay layers for complex characters (like Bonzi)
  */
 export function useClippyAnimation(animationData, initialAnimation = 'Idle', soundsData = null) {
   const [currentAnimation, setCurrentAnimation] = useState(null); // Start null, set by play()
   const [frameIndex, setFrameIndex] = useState(0);
   const [spritePosition, setSpritePosition] = useState([0, 0]);
+  const [overlayPositions, setOverlayPositions] = useState([]); // For multi-layer sprites
   const [isPlaying, setIsPlaying] = useState(false); // Start paused
   const [isExiting, setIsExiting] = useState(false);
   const [triggerStep, setTriggerStep] = useState(0); // Force step to run
@@ -42,8 +44,9 @@ export function useClippyAnimation(animationData, initialAnimation = 'Idle', sou
     }
   }, []);
 
-  // Get frame size
+  // Get frame size and overlay count
   const frameSize = animationData?.framesize || [80, 80];
+  const overlayCount = animationData?.overlayCount || 1;
 
   // Get available animations
   const animations = useCallback(() => {
@@ -107,9 +110,16 @@ export function useClippyAnimation(animationData, initialAnimation = 'Idle', sou
       return;
     }
 
-    // Set sprite position
-    if (currentFrame.images?.[0]) {
-      setSpritePosition(currentFrame.images[0]);
+    // Set sprite position for base layer and overlays
+    const images = currentFrame.images || [];
+    if (images[0]) {
+      setSpritePosition(images[0]);
+    }
+    // Set overlay positions (all layers after the first)
+    if (images.length > 1) {
+      setOverlayPositions(images.slice(1));
+    } else {
+      setOverlayPositions([]);
     }
 
     // Play sound if frame has one
@@ -227,6 +237,8 @@ export function useClippyAnimation(animationData, initialAnimation = 'Idle', sou
     currentAnimation,
     frameIndex,
     spritePosition,
+    overlayPositions,
+    overlayCount,
     isPlaying,
     frameSize,
 
