@@ -35,6 +35,9 @@ export function IconItem({
   onDrop,
   onTouchStart,
   onTouchEnd,
+  onMouseEnter,
+  onMouseMove,
+  onMouseLeave,
   itemRef,
 }) {
   return (
@@ -55,6 +58,9 @@ export function IconItem({
       onDrop={onDrop}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
+      onMouseEnter={onMouseEnter}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
     >
       <IconImageWrapper>
         <IconImage src={item.icon || XP_ICONS.folder} alt="" />
@@ -98,6 +104,9 @@ export function ListItem({
   onDrop,
   onTouchStart,
   onTouchEnd,
+  onMouseEnter,
+  onMouseMove,
+  onMouseLeave,
   itemRef,
 }) {
   return (
@@ -118,6 +127,9 @@ export function ListItem({
       onDrop={onDrop}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
+      onMouseEnter={onMouseEnter}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
     >
       <ListIconWrapper>
         <ListIcon src={item.icon || XP_ICONS.folder} alt="" />
@@ -161,6 +173,9 @@ export function DetailsRow({
   onDrop,
   onTouchStart,
   onTouchEnd,
+  onMouseEnter,
+  onMouseMove,
+  onMouseLeave,
   itemRef,
   fileSystem,
 }) {
@@ -186,6 +201,9 @@ export function DetailsRow({
       onDrop={onDrop}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
+      onMouseEnter={onMouseEnter}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
     >
       <DetailsCell $width="40%">
         <DetailsIconWrapper>
@@ -236,6 +254,9 @@ export function ThumbnailItem({
   onDrop,
   onTouchStart,
   onTouchEnd,
+  onMouseEnter,
+  onMouseMove,
+  onMouseLeave,
   itemRef,
 }) {
   return (
@@ -256,6 +277,9 @@ export function ThumbnailItem({
       onDrop={onDrop}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
+      onMouseEnter={onMouseEnter}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
     >
       <ThumbnailImageWrapper $selected={selected}>
         <ThumbnailImage src={item.icon || XP_ICONS.folder} alt="" />
@@ -299,6 +323,9 @@ export function TileItem({
   onDrop,
   onTouchStart,
   onTouchEnd,
+  onMouseEnter,
+  onMouseMove,
+  onMouseLeave,
   itemRef,
 }) {
   return (
@@ -319,6 +346,9 @@ export function TileItem({
       onDrop={onDrop}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
+      onMouseEnter={onMouseEnter}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
     >
       <TileIconWrapper>
         <TileIcon src={item.icon || XP_ICONS.folder} alt="" />

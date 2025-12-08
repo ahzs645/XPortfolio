@@ -3,6 +3,8 @@ import styled from 'styled-components';
 import { IconItem, ListItem, DetailsRow, TileItem, ThumbnailItem, DetailsHeader } from './FileItemViews';
 import { VIEW_MODES } from '../constants';
 import { isMobileDevice } from '../../../../utils/deviceDetection';
+import { useTooltip } from '../../../../contexts/TooltipContext';
+import { getFileType, formatFileSize, formatDate, calculateFolderSize } from '../utils';
 
 const DOUBLE_TAP_DELAY = 400; // ms for double-tap detection
 const LONG_PRESS_DELAY = 500; // ms for long-press context menu
@@ -45,6 +47,87 @@ function ExplorerContent({
   const lastTapRef = useRef(null);
   const longPressTimerRef = useRef(null);
   const isMobile = isMobileDevice();
+
+  // Tooltip support
+  const { tooltip, showTooltip, hideTooltip, updatePosition } = useTooltip();
+  const CURSOR_OFFSET_X = 12;
+  const CURSOR_OFFSET_Y = 20;
+
+  // Image file extensions
+  const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.ico', '.svg'];
+
+  // Get tooltip text for an item
+  const getTooltipText = useCallback((item) => {
+    if (!item) return null;
+
+    // For folders: show size and file list
+    if (item.type === 'folder') {
+      const size = calculateFolderSize(item.id, fileSystem);
+      const children = item.children || [];
+      const fileNames = children
+        .map(id => fileSystem[id]?.name)
+        .filter(Boolean)
+        .slice(0, 3);
+
+      let filesText = fileNames.join(', ');
+      if (children.length > 3) {
+        filesText += ', ...';
+      }
+
+      return `Size: ${formatFileSize(size)}\nFiles: ${filesText || '(empty)'}`;
+    }
+
+    // For drives
+    if (item.type === 'drive') {
+      return null; // No tooltip for drives
+    }
+
+    // Check if it's an image
+    const ext = item.name ? item.name.substring(item.name.lastIndexOf('.')).toLowerCase() : '';
+    const isImage = IMAGE_EXTENSIONS.includes(ext);
+
+    if (isImage) {
+      // For images: show dimensions (if available), type, and size
+      const type = getFileType(item);
+      const size = formatFileSize(item.size);
+      // We might have dimensions stored in item.width/item.height
+      if (item.width && item.height) {
+        return `Dimensions: ${item.width} x ${item.height}\nType: ${type}\nSize: ${size}`;
+      }
+      return `Type: ${type}\nSize: ${size}`;
+    }
+
+    // For regular files: show type, date modified, and size
+    const type = getFileType(item);
+    const dateModified = formatDate(item.dateModified || item.dateCreated);
+    const size = formatFileSize(item.size);
+
+    return `Type: ${type}\nDate Modified: ${dateModified}\nSize: ${size}`;
+  }, [fileSystem]);
+
+  // Handle tooltip on mouse enter
+  const handleItemMouseEnter = useCallback((e, item) => {
+    if (isMobile) return;
+    const tooltipText = getTooltipText(item);
+    if (tooltipText) {
+      const x = e.clientX + CURSOR_OFFSET_X;
+      const y = e.clientY + CURSOR_OFFSET_Y;
+      showTooltip(tooltipText, x, y, { delay: 1000 });
+    }
+  }, [isMobile, getTooltipText, showTooltip]);
+
+  // Handle tooltip position update on mouse move (only if already visible)
+  const handleItemMouseMove = useCallback((e) => {
+    if (isMobile || !tooltip.visible) return;
+    const x = e.clientX + CURSOR_OFFSET_X;
+    const y = e.clientY + CURSOR_OFFSET_Y;
+    updatePosition(x, y);
+  }, [isMobile, tooltip.visible, updatePosition]);
+
+  // Handle tooltip hide on mouse leave
+  const handleItemMouseLeave = useCallback(() => {
+    hideTooltip(true);
+  }, [hideTooltip]);
 
   // Clear long press timer
   const clearLongPressTimer = useCallback(() => {
@@ -127,6 +210,9 @@ function ExplorerContent({
       onDrop: (e) => onItemDrop(e, item),
       onTouchStart: (e) => handleTouchStart(e, item),
       onTouchEnd: handleTouchEnd,
+      onMouseEnter: (e) => handleItemMouseEnter(e, item),
+      onMouseMove: handleItemMouseMove,
+      onMouseLeave: handleItemMouseLeave,
       itemRef: (el) => { itemRefs.current[item.id] = el; },
     };
 

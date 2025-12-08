@@ -17,7 +17,7 @@ const TooltipBox = styled.div`
   z-index: 99999;
   pointer-events: none;
   box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-  white-space: nowrap;
+  white-space: pre-line;
   visibility: ${({ $measured }) => ($measured ? 'visible' : 'hidden')};
 `;
 

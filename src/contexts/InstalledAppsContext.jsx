@@ -7,6 +7,13 @@ import { APPLETS, getAppletUrl, DEFAULT_APPLET_ICON } from '../WinXP/config/appl
 // Store for installed apps
 const INSTALLED_APPS_KEY = 'xportfolio-installed-apps';
 
+// Helper to convert release date string to timestamp
+const parseReleaseDate = (dateString) => {
+  if (!dateString) return null;
+  const date = new Date(dateString);
+  return isNaN(date.getTime()) ? null : date.getTime();
+};
+
 // Convert external projects to built-in apps format
 const BUILT_IN_PROJECTS = EXTERNAL_PROJECTS.reduce((acc, project) => {
   acc[`builtin-${project.id}`] = {
@@ -15,11 +22,12 @@ const BUILT_IN_PROJECTS = EXTERNAL_PROJECTS.reduce((acc, project) => {
     name: project.name,
     icon: project.icon || DEFAULT_PROJECT_ICON,
     description: project.description || '',
-    author: 'Ahmad Jalil',
-    version: '1.0.0',
+    author: project.author || 'Ahmad Jalil',
+    version: project.version || '1.0.0',
+    size: project.size || null,
     manifest: null,
     permissions: [],
-    installedAt: 0, // Built-in apps have timestamp 0
+    installedAt: parseReleaseDate(project.releaseDate), // Use release date as install date
     lastRun: null,
     isBuiltIn: true, // Flag to identify built-in projects
     category: project.category,
@@ -42,11 +50,12 @@ const BUILT_IN_APPLETS = APPLETS.reduce((acc, applet) => {
     name: applet.name,
     icon: applet.icon || DEFAULT_APPLET_ICON,
     description: applet.description || '',
-    author: 'Ahmad Jalil',
-    version: '1.0.0',
+    author: applet.author || 'Ahmad Jalil',
+    version: applet.version || '1.0.0',
+    size: applet.size || null,
     manifest: null,
     permissions: [],
-    installedAt: 0,
+    installedAt: parseReleaseDate(applet.releaseDate), // Use release date as install date
     lastRun: null,
     isBuiltIn: true,
     isApplet: true, // Flag to identify applets

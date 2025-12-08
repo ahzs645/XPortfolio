@@ -204,7 +204,16 @@ function ChangeRemovePrograms({ apps, onRun, onUninstall, onToggleApp }) {
                       <DetailValue>{app.url}</DetailValue>
                     </DetailRow>
                   )}
-                  {!app.isBuiltIn && (
+                  {app.isBuiltIn ? (
+                    // For built-in apps, show release date if available
+                    app.installedAt && (
+                      <DetailRow>
+                        <DetailLabel>Released:</DetailLabel>
+                        <DetailValue>{new Date(app.installedAt).toLocaleDateString()}</DetailValue>
+                      </DetailRow>
+                    )
+                  ) : (
+                    // For user-installed apps, show last used and installed dates
                     <>
                       <DetailRow>
                         <DetailLabel>Last Used:</DetailLabel>

@@ -11,6 +11,10 @@ const APPLETS_BASE_URL = 'https://projects.ahmadjalil.com/applets/';
  *   route: string,     // Hash route (e.g., '#/raincheck')
  *   icon: string,      // SVG as data URI or path to icon file
  *   description: string,
+ *   version: string,   // Version number (e.g., '1.0.0')
+ *   author: string,    // Author name
+ *   size: number,      // Estimated size in bytes
+ *   releaseDate: string, // ISO date string for when the applet was released
  *   windowSettings: { width, height, resizable }
  * }
  */
@@ -31,7 +35,11 @@ export const APPLETS = [
     name: 'Rain Check Generator',
     route: '#/raincheck',
     icon: APPLET_ICONS.raincheck,
-    description: 'Generate rain checks',
+    description: 'Generate and print rain check vouchers for customers',
+    version: '1.0.0',
+    author: 'Ahmad Jalil',
+    size: 125000, // ~125 KB
+    releaseDate: '2024-09-01',
     windowSettings: { width: 500, height: 600, resizable: true },
   },
   // Add more applets here:
@@ -41,6 +49,10 @@ export const APPLETS = [
   //   route: '#/myapplet',
   //   icon: APPLET_ICONS.myapplet || DEFAULT_APPLET_ICON,
   //   description: 'Description here',
+  //   version: '1.0.0',
+  //   author: 'Ahmad Jalil',
+  //   size: 100000,
+  //   releaseDate: '2024-01-01',
   //   windowSettings: { width: 500, height: 400, resizable: true },
   // },
 ];

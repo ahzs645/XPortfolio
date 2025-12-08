@@ -189,6 +189,8 @@ const OUTLOOK_ICONS = {
   contacts: '/icons/outlook/contacts.png',
   find: '/icons/outlook/find.png',
   flag: '/icons/outlook/flag.png',
+  outlook: '/icons/outlook/outlook.png',
+  localFolders: '/icons/folder-icon.png',
 };
 
 // Sample emails data
@@ -537,18 +539,40 @@ function OutlookExpress({ onClose, onMinimize, onMaximize, emlData, emlFileName 
         <Sidebar>
           <SidebarContent>
             <PaneTitle>Folders</PaneTitle>
-            <FolderList>
-              {folders.map((folder) => (
-                <FolderItem
-                  key={folder.id}
-                  $active={selectedFolder === folder.id}
-                  onClick={() => handleFolderSelect(folder.id)}
-                >
-                  <img src={folder.icon} alt={folder.name} />
-                  <span>{folder.name}</span>
-                </FolderItem>
-              ))}
-            </FolderList>
+            <TreeViewContainer>
+              <ul className="tree-view">
+                <li>
+                  <details open>
+                    <TreeSummary>
+                      <TreeIcon src={OUTLOOK_ICONS.outlook} alt="" />
+                      Outlook Express
+                    </TreeSummary>
+                    <ul>
+                      <li>
+                        <details open>
+                          <TreeSummary>
+                            <TreeIcon src={OUTLOOK_ICONS.localFolders} alt="" />
+                            Local Folders
+                          </TreeSummary>
+                          <ul>
+                            {folders.map((folder) => (
+                              <TreeItem
+                                key={folder.id}
+                                $active={selectedFolder === folder.id}
+                                onClick={() => handleFolderSelect(folder.id)}
+                              >
+                                <TreeIcon src={folder.icon} alt="" />
+                                {folder.name}
+                              </TreeItem>
+                            ))}
+                          </ul>
+                        </details>
+                      </li>
+                    </ul>
+                  </details>
+                </li>
+              </ul>
+            </TreeViewContainer>
           </SidebarContent>
         </Sidebar>
 
@@ -650,29 +674,53 @@ const PaneTitle = styled.div`
   padding: 4px 8px;
 `;
 
-const FolderList = styled.div`
-  padding: 4px;
+const TreeViewContainer = styled.div`
+  padding: 2px;
+
+  .tree-view {
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 11px;
+  }
+
+  .tree-view li {
+    list-style: none;
+  }
+
+  .tree-view details > ul {
+    margin-left: 16px;
+  }
 `;
 
-const FolderItem = styled.div`
+const TreeSummary = styled.summary`
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 3px 6px;
+  gap: 4px;
   cursor: default;
-  font-family: Tahoma, Arial, sans-serif;
-  font-size: 11px;
+  padding: 1px 2px;
+
+  &::-webkit-details-marker {
+    margin-right: 2px;
+  }
+`;
+
+const TreeIcon = styled.img`
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  flex-shrink: 0;
+`;
+
+const TreeItem = styled.li`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 4px;
+  cursor: default;
   background: ${(props) => (props.$active ? '#316ac5' : 'transparent')};
   color: ${(props) => (props.$active ? '#fff' : '#000')};
 
-  img {
-    width: 16px;
-    height: 16px;
-    object-fit: contain;
-  }
-
   &:hover {
-    background: ${(props) => (props.$active ? '#316ac5' : '#e0e0e0')};
+    background: ${(props) => (props.$active ? '#316ac5' : 'rgba(49, 106, 197, 0.1)')};
   }
 `;
 
