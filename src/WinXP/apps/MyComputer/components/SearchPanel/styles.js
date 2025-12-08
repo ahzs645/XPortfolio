@@ -44,7 +44,9 @@ export const Balloon = styled.div`
   box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
   margin-bottom: 8px;
   max-height: calc(100% - 120px);
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
   padding: 12px 10px 0 0;
 `;
 
@@ -52,12 +54,16 @@ export const BalloonInner = styled.div`
   display: flex;
   flex-direction: column;
   border-radius: 12px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 `;
 
 export const BalloonContent = styled.div`
   padding: 0 4px 12px 12px;
   overflow-y: auto;
-  max-height: 400px;
+  flex: 1;
+  min-height: 0;
 `;
 
 export const BalloonTip = styled.div`
