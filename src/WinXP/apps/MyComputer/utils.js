@@ -17,6 +17,7 @@ export const getFileType = (item) => {
   if (item.type === 'folder') return 'File Folder';
   if (item.type === 'drive') return 'Local Disk';
   if (item.type === 'shortcut') return 'Shortcut File';
+  if (item.type === 'executable') return 'Application';
   const ext = getFileExtension(item.name).replace('.', '');
   return FILE_TYPES[ext] || `${ext.toUpperCase()} File` || 'File';
 };
@@ -29,6 +30,7 @@ export const getSimpleFileType = (item) => {
   if (item.type === 'folder') return 'File Folder';
   if (item.type === 'drive') return 'Local Disk';
   if (item.type === 'shortcut') return 'Shortcut File';
+  if (item.type === 'executable') return 'Application';
   const ext = getFileExtension(item.name).replace('.', '');
   if (!ext) return 'File';
   return `${ext.toUpperCase()} File`;

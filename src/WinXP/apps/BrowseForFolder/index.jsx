@@ -119,13 +119,13 @@ const Spacer = styled.div`
   flex: 1;
 `;
 
-// Icons for different item types
+// Icons for different item types (should match XP_ICONS from FileSystemContext)
 const TREE_ICONS = {
   desktop: '/icons/xp/Desktop.png',
   myDocuments: '/icons/xp/MyDocuments.png',
   myComputer: '/icons/xp/MyComputer.png',
-  folder: '/icons/xp/Folder.png',
-  folderOpen: '/icons/xp/FolderOpen.png',
+  folder: '/icons/xp/FolderClosed.png',
+  folderOpen: '/icons/xp/FolderOpened.png',
   briefcase: '/icons/xp/Briefcase.png',
   myPictures: '/icons/xp/MyPictures.png',
   myMusic: '/icons/xp/MyMusic.png',
@@ -137,26 +137,38 @@ function BrowseForFolder({ onClose, onSelect, title = 'Select the target of the 
   const [selectedId, setSelectedId] = useState('desktop');
   const [expandedIds, setExpandedIds] = useState(['desktop']);
 
-  // Build tree structure from file system (handles both folders and drives)
-  const buildFolderNode = useCallback((item) => {
-    if (!item || (item.type !== 'folder' && item.type !== 'drive')) return null;
+  // Build tree structure from file system (handles all item types)
+  const buildTreeNode = useCallback((item) => {
+    if (!item) return null;
 
-    const children = item.children || [];
-    const subFolders = children
+    // For folders and drives, include children
+    const isContainer = item.type === 'folder' || item.type === 'drive';
+    const children = isContainer ? (item.children || []) : [];
+
+    const childNodes = children
       .map(childId => fileSystem[childId])
-      .filter(child => child && (child.type === 'folder' || child.type === 'drive'))
-      .map(child => buildFolderNode(child))
+      .filter(Boolean)
+      .map(child => buildTreeNode(child))
       .filter(Boolean);
+
+    // Determine icon based on type
+    let icon = item.icon;
+    if (!icon) {
+      if (item.type === 'folder') icon = TREE_ICONS.folder;
+      else if (item.type === 'drive') icon = TREE_ICONS.localDisk;
+      else icon = TREE_ICONS.folder;
+    }
 
     return {
       id: item.id,
       name: item.name,
-      icon: item.icon || TREE_ICONS.folder,
+      icon,
       type: item.type,
-      target: item.name,
+      target: item.target || item.name, // Use target for shortcuts/executables, name otherwise
       fsId: item.id,
-      children: subFolders,
-      hasChildren: subFolders.length > 0,
+      children: childNodes,
+      hasChildren: childNodes.length > 0,
+      isSelectable: true,
     };
   }, [fileSystem]);
 

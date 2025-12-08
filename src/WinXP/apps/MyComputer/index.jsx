@@ -316,8 +316,13 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
       navigateTo(item.id);
     } else if (item.type === 'file') {
       openFile(item);
+    } else if (item.type === 'executable' || item.type === 'shortcut') {
+      // Executables and shortcuts have a target property that specifies the app to launch
+      if (item.target) {
+        openApp(item.target);
+      }
     }
-  }, [navigateTo, openFile]);
+  }, [navigateTo, openFile, openApp]);
 
   const handleContainerClick = useCallback(() => {
     baseHandleContainerClick();

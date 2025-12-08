@@ -306,12 +306,13 @@ const createProjectFolderItems = (projects, now) => {
 };
 
 // Program definitions for Program Files folder
+// Each program has a folder containing an executable that launches the app
 const PROGRAM_FILES_PROGRAMS = [
-  { id: 'pf-adobe-reader', name: 'Adobe Reader', icon: '/icons/pdf/acroaum_grp107_lang1033.ico' },
-  { id: 'pf-internet-explorer', name: 'Internet Explorer', icon: '/icons/xp/InternetExplorer6.png' },
-  { id: 'pf-windows-media-player', name: 'Windows Media Player', icon: '/icons/xp/WindowsMediaPlayer9.png' },
-  { id: 'pf-winamp', name: 'Winamp', icon: '/icons/winamp.png' },
-  { id: 'pf-messenger', name: 'Windows Messenger', icon: '/icons/xp/messenger.png' },
+  { id: 'pf-adobe-reader', name: 'Adobe Reader', icon: '/icons/pdf/acroaum_grp107_lang1033.ico', exe: 'AcroRd32.exe', target: 'Adobe Reader' },
+  { id: 'pf-internet-explorer', name: 'Internet Explorer', icon: '/icons/xp/InternetExplorer6.png', exe: 'iexplore.exe', target: 'Internet Explorer' },
+  { id: 'pf-windows-media-player', name: 'Windows Media Player', icon: '/icons/xp/WindowsMediaPlayer9.png', exe: 'wmplayer.exe', target: 'Windows Media Player' },
+  { id: 'pf-winamp', name: 'Winamp', icon: '/icons/winamp.png', exe: 'winamp.exe', target: 'Winamp' },
+  { id: 'pf-messenger', name: 'Windows Messenger', icon: '/icons/xp/messenger.png', exe: 'msmsgs.exe', target: 'Windows Messenger' },
 ];
 
 // Initial file system structure
@@ -345,18 +346,34 @@ const createInitialFileSystem = (desktopShortcuts, projects = [], userName = 'Us
     shortcutIds.push(projectsFolderId);
   }
 
-  // Create Program Files folder structure
+  // Create Program Files folder structure with executable files
   const programFilesItems = {};
   const programFilesFolderIds = PROGRAM_FILES_PROGRAMS.map(prog => prog.id);
 
   PROGRAM_FILES_PROGRAMS.forEach(prog => {
+    const exeId = `${prog.id}-exe`;
+
+    // Create executable file inside the program folder
+    programFilesItems[exeId] = {
+      id: exeId,
+      type: 'executable',
+      name: prog.exe,
+      icon: prog.icon,
+      parent: prog.id,
+      target: prog.target,
+      size: 1024 * 1024, // 1MB placeholder size
+      dateCreated: now,
+      dateModified: now,
+    };
+
+    // Create program folder containing the executable
     programFilesItems[prog.id] = {
       id: prog.id,
       type: 'folder',
       name: prog.name,
-      icon: prog.icon,
+      icon: XP_ICONS.folder, // Use folder icon for the folder itself
       parent: SYSTEM_IDS.PROGRAM_FILES,
-      children: [],
+      children: [exeId],
       dateCreated: now,
       dateModified: now,
     };
@@ -598,6 +615,219 @@ export function FileSystemProvider({ children }) {
     return true;
   };
 
+  // Ensure Program Files folders contain executables
+  const ensureProgramFilesExecutables = (fs) => {
+    const now = Date.now();
+    let modified = false;
+
+    // Ensure Program Files folder exists
+    if (!fs[SYSTEM_IDS.PROGRAM_FILES]) {
+      return modified;
+    }
+
+    PROGRAM_FILES_PROGRAMS.forEach(prog => {
+      const exeId = `${prog.id}-exe`;
+
+      // Create program folder if it doesn't exist
+      if (!fs[prog.id]) {
+        fs[prog.id] = {
+          id: prog.id,
+          type: 'folder',
+          name: prog.name,
+          icon: XP_ICONS.folder,
+          parent: SYSTEM_IDS.PROGRAM_FILES,
+          children: [],
+          dateCreated: now,
+          dateModified: now,
+        };
+
+        // Add to Program Files children
+        if (!fs[SYSTEM_IDS.PROGRAM_FILES].children.includes(prog.id)) {
+          fs[SYSTEM_IDS.PROGRAM_FILES].children.push(prog.id);
+        }
+        modified = true;
+      } else {
+        // Fix existing folders that might have wrong icon (app icon instead of folder icon)
+        if (fs[prog.id].icon !== XP_ICONS.folder) {
+          fs[prog.id].icon = XP_ICONS.folder;
+          modified = true;
+        }
+      }
+
+      // Create executable if it doesn't exist
+      if (!fs[exeId]) {
+        fs[exeId] = {
+          id: exeId,
+          type: 'executable',
+          name: prog.exe,
+          icon: prog.icon,
+          parent: prog.id,
+          target: prog.target,
+          size: 1024 * 1024,
+          dateCreated: now,
+          dateModified: now,
+        };
+
+        // Add to program folder children
+        if (fs[prog.id] && !fs[prog.id].children.includes(exeId)) {
+          fs[prog.id].children.push(exeId);
+        }
+        modified = true;
+      }
+    });
+
+    return modified;
+  };
+
+  // Migrate old file system structure to new XP-style structure
+  const migrateToNewStructure = (fs, userName) => {
+    const now = Date.now();
+    let modified = false;
+
+    // Check if new structure exists (Documents and Settings folder)
+    if (!fs[SYSTEM_IDS.DOCUMENTS_AND_SETTINGS]) {
+      // Create Documents and Settings
+      fs[SYSTEM_IDS.DOCUMENTS_AND_SETTINGS] = {
+        id: SYSTEM_IDS.DOCUMENTS_AND_SETTINGS,
+        type: 'folder',
+        name: 'Documents and Settings',
+        icon: XP_ICONS.folder,
+        parent: SYSTEM_IDS.C_DRIVE,
+        children: [SYSTEM_IDS.USER_PROFILE, SYSTEM_IDS.ALL_USERS],
+        dateCreated: now,
+        dateModified: now,
+      };
+      modified = true;
+    }
+
+    // Create User Profile folder
+    if (!fs[SYSTEM_IDS.USER_PROFILE]) {
+      fs[SYSTEM_IDS.USER_PROFILE] = {
+        id: SYSTEM_IDS.USER_PROFILE,
+        type: 'folder',
+        name: userName || 'User',
+        icon: XP_ICONS.folder,
+        parent: SYSTEM_IDS.DOCUMENTS_AND_SETTINGS,
+        children: [SYSTEM_IDS.DESKTOP, SYSTEM_IDS.FAVORITES, SYSTEM_IDS.MY_DOCUMENTS, SYSTEM_IDS.START_MENU],
+        dateCreated: now,
+        dateModified: now,
+      };
+      modified = true;
+    }
+
+    // Create All Users folder
+    if (!fs[SYSTEM_IDS.ALL_USERS]) {
+      fs[SYSTEM_IDS.ALL_USERS] = {
+        id: SYSTEM_IDS.ALL_USERS,
+        type: 'folder',
+        name: 'All Users',
+        icon: XP_ICONS.folder,
+        parent: SYSTEM_IDS.DOCUMENTS_AND_SETTINGS,
+        children: [],
+        dateCreated: now,
+        dateModified: now,
+      };
+      modified = true;
+    }
+
+    // Create Program Files folder
+    if (!fs[SYSTEM_IDS.PROGRAM_FILES]) {
+      fs[SYSTEM_IDS.PROGRAM_FILES] = {
+        id: SYSTEM_IDS.PROGRAM_FILES,
+        type: 'folder',
+        name: 'Program Files',
+        icon: XP_ICONS.folder,
+        parent: SYSTEM_IDS.C_DRIVE,
+        children: [],
+        dateCreated: now,
+        dateModified: now,
+      };
+      modified = true;
+    }
+
+    // Create Favorites folder
+    if (!fs[SYSTEM_IDS.FAVORITES]) {
+      fs[SYSTEM_IDS.FAVORITES] = {
+        id: SYSTEM_IDS.FAVORITES,
+        type: 'folder',
+        name: 'Favorites',
+        icon: XP_ICONS.folder,
+        parent: SYSTEM_IDS.USER_PROFILE,
+        children: [],
+        dateCreated: now,
+        dateModified: now,
+      };
+      modified = true;
+    }
+
+    // Create Start Menu folder
+    if (!fs[SYSTEM_IDS.START_MENU]) {
+      fs[SYSTEM_IDS.START_MENU] = {
+        id: SYSTEM_IDS.START_MENU,
+        type: 'folder',
+        name: 'Start Menu',
+        icon: XP_ICONS.folder,
+        parent: SYSTEM_IDS.USER_PROFILE,
+        children: [],
+        dateCreated: now,
+        dateModified: now,
+      };
+      modified = true;
+    }
+
+    // Update C: drive children to new structure
+    if (fs[SYSTEM_IDS.C_DRIVE]) {
+      const cDriveChildren = fs[SYSTEM_IDS.C_DRIVE].children || [];
+      const newChildren = [SYSTEM_IDS.DOCUMENTS_AND_SETTINGS, SYSTEM_IDS.PROGRAM_FILES];
+
+      // Check if C: drive has old structure (Desktop/My Documents at root)
+      const hasOldStructure = cDriveChildren.includes(SYSTEM_IDS.DESKTOP) ||
+                             cDriveChildren.includes(SYSTEM_IDS.MY_DOCUMENTS);
+
+      if (hasOldStructure) {
+        fs[SYSTEM_IDS.C_DRIVE].children = newChildren;
+        modified = true;
+      } else if (!cDriveChildren.includes(SYSTEM_IDS.DOCUMENTS_AND_SETTINGS)) {
+        fs[SYSTEM_IDS.C_DRIVE].children = newChildren;
+        modified = true;
+      }
+    }
+
+    // Update Desktop parent to USER_PROFILE
+    if (fs[SYSTEM_IDS.DESKTOP] && fs[SYSTEM_IDS.DESKTOP].parent !== SYSTEM_IDS.USER_PROFILE) {
+      fs[SYSTEM_IDS.DESKTOP].parent = SYSTEM_IDS.USER_PROFILE;
+      modified = true;
+    }
+
+    // Update My Documents parent to USER_PROFILE and ensure it has children
+    if (fs[SYSTEM_IDS.MY_DOCUMENTS]) {
+      if (fs[SYSTEM_IDS.MY_DOCUMENTS].parent !== SYSTEM_IDS.USER_PROFILE) {
+        fs[SYSTEM_IDS.MY_DOCUMENTS].parent = SYSTEM_IDS.USER_PROFILE;
+        modified = true;
+      }
+      // Ensure My Pictures and My Music are children of My Documents
+      const myDocsChildren = fs[SYSTEM_IDS.MY_DOCUMENTS].children || [];
+      if (!myDocsChildren.includes(SYSTEM_IDS.MY_PICTURES)) {
+        fs[SYSTEM_IDS.MY_DOCUMENTS].children = [...myDocsChildren, SYSTEM_IDS.MY_PICTURES, SYSTEM_IDS.MY_MUSIC].filter((v, i, a) => a.indexOf(v) === i);
+        modified = true;
+      }
+    }
+
+    // Update My Pictures parent to MY_DOCUMENTS
+    if (fs[SYSTEM_IDS.MY_PICTURES] && fs[SYSTEM_IDS.MY_PICTURES].parent !== SYSTEM_IDS.MY_DOCUMENTS) {
+      fs[SYSTEM_IDS.MY_PICTURES].parent = SYSTEM_IDS.MY_DOCUMENTS;
+      modified = true;
+    }
+
+    // Update My Music parent to MY_DOCUMENTS
+    if (fs[SYSTEM_IDS.MY_MUSIC] && fs[SYSTEM_IDS.MY_MUSIC].parent !== SYSTEM_IDS.MY_DOCUMENTS) {
+      fs[SYSTEM_IDS.MY_MUSIC].parent = SYSTEM_IDS.MY_DOCUMENTS;
+      modified = true;
+    }
+
+    return modified;
+  };
+
   // Ensure desktop shortcuts exist in file system
   const ensureDesktopShortcuts = (fs, desktopShortcuts) => {
     const now = Date.now();
@@ -623,7 +853,7 @@ export function FileSystemProvider({ children }) {
         type: 'folder',
         name: 'Desktop',
         icon: XP_ICONS.desktop,
-        parent: SYSTEM_IDS.C_DRIVE,
+        parent: SYSTEM_IDS.USER_PROFILE,
         children: [],
         dateCreated: now,
         dateModified: now,
@@ -771,12 +1001,16 @@ export function FileSystemProvider({ children }) {
         if (!fs) {
           fs = createInitialFileSystem(desktopShortcuts, folderProjects, userName);
         } else {
+          // Migrate to new XP-style folder structure (Documents and Settings, etc.)
+          migrateToNewStructure(fs, userName);
           // Ensure desktop shortcuts exist
           ensureDesktopShortcuts(fs, desktopShortcuts);
           // Force update shortcuts to have correct type/icon/target
           migrateShortcuts(fs, desktopShortcuts);
           // Ensure Projects folder exists for existing users
           ensureProjectsFolder(fs, folderProjects);
+          // Ensure Program Files folders contain executables
+          ensureProgramFilesExecutables(fs);
           // Migrate old file sizes from KB to bytes
           fs = migrateFileSizes(fs);
         }
