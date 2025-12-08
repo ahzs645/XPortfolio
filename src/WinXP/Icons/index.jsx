@@ -45,7 +45,7 @@ function Icons({
 
   // Tooltip support
   const { getPath } = useFileSystem();
-  const { showTooltip, hideTooltip } = useTooltip();
+  const { tooltip, showTooltip, hideTooltip, updatePosition } = useTooltip();
   const CURSOR_OFFSET_X = 12;
   const CURSOR_OFFSET_Y = 20;
 
@@ -53,10 +53,10 @@ function Icons({
   const getTooltipText = useCallback((icon) => {
     // System icons have special tooltips
     if (icon.type === 'system') {
-      if (icon.id === 'recycle-bin') {
+      if (icon.id === 'system-recycle-bin') {
         return 'Contains the files and folders that you have deleted.';
       }
-      if (icon.id === 'my-computer') {
+      if (icon.id === 'system-my-computer') {
         return 'Displays the contents of your computer.';
       }
       return null;
@@ -80,16 +80,13 @@ function Icons({
     }
   }, [dragging, isMobile, getTooltipText, showTooltip]);
 
-  // Handle tooltip position update on mouse move
-  const handleIconMouseMove = useCallback((e, icon) => {
-    if (dragging || isMobile) return;
-    const tooltipText = getTooltipText(icon);
-    if (tooltipText) {
-      const x = e.clientX + CURSOR_OFFSET_X;
-      const y = e.clientY + CURSOR_OFFSET_Y;
-      showTooltip(tooltipText, x, y, { delay: 0 });
-    }
-  }, [dragging, isMobile, getTooltipText, showTooltip]);
+  // Handle tooltip position update on mouse move (only if already visible)
+  const handleIconMouseMove = useCallback((e) => {
+    if (dragging || isMobile || !tooltip.visible) return;
+    const x = e.clientX + CURSOR_OFFSET_X;
+    const y = e.clientY + CURSOR_OFFSET_Y;
+    updatePosition(x, y);
+  }, [dragging, isMobile, tooltip.visible, updatePosition]);
 
   // Handle tooltip hide on mouse leave
   const handleIconMouseLeave = useCallback(() => {
@@ -545,7 +542,7 @@ function Icons({
             onDragEnd={handleDragEnd}
             onMouseDown={(e) => !isRenaming && handleMouseDown(e, icon)}
             onMouseEnter={(e) => handleIconMouseEnter(e, icon)}
-            onMouseMove={(e) => handleIconMouseMove(e, icon)}
+            onMouseMove={handleIconMouseMove}
             onMouseLeave={handleIconMouseLeave}
             onDoubleClick={() => !isRenaming && handleDoubleClick(icon)}
             onContextMenu={(e) => handleContextMenu(e, icon)}
