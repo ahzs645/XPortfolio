@@ -112,10 +112,10 @@ function Winamp({ onClose, onMinimize, fileData, fileName }) {
         webampConfig.__butterchurnOptions = {
           importButterchurn: () => Promise.resolve(butterchurn),
           getPresets: () => {
-            const presets = butterchurnPresets.getPresets();
-            return Object.keys(presets).map((name) => ({
+            // butterchurn-presets exports a plain object of presets
+            return Object.keys(butterchurnPresets).map((name) => ({
               name,
-              butterchurnPresetObject: presets[name],
+              butterchurnPresetObject: butterchurnPresets[name],
             }));
           },
           butterchurnOpen: true,
