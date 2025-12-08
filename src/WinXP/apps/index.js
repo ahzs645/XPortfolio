@@ -34,6 +34,7 @@ import Wordpad from './Wordpad';
 import HelpAndSupport from './HelpAndSupport';
 import FontViewer from './FontViewer';
 import OutlookExpress from './OutlookExpress';
+import NewMessage from './NewMessage';
 import TaskbarProperties from './TaskbarProperties';
 import AdobeReader from './AdobeReader';
 import ShortcutWizard from './ShortcutWizard';
@@ -1195,6 +1196,26 @@ export const appSettings = {
     maximized: false,
     multiInstance: false,
   },
+  'New Message': {
+    header: {
+      icon: '/icons/outlook/write.png',
+      title: 'New Message',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: NewMessage,
+    defaultSize: {
+      width: 640,
+      height: 480,
+    },
+    defaultOffset: {
+      x: 180,
+      y: 80,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
+  },
   'Taskbar Properties': {
     header: {
       icon: '/icons/xp/DisplayProperties.png',
@@ -1313,6 +1334,7 @@ export {
   HelpAndSupport,
   FontViewer,
   OutlookExpress,
+  NewMessage,
   TaskbarProperties,
   AdobeReader,
   ShortcutWizard,

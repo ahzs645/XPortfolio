@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import DOMPurify from 'dompurify';
 import ProgramLayout from '../../../components/WindowBars/ProgramLayout';
+import { useApp } from '../../../contexts/AppContext';
 
 // EML Parsing utilities
 function parseEmailContent(content) {
@@ -286,6 +287,7 @@ const EMAILS = [
 ];
 
 function OutlookExpress({ onClose, onMinimize, onMaximize, emlData, emlFileName }) {
+  const { openApp } = useApp();
   const [selectedFolder, setSelectedFolder] = useState('inbox');
   const [selectedEmail, setSelectedEmail] = useState(null);
   const [emails, setEmails] = useState(EMAILS);
@@ -366,7 +368,7 @@ function OutlookExpress({ onClose, onMinimize, onMaximize, emlData, emlFileName 
       id: 'file',
       label: 'File',
       items: [
-        { label: 'New', disabled: true },
+        { label: 'New Message', action: 'newMessage' },
         { label: 'Open...', action: 'openFile' },
         { label: 'Save As...', disabled: true },
         { separator: true },
@@ -424,7 +426,7 @@ function OutlookExpress({ onClose, onMinimize, onMaximize, emlData, emlFileName 
       id: 'message',
       label: 'Message',
       items: [
-        { label: 'New Message', disabled: true },
+        { label: 'New Message', action: 'newMessage' },
         { separator: true },
         { label: 'Reply to Sender', disabled: true },
         { label: 'Reply to All', disabled: true },
@@ -450,8 +452,7 @@ function OutlookExpress({ onClose, onMinimize, onMaximize, emlData, emlFileName 
       id: 'create',
       icon: OUTLOOK_ICONS.write,
       label: 'Create Mail',
-      disabled: true,
-      action: 'create',
+      action: 'newMessage',
     },
     { type: 'separator' },
     {
@@ -481,11 +482,27 @@ function OutlookExpress({ onClose, onMinimize, onMaximize, emlData, emlFileName 
     setSelectedEmail(null);
   }, []);
 
+  // Open New Message window
+  const handleNewMessage = useCallback(() => {
+    openApp('New Message');
+  }, [openApp]);
+
   const handleMenuAction = useCallback((action) => {
-    if (action === 'openFile') {
-      handleOpenFile();
+    switch (action) {
+      case 'openFile':
+        handleOpenFile();
+        break;
+      case 'newMessage':
+        handleNewMessage();
+        break;
+      default:
+        break;
     }
-  }, [handleOpenFile]);
+  }, [handleOpenFile, handleNewMessage]);
+
+  const handleToolbarAction = useCallback((action) => {
+    handleMenuAction(action);
+  }, [handleMenuAction]);
 
   const currentEmails = selectedFolder === 'inbox' ? emails : [];
 
@@ -507,6 +524,7 @@ function OutlookExpress({ onClose, onMinimize, onMaximize, emlData, emlFileName 
       statusFields={`${currentEmails.length} message(s), 0 unread`}
       showStatusBar
       onMenuAction={handleMenuAction}
+      onToolbarAction={handleToolbarAction}
     >
       {/* Hidden file input for opening EML files */}
       <HiddenFileInput

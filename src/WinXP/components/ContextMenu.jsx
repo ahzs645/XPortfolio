@@ -98,7 +98,18 @@ function renderItems(items) {
           {hasCheckmark ? (
             item.checked ? <Checkmark>✓</Checkmark> : null
           ) : (
-            typeof item.icon === 'string' ? <img src={item.icon} alt="" /> : item.icon || null
+            typeof item.icon === 'string' ? (
+              item.iconAsOverlay ? (
+                <IconWrapper>
+                  <IconAsOverlay src={item.icon} alt="" />
+                </IconWrapper>
+              ) : (
+                <IconWrapper>
+                  <img src={item.icon} alt="" />
+                  {item.iconOverlay && <IconOverlay src={item.iconOverlay} alt="" />}
+                </IconWrapper>
+              )
+            ) : item.icon || null
           )}
         </MenuIcon>
         <MenuLabel>{item.label}</MenuLabel>
@@ -165,6 +176,28 @@ const MenuIcon = styled.div`
     width: 16px;
     height: 16px;
   }
+`;
+
+const IconWrapper = styled.div`
+  position: relative;
+  width: 16px;
+  height: 16px;
+`;
+
+const IconOverlay = styled.img`
+  position: absolute;
+  bottom: -2px;
+  left: -2px;
+  width: 10px !important;
+  height: 10px !important;
+`;
+
+const IconAsOverlay = styled.img`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 10px !important;
+  height: 10px !important;
 `;
 
 const MenuLabel = styled.div`

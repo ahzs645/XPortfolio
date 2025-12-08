@@ -637,11 +637,12 @@ export function useBackgroundContextMenu({
       disabled: !onNewBitmapImage,
     });
 
-    // Shortcut option
+    // Shortcut option - icon positioned in corner like an overlay
     if (onNewShortcut) {
       newSubmenu.push({
         label: 'Shortcut',
         icon: XP_ICONS.shortcut,
+        iconAsOverlay: true,
         onClick: onNewShortcut,
       });
     }

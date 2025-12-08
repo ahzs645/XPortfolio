@@ -1,11 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import styled from 'styled-components';
-import { useFileSystem } from '../../../contexts/FileSystemContext';
+import { useFileSystem, SYSTEM_IDS } from '../../../contexts/FileSystemContext';
 import { useApp } from '../../../contexts/AppContext';
-
-const SYSTEM_IDS = {
-  DESKTOP: 'desktop',
-};
 
 // Main wizard container
 const WizardContainer = styled.div`
@@ -252,8 +248,9 @@ function ShortcutWizard({ onClose }) {
       }
 
       setError('');
-      // Pre-fill shortcut name from location
-      setShortcutName(location);
+      // Pre-fill shortcut name from location with .lnk extension
+      const baseName = location.endsWith('.lnk') ? location : `${location}.lnk`;
+      setShortcutName(baseName);
       setStep(2);
     }
   };
@@ -273,6 +270,9 @@ function ShortcutWizard({ onClose }) {
     const target = findTargetInfo(location);
     const finalTarget = browseSelection?.target || target?.target || location;
     const finalIcon = selectedIcon || browseSelection?.icon || target?.icon || '/icons/xp/Shortcutoverlay.png';
+    // Store fsId for folder/file shortcuts so they can be opened properly
+    const finalFsId = browseSelection?.fsId || null;
+    const finalItemType = browseSelection?.type || null;
 
     // Create the shortcut file on desktop
     const finalName = shortcutName.endsWith('.lnk') ? shortcutName : `${shortcutName}.lnk`;
@@ -295,6 +295,8 @@ function ShortcutWizard({ onClose }) {
       const id = await createItem(SYSTEM_IDS.DESKTOP, finalName, 'shortcut', {
         icon: finalIcon,
         target: finalTarget,
+        fsId: finalFsId,
+        targetType: finalItemType,
       });
 
       if (id) {

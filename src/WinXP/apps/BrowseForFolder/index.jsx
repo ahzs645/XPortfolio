@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
 import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../../../contexts/FileSystemContext';
 
@@ -133,18 +133,22 @@ const TREE_ICONS = {
 };
 
 function BrowseForFolder({ onClose, onSelect, title = 'Select the target of the shortcut below:' }) {
-  const { fileSystem, getFolderContents } = useFileSystem();
+  const { fileSystem } = useFileSystem();
   const [selectedId, setSelectedId] = useState('desktop');
   const [expandedIds, setExpandedIds] = useState(['desktop']);
 
-  // Build tree structure from file system (handles all item types)
+  // Build tree structure from file system (handles all item types including files and executables)
   const buildTreeNode = useCallback((item) => {
     if (!item) return null;
+
+    // Skip shortcuts - we don't want to create shortcuts to shortcuts
+    if (item.type === 'shortcut') return null;
 
     // For folders and drives, include children
     const isContainer = item.type === 'folder' || item.type === 'drive';
     const children = isContainer ? (item.children || []) : [];
 
+    // Build child nodes - include folders, files, executables (but not shortcuts)
     const childNodes = children
       .map(childId => fileSystem[childId])
       .filter(Boolean)
@@ -176,19 +180,19 @@ function BrowseForFolder({ onClose, onSelect, title = 'Select the target of the 
   const treeData = useMemo(() => {
     if (!fileSystem) return [];
 
-    // Get desktop folders (user-created folders on desktop, not system folders)
+    // Get ALL desktop items (folders, files, shortcuts, etc.)
     const desktopContents = fileSystem[SYSTEM_IDS.DESKTOP]?.children || [];
-    const desktopFolders = desktopContents
+    const desktopItems = desktopContents
       .map(id => fileSystem[id])
-      .filter(item => item && item.type === 'folder')
-      .map(folder => buildFolderNode(folder))
+      .filter(Boolean)
+      .map(item => buildTreeNode(item))
       .filter(Boolean);
 
     // Build My Documents tree (virtual shortcut in desktop view)
-    const myDocumentsNode = buildFolderNode(fileSystem[SYSTEM_IDS.MY_DOCUMENTS]);
+    const myDocumentsNode = buildTreeNode(fileSystem[SYSTEM_IDS.MY_DOCUMENTS]);
 
     // Build C: drive tree (this now includes Documents and Settings and Program Files)
-    const cDriveNode = buildFolderNode(fileSystem[SYSTEM_IDS.C_DRIVE]);
+    const cDriveNode = buildTreeNode(fileSystem[SYSTEM_IDS.C_DRIVE]);
 
     // My Computer shows Local Disk (C:) with its full structure
     const myComputerChildren = [];
@@ -230,11 +234,11 @@ function BrowseForFolder({ onClose, onSelect, title = 'Select the target of the 
             hasChildren: myComputerChildren.length > 0,
             children: myComputerChildren,
           },
-          ...desktopFolders,
+          ...desktopItems,
         ],
       },
     ];
-  }, [fileSystem, buildFolderNode]);
+  }, [fileSystem, buildTreeNode]);
 
   const toggleExpand = useCallback((id, e) => {
     e.stopPropagation();

@@ -1152,6 +1152,14 @@ export function FileSystemProvider({ children }) {
       newItem.target = options.target;
     }
 
+    // Add fsId and targetType for folder/file shortcuts
+    if (isShortcut && options.fsId) {
+      newItem.fsId = options.fsId;
+    }
+    if (isShortcut && options.targetType) {
+      newItem.targetType = options.targetType;
+    }
+
     // Store file in IndexedDB if provided
     if (file) {
       await idb.set(newItem.storageKey, file);

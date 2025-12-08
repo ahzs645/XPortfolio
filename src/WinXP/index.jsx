@@ -520,13 +520,42 @@ function WinXP() {
       return;
     }
 
-    // Handle shortcuts - launch the target app
+    // Handle shortcuts - launch the target app or open folder/file
     if (icon.type === 'shortcut' && icon.target) {
       // Check for mobile restrictions before launching
       if (!checkMobileRestriction(icon.target)) {
         return; // Blocked on mobile, popup will be shown
       }
 
+      // First, check if the shortcut points to a folder (has fsId and targetType)
+      const shortcutItem = fileSystem?.[icon.id];
+      if (shortcutItem?.fsId && shortcutItem?.targetType === 'folder') {
+        // Open folder in My Computer
+        const myComputerSetting = {
+          ...appSettings['My Computer'],
+          injectProps: {
+            initialPath: shortcutItem.fsId,
+          },
+        };
+        dispatch({ type: ADD_APP, payload: myComputerSetting });
+        return;
+      }
+
+      // Check if it's a file shortcut
+      if (shortcutItem?.fsId && (shortcutItem?.targetType === 'file' || shortcutItem?.targetType === 'executable')) {
+        // Get the target file and open it
+        const targetFile = fileSystem?.[shortcutItem.fsId];
+        if (targetFile) {
+          // Recursively call with the target file as the icon
+          await onDoubleClickIcon({
+            ...targetFile,
+            title: targetFile.name,
+          });
+        }
+        return;
+      }
+
+      // Otherwise, try to launch as an app
       const appSetting = appSettings[icon.target];
       if (appSetting) {
         dispatch({ type: ADD_APP, payload: appSetting });
