@@ -220,6 +220,7 @@ const WindowContainer = styled.div`
     min-height: 28px;
     padding: 0 3px;
     min-width: 0;
+    position: relative;
   }
 
   .title-bar-text {

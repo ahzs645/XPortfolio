@@ -2,6 +2,7 @@
 // Maps menu items to app settings keys and defines menu structure
 
 import { EXTERNAL_PROJECTS, DEFAULT_PROJECT_ICON } from './externalProjects';
+import { APPLETS, DEFAULT_APPLET_ICON } from './applets';
 
 // Generate menu entries for external projects
 const externalProjectEntries = EXTERNAL_PROJECTS.reduce((acc, project) => {
@@ -15,8 +16,21 @@ const externalProjectEntries = EXTERNAL_PROJECTS.reduce((acc, project) => {
   return acc;
 }, {});
 
+// Generate menu entries for applets
+const appletEntries = APPLETS.reduce((acc, applet) => {
+  acc[`applet-${applet.id}`] = {
+    type: 'externalProject', // Reuse same type - works the same way
+    projectId: `applet-${applet.id}`,
+    icon: applet.icon || DEFAULT_APPLET_ICON,
+    title: applet.name,
+    description: applet.description,
+  };
+  return acc;
+}, {});
+
 export const START_MENU_CATALOG = {
   ...externalProjectEntries,
+  ...appletEntries,
   about: {
     type: 'program',
     appKey: 'About Me',
@@ -259,6 +273,9 @@ export const PINNED_RIGHT = [
 // Generate project folder items from external projects
 const externalProjectMenuItems = EXTERNAL_PROJECTS.map(p => `project-${p.id}`);
 
+// Generate applet menu items
+const appletMenuItems = APPLETS.map(a => `applet-${a.id}`);
+
 // Folder definitions for All Programs submenu
 export const START_MENU_FOLDERS = {
   games: {
@@ -285,6 +302,12 @@ export const START_MENU_FOLDERS = {
     icon: '/icons/xp/Briefcase.png',
     items: externalProjectMenuItems,
   },
+  applets: {
+    type: 'folder',
+    title: 'Applets',
+    icon: '/icons/xp/Programs.png',
+    items: appletMenuItems,
+  },
 };
 
 // All Programs menu order
@@ -299,6 +322,7 @@ export const ALL_PROGRAMS_ORDER = [
   'resume',
   'contact',
   'divider-main',
+  'applets', // folder with mini applets
   'webProjects', // folder with external web projects
   'accessories', // folder with Calculator, Notepad, Paint, CMD, Image Viewer
   'entertainment', // folder with Media Player

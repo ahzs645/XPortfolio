@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import * as idb from 'idb-keyval';
 import { v4 as uuidv4 } from 'uuid';
 import { EXTERNAL_PROJECTS, DEFAULT_PROJECT_ICON } from '../WinXP/config/externalProjects';
+import { APPLETS, getAppletUrl, DEFAULT_APPLET_ICON } from '../WinXP/config/applets';
 
 // Store for installed apps
 const INSTALLED_APPS_KEY = 'xportfolio-installed-apps';
@@ -28,6 +29,33 @@ const BUILT_IN_PROJECTS = EXTERNAL_PROJECTS.reduce((acc, project) => {
       resizable: project.windowSettings?.resizable ?? true,
       minWidth: project.windowSettings?.minWidth || 400,
       minHeight: project.windowSettings?.minHeight || 300,
+    },
+  };
+  return acc;
+}, {});
+
+// Convert applets to built-in apps format
+const BUILT_IN_APPLETS = APPLETS.reduce((acc, applet) => {
+  acc[`applet-${applet.id}`] = {
+    id: `applet-${applet.id}`,
+    url: getAppletUrl(applet),
+    name: applet.name,
+    icon: applet.icon || DEFAULT_APPLET_ICON,
+    description: applet.description || '',
+    author: 'Ahmad Jalil',
+    version: '1.0.0',
+    manifest: null,
+    permissions: [],
+    installedAt: 0,
+    lastRun: null,
+    isBuiltIn: true,
+    isApplet: true, // Flag to identify applets
+    windowSettings: {
+      width: applet.windowSettings?.width || 500,
+      height: applet.windowSettings?.height || 400,
+      resizable: applet.windowSettings?.resizable ?? true,
+      minWidth: applet.windowSettings?.minWidth || 300,
+      minHeight: applet.windowSettings?.minHeight || 200,
     },
   };
   return acc;
@@ -372,9 +400,9 @@ export function InstalledAppsProvider({ children }) {
     updateApp(appId, { lastRun: Date.now() });
   }, [updateApp]);
 
-  // Merge built-in projects with user-installed apps
+  // Merge built-in projects, applets, and user-installed apps
   const allApps = useMemo(() => {
-    return { ...BUILT_IN_PROJECTS, ...installedApps };
+    return { ...BUILT_IN_PROJECTS, ...BUILT_IN_APPLETS, ...installedApps };
   }, [installedApps]);
 
   // Get all installed apps as array (includes built-in)
