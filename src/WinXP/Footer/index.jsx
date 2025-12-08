@@ -615,7 +615,7 @@ const VolumePopup = styled.div`
   background: #ece9d8;
   border: 1px solid #888;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-  padding: 8px 12px;
+  padding: 8px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -630,12 +630,24 @@ const VolumePopup = styled.div`
   .field-row {
     display: flex;
     justify-content: center;
+    width: 100%;
   }
 
   .is-vertical {
+    height: 90px !important;
+    width: 30px !important;
+    transform: none !important;
     display: flex;
+    align-items: center;
     justify-content: center;
-    height: 100px;
+    margin: 0 auto;
+
+    input[type="range"] {
+      width: 80px !important;
+      margin: 0 !important;
+      transform: rotate(270deg) !important;
+      transform-origin: center center !important;
+    }
   }
 
   .mute-row {

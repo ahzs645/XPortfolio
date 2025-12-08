@@ -53,32 +53,13 @@ const LoadingOverlay = styled.div`
     white-space: nowrap;
   }
 
-  .loading-bar-container {
+  progress {
     width: 200px;
-    height: 16px;
-    background: #fff;
-    border: 1px solid #919b9c;
-    border-radius: 2px;
-    padding: 2px;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
-  }
-
-  .loading-bar {
-    height: 100%;
-    background: linear-gradient(to bottom, #3a6ea5 0%, #2856a0 50%, #1e4888 100%);
-    border-radius: 1px;
-    animation: loadingProgress 2s ease-in-out infinite;
   }
 
   @keyframes pulse {
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: 0.7; transform: scale(0.95); }
-  }
-
-  @keyframes loadingProgress {
-    0% { width: 0%; }
-    50% { width: 70%; }
-    100% { width: 100%; }
   }
 `;
 
@@ -136,9 +117,9 @@ function IframeApp({
   const iframeRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [loadProgress, setLoadProgress] = useState(0);
   const { markAppRun, getApp } = useInstalledApps();
   const {
-    fileSystem,
     createFile,
     getFileContent,
     getFolderContents,
@@ -154,6 +135,26 @@ function IframeApp({
       markAppRun(appId);
     }
   }, [appId, markAppRun]);
+
+  // Animate progress bar while loading
+  useEffect(() => {
+    if (!isLoading) {
+      setLoadProgress(100);
+      return;
+    }
+
+    setLoadProgress(0);
+    const interval = setInterval(() => {
+      setLoadProgress((prev) => {
+        // Slow down as we approach 90% (never reach 100 until actually loaded)
+        if (prev >= 90) return prev;
+        const increment = Math.max(1, Math.floor((90 - prev) / 10));
+        return Math.min(90, prev + increment);
+      });
+    }, 150);
+
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
   // Handle messages from the iframe
   const handleMessage = useCallback((event) => {
@@ -388,9 +389,7 @@ function IframeApp({
             onError={(e) => { e.target.src = '/icons/xp/Programs.png'; }}
           />
           <span className="loading-text">Loading {app?.name || 'application'}...</span>
-          <div className="loading-bar-container">
-            <div className="loading-bar" />
-          </div>
+          <progress max="100" value={loadProgress} />
           <span className="loading-url">{appUrl}</span>
         </LoadingOverlay>
       )}
