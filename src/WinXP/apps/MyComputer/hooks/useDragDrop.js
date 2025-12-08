@@ -129,8 +129,20 @@ export function useDragDrop({
     setDraggingItems(itemsToDrag);
 
     // Set drag data with consistent MIME type for cross-window support
-    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.effectAllowed = 'copyMove';
     e.dataTransfer.setData('application/x-xportfolio-items', JSON.stringify(itemsToDrag));
+
+    // Also set data for Quick Launch bar drops
+    const dragData = {
+      id: item.id,
+      title: item.name,
+      icon: item.icon,
+      appName: item.name,
+      type: item.type,
+      path: item.path,
+    };
+    e.dataTransfer.setData('application/x-desktop-icon', JSON.stringify(dragData));
+    e.dataTransfer.setData('text/plain', item.name);
 
     // Create a custom drag image (optional)
     if (e.dataTransfer.setDragImage && e.target) {

@@ -357,7 +357,7 @@ function WinXP() {
     removeFromStartup,
     isInStartup,
   } = useStartMenu();
-  const { activeUserId, sessionRestored, isLoading: userAccountsLoading } = useUserAccounts();
+  const { activeUserId, sessionRestored, isLoading: userAccountsLoading, logoutUser } = useUserAccounts();
 
   // Track previous user ID to detect user changes
   const prevUserIdRef = useRef(activeUserId);
@@ -1392,6 +1392,8 @@ function WinXP() {
     // Log off: play sound and go back to login screen
     playLogoff();
     dispatch({ type: CANCEL_POWER_OFF });
+    // Actually log out the user (clears session)
+    logoutUser();
     // Reset boot state to show login screen directly (skip boot animation)
     dispatch({ type: SET_BOOT_STATE, payload: BOOT_STATE.LOGIN });
   }

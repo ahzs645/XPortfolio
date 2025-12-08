@@ -202,6 +202,18 @@ export function UserAccountsProvider({ children }) {
     }
   }, [activeUserId]);
 
+  // Keep session alive while user is logged in (refresh timestamp periodically)
+  useEffect(() => {
+    if (!isLoggedIn || !activeUserId) return;
+
+    // Refresh session timestamp every 5 minutes to keep it alive
+    const intervalId = setInterval(() => {
+      saveSession(activeUserId);
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(intervalId);
+  }, [isLoggedIn, activeUserId, saveSession]);
+
   // Get current active user
   const getCurrentUser = useCallback(() => {
     return users.find(u => u.id === activeUserId) || null;

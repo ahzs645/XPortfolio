@@ -215,6 +215,12 @@
       "animation": "GetWizardy",
       "type": "idle",
       "tag": "unhinged"
+    },
+    {
+      "text": "Looks like you're trying to recreate a bygone era of a rose-tinted past you will never truly regain. Perhaps an attempt to remember what it felt like to be so young and hopeful. A temporary escape from your hell. Would you like some assistance?",
+      "animation": "Thinking",
+      "type": "tip",
+      "tag": "unhinged"
     }
   ],
   "meta": {

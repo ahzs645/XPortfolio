@@ -23,7 +23,7 @@ const IDLE_ANIMATIONS = [
 ];
 
 const DEFAULT_CONFIG = {
-  messageTagWeights: { normal: 95, unhinged: 5 },
+  messageTagWeights: { normal: 90, unhinged: 10 },
   settings: {
     enableUnhingedMessages: true,
     idleAnimationInterval: 8000,

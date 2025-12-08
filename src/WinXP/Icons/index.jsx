@@ -414,10 +414,19 @@ function Icons({
     return { x: icon.x, y: icon.y };
   };
 
-  // Prevent native HTML5 drag - we use custom mouse-based dragging instead
-  const handleDragStart = useCallback((e) => {
-    // Prevent native drag to allow our custom drag implementation to work
-    e.preventDefault();
+  // Handle HTML5 drag start - set data for Quick Launch drops
+  const handleDragStart = useCallback((e, icon) => {
+    // Set drag data for Quick Launch bar
+    const dragData = {
+      id: icon.id,
+      title: icon.title,
+      icon: icon.icon,
+      appName: icon.component || icon.title,
+      type: icon.type,
+    };
+    e.dataTransfer.effectAllowed = 'copyMove';
+    e.dataTransfer.setData('application/x-desktop-icon', JSON.stringify(dragData));
+    e.dataTransfer.setData('text/plain', icon.title);
   }, []);
 
   // Check if an icon is in the cut clipboard
@@ -436,7 +445,7 @@ function Icons({
             key={icon.id}
             ref={(el) => (iconRefs.current[index] = el)}
             draggable={!isRenaming && !isMobile}
-            onDragStart={handleDragStart}
+            onDragStart={(e) => handleDragStart(e, icon)}
             onMouseDown={(e) => !isRenaming && handleMouseDown(e, icon)}
             onDoubleClick={() => !isRenaming && handleDoubleClick(icon)}
             onContextMenu={(e) => handleContextMenu(e, icon)}

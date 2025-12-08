@@ -78,10 +78,13 @@ function QuickLaunch({
   const handleItemClick = useCallback((item) => {
     if (item.action === 'show-desktop') {
       onMinimizeAll?.();
-    } else if (item.appName) {
-      onClickMenuItem?.(item.appName);
     } else if (item.url) {
       onClickMenuItem?.('Internet Explorer', { startUrl: item.url });
+    } else if (item.path) {
+      // For file system items, open with My Computer
+      onClickMenuItem?.('My Computer', { startPath: item.path });
+    } else if (item.appName) {
+      onClickMenuItem?.(item.appName);
     }
     setShowOverflow(false);
   }, [onClickMenuItem, onMinimizeAll]);
@@ -132,36 +135,47 @@ function QuickLaunch({
     if (iconData) {
       try {
         const data = JSON.parse(iconData);
+        const name = data.title || data.name;
+
+        // For files with paths, store the path for launching
         const newItem = {
-          id: `${data.id || data.title}-${Date.now()}`,
-          name: data.title || data.name,
+          id: `${data.id || name}-${Date.now()}`,
+          name: name,
           icon: data.icon,
-          appName: data.appName || data.title,
+          appName: data.appName || data.title || name,
+          path: data.path, // Store path for file system items
+          type: data.type,
         };
 
         // Check if already exists
         const exists = items.some(item =>
-          item.name === newItem.name || item.appName === newItem.appName
+          item.name === newItem.name ||
+          item.appName === newItem.appName ||
+          (item.path && item.path === newItem.path)
         );
 
-        if (!exists) {
+        if (!exists && name) {
           setItems(prev => [...prev, newItem]);
         }
       } catch (err) {
         console.error('Failed to parse dropped icon:', err);
       }
+      return;
     }
 
     // Also check for text/plain (URLs)
     const text = e.dataTransfer.getData('text/plain');
     if (text && (text.startsWith('http://') || text.startsWith('https://'))) {
-      const newItem = {
-        id: `url-${Date.now()}`,
-        name: text.length > 30 ? text.substring(0, 30) + '...' : text,
-        icon: '/icons/xp/InternetShortcut.png',
-        url: text,
-      };
-      setItems(prev => [...prev, newItem]);
+      const exists = items.some(item => item.url === text);
+      if (!exists) {
+        const newItem = {
+          id: `url-${Date.now()}`,
+          name: text.length > 30 ? text.substring(0, 30) + '...' : text,
+          icon: '/icons/xp/InternetShortcut.png',
+          url: text,
+        };
+        setItems(prev => [...prev, newItem]);
+      }
     }
 
     onDrop?.(e);
@@ -294,13 +308,14 @@ const ChevronButton = styled.button`
   background: transparent;
   border: none;
   color: #fff;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: bold;
   cursor: pointer;
-  padding: 2px 4px;
+  padding: 2px 3px;
   border-radius: 2px;
   line-height: 1;
   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
+  min-width: 0;
 
   &:hover {
     background: linear-gradient(to bottom, #3a80f3, #3980f4);
