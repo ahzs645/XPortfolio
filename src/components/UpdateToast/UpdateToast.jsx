@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import Balloon from '../Balloon';
 import { initUpdateChecker } from '../../utils/updateChecker';
+import useSystemSounds from '../../hooks/useSystemSounds';
 
 // For testing: window.triggerUpdate() or Ctrl+Shift+U
 const DEV_MODE = import.meta.env.DEV;
