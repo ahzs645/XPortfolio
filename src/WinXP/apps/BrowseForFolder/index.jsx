@@ -19,16 +19,18 @@ const Description = styled.div`
 
 const TreeContainer = styled.div`
   flex: 1;
-  overflow: auto;
   min-height: 200px;
+  display: flex;
+  flex-direction: column;
 
   .tree-view {
+    flex: 1;
     border: 1px solid #7f9db9;
     padding: 2px 5px;
     margin: 0;
     background: #fff;
-    height: 100%;
     box-sizing: border-box;
+    overflow: auto;
   }
 
   .tree-view summary {
@@ -45,6 +47,7 @@ const TreeContainer = styled.div`
     margin-right: 5px;
     border: 1px solid #808080;
     background: #fff;
+    color: #000;
     display: inline-flex;
     align-items: center;
     justify-content: center;
