@@ -19,6 +19,7 @@ export default function UpdateToast() {
   const [isClosing, setIsClosing] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [anchor, setAnchor] = useState(null);
+  const { playBalloon } = useSystemSounds();
 
   const computeAnchor = useCallback(() => {
     const el = document.querySelector('.tray-icon--update');
@@ -94,6 +95,13 @@ export default function UpdateToast() {
     computeAnchor();
     setIsVisible(true);
   }, [updateInfo, computeAnchor]);
+
+  // Play balloon sound when showing
+  useEffect(() => {
+    if (isVisible && updateInfo) {
+      playBalloon();
+    }
+  }, [isVisible, updateInfo, playBalloon]);
 
   const handleClose = () => {
     setIsClosing(true);
