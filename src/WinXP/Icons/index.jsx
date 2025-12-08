@@ -424,7 +424,7 @@ function Icons({
   const isCutIcon = (iconId) => clipboardOp === 'cut' && clipboard?.includes(iconId);
 
   return (
-    <Container ref={containerRef}>
+    <Container ref={containerRef} $isDragging={!!dragging}>
       {icons.map((icon, index) => {
         const pos = getIconPosition(icon);
         const isRenaming = renamingIconId === icon.id;
@@ -494,7 +494,7 @@ const Container = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 0;
+  z-index: ${({ $isDragging }) => ($isDragging ? 10002 : 0)};
   pointer-events: none;
 `;
 
@@ -520,7 +520,7 @@ const Icon = styled.div`
       ? 'rgba(11, 97, 255, 0.3)'
       : 'transparent'};
   opacity: ${({ $isDragging, $isCut }) => ($isDragging ? 0.8 : $isCut ? 0.5 : 1)};
-  z-index: ${({ $isDragging }) => ($isDragging ? 10 : 1)};
+  z-index: ${({ $isDragging }) => ($isDragging ? 10002 : 1)};
   border-radius: ${({ $isDropTarget }) => ($isDropTarget ? '4px' : '0')};
   transition: ${({ $isDropTarget }) => ($isDropTarget ? 'background 0.15s, border 0.15s' : 'none')};
 
