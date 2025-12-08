@@ -180,14 +180,15 @@ const Window = memo(function ({
           </div>
         </div>
       )}
+      {!isFocus && (
+        <div
+          className="window-focus-overlay"
+          onMouseDown={_onMouseDown}
+          onTouchStart={_onMouseDown}
+          style={currentHeader.invisible ? { top: 0 } : undefined}
+        />
+      )}
       <div className="window-body" style={currentHeader.invisible ? { margin: 0 } : undefined}>
-        {!isFocus && (
-          <div
-            className="window-focus-overlay"
-            onMouseDown={_onMouseDown}
-            onTouchStart={_onMouseDown}
-          />
-        )}
         <Component
           onClose={_onMouseUpClose}
           onMinimize={_onMouseUpMinimize}
@@ -247,7 +248,10 @@ const WindowContainer = styled.div`
 
   .window-focus-overlay {
     position: absolute;
-    inset: 0;
+    top: 28px; /* Below the title bar */
+    left: 0;
+    right: 0;
+    bottom: 0;
     z-index: 9999;
     cursor: default;
   }
