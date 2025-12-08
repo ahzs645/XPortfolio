@@ -161,8 +161,6 @@ export default function UpdateToast() {
       anchor={anchor}
       offset={{ y: 0 }}
       placement="top"
-      animate
-      isClosing={isClosing}
       onClose={handleClose}
       style={anchor ? { position: 'static' } : undefined}
     >
