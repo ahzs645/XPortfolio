@@ -118,7 +118,7 @@ export function useNavigation({ fileSystem, initialPath = null }) {
     // Try to find the folder by matching the path
     // First, check for exact path matches in the file system
     for (const [id, item] of Object.entries(fileSystem)) {
-      if (!item) continue;
+      if (!item || !item.name) continue;
 
       // Check if this item's full path matches
       // Build the path for this item
@@ -126,9 +126,7 @@ export function useNavigation({ fileSystem, initialPath = null }) {
       let current = item;
       while (current.parent && fileSystem[current.parent]) {
         current = fileSystem[current.parent];
-        if (current.type === 'drive') {
-          itemPath = `${current.name}\\${itemPath}`;
-        } else {
+        if (current.name) {
           itemPath = `${current.name}\\${itemPath}`;
         }
       }

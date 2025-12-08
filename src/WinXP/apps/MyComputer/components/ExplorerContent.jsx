@@ -108,7 +108,6 @@ function ExplorerContent({
 
   const renderItem = (item) => {
     const commonProps = {
-      key: item.id,
       item,
       selected: selectedItems.includes(item.id),
       isCut: clipboardOp === 'cut' && clipboard.includes(item.id),
@@ -133,15 +132,15 @@ function ExplorerContent({
 
     switch (viewMode) {
       case VIEW_MODES.DETAILS:
-        return <DetailsRow {...commonProps} fileSystem={fileSystem} />;
+        return <DetailsRow key={item.id} {...commonProps} fileSystem={fileSystem} />;
       case VIEW_MODES.LIST:
-        return <ListItem {...commonProps} />;
+        return <ListItem key={item.id} {...commonProps} />;
       case VIEW_MODES.TILES:
-        return <TileItem {...commonProps} />;
+        return <TileItem key={item.id} {...commonProps} />;
       case VIEW_MODES.THUMBNAILS:
-        return <ThumbnailItem {...commonProps} />;
+        return <ThumbnailItem key={item.id} {...commonProps} />;
       default:
-        return <IconItem {...commonProps} />;
+        return <IconItem key={item.id} {...commonProps} />;
     }
   };
 

@@ -19,6 +19,7 @@ const AVAILABLE_PROGRAMS = [
   { id: 'player', name: 'Windows Media Player', icon: '/icons/xp/WindowsMediaPlayer9.png' },
   { id: 'solitaire', name: 'Solitaire', icon: '/icons/solitaire-icon.png' },
   { id: 'viewer', name: 'Windows Picture and Fax Viewer', icon: '/icons/image-viewer.png' },
+  { id: 'winamp', name: 'Winamp', icon: '/icons/winamp.png' },
   { id: 'wordpad', name: 'WordPad', icon: '/icons/xp/wordpad.png' },
 ];
 
@@ -35,7 +36,43 @@ const PROGRAM_TO_APP = {
   player: 'Windows Media Player',
   solitaire: 'Solitaire',
   viewer: 'Image Viewer',
+  winamp: 'Winamp',
   wordpad: 'WordPad',
+};
+
+// File type to recommended programs mapping
+const FILE_TYPE_RECOMMENDATIONS = {
+  // Audio files
+  '.mp3': ['winamp', 'player'],
+  '.wav': ['winamp', 'player'],
+  '.ogg': ['winamp', 'player'],
+  '.m4a': ['winamp', 'player'],
+  '.flac': ['winamp', 'player'],
+  '.aac': ['winamp', 'player'],
+  // Video files
+  '.mp4': ['player'],
+  '.webm': ['player'],
+  '.avi': ['player'],
+  '.mkv': ['player'],
+  '.mov': ['player'],
+  // Image files
+  '.jpg': ['viewer', 'paint'],
+  '.jpeg': ['viewer', 'paint'],
+  '.png': ['viewer', 'paint'],
+  '.gif': ['viewer', 'paint'],
+  '.bmp': ['viewer', 'paint'],
+  '.webp': ['viewer', 'paint'],
+  // Text files
+  '.txt': ['notepad', 'wordpad'],
+  '.log': ['notepad', 'wordpad'],
+  '.md': ['notepad', 'wordpad'],
+  '.json': ['notepad'],
+  '.js': ['notepad'],
+  '.css': ['notepad'],
+  // Web files
+  '.html': ['internet', 'notepad'],
+  '.htm': ['internet', 'notepad'],
+  '.url': ['internet'],
 };
 
 function OpenWith({
@@ -56,6 +93,14 @@ function OpenWith({
     const lastDot = fileName.lastIndexOf('.');
     return lastDot !== -1 ? fileName.substring(lastDot).toLowerCase() : '';
   }, [fileName]);
+
+  // Get recommended and other programs based on file type
+  const { recommendedPrograms, otherPrograms } = useMemo(() => {
+    const recommendedIds = FILE_TYPE_RECOMMENDATIONS[fileExtension] || [];
+    const recommended = AVAILABLE_PROGRAMS.filter(p => recommendedIds.includes(p.id));
+    const others = AVAILABLE_PROGRAMS.filter(p => !recommendedIds.includes(p.id));
+    return { recommendedPrograms: recommended, otherPrograms: others };
+  }, [fileExtension]);
 
   // Update window header
   useEffect(() => {
@@ -128,12 +173,25 @@ function OpenWith({
         <GroupTitle>Programs</GroupTitle>
         <ProgramsPane>
           <ProgramsList>
-            <OptGroup>
-              <OptGroupLabel>Recommended Programs:</OptGroupLabel>
-            </OptGroup>
+            {recommendedPrograms.length > 0 && (
+              <OptGroup>
+                <OptGroupLabel>Recommended Programs:</OptGroupLabel>
+                {recommendedPrograms.map((program) => (
+                  <ProgramOption
+                    key={program.id}
+                    selected={selectedProgram === program.id}
+                    onClick={() => handleProgramSelect(program.id)}
+                    onDoubleClick={() => handleDoubleClick(program.id)}
+                  >
+                    <ProgramIcon src={program.icon} alt={program.name} />
+                    <ProgramName>{program.name}</ProgramName>
+                  </ProgramOption>
+                ))}
+              </OptGroup>
+            )}
             <OptGroup>
               <OptGroupLabel>Other Programs:</OptGroupLabel>
-              {AVAILABLE_PROGRAMS.map((program) => (
+              {otherPrograms.map((program) => (
                 <ProgramOption
                   key={program.id}
                   selected={selectedProgram === program.id}
