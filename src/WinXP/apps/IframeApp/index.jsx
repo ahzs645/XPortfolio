@@ -4,6 +4,7 @@ import { useInstalledApps } from '../../../contexts/InstalledAppsContext';
 import { useFileSystem } from '../../../contexts/FileSystemContext';
 
 const Container = styled.div`
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -23,12 +24,62 @@ const LoadingOverlay = styled.div`
   position: absolute;
   inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #ece9d8;
+  background: linear-gradient(to bottom, #fff 0%, #ece9d8 100%);
   font-family: 'Trebuchet MS', Tahoma, sans-serif;
-  font-size: 12px;
+  font-size: 11px;
   color: #333;
+  gap: 12px;
+
+  .loading-icon {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  .loading-text {
+    color: #333;
+  }
+
+  .loading-url {
+    color: #666;
+    font-size: 10px;
+    max-width: 80%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .loading-bar-container {
+    width: 200px;
+    height: 16px;
+    background: #fff;
+    border: 1px solid #919b9c;
+    border-radius: 2px;
+    padding: 2px;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+  }
+
+  .loading-bar {
+    height: 100%;
+    background: linear-gradient(to bottom, #3a6ea5 0%, #2856a0 50%, #1e4888 100%);
+    border-radius: 1px;
+    animation: loadingProgress 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(0.95); }
+  }
+
+  @keyframes loadingProgress {
+    0% { width: 0%; }
+    50% { width: 70%; }
+    100% { width: 100%; }
+  }
 `;
 
 const ErrorOverlay = styled.div`
@@ -330,7 +381,17 @@ function IframeApp({
     <Container>
       {isLoading && (
         <LoadingOverlay>
-          Loading application...
+          <img
+            className="loading-icon"
+            src={app?.icon || '/icons/xp/Programs.png'}
+            alt=""
+            onError={(e) => { e.target.src = '/icons/xp/Programs.png'; }}
+          />
+          <span className="loading-text">Loading {app?.name || 'application'}...</span>
+          <div className="loading-bar-container">
+            <div className="loading-bar" />
+          </div>
+          <span className="loading-url">{appUrl}</span>
         </LoadingOverlay>
       )}
 
