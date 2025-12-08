@@ -1559,8 +1559,20 @@ function WinXP() {
     }
   }, [isUploading]);
 
-  // Show boot screen during boot sequence
+  // Show boot screen during boot sequence, but skip if session is being restored
   if (state.bootState !== BOOT_STATE.DESKTOP) {
+    // If session was restored from cache, don't show boot screen at all
+    // Show a loading screen with desktop background while transitioning
+    if (sessionRestored || userAccountsLoading) {
+      return (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: wallpaperPath ? `url(${wallpaperPath}) center/cover no-repeat` : '#3a6ea5',
+          zIndex: 99999,
+        }} />
+      );
+    }
     return <BootScreen bootState={state.bootState} onComplete={onBootComplete} />;
   }
 
