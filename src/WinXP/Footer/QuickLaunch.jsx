@@ -302,16 +302,19 @@ const QuickLaunchIcon = styled.img`
 
 const ChevronWrapper = styled.div`
   position: relative;
+  display: flex;
+  align-items: center;
 `;
 
 const ChevronButton = styled.button`
   background: transparent;
   border: none;
   color: #fff;
-  font-size: 10px;
-  font-weight: bold;
+  font-size: 14px;
+  font-weight: normal;
   cursor: pointer;
-  padding: 2px 3px;
+  padding: 0 2px;
+  margin: 0;
   border-radius: 2px;
   line-height: 1;
   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
@@ -328,15 +331,13 @@ const ChevronButton = styled.button`
 `;
 
 const OverflowMenu = styled.div`
-  position: absolute;
-  bottom: 100%;
-  left: 0;
+  position: fixed;
+  bottom: 30px;
   background: #f5f5f5;
   border: 2px solid #c0c0c0;
   box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   min-width: 180px;
   padding: 2px 0;
-  margin-bottom: 4px;
   z-index: 10000;
 `;
 

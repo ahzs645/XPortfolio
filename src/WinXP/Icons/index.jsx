@@ -429,6 +429,14 @@ function Icons({
     e.dataTransfer.setData('text/plain', icon.title);
   }, []);
 
+  // Handle HTML5 drag end - clean up state when native drag ends
+  const handleDragEnd = useCallback(() => {
+    // Clean up all drag state
+    setDragging(null);
+    setDragPositions({});
+    setDropTargetId(null);
+  }, []);
+
   // Check if an icon is in the cut clipboard
   const isCutIcon = (iconId) => clipboardOp === 'cut' && clipboard?.includes(iconId);
 
@@ -446,6 +454,7 @@ function Icons({
             ref={(el) => (iconRefs.current[index] = el)}
             draggable={!isRenaming && !isMobile}
             onDragStart={(e) => handleDragStart(e, icon)}
+            onDragEnd={handleDragEnd}
             onMouseDown={(e) => !isRenaming && handleMouseDown(e, icon)}
             onDoubleClick={() => !isRenaming && handleDoubleClick(icon)}
             onContextMenu={(e) => handleContextMenu(e, icon)}
