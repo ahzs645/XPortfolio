@@ -391,6 +391,19 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     },
   });
 
+  // Handle address bar navigation with error dialog on failure
+  const handleAddressNavigate = useCallback((path) => {
+    const success = navigateToPath(path);
+    if (!success) {
+      // Show error dialog for invalid path
+      openApp('Error Dialog', {
+        title: 'Address Bar',
+        message: `Windows cannot find '${path}'. Check the spelling and try again, or try searching for the item by clicking the Start button and then clicking Search.`,
+        icon: 'error',
+      });
+    }
+  }, [navigateToPath, openApp]);
+
   // Toolbar action handler
   const handleToolbarAction = useCallback((action, event) => {
     switch (action) {
@@ -654,7 +667,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
       onToolbarAction={handleToolbarAction}
       addressTitle={shortPathString || 'My Computer'}
       addressIcon={currentFolderData?.icon || XP_ICONS.myComputer}
-      onAddressNavigate={navigateToPath}
+      onAddressNavigate={handleAddressNavigate}
       statusFields={statusText}
     >
       <OuterWrapper ref={wrapperRef}>

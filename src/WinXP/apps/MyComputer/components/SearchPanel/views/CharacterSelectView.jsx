@@ -93,11 +93,13 @@ function CharacterSelectView({ previewCharacter, setPreviewCharacter }) {
 
   const [animationData, setAnimationData] = useState(null);
   const [soundsData, setSoundsData] = useState(null);
+  const [shouldPlayGreeting, setShouldPlayGreeting] = useState(true);
 
   // Load animation data and sounds for current character preview
   useEffect(() => {
     setAnimationData(null);
     setSoundsData(null);
+    setShouldPlayGreeting(true);
 
     fetch(character.dataUrl)
       .then(res => res.json())
@@ -112,12 +114,25 @@ function CharacterSelectView({ previewCharacter, setPreviewCharacter }) {
 
   const { spritePosition, frameSize, play, hasAnimation } = useClippyAnimation(animationData, 'Idle', soundsData);
 
-  // Play Idle animation when data loads
+  // Play greeting animation when character loads, then idle
   useEffect(() => {
-    if (animationData && hasAnimation('Idle')) {
-      play('Idle');
+    if (animationData && shouldPlayGreeting) {
+      setShouldPlayGreeting(false);
+      // Try greeting animations in order of preference
+      const greetingAnims = ['Greeting', 'Show', 'Wave', 'Announce'];
+      const greetingAnim = greetingAnims.find(anim => hasAnimation(anim));
+
+      if (greetingAnim) {
+        play(greetingAnim, (animName, state) => {
+          if (state === 'EXITED' && hasAnimation('Idle')) {
+            play('Idle');
+          }
+        });
+      } else if (hasAnimation('Idle')) {
+        play('Idle');
+      }
     }
-  }, [animationData, hasAnimation, play]);
+  }, [animationData, shouldPlayGreeting, hasAnimation, play]);
 
   const handlePrev = () => {
     const newIndex = currentIndex <= 0 ? CHARACTERS.length - 1 : currentIndex - 1;
@@ -135,7 +150,7 @@ function CharacterSelectView({ previewCharacter, setPreviewCharacter }) {
 
       <CharacterBox>
         <CharacterTab>{character.name}</CharacterTab>
-        <CharacterPreview>
+        <CharacterPreview $minHeight={Math.max(frameSize[1] + 32, 120)}>
           <CharacterSprite
             $width={frameSize[0]}
             $height={frameSize[1]}
@@ -182,7 +197,7 @@ const CharacterPreview = styled.div`
   justify-content: center;
   align-items: center;
   padding: 16px;
-  min-height: 120px;
+  min-height: ${props => props.$minHeight || 120}px;
   background: #fff;
 `;
 

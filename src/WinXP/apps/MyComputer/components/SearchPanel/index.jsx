@@ -29,6 +29,7 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
 
   // Active character (the one shown at the bottom)
   const [activeCharacterId, setActiveCharacterId] = useState('rover');
+  const [characterHeight, setCharacterHeight] = useState(100);
   const [pendingCharacterId, setPendingCharacterId] = useState(null); // Character to switch to after exit
 
   // Get the active character object
@@ -452,7 +453,7 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
       <Content style={balloonHidden ? { justifyContent: 'flex-end' } : undefined}>
         {/* Hide balloon while character is entering/exiting */}
         {!balloonHidden && (
-          <Balloon>
+          <Balloon style={{ maxHeight: `calc(100% - ${characterHeight + 16}px)` }}>
             <BalloonInner>
               <BalloonContent>
                 {renderContent()}
@@ -470,6 +471,7 @@ function SearchPanel({ searchQuery, onSearchChange, onClose }) {
             character={activeCharacter}
             onExitComplete={handleCharacterExitComplete}
             onShowComplete={handleCharacterShowComplete}
+            onHeightChange={setCharacterHeight}
           />
         )}
       </Content>

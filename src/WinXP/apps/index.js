@@ -39,6 +39,7 @@ import TaskbarProperties from './TaskbarProperties';
 import AdobeReader from './AdobeReader';
 import ShortcutWizard from './ShortcutWizard';
 import BrowseForFolder from './BrowseForFolder';
+import ErrorDialog from './ErrorDialog';
 // ControlPanel is now integrated into MyComputer as a navigable view
 
 // XP Icons paths
@@ -1295,6 +1296,26 @@ export const appSettings = {
     minimized: false,
     maximized: false,
     multiInstance: false,
+  },
+  'Error Dialog': {
+    header: {
+      icon: '/icons/xp/Error.png',
+      title: 'Error',
+      buttons: ['close'],
+    },
+    component: ErrorDialog,
+    defaultSize: {
+      width: 420,
+      height: 'auto',
+    },
+    defaultOffset: {
+      x: 300,
+      y: 200,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
   },
   // Control Panel is now integrated into MyComputer as a navigable view
   // Access via My Computer sidebar > Control Panel

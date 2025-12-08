@@ -2,7 +2,7 @@ import { useState, useEffect, useImperativeHandle, forwardRef, useCallback, useR
 import styled from 'styled-components';
 import { useClippyAnimation } from '../hooks';
 
-const RoverAnimation = forwardRef(({ character, onExitComplete, onShowComplete }, ref) => {
+const RoverAnimation = forwardRef(({ character, onExitComplete, onShowComplete, onHeightChange }, ref) => {
   const [animationData, setAnimationData] = useState(null);
   const [soundsData, setSoundsData] = useState(null);
   const [phase, setPhase] = useState('loading'); // loading, show, idle, hide
@@ -10,6 +10,7 @@ const RoverAnimation = forwardRef(({ character, onExitComplete, onShowComplete }
   // Use refs for callbacks to always have the latest value
   const onExitCompleteRef = useRef(onExitComplete);
   const onShowCompleteRef = useRef(onShowComplete);
+  const onHeightChangeRef = useRef(onHeightChange);
 
   useEffect(() => {
     onExitCompleteRef.current = onExitComplete;
@@ -18,6 +19,10 @@ const RoverAnimation = forwardRef(({ character, onExitComplete, onShowComplete }
   useEffect(() => {
     onShowCompleteRef.current = onShowComplete;
   }, [onShowComplete]);
+
+  useEffect(() => {
+    onHeightChangeRef.current = onHeightChange;
+  }, [onHeightChange]);
 
   // Track if we need to play Show animation
   const needsShowAnimation = useRef(true);
@@ -55,6 +60,14 @@ const RoverAnimation = forwardRef(({ character, onExitComplete, onShowComplete }
     play,
     hasAnimation,
   } = useClippyAnimation(animationData, 'Show', soundsData);
+
+  // Notify parent of height changes
+  useEffect(() => {
+    if (frameSize[1] > 0) {
+      const characterAreaHeight = Math.max(frameSize[1] + 16, 100);
+      onHeightChangeRef.current?.(characterAreaHeight);
+    }
+  }, [frameSize]);
 
   // Handle animation completion - use refs to always get latest callbacks
   const handleAnimationComplete = useCallback((animName, state) => {
@@ -107,11 +120,14 @@ const RoverAnimation = forwardRef(({ character, onExitComplete, onShowComplete }
 
   // Don't render until data is loaded
   if (!animationData || !character) {
-    return <CharacterArea />;
+    return <CharacterArea $height={100} />;
   }
 
+  // Calculate character area height based on frame size (min 100px)
+  const characterAreaHeight = Math.max(frameSize[1] + 16, 100);
+
   return (
-    <CharacterArea>
+    <CharacterArea $height={characterAreaHeight}>
       <CharacterSprite
         $frameWidth={frameSize[0]}
         $frameHeight={frameSize[1]}
@@ -129,7 +145,7 @@ const CharacterArea = styled.div`
   justify-content: center;
   align-items: flex-end;
   padding-bottom: 8px;
-  height: 100px;
+  height: ${props => props.$height || 100}px;
   flex-shrink: 0;
 `;
 
