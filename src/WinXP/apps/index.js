@@ -44,6 +44,9 @@ import ErrorDialog from './ErrorDialog';
 import OpenWith from './OpenWith';
 import TaskManager from './TaskManager';
 import OpenFileDialog from './OpenFileDialog';
+import MediaPlayerClassic from './MediaPlayerClassic';
+import BackupWizard from './BackupWizard';
+import TransferWizard from './TransferWizard';
 // ControlPanel is now integrated into MyComputer as a navigable view
 
 // XP Icons paths
@@ -68,6 +71,8 @@ const XP_ICONS = {
   fontViewer: '/icons/xp/font.png',
   outlookExpress: '/icons/outlook/outlook.png',
   adobeReader: '/icons/pdf/acroaum_grp107_lang1033.ico',
+  backupWizard: '/icons/xp/tray/backup.png',
+  transferWizard: '/icons/xp/tray/migrate.png',
 };
 
 // App categories for organization
@@ -104,6 +109,7 @@ export const appCategoryMap = {
 
   // Media
   'Windows Media Player': APP_CATEGORIES.MEDIA,
+  'Windows Media Player Classic': APP_CATEGORIES.MEDIA,
   'Winamp': APP_CATEGORIES.MEDIA,
   'Sound Recorder': APP_CATEGORIES.MEDIA,
   'Image Viewer': APP_CATEGORIES.MEDIA,
@@ -128,6 +134,8 @@ export const appCategoryMap = {
   'App Installer': APP_CATEGORIES.SYSTEM,
   'Help and Support': APP_CATEGORIES.SYSTEM,
   'System Recovery': APP_CATEGORIES.SYSTEM,
+  'Backup Wizard': APP_CATEGORIES.SYSTEM,
+  'Transfer Wizard': APP_CATEGORIES.SYSTEM,
 
   // Utilities
   'Properties': APP_CATEGORIES.UTILITY,
@@ -225,6 +233,11 @@ export const desktopIconCatalog = {
     icon: XP_ICONS.mediaPlayer,
     title: 'Windows Media Player',
     component: MediaPlayer,
+  },
+  mediaPlayerClassic: {
+    icon: XP_ICONS.mediaPlayer,
+    title: 'Windows Media Player Classic',
+    component: MediaPlayerClassic,
   },
   imageViewer: {
     icon: '/apps/openlair-viewer/static/images/icon/viewer.png',
@@ -326,6 +339,16 @@ export const desktopIconCatalog = {
     title: 'Task Manager',
     component: TaskManager,
   },
+  backupWizard: {
+    icon: XP_ICONS.backupWizard,
+    title: 'Backup Wizard',
+    component: BackupWizard,
+  },
+  transferWizard: {
+    icon: XP_ICONS.transferWizard,
+    title: 'Transfer Wizard',
+    component: TransferWizard,
+  },
 };
 
 // Load saved icon positions from localStorage
@@ -364,6 +387,7 @@ const CATALOG_TO_APP_KEY = {
   pinball: 'Pinball',
   cmd: 'Command Prompt',
   mediaPlayer: 'Windows Media Player',
+  mediaPlayerClassic: 'Windows Media Player Classic',
   imageViewer: 'Image Viewer',
   paint: 'Paint',
   winamp: 'Winamp',
@@ -384,6 +408,8 @@ const CATALOG_TO_APP_KEY = {
   outlookExpress: 'Outlook Express',
   adobeReader: 'Adobe Reader',
   taskManager: 'Task Manager',
+  backupWizard: 'Backup Wizard',
+  transferWizard: 'Transfer Wizard',
 };
 
 // Generate desktop icon state from program list
@@ -769,6 +795,27 @@ export const appSettings = {
     },
     defaultOffset: {
       x: 80,
+      y: 50,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'Windows Media Player Classic': {
+    header: {
+      icon: XP_ICONS.mediaPlayer,
+      title: 'Windows Media Player',
+      buttons: ['minimize', 'maximize', 'close'],
+      invisible: true,
+    },
+    component: MediaPlayerClassic,
+    defaultSize: {
+      width: 640,
+      height: 533,
+    },
+    defaultOffset: {
+      x: 100,
       y: 50,
     },
     resizable: true,
@@ -1417,6 +1464,46 @@ export const appSettings = {
     maximized: false,
     multiInstance: false,
   },
+  'Backup Wizard': {
+    header: {
+      icon: XP_ICONS.backupWizard,
+      title: 'Backup or Restore Wizard',
+      buttons: ['help', 'minimize', 'maximize', 'close'],
+    },
+    component: BackupWizard,
+    defaultSize: {
+      width: 500,
+      height: 390,
+    },
+    defaultOffset: {
+      x: 100,
+      y: 100,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'Transfer Wizard': {
+    header: {
+      icon: XP_ICONS.transferWizard,
+      title: 'Files and Settings Transfer Wizard',
+      buttons: ['help', 'minimize', 'maximize', 'close'],
+    },
+    component: TransferWizard,
+    defaultSize: {
+      width: 500,
+      height: 390,
+    },
+    defaultOffset: {
+      x: 120,
+      y: 120,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
   // Control Panel is now integrated into MyComputer as a navigable view
   // Access via My Computer sidebar > Control Panel
 };
@@ -1465,4 +1552,6 @@ export {
   OpenWith,
   TaskManager,
   OpenFileDialog,
+  BackupWizard,
+  TransferWizard,
 };

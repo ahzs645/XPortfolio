@@ -85,6 +85,8 @@ class WMPlayerElement extends HTMLElement {
 
   #setting_attribute = false;
 
+  #visualizerInitialized = false;
+
   static #HTML = `
 <link rel="stylesheet" href="wmplayer.buttons.css" />
 <link rel="stylesheet" href="wmplayer.css" />
@@ -1837,9 +1839,17 @@ class WMPlayerElement extends HTMLElement {
   }
 
   #initializeVisualizer() {
+    if (this.#visualizerInitialized) return; // Prevent re-initialization
+
     const audioElement = this.#media;
     const canvasElement = this.#shadow.querySelector(".visualizer");
-    createVisualizer(audioElement, canvasElement);
+
+    try {
+      createVisualizer(audioElement, canvasElement);
+      this.#visualizerInitialized = true;
+    } catch (e) {
+      console.error("Failed to initialize visualizer:", e);
+    }
   }
 }
 customElements.define("wm-player", WMPlayerElement);
@@ -1847,8 +1857,20 @@ customElements.define("wm-player", WMPlayerElement);
 function createVisualizer(aud, canvas) {
   const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   const analyser = audioCtx.createAnalyser();
-  audioCtx.createMediaElementSource(aud).connect(analyser);
-  analyser.connect(audioCtx.destination);
+
+  let source;
+  try {
+    source = audioCtx.createMediaElementSource(aud);
+    source.connect(analyser);
+    analyser.connect(audioCtx.destination);
+  } catch (e) {
+    console.error("Failed to create media element source for visualizer:", e);
+    // Still draw a static visualizer as fallback
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    return;
+  }
 
   analyser.fftSize = 256;
   const bufferLength = analyser.frequencyBinCount;

@@ -1,18 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useRunningApps } from '../../../contexts/RunningAppsContext';
 
 const MENUS = ['File', 'Options', 'View', 'Help'];
 
 function TaskManager({ onClose, onMinimize }) {
-  const { apps, onEndTask, onSwitchTo } = useRunningApps();
+  const { apps, onEndTask, onSwitchTo, showClippy, onEndClippy } = useRunningApps();
   const [activeTab, setActiveTab] = useState('applications');
   const [selectedAppId, setSelectedAppId] = useState(null);
   const [selectedProcess, setSelectedProcess] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [processCount, setProcessCount] = useState(1);
   const [showAllProcesses, setShowAllProcesses] = useState(true);
-  const listRef = useRef(null);
 
   // Filter apps that should appear in task manager (visible windows)
   const visibleApps = apps.filter(app =>
@@ -20,16 +19,17 @@ function TaskManager({ onClose, onMinimize }) {
   );
 
   // Generate fake processes from running apps
-  const processes = visibleApps.map((app, index) => ({
+  const processes = visibleApps.map((app) => ({
     id: app.id,
     name: getProcessName(app.header.title),
     pid: 30000 + app.id,
     user: 'Administrator',
   }));
 
-  // Add taskmgr.exe itself
+  // Add taskmgr.exe and clippy
   const allProcesses = [
     { id: 'taskmgr', name: 'taskmgr.exe', pid: 31486, user: 'Administrator' },
+    ...(showClippy ? [{ id: 'clippy', name: 'clippy.exe', pid: 31337, user: 'Administrator' }] : []),
     ...processes,
   ];
 
@@ -69,7 +69,10 @@ function TaskManager({ onClose, onMinimize }) {
   };
 
   const handleEndProcess = () => {
-    if (selectedProcess !== null && selectedProcess !== 'taskmgr') {
+    if (selectedProcess === 'clippy' && onEndClippy) {
+      onEndClippy();
+      setSelectedProcess(null);
+    } else if (selectedProcess !== null && selectedProcess !== 'taskmgr') {
       onEndTask(selectedProcess);
       setSelectedProcess(null);
     }
@@ -101,142 +104,154 @@ function TaskManager({ onClose, onMinimize }) {
         ))}
       </MenuBar>
 
-      <TabUI>
-        <TabHolder>
-          <TabList>
-            <Tab
-              $selected={activeTab === 'applications'}
-              onClick={() => setActiveTab('applications')}
-            >
-              Applications
-            </Tab>
-            <Tab
-              $selected={activeTab === 'processes'}
-              onClick={() => setActiveTab('processes')}
-            >
-              Processes
-            </Tab>
-            <Tab
-              $selected={activeTab === 'users'}
-              onClick={() => setActiveTab('users')}
-            >
-              Users
-            </Tab>
-          </TabList>
-        </TabHolder>
+      <section className="tabs">
+        <menu role="tablist">
+          <button
+            role="tab"
+            aria-selected={activeTab === 'applications'}
+            onClick={() => setActiveTab('applications')}
+          >
+            Applications
+          </button>
+          <button
+            role="tab"
+            aria-selected={activeTab === 'processes'}
+            onClick={() => setActiveTab('processes')}
+          >
+            Processes
+          </button>
+          <button
+            role="tab"
+            aria-selected={activeTab === 'users'}
+            onClick={() => setActiveTab('users')}
+          >
+            Users
+          </button>
+        </menu>
 
         {/* Applications Tab */}
-        <TabContent $selected={activeTab === 'applications'}>
-          <ContentPane>
-            <Items>
-              <DetailsHeader>
-                <HeaderName>Task</HeaderName>
-                <HeaderStatus>Status</HeaderStatus>
-              </DetailsHeader>
-              {visibleApps.map((app) => (
-                <Entry
-                  key={app.id}
-                  $selected={selectedAppId === app.id}
-                  onClick={() => handleAppClick(app.id)}
-                  onDoubleClick={() => handleAppDoubleClick(app.id)}
-                >
-                  <EntryIcon src={app.header.icon} alt="" />
-                  <EntryName>{app.header.title}</EntryName>
-                  <EntryStatus>Running</EntryStatus>
-                </Entry>
-              ))}
-            </Items>
-          </ContentPane>
-          <ButtonContainer>
-            <WinButton onClick={handleEndTask} disabled={selectedAppId === null}>
+        <TabPanel role="tabpanel" hidden={activeTab !== 'applications'}>
+          <ListContainer className="sunken-panel">
+            <table>
+              <thead>
+                <tr>
+                  <th style={{ width: '70%' }}>Task</th>
+                  <th style={{ width: '30%' }}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visibleApps.map((app) => (
+                  <tr
+                    key={app.id}
+                    className={selectedAppId === app.id ? 'highlighted' : ''}
+                    onClick={() => handleAppClick(app.id)}
+                    onDoubleClick={() => handleAppDoubleClick(app.id)}
+                  >
+                    <td>
+                      <IconCell>
+                        <img src={app.header.icon} alt="" />
+                        {app.header.title}
+                      </IconCell>
+                    </td>
+                    <td>Running</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </ListContainer>
+          <ButtonRow>
+            <button onClick={handleEndTask} disabled={selectedAppId === null}>
               End Task
-            </WinButton>
-            <WinButton onClick={handleSwitchTo} disabled={selectedAppId === null}>
+            </button>
+            <button onClick={handleSwitchTo} disabled={selectedAppId === null}>
               Switch To
-            </WinButton>
-            <WinButton disabled>
+            </button>
+            <button disabled>
               New Task...
-            </WinButton>
-          </ButtonContainer>
-        </TabContent>
+            </button>
+          </ButtonRow>
+        </TabPanel>
 
         {/* Processes Tab */}
-        <TabContent $selected={activeTab === 'processes'}>
-          <ContentPane>
-            <Items>
-              <DetailsHeader>
-                <HeaderImageName>Image Name</HeaderImageName>
-                <HeaderPID>PID</HeaderPID>
-                <HeaderUser>User Name</HeaderUser>
-              </DetailsHeader>
-              {allProcesses.map((proc) => (
-                <Entry
-                  key={proc.id}
-                  $selected={selectedProcess === proc.id}
-                  onClick={() => handleProcessClick(proc.id)}
-                >
-                  <ProcessIcon />
-                  <ProcessName>{proc.name}</ProcessName>
-                  <ProcessPID>{proc.pid}</ProcessPID>
-                  <ProcessUser>{proc.user}</ProcessUser>
-                </Entry>
-              ))}
-            </Items>
-          </ContentPane>
-          <CheckboxRow>
-            <CheckboxLabel>
-              <span>Show processes from all users</span>
-              <CheckboxInput
-                type="checkbox"
-                checked={showAllProcesses}
-                onChange={(e) => setShowAllProcesses(e.target.checked)}
-              />
-              <WinCheckbox $checked={showAllProcesses} />
-            </CheckboxLabel>
+        <TabPanel role="tabpanel" hidden={activeTab !== 'processes'}>
+          <ListContainer className="sunken-panel">
+            <table>
+              <thead>
+                <tr>
+                  <th style={{ width: '50%' }}>Image Name</th>
+                  <th style={{ width: '20%', textAlign: 'right' }}>PID</th>
+                  <th style={{ width: '30%' }}>User Name</th>
+                </tr>
+              </thead>
+              <tbody>
+                {allProcesses.map((proc) => (
+                  <tr
+                    key={proc.id}
+                    className={selectedProcess === proc.id ? 'highlighted' : ''}
+                    onClick={() => handleProcessClick(proc.id)}
+                  >
+                    <td>{proc.name}</td>
+                    <td style={{ textAlign: 'right' }}>{proc.pid}</td>
+                    <td>{proc.user}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </ListContainer>
+          <CheckboxRow className="field-row">
+            <input
+              type="checkbox"
+              id="show-all-processes"
+              checked={showAllProcesses}
+              onChange={(e) => setShowAllProcesses(e.target.checked)}
+            />
+            <label htmlFor="show-all-processes">Show processes from all users</label>
           </CheckboxRow>
-          <ButtonContainer style={{ marginTop: '-20px' }}>
-            <WinButton
+          <ButtonRow>
+            <button
               onClick={handleEndProcess}
               disabled={selectedProcess === null || selectedProcess === 'taskmgr'}
             >
               End Process
-            </WinButton>
-          </ButtonContainer>
-        </TabContent>
+            </button>
+          </ButtonRow>
+        </TabPanel>
 
         {/* Users Tab */}
-        <TabContent $selected={activeTab === 'users'}>
-          <ContentPane>
-            <Items>
-              <DetailsHeader>
-                <HeaderUser style={{ flex: 2 }}>User</HeaderUser>
-                <HeaderID>ID</HeaderID>
-              </DetailsHeader>
-              <Entry
-                $selected={selectedUser === 'Administrator'}
-                onClick={() => handleUserClick('Administrator')}
-              >
-                <UserIcon />
-                <UserName>Administrator</UserName>
-                <UserID>0</UserID>
-              </Entry>
-            </Items>
-          </ContentPane>
-          <ButtonContainer>
-            <WinButton disabled={selectedUser === null}>
+        <TabPanel role="tabpanel" hidden={activeTab !== 'users'}>
+          <ListContainer className="sunken-panel">
+            <table>
+              <thead>
+                <tr>
+                  <th style={{ width: '70%' }}>User</th>
+                  <th style={{ width: '30%', textAlign: 'right' }}>ID</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  className={selectedUser === 'Administrator' ? 'highlighted' : ''}
+                  onClick={() => handleUserClick('Administrator')}
+                >
+                  <td>Administrator</td>
+                  <td style={{ textAlign: 'right' }}>0</td>
+                </tr>
+              </tbody>
+            </table>
+          </ListContainer>
+          <ButtonRow>
+            <button disabled={selectedUser === null}>
               Logoff
-            </WinButton>
-            <WinButton disabled>
+            </button>
+            <button disabled>
               Send Message...
-            </WinButton>
-          </ButtonContainer>
-        </TabContent>
-      </TabUI>
+            </button>
+          </ButtonRow>
+        </TabPanel>
+      </section>
 
-      <StatusBar>
-        <span>Processes: {processCount}</span>
-        <Grabber />
-      </StatusBar>
+      <div className="status-bar">
+        <p className="status-bar-field">Processes: {processCount}</p>
+      </div>
     </Container>
   );
 }
@@ -249,6 +264,46 @@ const Container = styled.div`
   font-family: "Tahoma", "MS Sans Serif", sans-serif;
   font-size: 11px;
   overflow: hidden;
+
+  section.tabs {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    min-height: 0;
+  }
+
+  section.tabs > menu[role="tablist"] {
+    margin: 0;
+    padding: 0 2px;
+    display: flex;
+    margin-bottom: -2px;
+    position: relative;
+    z-index: 1;
+  }
+
+  section.tabs > menu[role="tablist"] > button[role="tab"] {
+    padding: 4px 12px;
+    font-size: 11px;
+    font-family: inherit;
+    border: 1px solid #919b9c;
+    border-bottom: 1px solid #919b9c;
+    border-radius: 3px 3px 0 0;
+    background: linear-gradient(180deg, #fafafa 0%, #e9e8dd 100%);
+    margin-right: -1px;
+    position: relative;
+    cursor: pointer;
+  }
+
+  section.tabs > menu[role="tablist"] > button[role="tab"][aria-selected="true"] {
+    background: #f1efe2;
+    border-bottom-color: #f1efe2;
+    z-index: 2;
+  }
+
+  .status-bar {
+    flex-shrink: 0;
+  }
 `;
 
 const MenuBar = styled.div`
@@ -269,50 +324,9 @@ const MenuItem = styled.div`
   }
 `;
 
-const TabUI = styled.div`
+const TabPanel = styled.article`
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 8px;
-  min-height: 0;
-`;
-
-const TabHolder = styled.div`
-  margin-bottom: -1px;
-  position: relative;
-  z-index: 1;
-`;
-
-const TabList = styled.ul`
-  display: flex;
-  list-style: none;
-  margin: 0;
-  padding: 0 2px;
-  gap: 0;
-`;
-
-const Tab = styled.li`
-  padding: 4px 12px 5px 12px;
-  font-size: 11px;
-  border: 1px solid #919b9c;
-  border-bottom: ${({ $selected }) => ($selected ? '1px solid #f1efe2' : '1px solid #919b9c')};
-  border-radius: 3px 3px 0 0;
-  background: ${({ $selected }) => ($selected ? '#f1efe2' : 'linear-gradient(180deg, #fafafa 0%, #e9e8dd 100%)')};
-  color: #000;
-  cursor: pointer;
-  position: relative;
-  top: ${({ $selected }) => ($selected ? '1px' : '2px')};
-  margin-right: -1px;
-  z-index: ${({ $selected }) => ($selected ? '2' : '1')};
-
-  &:hover {
-    background: ${({ $selected }) => ($selected ? '#f1efe2' : '#f5f4eb')};
-  }
-`;
-
-const TabContent = styled.div`
-  flex: 1;
-  display: ${({ $selected }) => ($selected ? 'flex' : 'none')};
+  display: ${({ hidden }) => (hidden ? 'none' : 'flex')};
   flex-direction: column;
   padding: 10px;
   background: #f1efe2;
@@ -322,231 +336,89 @@ const TabContent = styled.div`
   overflow: hidden;
 `;
 
-const ContentPane = styled.div`
+const ListContainer = styled.div`
   flex: 1;
-  display: flex;
-  flex-direction: column;
+  overflow: auto;
   min-height: 0;
-`;
-
-const Items = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  border: 2px inset #d4d0c8;
   background: #fff;
-  overflow-y: auto;
-  overflow-x: hidden;
-`;
 
-const DetailsHeader = styled.div`
-  display: flex;
-  background: linear-gradient(180deg, #fff 0%, #ece9d8 100%);
-  border-bottom: 1px solid #aca899;
-  padding: 0;
-  font-size: 11px;
-  font-weight: normal;
-  flex-shrink: 0;
-`;
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    background: #fff;
+  }
 
-const HeaderName = styled.div`
-  flex: 3;
-  padding: 3px 6px;
-  border-right: 1px solid #d4d0c8;
-`;
+  thead {
+    position: sticky;
+    top: 0;
+    background: linear-gradient(180deg, #fff 0%, #ece9d8 100%);
+  }
 
-const HeaderStatus = styled.div`
-  flex: 1;
-  padding: 3px 6px;
-`;
+  th {
+    text-align: left;
+    padding: 3px 6px;
+    font-weight: normal;
+    border-bottom: 1px solid #aca899;
+    border-right: 1px solid #d4d0c8;
+  }
 
-const HeaderImageName = styled.div`
-  flex: 2;
-  padding: 3px 6px;
-  border-right: 1px solid #d4d0c8;
-`;
+  th:last-child {
+    border-right: none;
+  }
 
-const HeaderPID = styled.div`
-  width: 60px;
-  padding: 3px 6px;
-  border-right: 1px solid #d4d0c8;
-  text-align: right;
-`;
+  tbody {
+    background: #fff;
+  }
 
-const HeaderUser = styled.div`
-  flex: 1;
-  padding: 3px 6px;
-`;
+  td {
+    padding: 2px 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-const HeaderID = styled.div`
-  width: 50px;
-  padding: 3px 6px;
-  text-align: right;
-`;
+  tr {
+    cursor: pointer;
+  }
 
-const Entry = styled.div`
-  display: flex;
-  align-items: center;
-  padding: 2px 4px;
-  font-size: 11px;
-  cursor: pointer;
-  background: ${({ $selected }) => ($selected ? '#316ac5' : 'transparent')};
-  color: ${({ $selected }) => ($selected ? '#fff' : '#000')};
-  flex-shrink: 0;
-`;
+  tr.highlighted {
+    background: #0a246a;
+    color: #fff;
+  }
 
-const EntryIcon = styled.img`
-  width: 16px;
-  height: 16px;
-  margin-right: 4px;
-  flex-shrink: 0;
-`;
-
-const EntryName = styled.span`
-  flex: 3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`;
-
-const EntryStatus = styled.span`
-  flex: 1;
-  text-align: left;
-`;
-
-const ProcessIcon = styled.div`
-  width: 16px;
-  height: 16px;
-  margin-right: 4px;
-  flex-shrink: 0;
-`;
-
-const ProcessName = styled.span`
-  flex: 2;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`;
-
-const ProcessPID = styled.span`
-  width: 60px;
-  text-align: right;
-  padding-right: 6px;
-`;
-
-const ProcessUser = styled.span`
-  flex: 1;
-`;
-
-const UserIcon = styled.div`
-  width: 16px;
-  height: 16px;
-  margin-right: 4px;
-  flex-shrink: 0;
-`;
-
-const UserName = styled.span`
-  flex: 2;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`;
-
-const UserID = styled.span`
-  width: 50px;
-  text-align: right;
-  padding-right: 6px;
-`;
-
-const CheckboxRow = styled.div`
-  margin-top: 6px;
-  margin-left: 4px;
-`;
-
-const CheckboxLabel = styled.label`
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-  font-size: 11px;
-`;
-
-const CheckboxInput = styled.input`
-  display: none;
-`;
-
-const WinCheckbox = styled.div`
-  width: 13px;
-  height: 13px;
-  border: 1px solid #7f9db9;
-  background: #fff;
-  position: relative;
-
-  &::after {
-    content: '';
-    display: ${({ $checked }) => ($checked ? 'block' : 'none')};
-    position: absolute;
-    left: 2px;
-    top: 0px;
-    width: 4px;
-    height: 8px;
-    border: solid #000;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
+  tr.highlighted td {
+    background: #0a246a;
   }
 `;
 
-const ButtonContainer = styled.div`
+const IconCell = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  img {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+`;
+
+const ButtonRow = styled.div`
   display: flex;
   justify-content: flex-end;
   gap: 8px;
   margin-top: 8px;
   flex-shrink: 0;
-`;
 
-const WinButton = styled.button`
-  min-width: 75px;
-  padding: 4px 10px;
-  font-size: 11px;
-  font-family: "Tahoma", "MS Sans Serif", sans-serif;
-  background: linear-gradient(180deg, #fff 0%, #ece9d8 100%);
-  border: 1px solid #003c74;
-  border-radius: 3px;
-  cursor: ${({ disabled }) => (disabled ? 'default' : 'pointer')};
-  color: ${({ disabled }) => (disabled ? '#a0a0a0' : '#000')};
-
-  &:not(:disabled):hover {
-    background: linear-gradient(180deg, #fff 0%, #ddd8c8 100%);
-  }
-
-  &:not(:disabled):active {
-    background: linear-gradient(180deg, #ddd8c8 0%, #ece9d8 100%);
+  button {
+    min-width: 75px;
   }
 `;
 
-const StatusBar = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 4px 8px;
-  background: #ece9d8;
-  border-top: 1px solid #fff;
-  font-size: 11px;
-  flex-shrink: 0;
-`;
-
-const Grabber = styled.div`
-  width: 12px;
-  height: 12px;
-  background: linear-gradient(135deg,
-    transparent 0%, transparent 30%,
-    #aca899 30%, #aca899 35%,
-    transparent 35%, transparent 45%,
-    #aca899 45%, #aca899 50%,
-    transparent 50%, transparent 60%,
-    #aca899 60%, #aca899 65%,
-    transparent 65%, transparent 100%
-  );
+const CheckboxRow = styled.div`
+  margin-top: 6px;
+  margin-bottom: -12px;
 `;
 
 export default TaskManager;

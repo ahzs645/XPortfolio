@@ -131,6 +131,13 @@ export const START_MENU_CATALOG = {
     title: 'Windows Media Player',
     description: null,
   },
+  mediaPlayerClassic: {
+    type: 'program',
+    appKey: 'Windows Media Player Classic',
+    icon: '/icons/xp/WindowsMediaPlayer9.png',
+    title: 'Windows Media Player Classic',
+    description: 'Classic XP-style media player',
+  },
   imageViewer: {
     type: 'program',
     appKey: 'Image Viewer',
@@ -257,6 +264,20 @@ export const START_MENU_CATALOG = {
     title: 'Adobe Reader',
     description: 'View PDF files',
   },
+  backupWizard: {
+    type: 'program',
+    appKey: 'Backup Wizard',
+    icon: '/icons/xp/tray/backup.png',
+    title: 'Backup',
+    description: 'Backup or restore files',
+  },
+  transferWizard: {
+    type: 'program',
+    appKey: 'Transfer Wizard',
+    icon: '/icons/xp/tray/migrate.png',
+    title: 'Files and Settings Transfer Wizard',
+    description: 'Transfer your environment',
+  },
   'divider-main': {
     type: 'separator',
   },
@@ -304,17 +325,23 @@ export const START_MENU_FOLDERS = {
     icon: '/icons/xp/FolderClosed.png',
     items: ['minesweeper', 'solitaire', 'spiderSolitaire', 'pinball', 'qqGames'],
   },
+  systemTools: {
+    type: 'folder',
+    title: 'System Tools',
+    icon: '/icons/xp/FolderClosed.png',
+    items: ['backupWizard', 'transferWizard', 'systemRecovery'],
+  },
   accessories: {
     type: 'folder',
     title: 'Accessories',
     icon: '/icons/xp/FolderClosed.png',
-    items: ['calculator', 'notepad', 'wordpad', 'displayProperties', 'speechProperties', 'systemProperties', 'systemRecovery', 'userAccounts', 'paint', 'cmd', 'imageViewer', 'installer'],
+    items: ['calculator', 'notepad', 'wordpad', 'displayProperties', 'speechProperties', 'systemProperties', 'userAccounts', 'paint', 'cmd', 'imageViewer', 'installer', 'systemTools'],
   },
   entertainment: {
     type: 'folder',
     title: 'Entertainment',
     icon: '/icons/xp/FolderClosed.png',
-    items: ['mediaPlayer', 'winamp', 'soundRecorder'],
+    items: ['mediaPlayer', 'mediaPlayerClassic', 'winamp', 'soundRecorder'],
   },
   webProjects: {
     type: 'folder',
