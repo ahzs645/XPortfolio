@@ -363,28 +363,42 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     closeContextMenu();
   }, [closeContextMenu]);
 
+  // Track previous header to avoid infinite loops
+  const prevHeaderRef = useRef(null);
+
   // Update window header when folder changes
   useEffect(() => {
-    if (onUpdateHeader) {
-      if (isControlPanel) {
-        onUpdateHeader({
-          icon: XP_ICONS.controlPanel,
-          title: 'Control Panel',
-          buttons: ['minimize', 'maximize', 'close'],
-        });
-      } else if (isMyComputerRoot) {
-        onUpdateHeader({
-          icon: XP_ICONS.myComputer,
-          title: 'My Computer',
-          buttons: ['minimize', 'maximize', 'close'],
-        });
-      } else if (currentFolderData) {
-        onUpdateHeader({
-          icon: currentFolderData.icon || XP_ICONS.folder,
-          title: currentFolderData.name || 'My Computer',
-          buttons: ['minimize', 'maximize', 'close'],
-        });
-      }
+    if (!onUpdateHeader) return;
+
+    let newHeader = null;
+    if (isControlPanel) {
+      newHeader = {
+        icon: XP_ICONS.controlPanel,
+        title: 'Control Panel',
+        buttons: ['minimize', 'maximize', 'close'],
+      };
+    } else if (isMyComputerRoot) {
+      newHeader = {
+        icon: XP_ICONS.myComputer,
+        title: 'My Computer',
+        buttons: ['minimize', 'maximize', 'close'],
+      };
+    } else if (currentFolderData) {
+      newHeader = {
+        icon: currentFolderData.icon || XP_ICONS.folder,
+        title: currentFolderData.name || 'My Computer',
+        buttons: ['minimize', 'maximize', 'close'],
+      };
+    }
+
+    // Only update if header actually changed
+    if (newHeader && (
+      !prevHeaderRef.current ||
+      prevHeaderRef.current.icon !== newHeader.icon ||
+      prevHeaderRef.current.title !== newHeader.title
+    )) {
+      prevHeaderRef.current = newHeader;
+      onUpdateHeader(newHeader);
     }
   }, [currentFolder, currentFolderData, isMyComputerRoot, isControlPanel, onUpdateHeader]);
 

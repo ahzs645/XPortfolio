@@ -154,6 +154,13 @@ const CONTROL_PANEL_ITEMS = [
     action: 'System Properties',
   },
   {
+    id: 'task-manager',
+    name: 'Task Manager',
+    icon: '/icons/xp/taskmgr.png',
+    description: 'View running applications and system performance.',
+    action: 'Task Manager',
+  },
+  {
     id: 'taskbar-start',
     name: 'Taskbar and Start Menu',
     icon: '/icons/xp/DisplayProperties.png',

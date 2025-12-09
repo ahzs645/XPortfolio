@@ -2,12 +2,14 @@ import React, { createContext, useContext, useMemo } from 'react';
 
 const RunningAppsContext = createContext(null);
 
-export function RunningAppsProvider({ children, apps, onEndTask, onSwitchTo }) {
+export function RunningAppsProvider({ children, apps, onEndTask, onSwitchTo, showClippy, onEndClippy }) {
   const value = useMemo(() => ({
     apps,
     onEndTask,
     onSwitchTo,
-  }), [apps, onEndTask, onSwitchTo]);
+    showClippy,
+    onEndClippy,
+  }), [apps, onEndTask, onSwitchTo, showClippy, onEndClippy]);
 
   return (
     <RunningAppsContext.Provider value={value}>

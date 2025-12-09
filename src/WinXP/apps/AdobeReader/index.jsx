@@ -5,6 +5,8 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { MenuBar, Toolbar } from '../../../components';
 import Sidebar from './Sidebar';
+import { useApp } from '../../../contexts/AppContext';
+import { useFileSystem } from '../../../contexts/FileSystemContext';
 
 // Configure PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -106,6 +108,8 @@ const ADOBE_MENUS = [
 ];
 
 function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPath, onUpdateTitle }) {
+  const { openApp } = useApp();
+  const { fileSystem } = useFileSystem();
   const [pageNumber, setPageNumber] = useState(1);
   const [numPages, setNumPages] = useState(null);
   const [scale, setScale] = useState(null); // Start with null to calculate fit-to-width
@@ -114,10 +118,10 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
   const [pdfUrl, setPdfUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const fileInputRef = useRef(null);
+  const [currentFileName, setCurrentFileName] = useState(null);
   const viewerRef = useRef(null);
 
-  const displayName = pdfName || (pdfPath ? pdfPath.split('/').pop() : 'Adobe Reader');
+  const displayName = currentFileName || pdfName || (pdfPath ? pdfPath.split('/').pop() : 'Adobe Reader');
 
   // Update window title when PDF is loaded
   useEffect(() => {
@@ -143,28 +147,31 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
   }, [pdfData, pdfPath]);
 
   const handleFileOpen = useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
+    openApp('Open File', {
+      title: 'Open',
+      filter: 'pdf',
+      allowedFilters: ['pdf', 'all'],
+      onSelect: (selection) => {
+        if (selection) {
+          setIsLoading(true);
+          setCurrentFileName(selection.name);
 
-  const handleFileSelect = useCallback((e) => {
-    const file = e.target.files?.[0];
-    if (file && file.type === 'application/pdf') {
-      setIsLoading(true);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setPdfUrl(event.target.result);
-        setIsLoading(false);
-        if (onUpdateTitle) {
-          onUpdateTitle(`Adobe Reader - [${file.name}]`);
+          // Get the file content from the file system
+          const fileItem = fileSystem[selection.id];
+          if (fileItem?.content) {
+            setPdfUrl(fileItem.content);
+            setIsLoading(false);
+            if (onUpdateTitle) {
+              onUpdateTitle(`Adobe Reader - [${selection.name}]`);
+            }
+          } else {
+            setError('Failed to load PDF file');
+            setIsLoading(false);
+          }
         }
-      };
-      reader.onerror = () => {
-        setError('Failed to read PDF file');
-        setIsLoading(false);
-      };
-      reader.readAsDataURL(file);
-    }
-  }, [onUpdateTitle]);
+      },
+    });
+  }, [openApp, fileSystem, onUpdateTitle]);
 
   const handleZoomIn = useCallback(() => setScale(s => Math.min((s || 1.0) + 0.1, 3.0)), []);
   const handleZoomOut = useCallback(() => setScale(s => Math.max((s || 1.0) - 0.1, 0.5)), []);
@@ -401,15 +408,6 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
           </ResizeGripRow>
         </ResizeGrip>
       </StatusBarContainer>
-
-      {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".pdf,application/pdf"
-        style={{ display: 'none' }}
-        onChange={handleFileSelect}
-      />
     </Container>
   );
 }

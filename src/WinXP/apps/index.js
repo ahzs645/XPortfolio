@@ -43,6 +43,7 @@ import BrowseForFolder from './BrowseForFolder';
 import ErrorDialog from './ErrorDialog';
 import OpenWith from './OpenWith';
 import TaskManager from './TaskManager';
+import OpenFileDialog from './OpenFileDialog';
 // ControlPanel is now integrated into MyComputer as a navigable view
 
 // XP Icons paths
@@ -121,6 +122,7 @@ export const appCategoryMap = {
   'System Properties': APP_CATEGORIES.SYSTEM,
   'Speech Properties': APP_CATEGORIES.SYSTEM,
   'Taskbar Properties': APP_CATEGORIES.SYSTEM,
+  'Task Manager': APP_CATEGORIES.SYSTEM,
   'User Accounts': APP_CATEGORIES.SYSTEM,
   'Add or Remove Programs': APP_CATEGORIES.SYSTEM,
   'App Installer': APP_CATEGORIES.SYSTEM,
@@ -319,6 +321,11 @@ export const desktopIconCatalog = {
     title: 'Adobe Reader',
     component: AdobeReader,
   },
+  taskManager: {
+    icon: '/icons/xp/taskmgr.png',
+    title: 'Task Manager',
+    component: TaskManager,
+  },
 };
 
 // Load saved icon positions from localStorage
@@ -376,6 +383,7 @@ const CATALOG_TO_APP_KEY = {
   helpAndSupport: 'Help and Support',
   outlookExpress: 'Outlook Express',
   adobeReader: 'Adobe Reader',
+  taskManager: 'Task Manager',
 };
 
 // Generate desktop icon state from program list
@@ -1369,6 +1377,26 @@ export const appSettings = {
     maximized: false,
     multiInstance: true,
   },
+  'Open File': {
+    header: {
+      icon: '/icons/xp/FolderOpened.png',
+      title: 'Open',
+      buttons: ['close'],
+    },
+    component: OpenFileDialog,
+    defaultSize: {
+      width: 500,
+      height: 400,
+    },
+    defaultOffset: {
+      x: 200,
+      y: 100,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
+  },
   'Task Manager': {
     header: {
       icon: '/icons/xp/taskmgr.png',
@@ -1436,4 +1464,5 @@ export {
   BrowseForFolder,
   OpenWith,
   TaskManager,
+  OpenFileDialog,
 };

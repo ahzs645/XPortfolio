@@ -54,6 +54,7 @@ import CRTEffect from './CRTEffect';
 function WinXP() {
   const { state, dispatch, getFocusedAppId, getActiveAppIdForTaskbar } = useDesktopReducer();
   const [crtEnabled, setCrtEnabled] = useState(true);
+  const [showClippy, setShowClippy] = useState(true);
   const ref = useRef(null);
   const mouse = useMouse(ref);
   const { width } = useWindowSize();
@@ -451,6 +452,10 @@ function WinXP() {
     dispatch({ type: FOCUS_APP, payload: id });
   }, [dispatch]);
 
+  const handleEndClippy = useCallback(() => {
+    setShowClippy(false);
+  }, []);
+
   // Show boot screen during boot sequence
   if (state.bootState !== BOOT_STATE.DESKTOP) {
     if (sessionRestored || userAccountsLoading) {
@@ -468,7 +473,7 @@ function WinXP() {
 
   return (
     <AppProvider appSettings={appSettings} dispatch={dispatch} addAppAction={ADD_APP}>
-      <RunningAppsProvider apps={state.apps} onEndTask={handleEndTask} onSwitchTo={handleSwitchToApp}>
+      <RunningAppsProvider apps={state.apps} onEndTask={handleEndTask} onSwitchTo={handleSwitchToApp} showClippy={showClippy} onEndClippy={handleEndClippy}>
       <Container
         ref={ref}
         onMouseUp={onMouseUpDesktop}
@@ -521,7 +526,7 @@ function WinXP() {
           onMaximize={onMaximizeWindow}
           focusedAppId={focusedAppId}
         />
-        <Clippy />
+        {showClippy && <Clippy />}
         <Footer
           apps={state.apps}
           onMouseDownApp={onMouseDownFooterApp}
