@@ -215,6 +215,13 @@ export const START_MENU_CATALOG = {
     title: 'Windows Messenger',
     description: 'Instant messaging',
   },
+  msnMessenger: {
+    type: 'program',
+    appKey: 'MSN Messenger',
+    icon: '/icons/xp/messenger.png',
+    title: 'MSN Messenger',
+    description: 'Chat with Chatango',
+  },
   speechProperties: {
     type: 'program',
     appKey: 'Speech Properties',
@@ -365,6 +372,7 @@ export const ALL_PROGRAMS_ORDER = [
   'outlookExpress',
   'adobeReader',
   'messenger',
+  'msnMessenger',
   'about',
   'resume',
   'contact',

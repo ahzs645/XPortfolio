@@ -1,0 +1,142 @@
+/* WMP Base Styles - These ensure proper sizing within the XPortfolio window system */
+
+app.wmp {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  font-family: Tahoma, sans-serif;
+  font-size: 11px;
+  user-select: none;
+  overflow: hidden;
+}
+
+app.wmp appcontents {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+app.wmp appcontentholder {
+  position: relative;
+  height: 100%;
+  display: grid;
+  grid-template-rows: min-content auto;
+  overflow: hidden;
+}
+
+/* Hide menu bar in frameless mode */
+app.wmp.framehidden appnavigation {
+  display: none;
+}
+
+app.wmp.framehidden appcontentholder {
+  grid-template-rows: auto;
+}
+
+/* Menu bar styling */
+app.wmp appnavigation {
+  z-index: 1;
+  position: relative;
+  background: linear-gradient(to bottom, #f6f6f6, #e8e8ea);
+  border-bottom: 1px solid #a0a0a0;
+}
+
+app.wmp appnavigation ul.appmenus {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+app.wmp appnavigation ul.appmenus > li {
+  padding: 2px 8px;
+  cursor: default;
+  position: relative;
+}
+
+app.wmp appnavigation ul.appmenus > li:hover {
+  background: #316ac5;
+  color: white;
+}
+
+app.wmp appnavigation ul.appmenus > li ul.submenu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #fff;
+  border: 1px solid #808080;
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+  min-width: 180px;
+  z-index: 100;
+  padding: 2px 0;
+}
+
+app.wmp appnavigation ul.appmenus > li:hover ul.submenu {
+  display: block;
+}
+
+app.wmp appnavigation ul.appmenus > li ul.submenu li {
+  padding: 4px 20px;
+  cursor: default;
+  color: #000;
+}
+
+app.wmp appnavigation ul.appmenus > li ul.submenu li:hover {
+  background: #316ac5;
+  color: white;
+}
+
+app.wmp appnavigation ul.appmenus > li ul.submenu li.divider {
+  height: 1px;
+  background: #c0c0c0;
+  margin: 2px 4px;
+  padding: 0;
+}
+
+app.wmp appnavigation ul.appmenus > li ul.submenu li.divider:hover {
+  background: #c0c0c0;
+}
+
+/* Canvas for visualizer */
+app.wmp #visualizer {
+  position: absolute;
+  width: calc(100% - 6px);
+  height: calc(100% - 70px);
+  left: 3px;
+  top: 46px;
+  image-rendering: pixelated;
+}
+
+/* Ensure proper cursor for interactive elements */
+app.wmp fnbutton,
+app.wmp .navitem,
+app.wmp #navtoggle,
+app.wmp #seekbar,
+app.wmp #volbar,
+app.wmp #playlistcontainer li,
+app.wmp #rewind,
+app.wmp #ffwd {
+  cursor: pointer;
+}
+
+/* Override visibility for our frameless implementation */
+app.wmp.framehidden {
+  visibility: visible !important;
+}
+
+/* WMP9 brand positioning */
+app.wmp #wmp9brand {
+  display: none;
+}
+
+/* Playlist selector styling */
+app.wmp #playlistselector {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: inherit;
+  font-family: inherit;
+}

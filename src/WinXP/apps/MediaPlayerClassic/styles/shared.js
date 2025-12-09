@@ -23,10 +23,12 @@ export const wmp9Theme = {
 export const AppContentHolder = styled.div`
   height: 100%;
   display: grid;
-  grid-template-rows: min-content auto;
+  grid-template-rows: ${props => props.$frameless ? 'auto' : 'min-content auto'};
   overflow: hidden;
-  background: linear-gradient(to bottom, #afafc1, #e1e1ea);
-  box-shadow: inset 0 25px 0 #f2f2fdee, inset 2px 0 #81828fee, inset 0 -2px #81828faa, inset -2px 0 #848591;
+  background: ${props => props.$frameless ? 'linear-gradient(to bottom, #afafc1, #e1e1ea)' : '#e4e4ec'};
+  box-shadow: ${props => props.$frameless
+    ? 'inset 0 25px 0 #f2f2fdee, inset 2px 0 #81828fee, inset 0 -2px #81828faa, inset -2px 0 #848591'
+    : 'none'};
   position: relative;
   font-family: Tahoma, sans-serif;
   font-size: 11px;
@@ -39,7 +41,7 @@ export const AppContentHolder = styled.div`
   --visualizerPeaks: ${props => props.$theme === 'wmp9' ? wmp9Theme.visualizerPeaks : wmp8Theme.visualizerPeaks};
   --statusbarText: ${props => props.$theme === 'wmp9' ? wmp9Theme.statusbarText : wmp8Theme.statusbarText};
 
-  ${props => !props.$collapsed && css`
+  ${props => props.$frameless && !props.$collapsed && css`
     &:after {
       background: url("/ui/wmp/xplogo_big.png");
       background-size: contain;
@@ -53,7 +55,7 @@ export const AppContentHolder = styled.div`
     }
   `}
 
-  ${props => props.$collapsed && css`
+  ${props => (props.$collapsed || !props.$frameless) && css`
     &:after {
       display: none;
     }
@@ -94,7 +96,10 @@ export const WMPMainFrame = styled.div`
   position: relative;
   left: ${props => props.$collapsed ? '-80px' : '0'};
   top: 4px;
-  filter: drop-shadow(0 -2px #8d8daacf) drop-shadow(0px -6px 7px #dedeeec2) drop-shadow(-1px 2px #c9c9e373) drop-shadow(-22px 20px 40px #5b5b84);
+  /* In frameless/skin mode, no drop shadows. In framed mode, show the shadows */
+  filter: ${props => props.$frameless
+    ? 'none'
+    : 'drop-shadow(0 -2px #8d8daacf) drop-shadow(0px -6px 7px #dedeeec2) drop-shadow(-1px 2px #c9c9e373) drop-shadow(-22px 20px 40px #5b5b84)'};
 `;
 
 // Colorifier wrapper
@@ -447,9 +452,11 @@ export const NavItem = styled.div`
     &:after {
       content: ' ';
       position: absolute;
-      height: 2px;
+      height: ${props.$selected ? '3px' : '2px'};
       width: 100%;
-      background: linear-gradient(to right, #dde5f6, #7392c5);
+      background: ${props.$selected
+        ? 'linear-gradient(to right, #fba745, #708fc3)'
+        : 'linear-gradient(to right, #dde5f6, #7392c5)'};
       display: block;
       bottom: 0;
       left: 0;
@@ -459,13 +466,17 @@ export const NavItem = styled.div`
       background: linear-gradient(45deg, #7891e3 0, #7891e3 50%, #8199e800 65%, #8199e800 100%);
     }
 
-    &.selected, &:active {
-      background: linear-gradient(30deg, #052989aa 0, #05298900 55%, #05298900 100%), linear-gradient(170deg, #052989aa 0, #05298900 35%, #05298900 100%), linear-gradient(to right, #052989aa 0, transparent 20%, transparent 100%);
-    }
-
-    &.selected:after, &:hover:after {
+    &:hover:after {
       height: 3px;
       background: linear-gradient(to right, #fba745, #708fc3);
+    }
+
+    ${props.$selected && css`
+      background: linear-gradient(30deg, #052989aa 0, #05298900 55%, #05298900 100%), linear-gradient(170deg, #052989aa 0, #05298900 35%, #05298900 100%), linear-gradient(to right, #052989aa 0, transparent 20%, transparent 100%);
+    `}
+
+    &:active {
+      background: linear-gradient(30deg, #052989aa 0, #05298900 55%, #05298900 100%), linear-gradient(170deg, #052989aa 0, #05298900 35%, #05298900 100%), linear-gradient(to right, #052989aa 0, transparent 20%, transparent 100%);
     }
   `}
 
@@ -498,29 +509,40 @@ export const NavItem = styled.div`
       left: 0;
     }
 
-    &:not(.selected):hover {
-      background: linear-gradient(to bottom, #fffffe 0, #b3c6e3 58%, #d1e7ff 85%, #c0cfef 100%);
-      box-shadow: inset 1px 0 #fefdf6cc, inset 0 -1px #8c9bcc, inset -1px 0 #a5b5decc;
-      border: none;
-      padding: 3px 13px 7px 3px;
-      z-index: 1;
+    &:hover {
+      ${props => !props.$selected && css`
+        background: linear-gradient(to bottom, #fffffe 0, #b3c6e3 58%, #d1e7ff 85%, #c0cfef 100%);
+        box-shadow: inset 1px 0 #fefdf6cc, inset 0 -1px #8c9bcc, inset -1px 0 #a5b5decc;
+        border: none;
+        padding: 3px 13px 7px 3px;
+        z-index: 1;
+
+        &:after, &:before {
+          display: none;
+        }
+      `}
     }
 
-    &:not(.selected):hover:after, &:not(.selected):hover:before {
-      display: none;
-    }
-
-    &.selected, &:active {
+    ${props => props.$selected && css`
       background: linear-gradient(to right, #d0e8ff, #c1d4eb);
       border: 1px solid transparent;
       border-color: #96aed8 #afc3e1 #f7f9fc #deeaf9;
       padding: 2px 12px 6px 2px;
       box-shadow: none;
       z-index: 1;
-    }
 
-    &.selected:after {
-      display: none;
+      &:after {
+        display: none;
+      }
+    `}
+
+    &:active {
+      background: linear-gradient(to right, #d0e8ff, #c1d4eb);
+      border: 1px solid transparent;
+      border-color: #96aed8 #afc3e1 #f7f9fc #deeaf9;
+      padding: 2px 12px 6px 2px;
+      box-shadow: none;
+      z-index: 1;
     }
   `}
 `;
@@ -851,6 +873,91 @@ export const TinyBlue = styled.div`
   background: #5e7bb8;
   box-shadow: inset -1px 0 var(--baseColor), inset -2px 0 0 #7a9eeb, inset 2px 0 0 #7a9eeb;
   position: absolute;
+`;
+
+// Window controls (minimize, maximize, close) - shown in frameless/skin mode only
+// In framed mode (with XP chrome), these are hidden - XP provides its own controls
+export const WindowControls = styled.div`
+  position: absolute;
+  z-index: 10;
+
+  /* Hide when NOT in frameless mode (XP frame provides its own controls) */
+  ${props => !props.$frameless && css`
+    display: none !important;
+  `}
+
+  ${props => props.$frameless && props.$theme === 'wmp8' && css`
+    display: block;
+    top: 8px;
+    right: 6px;
+    width: 50px;
+    font-size: 11px;
+    color: #4c76c2;
+    text-shadow: 0 -1px #b4c5e2, 0 -1px #b4c5e2, 0 1px #364b76, 0 1px 1px #364b76;
+  `}
+
+  ${props => props.$frameless && props.$theme === 'wmp9' && css`
+    display: flex;
+    top: 4px;
+    right: 10px;
+    gap: 2px;
+  `}
+`;
+
+export const WindowControlButton = styled.div`
+  cursor: pointer;
+  font-family: "Marlett", sans-serif;
+  font-size: 9px;
+
+  ${props => props.$theme === 'wmp8' && css`
+    position: absolute;
+    color: #4c76c2;
+    text-shadow: 0 -1px #b4c5e2, 0 -1px #b4c5e2, 0 1px #364b76, 0 1px 1px #364b76;
+
+    &:hover {
+      color: #f39332;
+      text-shadow: 0 -1px #fecfac, 0 -1px 1px #fecfac, 0 1px #3b383c, 0 1px 2px #3b383c;
+    }
+
+    &:active {
+      color: #7196e0;
+      text-shadow: 0 -1px #3c5fb4, 0 -1px #3c5fb4, 0 1px #b8cef3, 0 1px 1px #b8cef3, 0 -2px 1px #2b3c65;
+    }
+
+    ${props.$type === 'minimize' && css`
+      left: 0;
+      top: -2px;
+      transform: scaleX(110%);
+    `}
+
+    ${props.$type === 'close' && css`
+      right: 0;
+      top: 0;
+    `}
+  `}
+
+  ${props => props.$theme === 'wmp9' && css`
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: linear-gradient(to bottom, #d8e4f8, #a8c0e8, #8ca8d8, #7090c8);
+    box-shadow: inset 0 1px #fff, 0 1px 1px #4050a0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    color: #3050a0;
+
+    &:hover {
+      background: linear-gradient(to bottom, #ffd060, #ffb040, #ff9020, #e07010);
+      color: #804000;
+    }
+
+    &:active {
+      background: linear-gradient(to bottom, #4060c0, #3050a0, #2040a0, #1030a0);
+      color: #c0d0ff;
+    }
+  `}
 `;
 
 // Side metal panel
@@ -1318,24 +1425,34 @@ export const StatusInfo = styled.span`
   position: absolute;
 `;
 
-// Progress time display
+// Progress time display - positioned inside wmpmainframe, not playbackcontrols
 export const ProgressDisplay = styled.div`
-  right: ${props => props.$theme === 'wmp9' ? '6px' : '9px'};
-  bottom: ${props => props.$theme === 'wmp9' ? '63px' : '60px'};
-  height: ${props => props.$theme === 'wmp9' ? '13px' : '18px'};
+  position: absolute;
   width: auto;
   display: block;
-  padding: ${props => props.$theme === 'wmp9' ? '2px 9px' : '0 9px'};
   font-weight: 600;
   background: #000;
   color: var(--statusbarText);
+
   ${props => props.$theme === 'wmp8' && css`
+    right: 9px;
+    bottom: 60px;
+    height: 18px;
+    padding: 0 9px;
     box-shadow: 1px 5px 1px #fff, 2px 0 #fff;
     border-radius: 0 0 13px 0;
+    z-index: 2;
+    line-height: 18px;
   `}
-  z-index: ${props => props.$theme === 'wmp9' ? '3' : '2'};
-  line-height: ${props => props.$theme === 'wmp9' ? '14px' : '18px'};
-  position: absolute;
+
+  ${props => props.$theme === 'wmp9' && css`
+    right: 6px;
+    bottom: 63px;
+    height: 13px;
+    padding: 2px 9px;
+    z-index: 3;
+    line-height: 14px;
+  `}
 `;
 
 // Playback controls container

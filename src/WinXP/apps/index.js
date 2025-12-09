@@ -47,6 +47,7 @@ import OpenFileDialog from './OpenFileDialog';
 import MediaPlayerClassic from './MediaPlayerClassic';
 import BackupWizard from './BackupWizard';
 import TransferWizard from './TransferWizard';
+import MSNMessenger from './MSNMessenger';
 // ControlPanel is now integrated into MyComputer as a navigable view
 
 // XP Icons paths
@@ -118,6 +119,7 @@ export const appCategoryMap = {
   'Internet Explorer': APP_CATEGORIES.INTERNET,
   'Outlook Express': APP_CATEGORIES.INTERNET,
   'Windows Messenger': APP_CATEGORIES.INTERNET,
+  'MSN Messenger': APP_CATEGORIES.INTERNET,
 
   // System apps
   'My Computer': APP_CATEGORIES.SYSTEM,
@@ -299,6 +301,11 @@ export const desktopIconCatalog = {
     title: 'Windows Messenger',
     component: Messenger,
   },
+  msnMessenger: {
+    icon: '/icons/xp/messenger.png',
+    title: 'MSN Messenger',
+    component: MSNMessenger,
+  },
   speechProperties: {
     icon: XP_ICONS.speechProperties,
     title: 'Speech Properties',
@@ -400,6 +407,7 @@ const CATALOG_TO_APP_KEY = {
   qqArcade: 'QQ Arcade',
   installer: 'App Installer',
   messenger: 'Windows Messenger',
+  msnMessenger: 'MSN Messenger',
   speechProperties: 'Speech Properties',
   systemProperties: 'System Properties',
   userAccounts: 'User Accounts',
@@ -1144,6 +1152,26 @@ export const appSettings = {
     maximized: false,
     multiInstance: false,
   },
+  'MSN Messenger': {
+    header: {
+      icon: '/icons/xp/messenger.png',
+      title: 'MSN Messenger',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: MSNMessenger,
+    defaultSize: {
+      width: 550,
+      height: 500,
+    },
+    defaultOffset: {
+      x: 100,
+      y: 50,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
   'Speech Properties': {
     header: {
       icon: XP_ICONS.speechProperties,
@@ -1537,6 +1565,7 @@ export {
   Installer,
   IframeApp,
   Messenger,
+  MSNMessenger,
   SpeechProperties,
   SystemProperties,
   UserAccounts,
