@@ -10,6 +10,7 @@ import { useInstalledApps } from '../contexts/InstalledAppsContext';
 import { useStartMenu } from '../contexts/StartMenuContext';
 import { useUserAccounts } from '../contexts/UserAccountsContext';
 import { AppProvider } from '../contexts/AppContext';
+import { RunningAppsProvider } from '../contexts/RunningAppsContext';
 import { ContextMenu } from './components/ContextMenu';
 import FileUploadDialog from './FileUploadDialog';
 import { useFileContextMenu, useBackgroundContextMenu } from './hooks/useFileContextMenu';
@@ -442,6 +443,14 @@ function WinXP() {
     dispatch({ type: SET_BOOT_STATE, payload: BOOT_STATE.DESKTOP });
   }
 
+  const handleEndTask = useCallback((id) => {
+    dispatch({ type: DEL_APP, payload: id });
+  }, [dispatch]);
+
+  const handleSwitchToApp = useCallback((id) => {
+    dispatch({ type: FOCUS_APP, payload: id });
+  }, [dispatch]);
+
   // Show boot screen during boot sequence
   if (state.bootState !== BOOT_STATE.DESKTOP) {
     if (sessionRestored || userAccountsLoading) {
@@ -459,6 +468,7 @@ function WinXP() {
 
   return (
     <AppProvider appSettings={appSettings} dispatch={dispatch} addAppAction={ADD_APP}>
+      <RunningAppsProvider apps={state.apps} onEndTask={handleEndTask} onSwitchTo={handleSwitchToApp}>
       <Container
         ref={ref}
         onMouseUp={onMouseUpDesktop}
@@ -559,6 +569,7 @@ function WinXP() {
           onClose={closeMobileRestrictionPopup}
         />
       </Container>
+      </RunningAppsProvider>
     </AppProvider>
   );
 }

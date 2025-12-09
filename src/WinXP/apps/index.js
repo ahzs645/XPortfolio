@@ -42,6 +42,7 @@ import ShortcutWizard from './ShortcutWizard';
 import BrowseForFolder from './BrowseForFolder';
 import ErrorDialog from './ErrorDialog';
 import OpenWith from './OpenWith';
+import TaskManager from './TaskManager';
 // ControlPanel is now integrated into MyComputer as a navigable view
 
 // XP Icons paths
@@ -1368,6 +1369,26 @@ export const appSettings = {
     maximized: false,
     multiInstance: true,
   },
+  'Task Manager': {
+    header: {
+      icon: '/icons/xp/taskmgr.png',
+      title: 'Windows Task Manager',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: TaskManager,
+    defaultSize: {
+      width: 400,
+      height: 450,
+    },
+    defaultOffset: {
+      x: 200,
+      y: 100,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
   // Control Panel is now integrated into MyComputer as a navigable view
   // Access via My Computer sidebar > Control Panel
 };
@@ -1414,4 +1435,5 @@ export {
   ShortcutWizard,
   BrowseForFolder,
   OpenWith,
+  TaskManager,
 };

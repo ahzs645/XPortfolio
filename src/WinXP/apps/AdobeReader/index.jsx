@@ -369,12 +369,6 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
             </DocumentContainer>
           ) : (
             <WelcomeScreen>
-              <AdobeLogo>
-                <LogoIcon>
-                  <LogoA>A</LogoA>
-                </LogoIcon>
-              </AdobeLogo>
-              <WelcomeTitle>Adobe Reader</WelcomeTitle>
               <WelcomeText>Open a PDF file to view it</WelcomeText>
               <OpenButton onClick={handleFileOpen}>Open PDF File...</OpenButton>
             </WelcomeScreen>
@@ -528,38 +522,8 @@ const WelcomeScreen = styled.div`
   justify-content: center;
   gap: 16px;
   color: #fff;
-`;
-
-const AdobeLogo = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-const LogoIcon = styled.div`
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.4);
-`;
-
-const LogoA = styled.span`
-  font-size: 48px;
-  font-weight: bold;
-  color: #fff;
-  font-family: 'Times New Roman', serif;
-`;
-
-const WelcomeTitle = styled.h1`
-  font-size: 24px;
-  font-weight: normal;
-  margin: 0;
-  color: #e0e0e0;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  height: 100%;
 `;
 
 const WelcomeText = styled.p`

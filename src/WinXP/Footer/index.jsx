@@ -262,8 +262,10 @@ function Footer({
     { type: 'divider' },
     {
       label: 'Task Manager',
-      disabled: true,
-      onClick: () => {},
+      onClick: () => {
+        setStartContextMenu(null);
+        onClickMenuItem('Task Manager');
+      },
     },
     { type: 'divider' },
     {
