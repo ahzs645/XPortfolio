@@ -1,6 +1,6 @@
 /* WMP Base Styles - These ensure proper sizing within the XPortfolio window system */
 
-app.wmp {
+.wmp {
   display: block;
   width: 100%;
   height: 100%;
@@ -15,7 +15,7 @@ app.wmp {
 }
 
 
-app.wmp appcontents {
+.wmp .appcontents {
   display: block;
   width: 100% !important;
   height: 100% !important;
@@ -25,7 +25,7 @@ app.wmp appcontents {
   min-height: unset !important;
 }
 
-app.wmp appcontentholder {
+.wmp .appcontentholder {
   position: relative;
   height: 100%;
   display: grid;
@@ -37,41 +37,41 @@ app.wmp appcontentholder {
 }
 
 /* Hide menu bar in frameless mode */
-app.wmp.framehidden appnavigation {
+.wmp.framehidden .appnavigation {
   display: none;
 }
 
-app.wmp.framehidden appcontentholder {
+.wmp.framehidden .appcontentholder {
   grid-template-rows: auto;
 }
 
 /* Menu bar styling */
-app.wmp appnavigation {
+.wmp .appnavigation {
   z-index: 1;
   position: relative;
   background: linear-gradient(to bottom, #f6f6f6, #e8e8ea);
   border-bottom: 1px solid #a0a0a0;
 }
 
-app.wmp appnavigation ul.appmenus {
+.wmp .appnavigation ul.appmenus {
   display: flex;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-app.wmp appnavigation ul.appmenus > li {
+.wmp .appnavigation ul.appmenus > li {
   padding: 2px 8px;
   cursor: default;
   position: relative;
 }
 
-app.wmp appnavigation ul.appmenus > li:hover {
+.wmp .appnavigation ul.appmenus > li:hover {
   background: #316ac5;
   color: white;
 }
 
-app.wmp appnavigation ul.appmenus > li ul.submenu {
+.wmp .appnavigation ul.appmenus > li ul.submenu {
   display: none;
   position: absolute;
   top: 100%;
@@ -84,75 +84,77 @@ app.wmp appnavigation ul.appmenus > li ul.submenu {
   padding: 2px 0;
 }
 
-app.wmp appnavigation ul.appmenus > li:hover ul.submenu {
+.wmp .appnavigation ul.appmenus > li:hover ul.submenu {
   display: block;
 }
 
-app.wmp appnavigation ul.appmenus > li ul.submenu li {
+.wmp .appnavigation ul.appmenus > li ul.submenu li {
   padding: 4px 20px;
   cursor: default;
   color: #000;
 }
 
-app.wmp appnavigation ul.appmenus > li ul.submenu li:hover {
+.wmp .appnavigation ul.appmenus > li ul.submenu li:hover {
   background: #316ac5;
   color: white;
 }
 
-app.wmp appnavigation ul.appmenus > li ul.submenu li.divider {
+.wmp .appnavigation ul.appmenus > li ul.submenu li.divider {
   height: 1px;
   background: #c0c0c0;
   margin: 2px 4px;
   padding: 0;
 }
 
-app.wmp appnavigation ul.appmenus > li ul.submenu li.divider:hover {
+.wmp .appnavigation ul.appmenus > li ul.submenu li.divider:hover {
   background: #c0c0c0;
 }
 
-app.wmp appnavigation ul.appmenus > li ul.submenu li.selected {
+.wmp .appnavigation ul.appmenus > li ul.submenu li.selected {
   font-weight: bold;
 }
 
-app.wmp appnavigation ul.appmenus > li ul.submenu li.selected::before {
+.wmp .appnavigation ul.appmenus > li ul.submenu li.selected::before {
   content: "✓ ";
 }
 
 /* Canvas for visualizer - let theme CSS handle positioning via #playbackcontainer rules */
-app.wmp #visualizer {
+.wmp #visualizer {
   /* Theme CSS positions this: width:calc(100% - 8px); height:calc(100% - 65px); left:4px; bottom:20px; */
   image-rendering: pixelated;
 }
 
 /* Ensure proper cursor for interactive elements */
-app.wmp fnbutton,
-app.wmp .navitem,
-app.wmp #navtoggle,
-app.wmp #seekbar,
-app.wmp #volbar,
-app.wmp #playlistcontainer li,
-app.wmp #rewind,
-app.wmp #ffwd {
+.wmp .fnbutton,
+.wmp .navitem,
+.wmp #navtoggle,
+.wmp #seekbar,
+.wmp #volbar,
+.wmp #playlistcontainer li,
+.wmp #rewind,
+.wmp #ffwd {
   cursor: pointer;
 }
 
 /* Override visibility for our frameless implementation */
 /* Theme CSS sets app.wmp.framehidden to visibility:hidden but we're in a React window */
-app.wmp.framehidden {
+/* Override visibility for our frameless implementation */
+/* Theme CSS sets app.wmp.framehidden to visibility:hidden but we're in a React window */
+.wmp.framehidden {
   visibility: visible !important;
 }
 
 /* In frameless mode, hide the appcontentholder background and XP logo */
-app.wmp.framehidden appcontentholder {
+.wmp.framehidden .appcontentholder {
   background: transparent !important;
   box-shadow: none !important;
 }
 
-app.wmp.framehidden appcontentholder:after {
+.wmp.framehidden .appcontentholder:after {
   display: none !important;
 }
 
-app.wmp.framehidden wmpmainframe {
+.wmp.framehidden .wmpmainframe {
   visibility: visible !important;
   /* Remove the drop-shadow filter in frameless mode as per theme */
   filter: none !important;
@@ -161,12 +163,12 @@ app.wmp.framehidden wmpmainframe {
 }
 
 /* WMP9 brand positioning */
-app.wmp #wmp9brand {
+.wmp #wmp9brand {
   display: none;
 }
 
 /* Playlist selector styling */
-app.wmp #playlistselector {
+.wmp #playlistselector {
   background: transparent;
   border: none;
   color: inherit;
@@ -175,42 +177,42 @@ app.wmp #playlistselector {
 }
 
 /* Fix for wmpmainframe taking full height */
-app.wmp wmpmainframe {
+.wmp .wmpmainframe {
   width: 100% !important;
   height: calc(100% - 3px) !important;
 }
 
 /* Fix collapsed state width */
-app.wmp.collapsed wmpmainframe {
+.wmp.collapsed .wmpmainframe {
   width: calc(100% + 83px) !important;
 }
 
 /* Ensure playbackcontrols is positioned properly */
-app.wmp wmpmainframe playbackcontrols {
+.wmp .wmpmainframe .playbackcontrols {
   display: block;
   position: absolute;
 }
 
 /* Fix seekbar and volume bar interactivity */
-app.wmp wmpmainframe playbackcontrols #seekbar,
-app.wmp wmpmainframe playbackcontrols #volbar {
+.wmp .wmpmainframe .playbackcontrols #seekbar,
+.wmp .wmpmainframe .playbackcontrols #volbar {
   position: absolute;
 }
 
 /* Make sure shape elements display properly */
-app.wmp .shapeshader,
-app.wmp .wmpshapeholder {
+.wmp .shapeshader,
+.wmp .wmpshapeholder {
   display: inline-block;
   position: absolute;
 }
 
 /* Ensure wmpcontent displays as block */
-app.wmp wmpmainframe wmpcontent {
+.wmp .wmpmainframe .wmpcontent {
   display: block;
 }
 
 /* Fix for wmpcolorifier containing all positioned children */
-app.wmp wmpmainframe wmpcolorifier {
+.wmp .wmpmainframe .wmpcolorifier {
   display: block;
   position: relative;
 }
@@ -219,27 +221,27 @@ app.wmp wmpmainframe wmpcolorifier {
 /* We don't need to override this - removing the blanket * rule that was breaking buttons */
 
 /* Specific elements that need relative positioning */
-app.wmp wmpmainframe wmpcolorifier #nav .navitem {
+.wmp .wmpmainframe .wmpcolorifier #nav .navitem {
   position: relative;
 }
 
-app.wmp wmpmainframe wmpcontent #playlistcontainer ul li {
+.wmp .wmpmainframe .wmpcontent #playlistcontainer ul li {
   position: relative;
 }
 
 /* Playback button buttonbody positioning - override the theme's blanket position:absolute */
-app.wmp wmpmainframe playbackcontrols fnbutton buttonbody {
+.wmp .wmpmainframe .playbackcontrols .fnbutton .buttonbody {
   position: relative !important;
 }
 
 /* Force button sprites to show - override the wmpcolorifier * position:absolute rule */
 /* The buttonbody needs to be a positioned container, and ::after needs proper positioning */
-app.wmp wmpmainframe playbackcontrols fnbutton buttonbody::after,
-app.wmp wmpmainframe playbackcontrols fnbutton buttonbody::before {
+.wmp .wmpmainframe .playbackcontrols .fnbutton .buttonbody::after,
+.wmp .wmpmainframe .playbackcontrols .fnbutton .buttonbody::before {
   position: relative !important;
 }
 
-app.wmp wmpmainframe playbackcontrols fnbutton#playpause buttonbody::after {
+.wmp .wmpmainframe .playbackcontrols .fnbutton#playpause .buttonbody::after {
   width: 10px !important;
   height: 10px !important;
   content: " " !important;
@@ -250,12 +252,12 @@ app.wmp wmpmainframe playbackcontrols fnbutton#playpause buttonbody::after {
   margin: 10px 11px !important;
 }
 
-app.wmp wmpmainframe playbackcontrols fnbutton#playpause.playing buttonbody::after {
+.wmp .wmpmainframe .playbackcontrols .fnbutton#playpause.playing .buttonbody::after {
   background-image: url("/ui/wmp/wmp9_sprite_pause.png") !important;
   margin: 10px !important;
 }
 
-app.wmp wmpmainframe playbackcontrols fnbutton#stop buttonbody::after {
+.wmp .wmpmainframe .playbackcontrols .fnbutton#stop .buttonbody::after {
   width: 8px !important;
   height: 8px !important;
   content: " " !important;
@@ -266,7 +268,7 @@ app.wmp wmpmainframe playbackcontrols fnbutton#stop buttonbody::after {
   margin: 6px !important;
 }
 
-app.wmp wmpmainframe playbackcontrols fnbutton#prev buttonbody::after {
+.wmp .wmpmainframe .playbackcontrols .fnbutton#prev .buttonbody::after {
   width: 12px !important;
   height: 10px !important;
   content: " " !important;
@@ -277,7 +279,7 @@ app.wmp wmpmainframe playbackcontrols fnbutton#prev buttonbody::after {
   margin: 5px !important;
 }
 
-app.wmp wmpmainframe playbackcontrols fnbutton#next buttonbody::after {
+.wmp .wmpmainframe .playbackcontrols .fnbutton#next .buttonbody::after {
   width: 12px !important;
   height: 10px !important;
   content: " " !important;
@@ -288,7 +290,7 @@ app.wmp wmpmainframe playbackcontrols fnbutton#next buttonbody::after {
   margin: 5px !important;
 }
 
-app.wmp wmpmainframe playbackcontrols fnbutton#mute buttonbody::after {
+.wmp .wmpmainframe .playbackcontrols .fnbutton#mute .buttonbody::after {
   width: 10px !important;
   height: 10px !important;
   content: " " !important;

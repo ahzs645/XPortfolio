@@ -118,11 +118,11 @@ function MediaPlayerClassic({
       styleEl.id = styleId;
       styleEl.textContent = `
         /* Override wmpcolorifier * position:absolute for button pseudo-elements */
-        app.wmp wmpmainframe playbackcontrols fnbutton buttonbody {
+        .wmp .wmpmainframe .playbackcontrols .fnbutton .buttonbody {
           position: relative !important;
         }
-        app.wmp wmpmainframe playbackcontrols fnbutton buttonbody::after,
-        app.wmp wmpmainframe playbackcontrols fnbutton buttonbody::before {
+        .wmp .wmpmainframe .playbackcontrols .fnbutton .buttonbody::after,
+        .wmp .wmpmainframe .playbackcontrols .fnbutton .buttonbody::before {
           position: relative !important;
         }
       `;
@@ -138,7 +138,7 @@ function MediaPlayerClassic({
   useEffect(() => {
     if (appRef.current) {
       const scheme = COLOR_SCHEMES[colorSchemeIndex];
-      const colorifier = appRef.current.querySelector('wmpcolorifier');
+      const colorifier = appRef.current.querySelector('.wmpcolorifier');
       if (colorifier) {
         if (scheme.saturate === 0) {
           // No filter for default
@@ -482,10 +482,10 @@ function MediaPlayerClassic({
   ].filter(Boolean).join(' ');
 
   return (
-    <app className={appClasses} ref={appRef}>
-      <appcontents>
-        <appcontentholder>
-          <appnavigation>
+    <div className={appClasses} ref={appRef}>
+      <div className="appcontents">
+        <div className="appcontentholder">
+          <div className="appnavigation">
             <ul className="appmenus">
               <li id="wmp-file-menu">File
                 <ul className="submenu">
@@ -507,10 +507,10 @@ function MediaPlayerClassic({
               <li title="Not Implemented">Tools</li>
               <li id="helpmenu">Help</li>
             </ul>
-          </appnavigation>
+          </div>
 
-          <wmpmainframe className={navCollapsed ? 'collapsed' : ''}>
-            <wmpcolorifier>
+          <div className={`wmpmainframe ${navCollapsed ? 'collapsed' : ''}`}>
+            <div className="wmpcolorifier">
               {/* Shape shaders and holders for metallic frame */}
               <div className="shapeshader hideable" id="topleft">
                 <div className="wmpshape"></div>
@@ -600,21 +600,21 @@ function MediaPlayerClassic({
               {/* Top metal bar - draggable when in frameless mode */}
               <div id="topmetal" ref={frameless ? dragRef : undefined} style={frameless ? { cursor: 'move' } : undefined}>
                 <div className="metaledge left"></div>
-                <fnbutton
+                <div
+                  className={`fnbutton ${!frameless ? 'active' : ''}`}
                   id="toggleUIFrame"
-                  className={!frameless ? 'active' : ''}
                   title="Show/Hide Menu Bar and Frame"
                   onClick={toggleFrameless}
-                ></fnbutton>
+                ></div>
                 <div className="metaledge right"></div>
-                <fnbutton id="shuffle" title="Shuffle (Not Implemented)"></fnbutton>
-                <fnbutton id="equalizer" title="Equalizer (Not Implemented)"></fnbutton>
-                <fnbutton
+                <div className="fnbutton" id="shuffle" title="Shuffle (Not Implemented)"></div>
+                <div className="fnbutton" id="equalizer" title="Equalizer (Not Implemented)"></div>
+                <div
+                  className={`fnbutton ${!playlistHidden ? 'active' : ''}`}
                   id="playlist"
-                  className={!playlistHidden ? 'active' : ''}
                   title="Show/Hide Playlist"
                   onClick={togglePlaylistVisible}
-                ></fnbutton>
+                ></div>
               </div>
 
               {/* Side elements */}
@@ -626,8 +626,8 @@ function MediaPlayerClassic({
               {/* Lower metal bar */}
               <div id="lowermetal">
                 <div className="metaledge left"></div>
-                <fnbutton id="colorswitch" title={`Cycle Color Scheme (${COLOR_SCHEMES[colorSchemeIndex].name})`} onClick={cycleColorScheme}></fnbutton>
-                <fnbutton id="skinmode" title={`Cycle Skin (${theme.toUpperCase()})`} onClick={cycleSkin}></fnbutton>
+                <div className="fnbutton" id="colorswitch" title={`Cycle Color Scheme (${COLOR_SCHEMES[colorSchemeIndex].name})`} onClick={cycleColorScheme}></div>
+                <div className="fnbutton" id="skinmode" title={`Cycle Skin (${theme.toUpperCase()})`} onClick={cycleSkin}></div>
               </div>
 
               {/* Corner metal with resizer */}
@@ -636,7 +636,7 @@ function MediaPlayerClassic({
               </div>
 
               {/* Main content area */}
-              <wmpcontent className={playlistHidden ? 'playlisthidden' : ''}>
+              <div className={`wmpcontent ${playlistHidden ? 'playlisthidden' : ''}`}>
                 {/* Playback container with visualizer */}
                 <div id="playbackcontainer">
                   <span id="artistname"></span>
@@ -655,19 +655,19 @@ function MediaPlayerClassic({
                   ></video>
 
                   <div id="viscontrols">
-                    <fnbutton id="visgroups" title="Cycle Visualization Group (Not Implemented)">
-                      <buttonbody></buttonbody>
-                    </fnbutton>
-                    <fnbutton id="prevvis" title="Previous Visualization" onClick={() => cycleVis(true)}>
-                      <buttonbody></buttonbody>
-                    </fnbutton>
-                    <fnbutton id="nextvis" title="Next Visualization" onClick={() => cycleVis(false)}>
-                      <buttonbody></buttonbody>
-                    </fnbutton>
+                    <div className="fnbutton" id="visgroups" title="Cycle Visualization Group (Not Implemented)">
+                      <div className="buttonbody"></div>
+                    </div>
+                    <div className="fnbutton" id="prevvis" title="Previous Visualization" onClick={() => cycleVis(true)}>
+                      <div className="buttonbody"></div>
+                    </div>
+                    <div className="fnbutton" id="nextvis" title="Next Visualization" onClick={() => cycleVis(false)}>
+                      <div className="buttonbody"></div>
+                    </div>
                     <span id="visName">{VISUALIZERS[selectedVis]}</span>
-                    <fnbutton id="fullscreen" title="Toggle Fullscreen Visualization/Video">
-                      <buttonbody></buttonbody>
-                    </fnbutton>
+                    <div className="fnbutton" id="fullscreen" title="Toggle Fullscreen Visualization/Video">
+                      <div className="buttonbody"></div>
+                    </div>
                   </div>
                 </div>
 
@@ -691,10 +691,10 @@ function MediaPlayerClassic({
                 <div id="statusbar">
                   <span id="info">{statusText}</span>
                 </div>
-              </wmpcontent>
+              </div>
 
               {/* Playback controls */}
-              <playbackcontrols>
+              <div className="playbackcontrols">
                 <div id="rewind" title="Rewind (Previous Track)" onClick={prevTrack}></div>
 
                 <div id="seekbar" onClick={handleSeek}>
@@ -705,53 +705,53 @@ function MediaPlayerClassic({
 
                 <div id="ffwd" title="Fast Forward (Next Track)" onClick={nextTrack}></div>
 
-                <fnbutton
+                <div
+                  className={`fnbutton ${isPlaying ? 'playing' : ''}`}
                   id="playpause"
                   title="Play/Pause"
-                  className={isPlaying ? 'playing' : ''}
                   onClick={togglePlay}
                 >
-                  <buttonbody></buttonbody>
-                </fnbutton>
+                  <div className="buttonbody"></div>
+                </div>
 
-                <fnbutton id="stop" title="Stop" onClick={stop}>
-                  <buttonbody></buttonbody>
-                </fnbutton>
+                <div className="fnbutton" id="stop" title="Stop" onClick={stop}>
+                  <div className="buttonbody"></div>
+                </div>
 
-                <fnbutton id="prev" title="Previous Track" onClick={prevTrack}>
-                  <buttonbody></buttonbody>
-                </fnbutton>
+                <div className="fnbutton" id="prev" title="Previous Track" onClick={prevTrack}>
+                  <div className="buttonbody"></div>
+                </div>
 
-                <fnbutton id="next" title="Next Track" onClick={nextTrack}>
-                  <buttonbody></buttonbody>
-                </fnbutton>
+                <div className="fnbutton" id="next" title="Next Track" onClick={nextTrack}>
+                  <div className="buttonbody"></div>
+                </div>
 
-                <fnbutton
+                <div
+                  className={`fnbutton ${isMuted ? 'active' : ''}`}
                   id="mute"
                   title="Mute/Unmute"
-                  className={isMuted ? 'active' : ''}
                   onClick={toggleMute}
                 >
-                  <buttonbody></buttonbody>
-                </fnbutton>
+                  <div className="buttonbody"></div>
+                </div>
 
                 <div id="volbar" onClick={handleVolume}>
                   <div id="volbg"></div>
                   <div id="volfill" style={{ width: `${volume * 100}%` }}></div>
                   <div id="volpointer" style={{ left: `${volume * 100}%` }}></div>
                 </div>
-              </playbackcontrols>
+              </div>
 
               {/* Progress/time display */}
               <div id="progress">{formatTime(currentTime)}</div>
-            </wmpcolorifier>
-          </wmpmainframe>
+            </div>
+          </div>
 
           {/* WMP9 brand logo */}
           <div id="wmp9brand"><img src="/ui/wmp/xplogo_small.png" alt="" /></div>
-        </appcontentholder>
-      </appcontents>
-    </app>
+        </div>
+      </div>
+    </div>
   );
 }
 
