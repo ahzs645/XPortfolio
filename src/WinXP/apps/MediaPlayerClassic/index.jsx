@@ -409,16 +409,6 @@ function MediaPlayerClassic({
     }
   }, [fileData, fileName, fileUrl]);
 
-  // Load track by index
-  const loadTrack = useCallback((index) => {
-    if (playlist[index]) {
-      setCurrentTrackIndex(index);
-      if (playlist[index].url) {
-        loadTrackUrl(playlist[index].url, playlist[index].name);
-      }
-    }
-  }, [playlist, loadTrackUrl]);
-
   // Load track by URL
   const loadTrackUrl = useCallback(async (url, name) => {
     if (!audioRef.current) return;
@@ -443,6 +433,16 @@ function MediaPlayerClassic({
       setStatusText(`Ready: ${name}`);
     };
   }, []);
+
+  // Load track by index
+  const loadTrack = useCallback((index) => {
+    if (playlist[index]) {
+      setCurrentTrackIndex(index);
+      if (playlist[index].url) {
+        loadTrackUrl(playlist[index].url, playlist[index].name);
+      }
+    }
+  }, [playlist, loadTrackUrl]);
 
   // Playback controls
   const play = useCallback(async () => {
@@ -644,7 +644,7 @@ function MediaPlayerClassic({
               <div className="wmpshapeholder" id="topright">
                 <div className="wmpshape"></div>
                 <select className="hasicons" id="playlistselector" title="Current Playlist">
-                  <option id="wmp-currentplaylist-option"><img src="/ui/wmp/sprite_skinmode.png" alt="" />Current Playlist</option>
+                  <option id="wmp-currentplaylist-option" value="current">Current Playlist</option>
                 </select>
                 <div id="windowcontrols">
                   <div id="minimize" title="Minimize" onClick={onMinimize}>_</div>
