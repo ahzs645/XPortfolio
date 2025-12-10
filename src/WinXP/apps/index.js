@@ -48,6 +48,7 @@ import MediaPlayerClassic from './MediaPlayerClassic';
 import BackupWizard from './BackupWizard';
 import TransferWizard from './TransferWizard';
 import MSNMessenger from './MSNMessenger';
+import FlashPlayer from './FlashPlayer';
 // ControlPanel is now integrated into MyComputer as a navigable view
 
 // XP Icons paths
@@ -74,6 +75,7 @@ const XP_ICONS = {
   adobeReader: '/icons/pdf/acroaum_grp107_lang1033.ico',
   backupWizard: '/icons/xp/tray/backup.png',
   transferWizard: '/icons/xp/tray/migrate.png',
+  flashPlayer: '/icons/flash/flash_player.png',
 };
 
 // App categories for organization
@@ -114,6 +116,7 @@ export const appCategoryMap = {
   'Winamp': APP_CATEGORIES.MEDIA,
   'Sound Recorder': APP_CATEGORIES.MEDIA,
   'Image Viewer': APP_CATEGORIES.MEDIA,
+  'Adobe Flash Player': APP_CATEGORIES.MEDIA,
 
   // Internet
   'Internet Explorer': APP_CATEGORIES.INTERNET,
@@ -356,6 +359,11 @@ export const desktopIconCatalog = {
     title: 'Transfer Wizard',
     component: TransferWizard,
   },
+  flashPlayer: {
+    icon: XP_ICONS.flashPlayer,
+    title: 'Adobe Flash Player',
+    component: FlashPlayer,
+  },
 };
 
 // Load saved icon positions from localStorage
@@ -418,6 +426,7 @@ const CATALOG_TO_APP_KEY = {
   taskManager: 'Task Manager',
   backupWizard: 'Backup Wizard',
   transferWizard: 'Transfer Wizard',
+  flashPlayer: 'Adobe Flash Player',
 };
 
 // Generate desktop icon state from program list
@@ -1532,6 +1541,26 @@ export const appSettings = {
     maximized: false,
     multiInstance: false,
   },
+  'Adobe Flash Player': {
+    header: {
+      icon: XP_ICONS.flashPlayer,
+      title: 'Adobe Flash Player',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: FlashPlayer,
+    defaultSize: {
+      width: 800,
+      height: 600,
+    },
+    defaultOffset: {
+      x: 100,
+      y: 50,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
+  },
   // Control Panel is now integrated into MyComputer as a navigable view
   // Access via My Computer sidebar > Control Panel
 };
@@ -1583,4 +1612,5 @@ export {
   OpenFileDialog,
   BackupWizard,
   TransferWizard,
+  FlashPlayer,
 };

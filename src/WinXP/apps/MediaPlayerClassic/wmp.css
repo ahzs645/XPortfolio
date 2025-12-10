@@ -14,6 +14,7 @@ app.wmp {
   top: unset !important;
 }
 
+
 app.wmp appcontents {
   display: block;
   width: 100% !important;
@@ -141,10 +142,14 @@ app.wmp.framehidden {
   visibility: visible !important;
 }
 
-/* In frameless mode, hide the appcontentholder background */
+/* In frameless mode, hide the appcontentholder background and XP logo */
 app.wmp.framehidden appcontentholder {
   background: transparent !important;
   box-shadow: none !important;
+}
+
+app.wmp.framehidden appcontentholder:after {
+  display: none !important;
 }
 
 app.wmp.framehidden wmpmainframe {

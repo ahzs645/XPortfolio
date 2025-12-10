@@ -16,6 +16,34 @@ const NAV_ITEMS = [
 // Visualization names
 const VISUALIZERS = ['Bars and waves: Ocean Mist', 'Bars and waves: Fire Storm', 'Scope: Lightning', 'Album Art'];
 
+// Color schemes for WMP using hue-rotate filter (from original quenq code)
+// Original arrays: t=[0,86.5,115,143,...] r=[0,1,1,1,.5,1.8,...]
+const COLOR_SCHEMES = [
+  { name: 'Default', hueRotate: 0, saturate: 0 },      // No filter
+  { name: 'Green', hueRotate: 86.5, saturate: 1 },
+  { name: 'Cyan', hueRotate: 115, saturate: 1 },
+  { name: 'Teal', hueRotate: 143, saturate: 1 },
+  { name: 'Teal Light', hueRotate: 143, saturate: 0.5 },
+  { name: 'Teal Vivid', hueRotate: 164, saturate: 1.8 },
+  { name: 'Aqua', hueRotate: 172, saturate: 1 },
+  { name: 'Aqua Muted', hueRotate: 172, saturate: 0.3 },
+  { name: 'Red', hueRotate: -143, saturate: 1 },
+  { name: 'Red Muted', hueRotate: -143, saturate: 0.48 },
+  { name: 'Orange', hueRotate: -115, saturate: 1 },
+  { name: 'Orange Muted', hueRotate: -115, saturate: 0.51 },
+  { name: 'Gold', hueRotate: -57, saturate: 1 },
+  { name: 'Gold Muted', hueRotate: -57, saturate: 0.51 },
+  { name: 'Yellow', hueRotate: -28, saturate: 1 },
+  { name: 'Yellow Muted', hueRotate: -28, saturate: 0.51 },
+  { name: 'Lime', hueRotate: 0, saturate: 0.51 },
+  { name: 'Lime Muted', hueRotate: 0, saturate: 0.3 },
+  { name: 'Purple', hueRotate: 28, saturate: 1 },
+  { name: 'Purple Muted', hueRotate: 28, saturate: 0.46 },
+  { name: 'Violet', hueRotate: 57, saturate: 1 },
+  { name: 'Violet Muted', hueRotate: 57, saturate: 0.48 },
+  { name: 'Pink', hueRotate: 270, saturate: 1.5 },
+];
+
 function MediaPlayerClassic({
   onClose,
   onMinimize,
@@ -29,6 +57,7 @@ function MediaPlayerClassic({
 }) {
   // State
   const [theme, setTheme] = useState('wmp9'); // 'wmp8', 'wmp9', or 'wmp10'
+  const [colorSchemeIndex, setColorSchemeIndex] = useState(0);
   const [frameless, setFrameless] = useState(true);
   const [navCollapsed, setNavCollapsed] = useState(false);
   const [playlistHidden, setPlaylistHidden] = useState(false);
@@ -52,6 +81,7 @@ function MediaPlayerClassic({
   const analyserRef = useRef(null);
   const sourceRef = useRef(null);
   const animationRef = useRef(null);
+  const appRef = useRef(null);
 
   // Update window header when frameless changes
   useEffect(() => {
@@ -84,6 +114,27 @@ function MediaPlayerClassic({
       // Don't remove on cleanup - other instances might use it
     };
   }, [theme]);
+
+  // Apply color scheme via hue-rotate filter (like the original)
+  useEffect(() => {
+    if (appRef.current) {
+      const scheme = COLOR_SCHEMES[colorSchemeIndex];
+      const colorifier = appRef.current.querySelector('wmpcolorifier');
+      if (colorifier) {
+        if (scheme.saturate === 0) {
+          // No filter for default
+          colorifier.style.filter = '';
+        } else {
+          colorifier.style.filter = `hue-rotate(${scheme.hueRotate}deg) saturate(${scheme.saturate})`;
+        }
+      }
+    }
+  }, [colorSchemeIndex]);
+
+  // Cycle color scheme
+  const cycleColorScheme = useCallback(() => {
+    setColorSchemeIndex(prev => (prev + 1) % COLOR_SCHEMES.length);
+  }, []);
 
   // Initialize audio element
   useEffect(() => {
@@ -403,7 +454,7 @@ function MediaPlayerClassic({
   ].filter(Boolean).join(' ');
 
   return (
-    <app className={appClasses}>
+    <app className={appClasses} ref={appRef}>
       <appcontents>
         <appcontentholder>
           <appnavigation>
@@ -541,7 +592,7 @@ function MediaPlayerClassic({
               {/* Lower metal bar */}
               <div id="lowermetal">
                 <div className="metaledge left"></div>
-                <fnbutton id="colorswitch" title="Cycle Color Scheme"></fnbutton>
+                <fnbutton id="colorswitch" title={`Cycle Color Scheme (${COLOR_SCHEMES[colorSchemeIndex].name})`} onClick={cycleColorScheme}></fnbutton>
                 <fnbutton id="skinmode" title="Switch to Skin Mode (Mini Player)" onClick={toggleFrameless}></fnbutton>
               </div>
 
