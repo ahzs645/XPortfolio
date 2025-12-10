@@ -110,6 +110,25 @@ function MediaPlayerClassic({
 
     link.href = `/ui/wmp/${theme}-fixed.css`;
 
+    // Inject override styles AFTER the theme CSS to ensure our button sprite fixes take effect
+    const styleId = 'wmp-button-overrides';
+    let styleEl = document.getElementById(styleId);
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = styleId;
+      styleEl.textContent = `
+        /* Override wmpcolorifier * position:absolute for button pseudo-elements */
+        app.wmp wmpmainframe playbackcontrols fnbutton buttonbody {
+          position: relative !important;
+        }
+        app.wmp wmpmainframe playbackcontrols fnbutton buttonbody::after,
+        app.wmp wmpmainframe playbackcontrols fnbutton buttonbody::before {
+          position: relative !important;
+        }
+      `;
+      document.head.appendChild(styleEl);
+    }
+
     return () => {
       // Don't remove on cleanup - other instances might use it
     };

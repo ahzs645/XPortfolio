@@ -232,13 +232,17 @@ app.wmp wmpmainframe playbackcontrols fnbutton buttonbody {
   position: relative !important;
 }
 
-/* Force button sprites to show - these must override the theme CSS which loads after this file */
-/* Using absolute paths from public folder */
+/* Force button sprites to show - override the wmpcolorifier * position:absolute rule */
+/* The buttonbody needs to be a positioned container, and ::after needs proper positioning */
+app.wmp wmpmainframe playbackcontrols fnbutton buttonbody::after,
+app.wmp wmpmainframe playbackcontrols fnbutton buttonbody::before {
+  position: relative !important;
+}
+
 app.wmp wmpmainframe playbackcontrols fnbutton#playpause buttonbody::after {
   width: 10px !important;
   height: 10px !important;
   content: " " !important;
-  position: relative !important;
   display: block !important;
   background-image: url("/ui/wmp/wmp9_sprite_play.png") !important;
   background-repeat: no-repeat !important;
@@ -255,7 +259,6 @@ app.wmp wmpmainframe playbackcontrols fnbutton#stop buttonbody::after {
   width: 8px !important;
   height: 8px !important;
   content: " " !important;
-  position: relative !important;
   display: block !important;
   background-image: url("/ui/wmp/wmp9_sprite_stop.png") !important;
   background-repeat: no-repeat !important;
@@ -267,7 +270,6 @@ app.wmp wmpmainframe playbackcontrols fnbutton#prev buttonbody::after {
   width: 12px !important;
   height: 10px !important;
   content: " " !important;
-  position: relative !important;
   display: block !important;
   background-image: url("/ui/wmp/wmp9_sprite_trackback.png") !important;
   background-repeat: no-repeat !important;
@@ -279,7 +281,6 @@ app.wmp wmpmainframe playbackcontrols fnbutton#next buttonbody::after {
   width: 12px !important;
   height: 10px !important;
   content: " " !important;
-  position: relative !important;
   display: block !important;
   background-image: url("/ui/wmp/wmp9_sprite_tracknext.png") !important;
   background-repeat: no-repeat !important;
@@ -291,7 +292,6 @@ app.wmp wmpmainframe playbackcontrols fnbutton#mute buttonbody::after {
   width: 10px !important;
   height: 10px !important;
   content: " " !important;
-  position: relative !important;
   display: block !important;
   background-image: url("/ui/wmp/wmp9_sprite_mute.png") !important;
   background-repeat: no-repeat !important;
