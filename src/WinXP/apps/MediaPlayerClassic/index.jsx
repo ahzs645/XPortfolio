@@ -14,8 +14,8 @@ const NAV_ITEMS = [
   { id: 'premium', label: 'Premium Services', expands: true },
 ];
 
-// Visualization names
-const VISUALIZERS = ['Bars and waves: Ocean Mist', 'Bars and waves: Fire Storm', 'Scope: Lightning', 'Album Art'];
+// Visualization names (matching original quenq)
+const VISUALIZERS = ['Bars', 'Scope', 'Fire Storm', 'Album Art'];
 
 // Audio file extensions
 const AUDIO_EXTENSIONS = ['.mp3', '.wav', '.ogg', '.m4a', '.flac', '.aac'];
@@ -233,72 +233,123 @@ function MediaPlayerClassic({
 
     let peaks = [];
 
+    // Get CSS variable colors
+    const getVisualizerColors = () => {
+      const computedStyle = getComputedStyle(document.documentElement);
+      return {
+        bars: computedStyle.getPropertyValue('--visualizerBars').trim() || '#89a4ff',
+        peaks: computedStyle.getPropertyValue('--visualizerPeaks').trim() || '#505f94',
+      };
+    };
+
     const render = () => {
       animationRef.current = requestAnimationFrame(render);
 
-      if (!analyserRef.current || VISUALIZERS[selectedVis] === 'Album Art') {
+      const visName = VISUALIZERS[selectedVis];
+
+      // Album Art mode - don't render bars
+      if (visName === 'Album Art') {
+        return;
+      }
+
+      if (!analyserRef.current) {
         return;
       }
 
       const bufferLength = analyserRef.current.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
-      analyserRef.current.getByteFrequencyData(dataArray);
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Visualization parameters based on type (matching original quenq)
+      let barWidth, barSpacing, maxBars, fftSize, peakDecay;
+      let barColor, peakColor;
 
-      if (VISUALIZERS[selectedVis].includes('Bars')) {
-        // Bars visualization
-        const barCount = 24;
-        const barWidth = Math.floor(canvas.width / barCount) - 2;
-        const barSpacing = 2;
+      if (visName === 'Bars') {
+        // Bars - blue theme from CSS vars
+        barWidth = 5;
+        barSpacing = 1;
+        maxBars = 48;
+        fftSize = 128;
+        peakDecay = 1;
+        const colors = getVisualizerColors();
+        barColor = colors.bars;
+        peakColor = colors.peaks;
+        analyserRef.current.getByteFrequencyData(dataArray);
+      } else if (visName === 'Scope') {
+        // Scope - blue waveform
+        barWidth = 1;
+        barSpacing = 0;
+        maxBars = 1024;
+        fftSize = 4096;
+        peakDecay = 2;
+        barColor = '#00f';
+        peakColor = '#eee';
+        analyserRef.current.getByteFrequencyData(dataArray);
+      } else if (visName === 'Fire Storm') {
+        // Fire Storm - red/orange theme
+        barWidth = 1;
+        barSpacing = 0;
+        maxBars = 1024;
+        fftSize = 4096;
+        peakDecay = 2;
+        barColor = '#f80';
+        peakColor = '#f00';
+        analyserRef.current.getByteFrequencyData(dataArray);
+      } else {
+        return;
+      }
 
-        if (peaks.length !== barCount) {
-          peaks = new Array(barCount).fill(0);
+      // Set FFT size
+      analyserRef.current.fftSize = fftSize;
+
+      // Clear with black for Scope/Fire Storm, transparent for Bars
+      if (visName === 'Bars') {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      } else {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      // Calculate bar count to fill the entire width
+      let barCount = Math.floor(canvas.width / (barWidth + barSpacing));
+      if (barCount > maxBars) barCount = maxBars;
+
+      // Recalculate bar width to fill entire canvas width
+      const totalSpacing = (barCount - 1) * barSpacing;
+      const adjustedBarWidth = Math.floor((canvas.width - totalSpacing) / barCount);
+
+      // Initialize peaks array
+      if (peaks.length !== barCount) {
+        peaks = new Array(barCount).fill(0);
+      }
+
+      // Draw bars - starting from edge
+      for (let i = 0; i < barCount; i++) {
+        const x = i * (adjustedBarWidth + barSpacing);
+
+        // Peak indicator (drawn first so bars cover it)
+        if (visName !== 'Bars') {
+          ctx.fillRect(x, Math.floor(canvas.height + peaks[i]), adjustedBarWidth, 1);
         }
 
-        for (let i = 0; i < barCount; i++) {
-          const dataIndex = Math.floor(i * bufferLength / barCount);
-          const value = dataArray[dataIndex];
-          const barHeight = (value / 255) * canvas.height;
+        // Calculate bar height from frequency data
+        const barHeight = Math.floor(-dataArray[i] / 2 * (canvas.height / 200));
 
-          if (barHeight > peaks[i]) {
-            peaks[i] = barHeight;
-          } else {
-            peaks[i] = Math.max(0, peaks[i] - 2);
-          }
-
-          const x = i * (barWidth + barSpacing);
-
-          ctx.fillStyle = '#00f900';
-          ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-
-          ctx.fillStyle = '#e6e9e8';
-          ctx.fillRect(x, canvas.height - peaks[i] - 2, barWidth, 2);
-        }
-      } else if (VISUALIZERS[selectedVis].includes('Scope')) {
-        analyserRef.current.getByteTimeDomainData(dataArray);
-
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = '#00f900';
-        ctx.beginPath();
-
-        const sliceWidth = canvas.width / bufferLength;
-        let x = 0;
-
-        for (let i = 0; i < bufferLength; i++) {
-          const v = dataArray[i] / 128.0;
-          const y = (v * canvas.height) / 2;
-
-          if (i === 0) {
-            ctx.moveTo(x, y);
-          } else {
-            ctx.lineTo(x, y);
-          }
-
-          x += sliceWidth;
+        // Update peaks
+        if (!peaks[i] || peaks[i] > barHeight) {
+          peaks[i] = barHeight - 2;
+        } else if (peaks[i] >= -1) {
+          peaks[i] = -1;
+        } else {
+          peaks[i] = peaks[i] + peakDecay;
         }
 
-        ctx.stroke();
+        // Draw bar
+        ctx.fillStyle = barColor;
+        ctx.fillRect(x, canvas.height, adjustedBarWidth, barHeight);
+
+        // Draw peak
+        ctx.fillStyle = peakColor;
+        ctx.fillRect(x, Math.floor(canvas.height + peaks[i]), adjustedBarWidth, 1);
       }
     };
 
@@ -333,11 +384,8 @@ function MediaPlayerClassic({
         url: file.url || '',
       }));
 
-    // Build playlist with Windows Welcome Music first, then audio files
-    const defaultPlaylist = [
-      { name: 'Windows Welcome Music', url: '' },
-      ...audioFiles,
-    ];
+    // Build playlist from audio files in My Music folder
+    const defaultPlaylist = audioFiles;
 
     setPlaylist(defaultPlaylist);
     setDefaultPlaylistLoaded(true);
@@ -369,7 +417,7 @@ function MediaPlayerClassic({
         loadTrackUrl(playlist[index].url, playlist[index].name);
       }
     }
-  }, [playlist]);
+  }, [playlist, loadTrackUrl]);
 
   // Load track by URL
   const loadTrackUrl = useCallback(async (url, name) => {
@@ -596,7 +644,7 @@ function MediaPlayerClassic({
               <div className="wmpshapeholder" id="topright">
                 <div className="wmpshape"></div>
                 <select className="hasicons" id="playlistselector" title="Current Playlist">
-                  <option id="wmp-currentplaylist-option">Current Playlist</option>
+                  <option id="wmp-currentplaylist-option"><img src="/ui/wmp/sprite_skinmode.png" alt="" />Current Playlist</option>
                 </select>
                 <div id="windowcontrols">
                   <div id="minimize" title="Minimize" onClick={onMinimize}>_</div>

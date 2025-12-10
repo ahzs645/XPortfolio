@@ -361,7 +361,7 @@
     box-sizing: content-box;
     padding: 2px 12px 6px 2px;
     min-height: 30px;
-    height: 30px;
+    height: auto;
     position: relative;
     border: 1px solid transparent;
     font-weight: 600;
@@ -419,7 +419,7 @@
 }
 
 .wmp .wmpmainframe #nav #brand {
-    display: block;
+    display: none;
     margin-top: auto;
     /* Push to bottom of flex container if needed, though usually it's last item */
     padding-bottom: 5px;
