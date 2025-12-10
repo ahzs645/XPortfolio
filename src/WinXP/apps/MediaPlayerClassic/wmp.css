@@ -60,61 +60,61 @@
   padding: 0;
 }
 
-.wmp .appnavigation ul.appmenus > li {
+.wmp .appnavigation ul.appmenus>li {
   padding: 2px 8px;
   cursor: default;
   position: relative;
 }
 
-.wmp .appnavigation ul.appmenus > li:hover {
+.wmp .appnavigation ul.appmenus>li:hover {
   background: #316ac5;
   color: white;
 }
 
-.wmp .appnavigation ul.appmenus > li ul.submenu {
+.wmp .appnavigation ul.appmenus>li ul.submenu {
   display: none;
   position: absolute;
   top: 100%;
   left: 0;
   background: #fff;
   border: 1px solid #808080;
-  box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
   min-width: 180px;
   z-index: 100;
   padding: 2px 0;
 }
 
-.wmp .appnavigation ul.appmenus > li:hover ul.submenu {
+.wmp .appnavigation ul.appmenus>li:hover ul.submenu {
   display: block;
 }
 
-.wmp .appnavigation ul.appmenus > li ul.submenu li {
+.wmp .appnavigation ul.appmenus>li ul.submenu li {
   padding: 4px 20px;
   cursor: default;
   color: #000;
 }
 
-.wmp .appnavigation ul.appmenus > li ul.submenu li:hover {
+.wmp .appnavigation ul.appmenus>li ul.submenu li:hover {
   background: #316ac5;
   color: white;
 }
 
-.wmp .appnavigation ul.appmenus > li ul.submenu li.divider {
+.wmp .appnavigation ul.appmenus>li ul.submenu li.divider {
   height: 1px;
   background: #c0c0c0;
   margin: 2px 4px;
   padding: 0;
 }
 
-.wmp .appnavigation ul.appmenus > li ul.submenu li.divider:hover {
+.wmp .appnavigation ul.appmenus>li ul.submenu li.divider:hover {
   background: #c0c0c0;
 }
 
-.wmp .appnavigation ul.appmenus > li ul.submenu li.selected {
+.wmp .appnavigation ul.appmenus>li ul.submenu li.selected {
   font-weight: bold;
 }
 
-.wmp .appnavigation ul.appmenus > li ul.submenu li.selected::before {
+.wmp .appnavigation ul.appmenus>li ul.submenu li.selected::before {
   content: "✓ ";
 }
 
@@ -299,4 +299,12 @@
   background-repeat: no-repeat !important;
   filter: drop-shadow(0 0 1px #fff) !important;
   margin: 5px !important;
+}
+
+/* Hide theme icons on the button container since we use buttonbody for these */
+.wmp .wmpmainframe .playbackcontrols .fnbutton#prev::after,
+.wmp .wmpmainframe .playbackcontrols .fnbutton#next::after,
+.wmp .wmpmainframe .playbackcontrols .fnbutton#mute::after {
+  content: none !important;
+  display: none !important;
 }
