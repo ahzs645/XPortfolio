@@ -340,6 +340,23 @@
     border-color: #3f5b9f
 }
 
+/* Add missing styling for expander arrows */
+.wmp .wmpmainframe #nav .navitem .expander {
+    position: absolute;
+    right: 4px;
+    top: 11px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 3px 0 3px 4px;
+    border-color: transparent transparent transparent #212741;
+    opacity: 0.6;
+}
+
+.wmp .wmpmainframe #nav .navitem:hover .expander {
+    opacity: 1;
+}
+
 .wmp .wmpmainframe #nav .navitem {
     padding: 2px 12px 6px 2px;
     min-height: 30px;
@@ -401,7 +418,11 @@
 }
 
 .wmp .wmpmainframe #nav #brand {
-    display: none
+    display: block;
+    margin-top: auto;
+    /* Push to bottom of flex container if needed, though usually it's last item */
+    padding-bottom: 5px;
+    height: 16px;
 }
 
 .wmp.collapsed .appcontentholder:after {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useFileSystem, SYSTEM_IDS } from '../../../contexts/FileSystemContext';
 import './wmp.css';
 
 // Navigation items matching quenq
@@ -15,6 +16,9 @@ const NAV_ITEMS = [
 
 // Visualization names
 const VISUALIZERS = ['Bars and waves: Ocean Mist', 'Bars and waves: Fire Storm', 'Scope: Lightning', 'Album Art'];
+
+// Audio file extensions
+const AUDIO_EXTENSIONS = ['.mp3', '.wav', '.ogg', '.m4a', '.flac', '.aac'];
 
 // Color schemes for WMP using hue-rotate filter (from original quenq code)
 // Original arrays: t=[0,86.5,115,143,...] r=[0,1,1,1,.5,1.8,...]
@@ -56,6 +60,9 @@ function MediaPlayerClassic({
   isMaximized,
   dragRef, // Passed from Window component when in frameless mode
 }) {
+  // Get file system context to load music from My Music folder
+  const { fileSystem } = useFileSystem();
+
   // State
   const [theme, setTheme] = useState('wmp9'); // 'wmp8', 'wmp9', or 'wmp10'
   const [colorSchemeIndex, setColorSchemeIndex] = useState(0);
@@ -69,11 +76,10 @@ function MediaPlayerClassic({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
-  const [playlist, setPlaylist] = useState([
-    { name: 'Windows Welcome Music', url: '' },
-  ]);
+  const [playlist, setPlaylist] = useState([]);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [statusText, setStatusText] = useState('Ready');
+  const [defaultPlaylistLoaded, setDefaultPlaylistLoaded] = useState(false);
 
   // Refs
   const audioRef = useRef(null);
@@ -305,6 +311,37 @@ function MediaPlayerClassic({
     };
   }, [selectedVis]);
 
+  // Load default playlist from My Music folder when no file is passed
+  useEffect(() => {
+    // Only load default playlist if no file was passed and we haven't loaded it yet
+    if (fileUrl || fileData || defaultPlaylistLoaded || !fileSystem) return;
+
+    const myMusicFolder = fileSystem[SYSTEM_IDS.MY_MUSIC];
+    if (!myMusicFolder || !myMusicFolder.children) return;
+
+    // Get all audio files from My Music folder
+    const audioFiles = myMusicFolder.children
+      .map(childId => fileSystem[childId])
+      .filter(file => {
+        if (!file || file.type !== 'file') return false;
+        const ext = (file.ext || '').toLowerCase();
+        return AUDIO_EXTENSIONS.includes(ext);
+      })
+      .map(file => ({
+        name: file.basename || file.name.replace(/\.[^/.]+$/, ''),
+        url: file.url || '',
+      }));
+
+    // Build playlist with Windows Welcome Music first, then audio files
+    const defaultPlaylist = [
+      { name: 'Windows Welcome Music', url: '' },
+      ...audioFiles,
+    ];
+
+    setPlaylist(defaultPlaylist);
+    setDefaultPlaylistLoaded(true);
+  }, [fileSystem, fileUrl, fileData, defaultPlaylistLoaded]);
+
   // Handle file data or URL passed to component
   useEffect(() => {
     if (fileUrl && fileName) {
@@ -312,12 +349,14 @@ function MediaPlayerClassic({
       setPlaylist([{ name: fileName, url: fileUrl }]);
       setCurrentTrackIndex(0);
       loadTrackUrl(fileUrl, fileName);
+      setDefaultPlaylistLoaded(true); // Prevent default playlist from loading
     } else if (fileData && fileName) {
       const blob = new Blob([fileData]);
       const url = URL.createObjectURL(blob);
       setPlaylist([{ name: fileName, url }]);
       setCurrentTrackIndex(0);
       loadTrackUrl(url, fileName);
+      setDefaultPlaylistLoaded(true); // Prevent default playlist from loading
     }
   }, [fileData, fileName, fileUrl]);
 
