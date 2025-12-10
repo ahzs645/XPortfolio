@@ -151,7 +151,9 @@ function Footer({
   }
 
   function _onClickMenuItem(name, injectProps = {}) {
-    onClickMenuItem(name, injectProps);
+    if (name) {
+      onClickMenuItem(name, injectProps);
+    }
     setMenuOn(false);
   }
 

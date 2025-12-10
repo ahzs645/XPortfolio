@@ -230,81 +230,12 @@
 }
 
 /* Playback button buttonbody positioning - override the theme's blanket position:absolute */
-.wmp .wmpmainframe .playbackcontrols .fnbutton .buttonbody {
-  position: relative !important;
-}
+/* REMOVED: .wmp .wmpmainframe .playbackcontrols .fnbutton .buttonbody { position: relative !important } */
+/* We want it to be absolute so it doesn't displace the ::after pseudo-element icons on the parent */
 
 /* Force button sprites to show - override the wmpcolorifier * position:absolute rule */
 /* The buttonbody needs to be a positioned container, and ::after needs proper positioning */
 .wmp .wmpmainframe .playbackcontrols .fnbutton .buttonbody::after,
 .wmp .wmpmainframe .playbackcontrols .fnbutton .buttonbody::before {
   position: relative !important;
-}
-
-.wmp .wmpmainframe .playbackcontrols .fnbutton#playpause .buttonbody::after {
-  width: 10px !important;
-  height: 10px !important;
-  content: " " !important;
-  display: block !important;
-  background-image: url("/ui/wmp/wmp9_sprite_play.png") !important;
-  background-repeat: no-repeat !important;
-  filter: drop-shadow(0 0 1px #fff) !important;
-  margin: 10px 11px !important;
-}
-
-.wmp .wmpmainframe .playbackcontrols .fnbutton#playpause.playing .buttonbody::after {
-  background-image: url("/ui/wmp/wmp9_sprite_pause.png") !important;
-  margin: 10px !important;
-}
-
-.wmp .wmpmainframe .playbackcontrols .fnbutton#stop .buttonbody::after {
-  width: 8px !important;
-  height: 8px !important;
-  content: " " !important;
-  display: block !important;
-  background-image: url("/ui/wmp/wmp9_sprite_stop.png") !important;
-  background-repeat: no-repeat !important;
-  filter: drop-shadow(0 0 1px #fff) !important;
-  margin: 6px !important;
-}
-
-.wmp .wmpmainframe .playbackcontrols .fnbutton#prev .buttonbody::after {
-  width: 12px !important;
-  height: 10px !important;
-  content: " " !important;
-  display: block !important;
-  background-image: url("/ui/wmp/wmp9_sprite_trackback.png") !important;
-  background-repeat: no-repeat !important;
-  filter: drop-shadow(0 0 1px #fff) !important;
-  margin: 5px !important;
-}
-
-.wmp .wmpmainframe .playbackcontrols .fnbutton#next .buttonbody::after {
-  width: 12px !important;
-  height: 10px !important;
-  content: " " !important;
-  display: block !important;
-  background-image: url("/ui/wmp/wmp9_sprite_tracknext.png") !important;
-  background-repeat: no-repeat !important;
-  filter: drop-shadow(0 0 1px #fff) !important;
-  margin: 5px !important;
-}
-
-.wmp .wmpmainframe .playbackcontrols .fnbutton#mute .buttonbody::after {
-  width: 10px !important;
-  height: 10px !important;
-  content: " " !important;
-  display: block !important;
-  background-image: url("/ui/wmp/wmp9_sprite_mute.png") !important;
-  background-repeat: no-repeat !important;
-  filter: drop-shadow(0 0 1px #fff) !important;
-  margin: 5px !important;
-}
-
-/* Hide theme icons on the button container since we use buttonbody for these */
-.wmp .wmpmainframe .playbackcontrols .fnbutton#prev::after,
-.wmp .wmpmainframe .playbackcontrols .fnbutton#next::after,
-.wmp .wmpmainframe .playbackcontrols .fnbutton#mute::after {
-  content: none !important;
-  display: none !important;
 }

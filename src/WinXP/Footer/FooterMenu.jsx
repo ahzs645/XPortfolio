@@ -71,6 +71,8 @@ function FooterMenu({ className, onClick, onLaunchInstalledApp }) {
       if (onLaunchInstalledApp) {
         onLaunchInstalledApp(item.projectId);
       }
+      // Close the start menu after launching
+      onClick(null);
       return;
     }
     if (item.type === 'program' && item.appKey) {
@@ -192,6 +194,8 @@ function FooterMenu({ className, onClick, onLaunchInstalledApp }) {
                     if (onLaunchInstalledApp) {
                       onLaunchInstalledApp(app.id);
                     }
+                    // Close the start menu after launching
+                    onClick(null);
                   }}
                 />
               )}
