@@ -9,13 +9,19 @@ app.wmp {
   font-size: 11px;
   user-select: none;
   overflow: hidden;
+  /* Remove absolute positioning from theme - we're inside a React window */
+  left: unset !important;
+  top: unset !important;
 }
 
 app.wmp appcontents {
   display: block;
-  width: 100%;
-  height: 100%;
+  width: 100% !important;
+  height: 100% !important;
   position: relative;
+  /* Override fixed dimensions from theme */
+  min-width: unset !important;
+  min-height: unset !important;
 }
 
 app.wmp appcontentholder {
@@ -24,6 +30,9 @@ app.wmp appcontentholder {
   display: grid;
   grid-template-rows: min-content auto;
   overflow: hidden;
+  /* Preserve theme styling */
+  background: linear-gradient(to bottom, #afafc1, #e1e1ea);
+  box-shadow: inset 0 25px 0 #f2f2fdee, inset 2px 0 #81828fee, inset 0 -2px #81828faa, inset -2px 0 #848591;
 }
 
 /* Hide menu bar in frameless mode */
@@ -100,13 +109,17 @@ app.wmp appnavigation ul.appmenus > li ul.submenu li.divider:hover {
   background: #c0c0c0;
 }
 
-/* Canvas for visualizer */
+app.wmp appnavigation ul.appmenus > li ul.submenu li.selected {
+  font-weight: bold;
+}
+
+app.wmp appnavigation ul.appmenus > li ul.submenu li.selected::before {
+  content: "✓ ";
+}
+
+/* Canvas for visualizer - let theme CSS handle positioning via #playbackcontainer rules */
 app.wmp #visualizer {
-  position: absolute;
-  width: calc(100% - 6px);
-  height: calc(100% - 70px);
-  left: 3px;
-  top: 46px;
+  /* Theme CSS positions this: width:calc(100% - 8px); height:calc(100% - 65px); left:4px; bottom:20px; */
   image-rendering: pixelated;
 }
 
@@ -123,8 +136,23 @@ app.wmp #ffwd {
 }
 
 /* Override visibility for our frameless implementation */
+/* Theme CSS sets app.wmp.framehidden to visibility:hidden but we're in a React window */
 app.wmp.framehidden {
   visibility: visible !important;
+}
+
+/* In frameless mode, hide the appcontentholder background */
+app.wmp.framehidden appcontentholder {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+app.wmp.framehidden wmpmainframe {
+  visibility: visible !important;
+  /* Remove the drop-shadow filter in frameless mode as per theme */
+  filter: none !important;
+  /* Adjust positioning for frameless mode */
+  top: 0 !important;
 }
 
 /* WMP9 brand positioning */
@@ -139,4 +167,73 @@ app.wmp #playlistselector {
   color: inherit;
   font-size: inherit;
   font-family: inherit;
+}
+
+/* Fix for wmpmainframe taking full height */
+app.wmp wmpmainframe {
+  width: 100% !important;
+  height: calc(100% - 3px) !important;
+}
+
+/* Fix collapsed state width */
+app.wmp.collapsed wmpmainframe {
+  width: calc(100% + 83px) !important;
+}
+
+/* Ensure playbackcontrols is positioned properly */
+app.wmp wmpmainframe playbackcontrols {
+  display: block;
+  position: absolute;
+}
+
+/* Fix seekbar and volume bar interactivity */
+app.wmp wmpmainframe playbackcontrols #seekbar,
+app.wmp wmpmainframe playbackcontrols #volbar {
+  position: absolute;
+}
+
+/* Make sure shape elements display properly */
+app.wmp .shapeshader,
+app.wmp .wmpshapeholder {
+  display: inline-block;
+  position: absolute;
+}
+
+/* Ensure wmpcontent displays as block */
+app.wmp wmpmainframe wmpcontent {
+  display: block;
+}
+
+/* Fix for wmpcolorifier containing all positioned children */
+app.wmp wmpmainframe wmpcolorifier {
+  display: block;
+  position: relative;
+}
+
+/* Note: Theme CSS already handles position:absolute for wmpcolorifier children */
+/* We don't need to override this - removing the blanket * rule that was breaking buttons */
+
+/* Specific elements that need relative positioning */
+app.wmp wmpmainframe wmpcolorifier #nav .navitem {
+  position: relative;
+}
+
+app.wmp wmpmainframe wmpcontent #playlistcontainer ul li {
+  position: relative;
+}
+
+app.wmp wmpmainframe playbackcontrols fnbutton buttonbody {
+  position: relative;
+}
+
+/* Ensure button :after pseudo-elements display properly */
+app.wmp wmpmainframe fnbutton:after,
+app.wmp wmpmainframe fnbutton:before {
+  content: "";
+  display: block;
+}
+
+/* Fix for playback control buttons */
+app.wmp wmpmainframe playbackcontrols fnbutton buttonbody:after {
+  position: relative;
 }

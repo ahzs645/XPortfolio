@@ -192,9 +192,12 @@ const Window = memo(function ({
         <Component
           onClose={_onMouseUpClose}
           onMinimize={_onMouseUpMinimize}
+          onMaximize={_onMouseUpMaximize}
           onResize={onResize}
           isFocus={isFocus}
+          isMaximized={maximized}
           onUpdateHeader={setDynamicHeader}
+          dragRef={currentHeader.invisible ? dragRef : undefined}
           {...injectProps}
         />
       </div>

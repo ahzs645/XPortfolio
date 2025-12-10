@@ -24,10 +24,11 @@ function MediaPlayerClassic({
   fileData,
   fileName,
   onUpdateHeader,
-  isMaximized
+  isMaximized,
+  dragRef, // Passed from Window component when in frameless mode
 }) {
   // State
-  const [theme, setTheme] = useState('wmp8'); // 'wmp8' or 'wmp9'
+  const [theme, setTheme] = useState('wmp9'); // 'wmp8', 'wmp9', or 'wmp10'
   const [frameless, setFrameless] = useState(true);
   const [navCollapsed, setNavCollapsed] = useState(false);
   const [playlistHidden, setPlaylistHidden] = useState(false);
@@ -416,7 +417,13 @@ function MediaPlayerClassic({
                   <li data-action="exit-wmp" onClick={onClose}>Exit</li>
                 </ul>
               </li>
-              <li id="viewmenu" title="Change WMP Appearance" onClick={() => setTheme(t => t === 'wmp8' ? 'wmp9' : 'wmp8')}>Skin</li>
+              <li id="viewmenu" title="Change WMP Appearance">Skin
+                <ul className="submenu">
+                  <li onClick={() => setTheme('wmp8')} className={theme === 'wmp8' ? 'selected' : ''}>Windows Media Player 8</li>
+                  <li onClick={() => setTheme('wmp9')} className={theme === 'wmp9' ? 'selected' : ''}>Windows Media Player 9</li>
+                  <li onClick={() => setTheme('wmp10')} className={theme === 'wmp10' ? 'selected' : ''}>Windows Media Player 10</li>
+                </ul>
+              </li>
               <li title="Not Implemented">Play</li>
               <li title="Not Implemented">Tools</li>
               <li id="helpmenu">Help</li>
@@ -505,8 +512,8 @@ function MediaPlayerClassic({
                 <div id="arrow">{navCollapsed ? '<' : '>'}</div>
               </div>
 
-              {/* Top metal bar */}
-              <div id="topmetal">
+              {/* Top metal bar - draggable when in frameless mode */}
+              <div id="topmetal" ref={frameless ? dragRef : undefined} style={frameless ? { cursor: 'move' } : undefined}>
                 <div className="metaledge left"></div>
                 <fnbutton
                   id="toggleUIFrame"
