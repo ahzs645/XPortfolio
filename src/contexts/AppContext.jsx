@@ -147,6 +147,10 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
       case 'Winamp': {
         const playerKey = programName === 'Winamp' ? 'Winamp' : 'Windows Media Player';
         if (!appSettings[playerKey]) return false;
+        // Support both fileData and fileUrl (for sample music files)
+        const injectProps = fileItem.url
+          ? { fileUrl: fileItem.url, fileName: name }
+          : { fileData: fileData, fileName: name };
         dispatch({
           type: addAppAction,
           payload: {
@@ -155,10 +159,7 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
               ...appSettings[playerKey].header,
               title: `${name} - ${programName}`,
             },
-            injectProps: {
-              fileData: fileData,
-              fileName: name,
-            },
+            injectProps,
           },
         });
         return true;

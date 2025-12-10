@@ -233,14 +233,3 @@
 .wmp .wmpmainframe .playbackcontrols .fnbutton {
   font-size: 0 !important;
 }
-
-/* Playback button buttonbody positioning - override the theme's blanket position:absolute */
-/* REMOVED: .wmp .wmpmainframe .playbackcontrols .fnbutton .buttonbody { position: relative !important } */
-/* We want it to be absolute so it doesn't displace the ::after pseudo-element icons on the parent */
-
-/* Force button sprites to show - override the wmpcolorifier * position:absolute rule */
-/* The buttonbody needs to be a positioned container, and ::after needs proper positioning */
-.wmp .wmpmainframe .playbackcontrols .fnbutton .buttonbody::after,
-.wmp .wmpmainframe .playbackcontrols .fnbutton .buttonbody::before {
-  position: relative !important;
-}

@@ -81,6 +81,28 @@ export function openFileWithApp({
     return true;
   }
 
+  // For media files with URL (e.g., sample music files in My Music folder)
+  const audioExts = ['.mp3', '.wav', '.ogg', '.m4a', '.flac', '.aac'];
+  const videoExts = ['.mp4', '.webm', '.mkv', '.avi', '.mov'];
+  const mediaExts = [...audioExts, ...videoExts];
+  if (url && mediaExts.includes(ext)) {
+    dispatch({
+      type: addAppAction,
+      payload: {
+        ...appSettings['Windows Media Player'],
+        header: {
+          ...appSettings['Windows Media Player'].header,
+          title: `${fileName} - Windows Media Player`,
+        },
+        injectProps: {
+          fileUrl: url,
+          fileName: fileName,
+        },
+      },
+    });
+    return true;
+  }
+
   // If no file data at this point, can't proceed
   if (!fileData) {
     return false;
@@ -174,10 +196,7 @@ export function openFileWithApp({
     return true;
   }
 
-  // For audio/video files
-  const audioExts = ['.mp3', '.wav', '.ogg', '.m4a', '.flac', '.aac'];
-  const videoExts = ['.mp4', '.webm', '.mkv', '.avi', '.mov'];
-  const mediaExts = [...audioExts, ...videoExts];
+  // For audio/video files (with fileData)
   const audioTypes = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/flac', 'audio/aac'];
   const videoTypes = ['video/mp4', 'video/webm', 'video/x-matroska', 'video/avi', 'video/quicktime'];
   const mediaTypes = [...audioTypes, ...videoTypes];

@@ -51,6 +51,7 @@ function MediaPlayerClassic({
   isFocus,
   fileData,
   fileName,
+  fileUrl, // URL to a media file (e.g., from My Music folder)
   onUpdateHeader,
   isMaximized,
   dragRef, // Passed from Window component when in frameless mode
@@ -110,24 +111,7 @@ function MediaPlayerClassic({
 
     link.href = `/ui/wmp/${theme}-fixed.css`;
 
-    // Inject override styles AFTER the theme CSS to ensure our button sprite fixes take effect
-    const styleId = 'wmp-button-overrides';
-    let styleEl = document.getElementById(styleId);
-    if (!styleEl) {
-      styleEl = document.createElement('style');
-      styleEl.id = styleId;
-      styleEl.textContent = `
-        /* Override wmpcolorifier * position:absolute for button pseudo-elements */
-        .wmp .wmpmainframe .playbackcontrols .fnbutton .buttonbody {
-          position: relative !important;
-        }
-        .wmp .wmpmainframe .playbackcontrols .fnbutton .buttonbody::after,
-        .wmp .wmpmainframe .playbackcontrols .fnbutton .buttonbody::before {
-          position: relative !important;
-        }
-      `;
-      document.head.appendChild(styleEl);
-    }
+    // Style overrides removed - fixed in CSS files directly
 
     return () => {
       // Don't remove on cleanup - other instances might use it
@@ -321,16 +305,21 @@ function MediaPlayerClassic({
     };
   }, [selectedVis]);
 
-  // Handle file data passed to component
+  // Handle file data or URL passed to component
   useEffect(() => {
-    if (fileData && fileName) {
+    if (fileUrl && fileName) {
+      // Direct URL to media file (e.g., from My Music folder)
+      setPlaylist([{ name: fileName, url: fileUrl }]);
+      setCurrentTrackIndex(0);
+      loadTrackUrl(fileUrl, fileName);
+    } else if (fileData && fileName) {
       const blob = new Blob([fileData]);
       const url = URL.createObjectURL(blob);
       setPlaylist([{ name: fileName, url }]);
       setCurrentTrackIndex(0);
       loadTrackUrl(url, fileName);
     }
-  }, [fileData, fileName]);
+  }, [fileData, fileName, fileUrl]);
 
   // Load track by index
   const loadTrack = useCallback((index) => {

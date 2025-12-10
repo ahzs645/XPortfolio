@@ -35,7 +35,7 @@ function getMimeType(fileName) {
   return mimeTypes[ext] || 'audio/mpeg';
 }
 
-function Winamp({ onClose, onMinimize, fileData, fileName }) {
+function Winamp({ onClose, onMinimize, fileData, fileName, fileUrl }) {
   const ref = useRef(null);
   const webampRef = useRef(null);
   const blobUrlRef = useRef(null);
@@ -58,10 +58,19 @@ function Winamp({ onClose, onMinimize, fileData, fileName }) {
     // Mark as initializing immediately (synchronously)
     initializingRef.current = true;
 
-    // Prepare tracks - either from file data or default tracks
+    // Prepare tracks - either from file data, URL, or default tracks
     let tracksToPlay = initialTracks;
 
-    if (fileData && fileName) {
+    if (fileUrl && fileName) {
+      // Direct URL to media file (e.g., from My Music folder)
+      tracksToPlay = [{
+        url: fileUrl,
+        metaData: {
+          title: fileName.replace(/\.[^/.]+$/, ''), // Remove extension for title
+          artist: 'Unknown Artist',
+        },
+      }];
+    } else if (fileData && fileName) {
       const mimeType = getMimeType(fileName);
       const blobUrl = base64ToBlobUrl(fileData, mimeType);
       if (blobUrl) {
@@ -152,7 +161,7 @@ function Winamp({ onClose, onMinimize, fileData, fileName }) {
       // Reset initializing flag on cleanup
       initializingRef.current = false;
     };
-  }, [fileData, fileName]);
+  }, [fileData, fileName, fileUrl]);
 
   return (
     <div

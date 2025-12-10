@@ -326,6 +326,13 @@ const PROGRAM_FILES_PROGRAMS = [
   { id: 'pf-messenger', name: 'Windows Messenger', icon: '/icons/xp/messenger.png', exe: 'msmsgs.exe', target: 'Windows Messenger' },
 ];
 
+// Sample Music files for My Music folder
+const SAMPLE_MUSIC_FILES = [
+  { id: 'sample-music-1', name: 'Beethoven\'s Symphony No. 9 (Scherzo).mp3', path: '/content/sample-music/Beethovens Symphony No. 9 (Scherzo).mp3', size: 1318855 },
+  { id: 'sample-music-2', name: 'David Byrne - Like Humans Do.mp3', path: '/content/sample-music/David Byrne - Like Humans Do.mp3', size: 3709306 },
+  { id: 'sample-music-3', name: 'New Stories - Highway Blues.mp3', path: '/content/sample-music/New Stories - Highway Blues.mp3', size: 1696965 },
+];
+
 // Initial file system structure
 const createInitialFileSystem = (desktopShortcuts, projects = [], userName = 'User') => {
   const now = Date.now();
@@ -385,6 +392,28 @@ const createInitialFileSystem = (desktopShortcuts, projects = [], userName = 'Us
       icon: XP_ICONS.folder, // Use folder icon for the folder itself
       parent: SYSTEM_IDS.PROGRAM_FILES,
       children: [exeId],
+      dateCreated: now,
+      dateModified: now,
+    };
+  });
+
+  // Create Sample Music file entries for My Music folder
+  const sampleMusicItems = {};
+  const sampleMusicIds = SAMPLE_MUSIC_FILES.map(music => music.id);
+
+  SAMPLE_MUSIC_FILES.forEach(music => {
+    const basename = music.name.replace(/\.[^/.]+$/, '');
+    const ext = music.name.match(/\.[^/.]+$/)?.[0] || '';
+    sampleMusicItems[music.id] = {
+      id: music.id,
+      type: 'file',
+      name: music.name,
+      basename,
+      ext,
+      icon: fileIcons['.mp3'] || '/icons/media-player.png',
+      parent: SYSTEM_IDS.MY_MUSIC,
+      size: music.size,
+      url: music.path, // URL to the actual file
       dateCreated: now,
       dateModified: now,
     };
@@ -571,7 +600,7 @@ const createInitialFileSystem = (desktopShortcuts, projects = [], userName = 'Us
       name: 'My Music',
       icon: XP_ICONS.myMusic,
       parent: SYSTEM_IDS.MY_DOCUMENTS,
-      children: [],
+      children: sampleMusicIds,
       dateCreated: now,
       dateModified: now,
     },
@@ -603,6 +632,7 @@ const createInitialFileSystem = (desktopShortcuts, projects = [], userName = 'Us
     ...shortcuts,
     ...projectItems,
     ...programFilesItems,
+    ...sampleMusicItems,
   };
 };
 
@@ -1001,6 +1031,41 @@ export function FileSystemProvider({ children }) {
     if (fs[SYSTEM_IDS.MY_MUSIC] && fs[SYSTEM_IDS.MY_MUSIC].parent !== SYSTEM_IDS.MY_DOCUMENTS) {
       fs[SYSTEM_IDS.MY_MUSIC].parent = SYSTEM_IDS.MY_DOCUMENTS;
       modified = true;
+    }
+
+    // Ensure sample music files exist in My Music folder
+    if (fs[SYSTEM_IDS.MY_MUSIC]) {
+      const now = Date.now();
+      const myMusicChildren = fs[SYSTEM_IDS.MY_MUSIC].children || [];
+
+      SAMPLE_MUSIC_FILES.forEach(music => {
+        if (!fs[music.id]) {
+          const basename = music.name.replace(/\.[^/.]+$/, '');
+          const ext = music.name.match(/\.[^/.]+$/)?.[0] || '';
+          fs[music.id] = {
+            id: music.id,
+            type: 'file',
+            name: music.name,
+            basename,
+            ext,
+            icon: fileIcons['.mp3'] || '/icons/media-player.png',
+            parent: SYSTEM_IDS.MY_MUSIC,
+            size: music.size,
+            url: music.path,
+            dateCreated: now,
+            dateModified: now,
+          };
+          modified = true;
+        }
+        if (!myMusicChildren.includes(music.id)) {
+          myMusicChildren.push(music.id);
+          modified = true;
+        }
+      });
+
+      if (modified) {
+        fs[SYSTEM_IDS.MY_MUSIC].children = myMusicChildren;
+      }
     }
 
     return modified;
