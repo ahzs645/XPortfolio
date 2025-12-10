@@ -136,6 +136,15 @@ function MediaPlayerClassic({
     setColorSchemeIndex(prev => (prev + 1) % COLOR_SCHEMES.length);
   }, []);
 
+  // Cycle through skins (wmp8, wmp9, wmp10)
+  const SKINS = ['wmp8', 'wmp9', 'wmp10'];
+  const cycleSkin = useCallback(() => {
+    setTheme(prev => {
+      const currentIndex = SKINS.indexOf(prev);
+      return SKINS[(currentIndex + 1) % SKINS.length];
+    });
+  }, []);
+
   // Initialize audio element
   useEffect(() => {
     if (!audioRef.current) {
@@ -544,7 +553,13 @@ function MediaPlayerClassic({
                     key={item.id}
                     id={item.id}
                     className={`navitem${item.expands ? ' expands' : ''}${selectedNav === item.id ? ' selected' : ''}`}
-                    onClick={() => setSelectedNav(item.id)}
+                    onClick={() => {
+                      setSelectedNav(item.id);
+                      // Special actions for certain nav items
+                      if (item.id === 'skins') {
+                        cycleSkin();
+                      }
+                    }}
                   >
                     {item.label}
                     {item.expands && <div className="expander"></div>}
@@ -593,7 +608,7 @@ function MediaPlayerClassic({
               <div id="lowermetal">
                 <div className="metaledge left"></div>
                 <fnbutton id="colorswitch" title={`Cycle Color Scheme (${COLOR_SCHEMES[colorSchemeIndex].name})`} onClick={cycleColorScheme}></fnbutton>
-                <fnbutton id="skinmode" title="Switch to Skin Mode (Mini Player)" onClick={toggleFrameless}></fnbutton>
+                <fnbutton id="skinmode" title={`Cycle Skin (${theme.toUpperCase()})`} onClick={cycleSkin}></fnbutton>
               </div>
 
               {/* Corner metal with resizer */}

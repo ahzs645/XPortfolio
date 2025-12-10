@@ -285,6 +285,13 @@ export const START_MENU_CATALOG = {
     title: 'Files and Settings Transfer Wizard',
     description: 'Transfer your environment',
   },
+  flashPlayer: {
+    type: 'program',
+    appKey: 'Adobe Flash Player',
+    icon: '/icons/flash/flash_player.png',
+    title: 'Adobe Flash Player',
+    description: 'Play Flash content with Ruffle',
+  },
   'divider-main': {
     type: 'separator',
   },
@@ -348,7 +355,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Entertainment',
     icon: '/icons/xp/FolderClosed.png',
-    items: ['mediaPlayer', 'mediaPlayerClassic', 'winamp', 'soundRecorder'],
+    items: ['mediaPlayer', 'mediaPlayerClassic', 'winamp', 'soundRecorder', 'flashPlayer'],
   },
   webProjects: {
     type: 'folder',

@@ -11,34 +11,33 @@ function FlashPlayer({
   onUpdateHeader,
   isMaximized,
 }) {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [swfUrl, setSwfUrl] = useState(null);
+  const [swfName, setSwfName] = useState(null);
   const [isRuffleReady, setIsRuffleReady] = useState(false);
   const containerRef = useRef(null);
   const playerRef = useRef(null);
 
   // Update window header with file name
   useEffect(() => {
-    if (onUpdateHeader && fileName) {
+    if (onUpdateHeader) {
       onUpdateHeader({
         icon: '/icons/flash/flash_player.png',
-        title: `Adobe Flash Player - ${fileName}`,
+        title: swfName ? `Adobe Flash Player - ${swfName}` : 'Adobe Flash Player',
         buttons: ['minimize', 'maximize', 'close'],
       });
     }
-  }, [fileName, onUpdateHeader]);
+  }, [swfName, onUpdateHeader]);
 
   // Load Ruffle script
   useEffect(() => {
     const loadRuffle = async () => {
-      // Check if Ruffle is already loaded
       if (window.RufflePlayer) {
         setIsRuffleReady(true);
         return;
       }
 
-      // Check if script is already being loaded
       const existingScript = document.querySelector('script[src*="ruffle"]');
       if (existingScript) {
         existingScript.addEventListener('load', () => setIsRuffleReady(true));
@@ -53,13 +52,11 @@ function FlashPlayer({
           setIsRuffleReady(true);
         };
         script.onerror = () => {
-          setError('Failed to load Flash Player emulator. Please ensure Ruffle is installed.');
-          setIsLoading(false);
+          setError('Failed to load Flash Player emulator.');
         };
         document.head.appendChild(script);
       } catch (e) {
         setError('Failed to initialize Flash Player: ' + e.message);
-        setIsLoading(false);
       }
     };
 
@@ -72,6 +69,7 @@ function FlashPlayer({
       const blob = new Blob([fileData], { type: 'application/x-shockwave-flash' });
       const url = URL.createObjectURL(blob);
       setSwfUrl(url);
+      setSwfName(fileName);
 
       return () => {
         URL.revokeObjectURL(url);
@@ -88,20 +86,16 @@ function FlashPlayer({
         setIsLoading(true);
         setError(null);
 
-        // Get Ruffle instance
         const ruffle = window.RufflePlayer.newest();
         const player = ruffle.createPlayer();
 
-        // Configure player
         player.style.width = '100%';
         player.style.height = '100%';
 
-        // Clear container and add player
         containerRef.current.innerHTML = '';
         containerRef.current.appendChild(player);
         playerRef.current = player;
 
-        // Load the SWF
         await player.load(swfUrl);
 
         setIsLoading(false);
@@ -126,6 +120,22 @@ function FlashPlayer({
     };
   }, [isRuffleReady, swfUrl]);
 
+  // Open file dialog
+  const handleOpenFile = useCallback(() => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.swf';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const url = URL.createObjectURL(file);
+        setSwfUrl(url);
+        setSwfName(file.name);
+      }
+    };
+    input.click();
+  }, []);
+
   // Handle drag and drop
   const handleDragOver = useCallback((e) => {
     e.preventDefault();
@@ -142,110 +152,63 @@ function FlashPlayer({
       if (file.name.toLowerCase().endsWith('.swf')) {
         const url = URL.createObjectURL(file);
         setSwfUrl(url);
-        if (onUpdateHeader) {
-          onUpdateHeader({
-            icon: '/icons/flash/flash_player.png',
-            title: `Adobe Flash Player - ${file.name}`,
-            buttons: ['minimize', 'maximize', 'close'],
-          });
-        }
+        setSwfName(file.name);
       } else {
         setError('Please drop a valid .swf file');
       }
     }
-  }, [onUpdateHeader]);
+  }, []);
+
+  const showPrompt = !swfUrl && !isLoading;
 
   return (
-    <div className="flash-player-app">
-      {/* Menu bar */}
-      <div className="flash-menu-bar">
-        <div className="flash-menu-item">
-          File
-          <div className="flash-submenu">
-            <div className="flash-submenu-item" onClick={() => {
-              const input = document.createElement('input');
-              input.type = 'file';
-              input.accept = '.swf';
-              input.onchange = (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                  const url = URL.createObjectURL(file);
-                  setSwfUrl(url);
-                  if (onUpdateHeader) {
-                    onUpdateHeader({
-                      icon: '/icons/flash/flash_player.png',
-                      title: `Adobe Flash Player - ${file.name}`,
-                      buttons: ['minimize', 'maximize', 'close'],
-                    });
-                  }
-                }
-              };
-              input.click();
-            }}>Open...</div>
-            <div className="flash-submenu-divider"></div>
-            <div className="flash-submenu-item" onClick={onClose}>Exit</div>
-          </div>
-        </div>
-        <div className="flash-menu-item">
-          View
-          <div className="flash-submenu">
-            <div className="flash-submenu-item" onClick={() => {
-              if (containerRef.current) {
-                containerRef.current.requestFullscreen?.();
-              }
-            }}>Full Screen</div>
-          </div>
-        </div>
-        <div className="flash-menu-item">
-          Help
-          <div className="flash-submenu">
-            <div className="flash-submenu-item">About Adobe Flash Player</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Content area */}
+    <div
+      className="flash-player-app"
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      {/* Ruffle container - hidden until SWF loaded */}
       <div
-        className="flash-content"
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-      >
-        {isLoading && !error && (
-          <div className="flash-loading">
-            <div className="flash-loading-spinner"></div>
-            <span>Loading Flash content...</span>
-          </div>
-        )}
+        ref={containerRef}
+        className="flash-ruffle-container"
+        style={{ display: swfUrl && !isLoading ? 'block' : 'none' }}
+      />
 
-        {error && (
-          <div className="flash-error">
-            <img src="/icons/flash/flash_player.png" alt="Flash" className="flash-error-icon" />
-            <div className="flash-error-text">{error}</div>
-          </div>
-        )}
+      {/* Open prompt - shown when no file loaded */}
+      {showPrompt && (
+        <div className="flash-open-prompt">
+          <img
+            src="/icons/flash/flash_player.png"
+            alt="Flash Player"
+            className="flash-prompt-icon"
+          />
+          {error ? (
+            <div className="flash-error-message">{error}</div>
+          ) : (
+            <button className="flash-open-btn" onClick={handleOpenFile}>
+              Open SWF File...
+            </button>
+          )}
+        </div>
+      )}
 
-        {!swfUrl && !isLoading && !error && (
-          <div className="flash-empty">
-            <img src="/icons/flash/flash_player.png" alt="Flash" className="flash-empty-icon" />
-            <div className="flash-empty-title">Adobe Flash Player</div>
-            <div className="flash-empty-subtitle">Powered by Ruffle</div>
-            <div className="flash-empty-instructions">
-              Drop a .swf file here or use File → Open to load Flash content
-            </div>
-          </div>
-        )}
+      {/* Loading state */}
+      {isLoading && (
+        <div className="flash-open-prompt">
+          <img
+            src="/icons/flash/flash_player.png"
+            alt="Flash Player"
+            className="flash-prompt-icon"
+          />
+          <div className="flash-loading-text">Loading...</div>
+        </div>
+      )}
 
-        <div
-          ref={containerRef}
-          className="flash-player-container"
-          style={{ display: swfUrl && !isLoading && !error ? 'block' : 'none' }}
-        ></div>
-      </div>
-
-      {/* Status bar */}
-      <div className="flash-status-bar">
-        <span>{swfUrl ? (isLoading ? 'Loading...' : 'Ready') : 'No file loaded'}</span>
-        <span className="flash-powered-by">Powered by Ruffle</span>
+      {/* Footer disclaimer */}
+      <div className="flash-player-footer">
+        Adobe® and Flash® Player are trademarks of Adobe Inc.<br />
+        This site is not affiliated with or approved by Adobe.<br />
+        For entertainment and educational purposes only. Powered by Ruffle.
       </div>
     </div>
   );

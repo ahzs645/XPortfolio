@@ -227,18 +227,74 @@ app.wmp wmpmainframe wmpcontent #playlistcontainer ul li {
   position: relative;
 }
 
+/* Playback button buttonbody positioning - override the theme's blanket position:absolute */
 app.wmp wmpmainframe playbackcontrols fnbutton buttonbody {
-  position: relative;
+  position: relative !important;
 }
 
-/* Ensure button :after pseudo-elements display properly */
-app.wmp wmpmainframe fnbutton:after,
-app.wmp wmpmainframe fnbutton:before {
-  content: "";
-  display: block;
+/* Force button sprites to show - these must override the theme CSS which loads after this file */
+/* Using absolute paths from public folder */
+app.wmp wmpmainframe playbackcontrols fnbutton#playpause buttonbody::after {
+  width: 10px !important;
+  height: 10px !important;
+  content: " " !important;
+  position: relative !important;
+  display: block !important;
+  background-image: url("/ui/wmp/wmp9_sprite_play.png") !important;
+  background-repeat: no-repeat !important;
+  filter: drop-shadow(0 0 1px #fff) !important;
+  margin: 10px 11px !important;
 }
 
-/* Fix for playback control buttons */
-app.wmp wmpmainframe playbackcontrols fnbutton buttonbody:after {
-  position: relative;
+app.wmp wmpmainframe playbackcontrols fnbutton#playpause.playing buttonbody::after {
+  background-image: url("/ui/wmp/wmp9_sprite_pause.png") !important;
+  margin: 10px !important;
+}
+
+app.wmp wmpmainframe playbackcontrols fnbutton#stop buttonbody::after {
+  width: 8px !important;
+  height: 8px !important;
+  content: " " !important;
+  position: relative !important;
+  display: block !important;
+  background-image: url("/ui/wmp/wmp9_sprite_stop.png") !important;
+  background-repeat: no-repeat !important;
+  filter: drop-shadow(0 0 1px #fff) !important;
+  margin: 6px !important;
+}
+
+app.wmp wmpmainframe playbackcontrols fnbutton#prev buttonbody::after {
+  width: 12px !important;
+  height: 10px !important;
+  content: " " !important;
+  position: relative !important;
+  display: block !important;
+  background-image: url("/ui/wmp/wmp9_sprite_trackback.png") !important;
+  background-repeat: no-repeat !important;
+  filter: drop-shadow(0 0 1px #fff) !important;
+  margin: 5px !important;
+}
+
+app.wmp wmpmainframe playbackcontrols fnbutton#next buttonbody::after {
+  width: 12px !important;
+  height: 10px !important;
+  content: " " !important;
+  position: relative !important;
+  display: block !important;
+  background-image: url("/ui/wmp/wmp9_sprite_tracknext.png") !important;
+  background-repeat: no-repeat !important;
+  filter: drop-shadow(0 0 1px #fff) !important;
+  margin: 5px !important;
+}
+
+app.wmp wmpmainframe playbackcontrols fnbutton#mute buttonbody::after {
+  width: 10px !important;
+  height: 10px !important;
+  content: " " !important;
+  position: relative !important;
+  display: block !important;
+  background-image: url("/ui/wmp/wmp9_sprite_mute.png") !important;
+  background-repeat: no-repeat !important;
+  filter: drop-shadow(0 0 1px #fff) !important;
+  margin: 5px !important;
 }

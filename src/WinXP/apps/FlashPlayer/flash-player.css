@@ -3,200 +3,108 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
-  background: #f0f0f0;
-  font-family: 'Tahoma', sans-serif;
-  font-size: 11px;
+  overflow: hidden;
+  background: radial-gradient(circle, #D82020, #A01010);
 }
 
-/* Menu Bar */
-.flash-menu-bar {
-  display: flex;
-  background: linear-gradient(to bottom, #ffffff 0%, #ece9d8 100%);
-  border-bottom: 1px solid #919b9c;
-  padding: 2px 0;
-  flex-shrink: 0;
-}
-
-.flash-menu-item {
-  position: relative;
-  padding: 2px 8px;
-  cursor: default;
-  user-select: none;
-}
-
-.flash-menu-item:hover {
-  background: #316ac5;
-  color: white;
-}
-
-.flash-submenu {
-  display: none;
+/* Ruffle container */
+.flash-ruffle-container {
   position: absolute;
-  top: 100%;
+  top: 0;
   left: 0;
-  min-width: 150px;
-  background: white;
-  border: 1px solid #919b9c;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
+  width: 100%;
+  height: calc(100% - 60px);
 }
 
-.flash-menu-item:hover .flash-submenu {
-  display: block;
+.flash-ruffle-container ruffle-player,
+.flash-ruffle-container ruffle-embed {
+  width: 100%;
+  height: 100%;
 }
 
-.flash-submenu-item {
-  padding: 4px 20px;
-  cursor: default;
-  color: black;
-}
-
-.flash-submenu-item:hover {
-  background: #316ac5;
-  color: white;
-}
-
-.flash-submenu-divider {
-  height: 1px;
-  background: #919b9c;
-  margin: 3px 2px;
-}
-
-/* Content Area */
-.flash-content {
-  flex: 1;
+/* Open prompt */
+.flash-open-prompt {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: calc(100% - 60px);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #1a1a2e;
-  overflow: hidden;
-  position: relative;
-}
-
-/* Loading State */
-.flash-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-  color: #ffffff;
-}
-
-.flash-loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #ff6b35;
-  border-radius: 50%;
-  animation: flash-spin 1s linear infinite;
-}
-
-@keyframes flash-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Error State */
-.flash-error {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-  color: #ff6b6b;
-  text-align: center;
+  color: white;
   padding: 20px;
+  box-sizing: border-box;
 }
 
-.flash-error-icon {
+.flash-prompt-icon {
   width: 64px;
   height: 64px;
-  opacity: 0.7;
-}
-
-.flash-error-text {
-  max-width: 300px;
-}
-
-/* Empty State */
-.flash-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  color: #cccccc;
-  text-align: center;
-  padding: 20px;
-}
-
-.flash-empty-icon {
-  width: 96px;
-  height: 96px;
-  opacity: 0.8;
-  margin-bottom: 10px;
-}
-
-.flash-empty-title {
-  font-size: 24px;
-  font-weight: bold;
-  color: #ffffff;
-}
-
-.flash-empty-subtitle {
-  font-size: 14px;
-  color: #ff6b35;
   margin-bottom: 20px;
 }
 
-.flash-empty-instructions {
-  font-size: 12px;
-  color: #888888;
-  max-width: 300px;
-  line-height: 1.5;
-}
-
-/* Player Container */
-.flash-player-container {
-  width: 100%;
-  height: 100%;
-}
-
-.flash-player-container ruffle-player,
-.flash-player-container ruffle-embed {
-  width: 100%;
-  height: 100%;
-}
-
-/* Status Bar */
-.flash-status-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 2px 8px;
-  background: #ece9d8;
-  border-top: 1px solid #919b9c;
+/* XP-style button */
+.flash-open-btn {
+  font-family: 'Tahoma', sans-serif;
   font-size: 11px;
-  color: #333;
-  flex-shrink: 0;
+  padding: 4px 12px;
+  min-width: 75px;
+  background: linear-gradient(180deg, #ffffff 0%, #ece9d8 100%);
+  border: 1px solid #003c74;
+  border-radius: 3px;
+  box-shadow:
+    inset 0 1px 0 #fff,
+    inset 0 -1px 0 #dfdfdf,
+    0 1px 2px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  color: #000;
 }
 
-.flash-powered-by {
-  color: #ff6b35;
-  font-style: italic;
+.flash-open-btn:hover {
+  background: linear-gradient(180deg, #fff4cf 0%, #ffc73c 100%);
+  border-color: #003c74;
 }
 
-/* Drag and Drop Overlay */
-.flash-content.drag-over::before {
-  content: 'Drop .swf file here';
-  position: absolute;
-  inset: 0;
-  background: rgba(255, 107, 53, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.flash-open-btn:active {
+  background: linear-gradient(180deg, #ffc73c 0%, #fff4cf 100%);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.flash-open-btn:focus {
+  outline: 1px dotted #000;
+  outline-offset: -4px;
+}
+
+/* Loading text */
+.flash-loading-text {
   color: white;
-  font-size: 18px;
-  font-weight: bold;
-  z-index: 100;
-  pointer-events: none;
+  font-family: 'Tahoma', sans-serif;
+  font-size: 12px;
+}
+
+/* Error message */
+.flash-error-message {
+  color: #ffcccc;
+  font-family: 'Tahoma', sans-serif;
+  font-size: 11px;
+  text-align: center;
+  max-width: 300px;
+  margin-top: 10px;
+}
+
+/* Footer disclaimer */
+.flash-player-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 8px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(0, 0, 0, 0.3);
+  font-family: 'Tahoma', sans-serif;
+  font-size: 10px;
+  line-height: 1.4;
 }
