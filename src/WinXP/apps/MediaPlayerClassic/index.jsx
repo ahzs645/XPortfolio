@@ -89,6 +89,7 @@ function MediaPlayerClassic({
   const sourceRef = useRef(null);
   const animationRef = useRef(null);
   const appRef = useRef(null);
+  const playPromiseRef = useRef(null); // Track pending play() promise
 
   // Update window header when frameless changes
   useEffect(() => {
@@ -371,9 +372,21 @@ function MediaPlayerClassic({
   }, [playlist]);
 
   // Load track by URL
-  const loadTrackUrl = useCallback((url, name) => {
+  const loadTrackUrl = useCallback(async (url, name) => {
     if (!audioRef.current) return;
 
+    // Wait for any pending play() to finish before changing source
+    if (playPromiseRef.current) {
+      try {
+        await playPromiseRef.current;
+      } catch {
+        // Ignore - we're changing tracks anyway
+      }
+      playPromiseRef.current = null;
+    }
+
+    // Pause before changing source to avoid AbortError
+    audioRef.current.pause();
     audioRef.current.src = url;
     audioRef.current.load();
     setStatusText(`Loading: ${name}`);
@@ -394,22 +407,53 @@ function MediaPlayerClassic({
     }
 
     try {
-      await audioRef.current.play();
+      // Store the play promise so we can wait for it before changing tracks
+      playPromiseRef.current = audioRef.current.play();
+      await playPromiseRef.current;
+      playPromiseRef.current = null;
       setStatusText(`Playing: ${playlist[currentTrackIndex]?.name || 'Unknown'}`);
     } catch (e) {
+      playPromiseRef.current = null;
+      // AbortError is expected when play() is interrupted by pause() or source change
+      if (e.name === 'AbortError') {
+        // Silently ignore - this is expected behavior when switching tracks
+        return;
+      }
       console.error('Playback failed:', e);
       setStatusText('Playback error');
     }
   }, [initAudioContext, playlist, currentTrackIndex]);
 
-  const pause = useCallback(() => {
+  const pause = useCallback(async () => {
     if (!audioRef.current) return;
+
+    // Wait for any pending play() before pausing
+    if (playPromiseRef.current) {
+      try {
+        await playPromiseRef.current;
+      } catch {
+        // Ignore errors
+      }
+      playPromiseRef.current = null;
+    }
+
     audioRef.current.pause();
     setStatusText(`Paused: ${playlist[currentTrackIndex]?.name || ''}`);
   }, [playlist, currentTrackIndex]);
 
-  const stop = useCallback(() => {
+  const stop = useCallback(async () => {
     if (!audioRef.current) return;
+
+    // Wait for any pending play() before stopping
+    if (playPromiseRef.current) {
+      try {
+        await playPromiseRef.current;
+      } catch {
+        // Ignore errors
+      }
+      playPromiseRef.current = null;
+    }
+
     audioRef.current.pause();
     audioRef.current.currentTime = 0;
     setCurrentTime(0);

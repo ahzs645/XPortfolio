@@ -358,6 +358,7 @@
 }
 
 .wmp .wmpmainframe #nav .navitem {
+    box-sizing: content-box;
     padding: 2px 12px 6px 2px;
     min-height: 30px;
     height: 30px;
