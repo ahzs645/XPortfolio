@@ -169,6 +169,15 @@
     position: absolute
 }
 
+.wmp .wmpshapeholder#topright {
+    position: absolute;
+    width: 256px;
+    height: 31px;
+    right: 0;
+    top: 0;
+    z-index: 4
+}
+
 .wmp .wmpshapeholder#topright .wmpshape {
     clip-path: path("M256,12A12,12,0,0,0,244,0H51C30,0,24,31,0,31H256Z");
     width: 231px;
@@ -695,6 +704,7 @@
 }
 
 .wmp .wmpmainframe #topright #playlistselector {
+    position: absolute;
     width: 155px;
     right: 55px;
     top: 5px;
@@ -704,12 +714,29 @@
     border: 1px solid;
     border-color: #a9b4d7 #95a9d2aa #90a2ce #95a9d2aa;
     box-shadow: 0 1px #f8fafd, inset 0 1px #fdfefe, inset -1px 0 #d9e0f0cc, inset 1px 0 #d9e0f0cc;
-    background: linear-gradient(to bottom, #e9eff9 10%, #d0d7ef 57%, #c7d2ec 63%, #bfd2ea 100%)
+    /* Simulate the 'img in option' icon using background image while keeping the gradient */
+    background-image: url("/ui/wmp/sprite_skinmode.png"), linear-gradient(to bottom, #e9eff9 10%, #d0d7ef 57%, #c7d2ec 63%, #bfd2ea 100%);
+    background-repeat: no-repeat, no-repeat;
+    background-position: 4px center, 0 0;
+    background-size: 14px, auto;
+    padding-left: 22px;
+    /* Space for icon */
+}
+
+/* Attempt to show icon on options (works in Firefox, ignored in Chrome/Safari) */
+.wmp .wmpmainframe #topright #playlistselector option {
+    background-image: url("/ui/wmp/sprite_skinmode.png");
+    background-repeat: no-repeat;
+    background-position: 4px center;
+    background-size: 14px;
+    padding-left: 22px;
 }
 
 .wmp .wmpmainframe #topright #windowcontrols {
+    position: absolute;
     color: #4c76c2;
     right: 6px;
+    top: 5px;
     width: 49px;
     height: 19px;
     font-size: 11px;

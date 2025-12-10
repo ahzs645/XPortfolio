@@ -247,8 +247,10 @@ function MediaPlayerClassic({
 
       const visName = VISUALIZERS[selectedVis];
 
-      // Album Art mode - don't render bars
+      // Album Art mode - just show black canvas (no album art extraction implemented)
       if (visName === 'Album Art') {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         return;
       }
 
