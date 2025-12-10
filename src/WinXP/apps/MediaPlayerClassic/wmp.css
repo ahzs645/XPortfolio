@@ -229,6 +229,11 @@
   position: relative;
 }
 
+/* Ensure whitespace doesn't displace the icons in WMP9/10 */
+.wmp .wmpmainframe .playbackcontrols .fnbutton {
+  font-size: 0 !important;
+}
+
 /* Playback button buttonbody positioning - override the theme's blanket position:absolute */
 /* REMOVED: .wmp .wmpmainframe .playbackcontrols .fnbutton .buttonbody { position: relative !important } */
 /* We want it to be absolute so it doesn't displace the ::after pseudo-element icons on the parent */
