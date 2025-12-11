@@ -4,10 +4,10 @@ import { Page } from 'react-pdf';
 
 const PDF_ICON = "/icons/pdf/PDF.ico";
 
-const Sidebar = ({ pdfDocument, onPageClick, activePage }) => {
+const Sidebar = ({ pdfDocument, onPageClick, activePage, defaultCollapsed = false }) => {
   const [activeTab, setActiveTab] = useState("bookmarks");
   const [panelWidth, setPanelWidth] = useState(250);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const [bookmarks, setBookmarks] = useState(null);
   const [isResizing, setIsResizing] = useState(false);
   const resizeRef = useRef(null);

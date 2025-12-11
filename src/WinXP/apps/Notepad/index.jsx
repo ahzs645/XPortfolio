@@ -4,13 +4,13 @@ import { ProgramLayout } from '../../../components';
 import usageGuide from '../../../components/WindowBars/USAGE.md?raw';
 
 function Notepad({ onClose, onMinimize, initialContent, fileName }) {
-  const defaultDocument = useMemo(
+  const usageGuideContent = useMemo(
     () => usageGuide.replace(/\r\n/g, '\n'),
     []
   );
 
-  // Use initialContent if provided, otherwise use default usage guide
-  const initialDocument = initialContent !== undefined ? initialContent : defaultDocument;
+  // Use initialContent if provided, otherwise start empty
+  const initialDocument = initialContent !== undefined ? initialContent : '';
 
   const [text, setText] = useState(initialDocument);
   const [wordWrap, setWordWrap] = useState(true);
@@ -50,8 +50,8 @@ function Notepad({ onClose, onMinimize, initialContent, fileName }) {
         });
         break;
       }
-      case 'file:reset': {
-        setText(initialDocument);
+      case 'file:help': {
+        setText(usageGuideContent);
         requestAnimationFrame(() => {
           if (!textareaRef.current) return;
           textareaRef.current.focus();
@@ -79,7 +79,7 @@ function Notepad({ onClose, onMinimize, initialContent, fileName }) {
       default:
         break;
     }
-  }, [initialDocument, insertTextAtCursor]);
+  }, [usageGuideContent, insertTextAtCursor]);
 
   const menus = useMemo(() => [
     {
@@ -87,7 +87,6 @@ function Notepad({ onClose, onMinimize, initialContent, fileName }) {
       label: 'File',
       items: [
         { label: 'New', action: 'file:new' },
-        { label: 'Reload Usage Guide', action: 'file:reset' },
         { separator: true },
         { label: 'Page Setup...', disabled: true },
         { label: 'Print...', disabled: true },

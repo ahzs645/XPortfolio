@@ -346,6 +346,10 @@ const Container = styled.div`
   z-index: 50;
   cursor: pointer;
   user-select: none;
+
+  .mobile-device & {
+    display: none;
+  }
 `;
 
 const Sprite = styled.div`

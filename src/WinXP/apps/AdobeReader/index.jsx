@@ -7,6 +7,7 @@ import { MenuBar, Toolbar } from '../../../components';
 import Sidebar from './Sidebar';
 import { useApp } from '../../../contexts/AppContext';
 import { useFileSystem } from '../../../contexts/FileSystemContext';
+import { isMobileDevice } from '../../../utils/deviceDetection';
 
 // Configure PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -121,6 +122,14 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
   const [currentFileName, setCurrentFileName] = useState(null);
   const viewerRef = useRef(null);
 
+  // Mobile pinch-to-zoom state
+  const isMobile = useMemo(() => isMobileDevice(), []);
+  const pinchRef = useRef({
+    initialDistance: 0,
+    initialScale: 1,
+    isPinching: false
+  });
+
   const displayName = currentFileName || pdfName || (pdfPath ? pdfPath.split('/').pop() : 'Adobe Reader');
 
   // Update window title when PDF is loaded
@@ -181,6 +190,57 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
   const handlePrint = useCallback(() => {
     window.print();
   }, []);
+
+  // Mobile pinch-to-zoom handlers
+  const getTouchDistance = useCallback((touches) => {
+    if (touches.length < 2) return 0;
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }, []);
+
+  const handleTouchStart = useCallback((e) => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      pinchRef.current.initialDistance = getTouchDistance(e.touches);
+      pinchRef.current.initialScale = scale || 1;
+      pinchRef.current.isPinching = true;
+    }
+  }, [scale, getTouchDistance]);
+
+  const handleTouchMove = useCallback((e) => {
+    if (!pinchRef.current.isPinching || e.touches.length !== 2) return;
+    e.preventDefault();
+
+    const currentDistance = getTouchDistance(e.touches);
+    const ratio = currentDistance / pinchRef.current.initialDistance;
+    const newScale = pinchRef.current.initialScale * ratio;
+
+    // Clamp between 0.5 and 3.0
+    setScale(Math.min(Math.max(newScale, 0.5), 3.0));
+  }, [getTouchDistance]);
+
+  const handleTouchEnd = useCallback(() => {
+    pinchRef.current.isPinching = false;
+  }, []);
+
+  // Attach touch listeners for pinch zoom on mobile
+  useEffect(() => {
+    if (!isMobile || !viewerRef.current) return;
+
+    const viewer = viewerRef.current;
+    viewer.addEventListener('touchstart', handleTouchStart, { passive: false });
+    viewer.addEventListener('touchmove', handleTouchMove, { passive: false });
+    viewer.addEventListener('touchend', handleTouchEnd);
+    viewer.addEventListener('touchcancel', handleTouchEnd);
+
+    return () => {
+      viewer.removeEventListener('touchstart', handleTouchStart);
+      viewer.removeEventListener('touchmove', handleTouchMove);
+      viewer.removeEventListener('touchend', handleTouchEnd);
+      viewer.removeEventListener('touchcancel', handleTouchEnd);
+    };
+  }, [isMobile, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   const onDocumentLoadSuccess = useCallback(async (pdf) => {
     setNumPages(pdf.numPages);
@@ -331,6 +391,7 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
             }
           }}
           activePage={pageNumber}
+          defaultCollapsed={isMobile}
         />
 
         {/* PDF Viewer */}
