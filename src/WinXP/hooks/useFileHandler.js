@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { ADD_APP } from '../constants/actions';
 import { getDefaultProgramForFile } from '../apps/Installer/components/SetProgramDefaults';
 import { openFileWithApp, downloadFile } from '../../utils/fileOpener';
+import { useMobileAppLauncher } from './useMobileAppLauncher';
 
 /**
  * Hook for handling file/icon double-click operations
@@ -13,25 +14,27 @@ export function useFileHandler({
   getFileContent,
   checkMobileRestriction,
 }) {
+  const { applyMobileSettings } = useMobileAppLauncher(dispatch);
   const onDoubleClickIcon = useCallback(async (icon) => {
     console.log('[DoubleClick]', icon.title, 'type:', icon.type, 'hasData:', !!icon.data);
 
     // Handle system icons (My Computer, Recycle Bin) - launch the target app
     if (icon.type === 'system' && icon.target) {
-      if (!checkMobileRestriction(icon.target)) {
+      const appSetting = appSettings[icon.target];
+      if (!checkMobileRestriction(icon.target, appSetting)) {
         return; // Blocked on mobile, popup will be shown
       }
 
-      const appSetting = appSettings[icon.target];
       if (appSetting) {
-        dispatch({ type: ADD_APP, payload: appSetting });
+        dispatch({ type: ADD_APP, payload: applyMobileSettings(appSetting, icon.target) });
       }
       return;
     }
 
     // Handle shortcuts - launch the target app or open folder/file
     if (icon.type === 'shortcut' && icon.target) {
-      if (!checkMobileRestriction(icon.target)) {
+      const appSetting = appSettings[icon.target];
+      if (!checkMobileRestriction(icon.target, appSetting)) {
         return; // Blocked on mobile, popup will be shown
       }
 
@@ -45,7 +48,7 @@ export function useFileHandler({
             initialPath: shortcutItem.fsId,
           },
         };
-        dispatch({ type: ADD_APP, payload: myComputerSetting });
+        dispatch({ type: ADD_APP, payload: applyMobileSettings(myComputerSetting, 'My Computer') });
         return;
       }
 
@@ -64,9 +67,8 @@ export function useFileHandler({
       }
 
       // Otherwise, try to launch as an app
-      const appSetting = appSettings[icon.target];
       if (appSetting) {
-        dispatch({ type: ADD_APP, payload: appSetting });
+        dispatch({ type: ADD_APP, payload: applyMobileSettings(appSetting, icon.target) });
       }
       return;
     }
@@ -79,7 +81,7 @@ export function useFileHandler({
           initialPath: icon.id,
         },
       };
-      dispatch({ type: ADD_APP, payload: myComputerSetting });
+      dispatch({ type: ADD_APP, payload: applyMobileSettings(myComputerSetting, 'My Computer') });
       return;
     }
 
@@ -124,11 +126,11 @@ export function useFileHandler({
           }
           dispatch({
             type: ADD_APP,
-            payload: {
+            payload: applyMobileSettings({
               ...appSettings['Notepad'],
               header: { ...appSettings['Notepad'].header, title: `${icon.title} - Notepad` },
               injectProps: { initialContent: textContent, fileName: icon.title, fileId: icon.id },
-            },
+            }, 'Notepad'),
           });
           handled = true;
         } else if (defaultProgram === 'Image Viewer' || defaultProgram === 'Paint') {
@@ -136,11 +138,11 @@ export function useFileHandler({
           if (appSettings[viewerKey]) {
             dispatch({
               type: ADD_APP,
-              payload: {
+              payload: applyMobileSettings({
                 ...appSettings[viewerKey],
                 header: { ...appSettings[viewerKey].header, title: `${icon.title} - ${defaultProgram === 'Paint' ? 'Paint' : 'Windows Picture and Fax Viewer'}` },
                 injectProps: { initialImage: { src: fileData, title: icon.title } },
-              },
+              }, viewerKey),
             });
             handled = true;
           }
@@ -160,21 +162,21 @@ export function useFileHandler({
           }
           dispatch({
             type: ADD_APP,
-            payload: {
+            payload: applyMobileSettings({
               ...appSettings['Internet Explorer'],
               header: { ...appSettings['Internet Explorer'].header, title: `${icon.title} - Internet Explorer` },
               injectProps: { initialUrl: blobUrl, filePath: `C:\\Desktop\\${icon.title}` },
-            },
+            }, 'Internet Explorer'),
           });
           handled = true;
         } else if (defaultProgram === 'WinRAR') {
           dispatch({
             type: ADD_APP,
-            payload: {
+            payload: applyMobileSettings({
               ...appSettings['WinRAR'],
               header: { ...appSettings['WinRAR'].header, title: `Extracting ${icon.title}` },
               injectProps: { fileData: fileData, fileName: icon.title, parentFolderId: null },
-            },
+            }, 'WinRAR'),
           });
           handled = true;
         } else if (defaultProgram === 'Windows Media Player' || defaultProgram === 'Winamp') {
@@ -182,11 +184,11 @@ export function useFileHandler({
           if (appSettings[playerKey]) {
             dispatch({
               type: ADD_APP,
-              payload: {
+              payload: applyMobileSettings({
                 ...appSettings[playerKey],
                 header: { ...appSettings[playerKey].header, title: `${icon.title} - ${defaultProgram}` },
                 injectProps: { fileData: fileData, fileName: icon.title },
-              },
+              }, playerKey),
             });
             handled = true;
           }
@@ -222,10 +224,14 @@ export function useFileHandler({
         (setting) => setting.component === icon.component
       );
       if (appSetting) {
-        dispatch({ type: ADD_APP, payload: appSetting });
+        // Find the app name by searching for the matching setting
+        const appName = Object.keys(appSettings).find(
+          (key) => appSettings[key].component === icon.component
+        );
+        dispatch({ type: ADD_APP, payload: applyMobileSettings(appSetting, appName) });
       }
     }
-  }, [dispatch, appSettings, fileSystem, getFileContent, checkMobileRestriction]);
+  }, [dispatch, appSettings, fileSystem, getFileContent, checkMobileRestriction, applyMobileSettings]);
 
   return {
     onDoubleClickIcon,

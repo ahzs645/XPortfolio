@@ -15,7 +15,13 @@ const APPLETS_BASE_URL = 'https://projects.ahmadjalil.com/applets/';
  *   author: string,    // Author name
  *   size: number,      // Estimated size in bytes
  *   releaseDate: string, // ISO date string for when the applet was released
- *   windowSettings: { width, height, resizable }
+ *   windowSettings: {
+ *     width: number,
+ *     height: number,
+ *     resizable: boolean,
+ *     mobileAvailable: boolean,   // Whether the applet can run on mobile (default: true)
+ *     mobileFullscreen: boolean,  // Whether to open fullscreen on mobile (default: true)
+ *   }
  * }
  */
 

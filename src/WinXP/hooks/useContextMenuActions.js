@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useMemo } from 'react';
 import { ADD_APP } from '../constants/actions';
 import { SYSTEM_IDS } from '../../contexts/FileSystemContext';
 import { createArchive, extractArchive } from '../../utils/archiveUtils';
+import { useMobileAppLauncher } from './useMobileAppLauncher';
 
 /**
  * Hook for handling desktop and icon context menu state and actions
@@ -30,6 +31,7 @@ export function useContextMenuActions({
   onDoubleClickIcon,
   refreshIcons,
 }) {
+  const { applyMobileSettings } = useMobileAppLauncher(dispatch);
   const [desktopContextMenu, setDesktopContextMenu] = useState(null);
   const [iconContextMenu, setIconContextMenu] = useState(null);
   const [renamingIconId, setRenamingIconId] = useState(null);
@@ -116,15 +118,15 @@ export function useContextMenuActions({
         refreshIcons();
         break;
       case 'properties':
-        dispatch({ type: ADD_APP, payload: appSettings['Display Properties'] });
+        dispatch({ type: ADD_APP, payload: applyMobileSettings(appSettings['Display Properties'], 'Display Properties') });
         break;
       case 'newShortcut':
-        dispatch({ type: ADD_APP, payload: appSettings['Create Shortcut'] });
+        dispatch({ type: ADD_APP, payload: applyMobileSettings(appSettings['Create Shortcut'], 'Create Shortcut') });
         break;
       default:
         console.log('Desktop action:', action);
     }
-  }, [createItem, paste, refreshIcons, dispatch, appSettings]);
+  }, [createItem, paste, refreshIcons, dispatch, appSettings, applyMobileSettings]);
 
   // Icon menu action handler
   const handleIconMenuAction = useCallback(async (action) => {
@@ -148,7 +150,7 @@ export function useContextMenuActions({
               initialPath: icon.id,
             },
           };
-          dispatch({ type: ADD_APP, payload: myComputerSetting });
+          dispatch({ type: ADD_APP, payload: applyMobileSettings(myComputerSetting, 'My Computer') });
         } else {
           onDoubleClickIcon(icon);
         }
@@ -207,7 +209,7 @@ export function useContextMenuActions({
       }
       case 'properties': {
         if (icon.target === 'My Computer' || icon.title === 'My Computer') {
-          dispatch({ type: ADD_APP, payload: appSettings['System Properties'] });
+          dispatch({ type: ADD_APP, payload: applyMobileSettings(appSettings['System Properties'], 'System Properties') });
         } else {
           const propName = icon.fullName || icon.title;
           const propertiesSetting = {
@@ -230,7 +232,7 @@ export function useContextMenuActions({
               },
             },
           };
-          dispatch({ type: ADD_APP, payload: propertiesSetting });
+          dispatch({ type: ADD_APP, payload: applyMobileSettings(propertiesSetting, 'Properties') });
         }
         break;
       }
@@ -267,7 +269,7 @@ export function useContextMenuActions({
       default:
         console.log('Icon action:', action);
     }
-  }, [iconContextMenu, icons, fileSystem, appSettings, dispatch, onDoubleClickIcon, copy, cut, moveToRecycleBin, getFileContent, createFile, createItem, pinToStartMenu, unpinFromStartMenu, addToStartup, removeFromStartup]);
+  }, [iconContextMenu, icons, fileSystem, appSettings, dispatch, onDoubleClickIcon, copy, cut, moveToRecycleBin, getFileContent, createFile, createItem, pinToStartMenu, unpinFromStartMenu, addToStartup, removeFromStartup, applyMobileSettings]);
 
   // Handle rename submission
   const handleIconRenameSubmit = useCallback((e) => {

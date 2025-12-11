@@ -83,10 +83,10 @@ export function resetDeviceCache() {
 }
 
 /**
- * Apps that are restricted on mobile devices
- * Keys match the app names used in appSettings
+ * Display info for mobile-restricted apps (used in popup dialogs)
+ * Note: The actual restriction check uses appSettings.mobileAvailable
  */
-export const MOBILE_RESTRICTED_APPS = {
+export const MOBILE_RESTRICTED_APPS_INFO = {
   'Media Player': {
     title: 'Windows Media Player',
     icon: '/icons/xp/WindowsMediaPlayer9.png',
@@ -105,16 +105,49 @@ export const MOBILE_RESTRICTED_APPS = {
   },
 };
 
+// Legacy export for backwards compatibility
+export const MOBILE_RESTRICTED_APPS = MOBILE_RESTRICTED_APPS_INFO;
+
 /**
- * Check if an app is restricted on mobile
+ * Check if an app is restricted on mobile.
+ * Checks appSettings.mobileAvailable if provided, otherwise falls back to legacy list.
+ *
+ * @param {string} appName - The name of the app
+ * @param {Object} appSetting - Optional app setting object with mobileAvailable property
+ * @returns {boolean} Whether the app is restricted on mobile
  */
-export function isAppMobileRestricted(appName) {
-  return Object.keys(MOBILE_RESTRICTED_APPS).includes(appName);
+export function isAppMobileRestricted(appName, appSetting = null) {
+  // If appSetting is provided, use its mobileAvailable property
+  if (appSetting !== null && typeof appSetting === 'object') {
+    // mobileAvailable defaults to true if not specified
+    return appSetting.mobileAvailable === false;
+  }
+  // Fallback to legacy list check
+  return Object.keys(MOBILE_RESTRICTED_APPS_INFO).includes(appName);
 }
 
 /**
- * Get the mobile restriction info for an app
+ * Get the mobile restriction info for an app (for display in popup)
+ *
+ * @param {string} appName - The name of the app
+ * @param {Object} appSetting - Optional app setting object with header info
+ * @returns {Object|null} Display info for the restriction popup
  */
-export function getMobileRestrictionInfo(appName) {
-  return MOBILE_RESTRICTED_APPS[appName] || null;
+export function getMobileRestrictionInfo(appName, appSetting = null) {
+  // First check the info map
+  if (MOBILE_RESTRICTED_APPS_INFO[appName]) {
+    return MOBILE_RESTRICTED_APPS_INFO[appName];
+  }
+  // If appSetting provided, build info from header
+  if (appSetting?.header) {
+    return {
+      title: appSetting.header.title || appName,
+      icon: appSetting.header.icon || null,
+    };
+  }
+  // Default fallback
+  return {
+    title: appName,
+    icon: null,
+  };
 }

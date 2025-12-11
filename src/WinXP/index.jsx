@@ -21,6 +21,7 @@ import { useIconManager } from './hooks/useIconManager';
 import { useFileHandler } from './hooks/useFileHandler';
 import { useFileUpload } from './hooks/useFileUpload';
 import { useContextMenuActions } from './hooks/useContextMenuActions';
+import { useMobileAppLauncher } from './hooks/useMobileAppLauncher';
 
 // Import components
 import { DesktopDropOverlay } from './components/DesktopDropOverlay';
@@ -121,9 +122,24 @@ function WinXP() {
     closePopup: closeMobileRestrictionPopup,
   } = useMobileRestriction();
 
+  // Mobile app launcher for fullscreen settings
+  const { applyMobileSettings, isMobile: isMobileDevice } = useMobileAppLauncher(dispatch);
+
   // Register callback to launch installed apps
   useEffect(() => {
     const handleLaunchApp = (app) => {
+      // Check if app is available on mobile
+      const mobileAvailable = app.windowSettings?.mobileAvailable ?? true;
+      if (isMobileDevice && !mobileAvailable) {
+        // Show mobile restriction popup
+        checkMobileRestriction(app.name, { mobileAvailable: false, header: { title: app.name, icon: app.icon } });
+        return;
+      }
+
+      // Determine if app should open fullscreen on mobile
+      const mobileFullscreen = app.windowSettings?.mobileFullscreen ?? true;
+      const shouldMaximize = isMobileDevice && mobileFullscreen;
+
       const iframeAppSetting = {
         ...appSettings['Installed App'],
         header: {
@@ -140,6 +156,7 @@ function WinXP() {
           height: app.windowSettings?.minHeight || 300,
         },
         resizable: app.windowSettings?.resizable ?? true,
+        maximized: shouldMaximize,
         injectProps: {
           appId: app.id,
           url: app.url,
@@ -149,7 +166,7 @@ function WinXP() {
     };
 
     registerLaunchCallback(handleLaunchApp);
-  }, [registerLaunchCallback, dispatch]);
+  }, [registerLaunchCallback, dispatch, isMobileDevice, checkMobileRestriction]);
 
   // Determine if mobile based on viewport width
   const isMobile = width < 768;
@@ -276,7 +293,7 @@ function WinXP() {
               if (item.type === 'shortcut' && item.target) {
                 const appSetting = appSettings[item.target];
                 if (appSetting) {
-                  dispatch({ type: ADD_APP, payload: appSetting });
+                  dispatch({ type: ADD_APP, payload: applyMobileSettings(appSetting, item.target) });
                 }
               }
             }, index * 500);
@@ -284,7 +301,7 @@ function WinXP() {
         }, 1000);
       }
     }
-  }, [state.bootState, startupAppsRun, fsLoading, fileSystem, getStartupItems, setStartupAppsRun, dispatch]);
+  }, [state.bootState, startupAppsRun, fsLoading, fileSystem, getStartupItems, setStartupAppsRun, dispatch, applyMobileSettings]);
 
   const handleToggleCRT = useCallback(() => {
     setCrtEnabled((prev) => !prev);
@@ -342,18 +359,19 @@ function WinXP() {
   }
 
   function onClickMenuItem(appName, injectProps = {}) {
-    if (!checkMobileRestriction(appName)) {
+    const appSetting = appSettings[appName];
+
+    if (!checkMobileRestriction(appName, appSetting)) {
       return;
     }
 
-    const appSetting = appSettings[appName];
     if (appSetting) {
       dispatch({
         type: ADD_APP,
-        payload: {
+        payload: applyMobileSettings({
           ...appSetting,
           injectProps: { ...appSetting.injectProps, ...injectProps },
-        },
+        }, appName),
       });
     } else if (appName === 'Log Off') {
       playLogoff();

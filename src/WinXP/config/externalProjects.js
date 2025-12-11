@@ -18,6 +18,8 @@
  *     width: number,
  *     height: number,
  *     resizable: boolean,
+ *     mobileAvailable: boolean,   // Whether the app can run on mobile (default: true)
+ *     mobileFullscreen: boolean,  // Whether to open fullscreen on mobile (default: true)
  *   }
  * }
  */
@@ -60,7 +62,7 @@ export const EXTERNAL_PROJECTS = [
     author: 'Ahmad Jalil',
     size: 1240000, // ~1.24 MB
     releaseDate: '2024-06-10',
-    windowSettings: { width: 1000, height: 700, resizable: true },
+    windowSettings: { width: 1000, height: 700, resizable: true, mobileAvailable: false },  // Requires Serial API
   },
   {
     id: 'air-quality',

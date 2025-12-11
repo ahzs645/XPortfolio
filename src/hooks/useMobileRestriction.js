@@ -24,14 +24,18 @@ export function useMobileRestriction() {
    * Check if an app can be launched on mobile
    * If restricted, shows the popup and returns false
    * If allowed, returns true
+   *
+   * @param {string} appName - The name of the app
+   * @param {Object} appSetting - Optional app setting object with mobileAvailable property
+   * @returns {boolean} Whether the app can be launched
    */
-  const checkMobileRestriction = useCallback((appName) => {
+  const checkMobileRestriction = useCallback((appName, appSetting = null) => {
     if (!isMobile) {
       return true; // Desktop can run all apps
     }
 
-    if (isAppMobileRestricted(appName)) {
-      const info = getMobileRestrictionInfo(appName);
+    if (isAppMobileRestricted(appName, appSetting)) {
+      const info = getMobileRestrictionInfo(appName, appSetting);
       setPopupData({
         title: info?.title || appName,
         icon: info?.icon || null,

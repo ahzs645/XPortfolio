@@ -678,6 +678,7 @@ export const appSettings = {
     minimized: false,
     maximized: false,
     multiInstance: true,
+    mobileAvailable: false,  // Paint requires mouse precision
   },
   Solitaire: {
     header: {
@@ -738,6 +739,7 @@ export const appSettings = {
     minimized: false,
     maximized: false,
     multiInstance: false,
+    mobileAvailable: false,  // Pinball requires keyboard controls
   },
   CMD: {
     header: {
@@ -798,6 +800,7 @@ export const appSettings = {
     minimized: false,
     maximized: false,
     multiInstance: false,
+    mobileAvailable: false,  // Media Player has complex UI not suited for mobile
   },
   'Windows Media Player': {
     header: {
@@ -818,6 +821,7 @@ export const appSettings = {
     minimized: false,
     maximized: false,
     multiInstance: false,
+    mobileAvailable: false,  // Media Player has complex UI not suited for mobile
   },
   'Windows Media Player Classic': {
     header: {
