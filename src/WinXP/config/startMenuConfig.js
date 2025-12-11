@@ -292,6 +292,13 @@ export const START_MENU_CATALOG = {
     title: 'Adobe Flash Player',
     description: 'Play Flash content with Ruffle',
   },
+  worldOfWarcraft: {
+    type: 'program',
+    appKey: 'World of Warcraft',
+    icon: '/icons/games/wow.webp',
+    title: 'World of Warcraft',
+    description: 'Classic WoW login screen',
+  },
   'divider-main': {
     type: 'separator',
   },
@@ -337,7 +344,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Games',
     icon: '/icons/xp/FolderClosed.png',
-    items: ['minesweeper', 'solitaire', 'spiderSolitaire', 'pinball', 'qqGames'],
+    items: ['minesweeper', 'solitaire', 'spiderSolitaire', 'pinball', 'worldOfWarcraft', 'qqGames'],
   },
   systemTools: {
     type: 'folder',

@@ -227,14 +227,21 @@ html:not(.mobile-device) .hide-desktop {
   min-height: 0;
 }
 
-/* Mobile-optimized scrollbars */
+/* Mobile-optimized scrollbars - keep XP theming but slightly smaller */
 .mobile-device ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 14px;
+  height: 14px;
 }
 
-.mobile-device ::-webkit-scrollbar-thumb {
-  border-radius: 4px;
+/* Keep the XP scrollbar buttons but make them proportional */
+.mobile-device ::-webkit-scrollbar-button:vertical:start,
+.mobile-device ::-webkit-scrollbar-button:vertical:end {
+  height: 14px;
+}
+
+.mobile-device ::-webkit-scrollbar-button:horizontal:start,
+.mobile-device ::-webkit-scrollbar-button:horizontal:end {
+  width: 14px;
 }
 
 /* Firefox scrollbar handling */
