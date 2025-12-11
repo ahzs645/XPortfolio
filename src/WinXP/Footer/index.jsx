@@ -468,12 +468,14 @@ function Footer({
           title={crtEnabled ? 'CRT Effects: ON' : 'CRT Effects: OFF'}
           onClick={onToggleCRT}
         />
-        <TrayIcon
-          src="/gui/taskbar/fullscreen.webp"
-          alt="Fullscreen"
-          title="Toggle Fullscreen"
-          onClick={handleFullscreenClick}
-        />
+        {!isMobile && (
+          <TrayIcon
+            src="/gui/taskbar/fullscreen.webp"
+            alt="Fullscreen"
+            title="Toggle Fullscreen"
+            onClick={handleFullscreenClick}
+          />
+        )}
         <TrayIcon
           ref={volumeIconRef}
           src="/gui/taskbar/speaker.png"

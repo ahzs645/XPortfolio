@@ -1059,6 +1059,19 @@ export default styled(FooterMenu)`
     pointer-events: none;
   }
 
+  /* Mobile: position nested submenu from right edge of screen */
+  .mobile-device & .nested-submenu {
+    position: fixed;
+    left: auto;
+    right: 10px;
+    top: auto;
+    bottom: 80px;
+    min-width: 180px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    z-index: 25;
+  }
+
   /* Recently Used Container */
   .recently-used-container {
     position: relative;

@@ -49,6 +49,7 @@ import BackupWizard from './BackupWizard';
 import TransferWizard from './TransferWizard';
 import MSNMessenger from './MSNMessenger';
 import FlashPlayer from './FlashPlayer';
+import WorldOfWarcraft from './WorldOfWarcraft';
 // ControlPanel is now integrated into MyComputer as a navigable view
 
 // XP Icons paths
@@ -76,6 +77,7 @@ const XP_ICONS = {
   backupWizard: '/icons/xp/tray/backup.png',
   transferWizard: '/icons/xp/tray/migrate.png',
   flashPlayer: '/icons/flash/flash_player.png',
+  worldOfWarcraft: '/icons/games/wow.webp',
 };
 
 // App categories for organization
@@ -155,6 +157,7 @@ export const appCategoryMap = {
   'QQ Penguin': APP_CATEGORIES.GAME,
   'QQ Pet 13': APP_CATEGORIES.GAME,
   'QQ Arcade': APP_CATEGORIES.GAME,
+  'World of Warcraft': APP_CATEGORIES.GAME,
 };
 
 // Helper to get app category
@@ -364,6 +367,11 @@ export const desktopIconCatalog = {
     title: 'Adobe Flash Player',
     component: FlashPlayer,
   },
+  worldOfWarcraft: {
+    icon: XP_ICONS.worldOfWarcraft,
+    title: 'World of Warcraft',
+    component: WorldOfWarcraft,
+  },
 };
 
 // Load saved icon positions from localStorage
@@ -427,6 +435,7 @@ const CATALOG_TO_APP_KEY = {
   backupWizard: 'Backup Wizard',
   transferWizard: 'Transfer Wizard',
   flashPlayer: 'Adobe Flash Player',
+  worldOfWarcraft: 'World of Warcraft',
 };
 
 // Generate desktop icon state from program list
@@ -1565,6 +1574,26 @@ export const appSettings = {
     maximized: false,
     multiInstance: true,
   },
+  'World of Warcraft': {
+    header: {
+      icon: XP_ICONS.worldOfWarcraft,
+      title: 'World of Warcraft',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: WorldOfWarcraft,
+    defaultSize: {
+      width: 900,
+      height: 650,
+    },
+    defaultOffset: {
+      x: 80,
+      y: 30,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
   // Control Panel is now integrated into MyComputer as a navigable view
   // Access via My Computer sidebar > Control Panel
 };
@@ -1617,4 +1646,5 @@ export {
   BackupWizard,
   TransferWizard,
   FlashPlayer,
+  WorldOfWarcraft,
 };
