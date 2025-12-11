@@ -1,1 +1,65 @@
-<!doctype html><meta charset=utf-8><title>Another Dumb Meme</title><link href=../../assets/apps/wow/css/styles.css rel=stylesheet><script src=../../assets/apps/wow/js/audiohandler.js></script><body onload=init()><div class=noSelect><button class=xPacButton id=logo onclick=manualChangeExpac(),playButtonAudio(1)></button><div class=foreground id=quitButtonContainer><button class=button id=optButton onclick=playButtonAudio(0),showSettings()>Options</button> <button class=button id=quitButton onclick=playButtonAudio(0),requestCloseWindow()>Quit</button></div><div class=centered style=display:none id=options><div class=UIBox style=width:450px;height:15px></div><div class=UIBoxBackground style=width:500px;height:75px></div><div class=slidecontainer><p class=text style=position:fixed;margin-top:0>Sound</p><input class=slider id=volumeSlider max=100 min=1 oninput=adjustVolume() type=range value=30></div></div><div class=centered id=queue><div class=UIBox style=width:450px;height:100px></div><div class=UIBoxBackground style=width:500px;height:150px></div><div id=queueTextContainer><p class=queueText>Realm is Full<p class=queueText id=queuePosition>Position in Queue: 0000<p class=queueText id=queueTime>Estimated time: 999 min</div><button class=button id=realmListButton onclick=playButtonAudio(0),doDisconnect()>Change Realm</button></div><div class=centered style=display:none id=disconnectBox><div class=UIBox style=width:550px;height:100px></div><div class=UIBoxBackground style=width:600px;height:150px></div><div id=dcTextContainer><p class=queueText>You have been disconnected from the server.<p class=queueText>(WOW51900319)</div><button class=button id=disconButton onclick=playButtonAudio(1),resetQueue()>Okay</button></div><div class=fullWidth><p id=copyrightText>Copyright 2004-2020 Blizzard Entertainment. All Right Reserved.</div><p id=buildVersion>Version 9.0.1 (35944) (Release x64)<p id=buildDate>Oct 13 2020<div class=fullScreen><div class=centered><video autoplay id=background loop muted><source src=../../assets/apps/wow/img/bg/Vanilla.webm type=video/webm><source src=../../assets/apps/wow/img/bg/Vanilla.mp4 type=video/mp4></video></div></div></div><script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"version":"2024.11.0","token":"eb868b5e624649ee82f4901f8d596552","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>World of Warcraft</title>
+  <link href="../../assets/apps/wow/css/styles.css" rel="stylesheet">
+  <script src="../../assets/apps/wow/js/audiohandler.js"></script>
+</head>
+<body onload="init()">
+  <div class="noSelect">
+    <button class="xPacButton" id="logo" onclick="manualChangeExpac(),playButtonAudio(1)"></button>
+
+    <div class="foreground" id="quitButtonContainer">
+      <button class="button" id="optButton" onclick="playButtonAudio(0),showSettings()">Options</button>
+      <button class="button" id="quitButton" onclick="playButtonAudio(0),requestCloseWindow()">Quit</button>
+    </div>
+
+    <div class="centered" style="display:none" id="options">
+      <div class="UIBox" style="width:450px;height:15px"></div>
+      <div class="UIBoxBackground" style="width:500px;height:75px"></div>
+      <div class="slidecontainer">
+        <p class="text" style="position:fixed;margin-top:0">Sound</p>
+        <input class="slider" id="volumeSlider" max="100" min="1" oninput="adjustVolume()" type="range" value="30">
+      </div>
+    </div>
+
+    <div class="centered" id="queue">
+      <div class="UIBox" style="width:450px;height:100px"></div>
+      <div class="UIBoxBackground" style="width:500px;height:150px"></div>
+      <div id="queueTextContainer">
+        <p class="queueText">Realm is Full</p>
+        <p class="queueText" id="queuePosition">Position in Queue: 0000</p>
+        <p class="queueText" id="queueTime">Estimated time: 999 min</p>
+      </div>
+      <button class="button" id="realmListButton" onclick="playButtonAudio(0),doDisconnect()">Change Realm</button>
+    </div>
+
+    <div class="centered" style="display:none" id="disconnectBox">
+      <div class="UIBox" style="width:550px;height:100px"></div>
+      <div class="UIBoxBackground" style="width:600px;height:150px"></div>
+      <div id="dcTextContainer">
+        <p class="queueText">You have been disconnected from the server.</p>
+        <p class="queueText">(WOW51900319)</p>
+      </div>
+      <button class="button" id="disconButton" onclick="playButtonAudio(1),resetQueue()">Okay</button>
+    </div>
+
+    <div class="fullWidth">
+      <p id="copyrightText">Copyright 2004-2020 Blizzard Entertainment. All Rights Reserved.</p>
+    </div>
+
+    <p id="buildVersion">Version 9.0.1 (35944) (Release x64)</p>
+    <p id="buildDate">Oct 13 2020</p>
+
+    <div class="fullScreen">
+      <div class="centered">
+        <video autoplay id="background" loop muted>
+          <source src="../../assets/apps/wow/img/bg/Vanilla.webm" type="video/webm">
+          <source src="../../assets/apps/wow/img/bg/Vanilla.mp4" type="video/mp4">
+        </video>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

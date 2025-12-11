@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 
 const Container = styled.div`
@@ -73,6 +73,21 @@ const LoadingOverlay = styled.div`
 
 function WorldOfWarcraft({ onClose, onMinimize, isFocus }) {
   const [isLoading, setIsLoading] = useState(true);
+
+  // Listen for close message from iframe
+  const handleMessage = useCallback((event) => {
+    if (event.data) {
+      // Handle close window request from quit button
+      if (event.data.type === 'close-window' || event.data.action === 'closeWindow') {
+        onClose?.();
+      }
+    }
+  }, [onClose]);
+
+  useEffect(() => {
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [handleMessage]);
 
   return (
     <Container>
