@@ -5,6 +5,7 @@ import Balloon from '../../components/Balloon';
 import FooterMenu from './FooterMenu';
 import QuickLaunch from './QuickLaunch';
 import { ContextMenu } from '../components/ContextMenu';
+import { isMobileDevice } from '../../utils/deviceDetection';
 
 const QUICK_LAUNCH_ENABLED_KEY = 'xp-quick-launch-enabled';
 const VOLUME_KEY = 'xp-volume';
@@ -413,7 +414,7 @@ function Footer({
           draggable={false}
         />
         <QuickLaunch
-          enabled={quickLaunchEnabled}
+          enabled={quickLaunchEnabled && !isMobileDevice()}
           onClickMenuItem={_onClickMenuItem}
           onMinimizeAll={onMinimizeAll}
         />
