@@ -31,7 +31,7 @@ const DEFAULT_CONFIG = {
   },
 };
 
-function Clippy() {
+function Clippy({ isMobile, onHideMobile }) {
   const [animationsData, setAnimationsData] = useState(null);
   const [messages, setMessages] = useState([]);
   const [config, setConfig] = useState(DEFAULT_CONFIG);
@@ -250,7 +250,11 @@ function Clippy() {
   const handleBalloonClose = useCallback((e) => {
     e?.stopPropagation?.();
     hideBalloon();
-  }, [hideBalloon]);
+    // On mobile, hide Clippy when balloon is closed
+    if (isMobile && onHideMobile) {
+      onHideMobile();
+    }
+  }, [hideBalloon, isMobile, onHideMobile]);
 
   // Start idle animations
   useEffect(() => {
@@ -346,10 +350,6 @@ const Container = styled.div`
   z-index: 50;
   cursor: pointer;
   user-select: none;
-
-  .mobile-device & {
-    display: none;
-  }
 `;
 
 const Sprite = styled.div`

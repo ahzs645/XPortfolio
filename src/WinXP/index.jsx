@@ -55,6 +55,14 @@ function WinXP() {
   const { state, dispatch, getFocusedAppId, getActiveAppIdForTaskbar } = useDesktopReducer();
   const [crtEnabled, setCrtEnabled] = useState(true);
   const [showClippy, setShowClippy] = useState(true);
+  const [clippyHiddenOnMobile, setClippyHiddenOnMobile] = useState(() => {
+    try {
+      const saved = localStorage.getItem('xp-clippy-hidden-mobile');
+      return saved === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [hasPendingUpdates, setHasPendingUpdates] = useState(true); // Set to true to show update dialog
   const ref = useRef(null);
   const mouse = useMouse(ref);
@@ -466,6 +474,24 @@ function WinXP() {
     setShowClippy(false);
   }, []);
 
+  const handleHideClippyMobile = useCallback(() => {
+    setClippyHiddenOnMobile(true);
+    try {
+      localStorage.setItem('xp-clippy-hidden-mobile', 'true');
+    } catch (e) {
+      console.error('Failed to save Clippy mobile preference:', e);
+    }
+  }, []);
+
+  const handleShowClippyMobile = useCallback(() => {
+    setClippyHiddenOnMobile(false);
+    try {
+      localStorage.removeItem('xp-clippy-hidden-mobile');
+    } catch (e) {
+      console.error('Failed to clear Clippy mobile preference:', e);
+    }
+  }, []);
+
   // Show boot screen during boot sequence
   if (state.bootState !== BOOT_STATE.DESKTOP) {
     if (sessionRestored || userAccountsLoading) {
@@ -536,7 +562,9 @@ function WinXP() {
           onMaximize={onMaximizeWindow}
           focusedAppId={focusedAppId}
         />
-        {showClippy && <Clippy />}
+        {showClippy && !(isMobile && clippyHiddenOnMobile) && (
+          <Clippy isMobile={isMobile} onHideMobile={handleHideClippyMobile} />
+        )}
         <Footer
           apps={state.apps}
           onMouseDownApp={onMouseDownFooterApp}
@@ -548,6 +576,9 @@ function WinXP() {
           crtEnabled={crtEnabled}
           onToggleCRT={handleToggleCRT}
           playBalloonSound={playBalloon}
+          clippyHiddenOnMobile={clippyHiddenOnMobile}
+          isMobile={isMobile}
+          onShowClippy={handleShowClippyMobile}
         />
         <CRTEffect enabled={crtEnabled} />
         {state.powerState !== POWER_STATE.START && (

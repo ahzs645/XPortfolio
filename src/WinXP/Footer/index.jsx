@@ -40,6 +40,9 @@ function Footer({
   crtEnabled,
   onToggleCRT,
   playBalloonSound,
+  clippyHiddenOnMobile,
+  isMobile,
+  onShowClippy,
 }) {
   const [time, setTime] = useState(getTime);
   const [menuOn, setMenuOn] = useState(false);
@@ -441,6 +444,14 @@ function Footer({
           title="Welcome"
           onClick={handleWelcomeClick}
         />
+        {isMobile && clippyHiddenOnMobile && (
+          <TrayIcon
+            src="/icons/about.webp"
+            alt="Clippy"
+            title="Show Clippy"
+            onClick={onShowClippy}
+          />
+        )}
         {hasUpdate && (
           <TrayIcon
             ref={updateIconRef}
