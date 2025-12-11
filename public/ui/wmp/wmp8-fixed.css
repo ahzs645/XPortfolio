@@ -169,15 +169,6 @@
     linear-gradient(to bottom, #7190c7, #464f8f);
   margin-top: 7px;
 }
-.wmp .wmpshapeholder#topright {
-  position: absolute;
-  width: 256px;
-  height: 37px;
-  right: 0;
-  top: 0;
-  z-index: 4;
-}
-
 .wmp .wmpshapeholder#topright .wmpshape {
   clip-path: path("M28,0C20,0,8,15,8,15H0V37H231V7a6.84,6.84,0,0,0-7-7Z");
   width: 231px;

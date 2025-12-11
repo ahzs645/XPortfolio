@@ -55,6 +55,7 @@ function WinXP() {
   const { state, dispatch, getFocusedAppId, getActiveAppIdForTaskbar } = useDesktopReducer();
   const [crtEnabled, setCrtEnabled] = useState(true);
   const [showClippy, setShowClippy] = useState(true);
+  const [hasPendingUpdates, setHasPendingUpdates] = useState(true); // Set to true to show update dialog
   const ref = useRef(null);
   const mouse = useMouse(ref);
   const { width } = useWindowSize();
@@ -422,7 +423,9 @@ function WinXP() {
 
   function onModalRestart() {
     dispatch({ type: CANCEL_POWER_OFF });
-    window.location.reload();
+    // Close all apps and go back to boot screen
+    dispatch({ type: CLOSE_ALL_APPS });
+    dispatch({ type: SET_BOOT_STATE, payload: BOOT_STATE.BOOTING });
   }
 
   function onModalLogOff() {
@@ -433,6 +436,13 @@ function WinXP() {
   }
 
   function onModalShutDown() {
+    // Shut down with updates (if any)
+    dispatch({ type: CANCEL_POWER_OFF });
+    // In a real scenario, this would install updates first
+  }
+
+  function onModalShutDownWithoutUpdates() {
+    // Shut down without installing updates
     dispatch({ type: CANCEL_POWER_OFF });
   }
 
@@ -546,7 +556,9 @@ function WinXP() {
             onRestart={onModalRestart}
             onLogOff={onModalLogOff}
             onShutDown={onModalShutDown}
+            onShutDownWithoutUpdates={onModalShutDownWithoutUpdates}
             mode={state.powerState}
+            hasUpdates={hasPendingUpdates}
           />
         )}
         {iconContextMenu && (

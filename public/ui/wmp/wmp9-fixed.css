@@ -169,15 +169,6 @@
     position: absolute
 }
 
-.wmp .wmpshapeholder#topright {
-    position: absolute;
-    width: 256px;
-    height: 31px;
-    right: 0;
-    top: 0;
-    z-index: 4
-}
-
 .wmp .wmpshapeholder#topright .wmpshape {
     clip-path: path("M256,12A12,12,0,0,0,244,0H51C30,0,24,31,0,31H256Z");
     width: 231px;

@@ -934,27 +934,28 @@ const TurnOffContainer = styled.div`
   }
 `;
 
-const TurnOffButton = styled.button`
-  display: flex;
+const TurnOffButton = styled.div`
+  display: inline-flex;
   align-items: center;
-  background: transparent;
-  border: none;
-  color: #eff1ed;
-  font-size: 16px;
-  font-weight: 500;
+  color: #fff;
+  font-size: 11px;
   cursor: pointer;
   padding: 0;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4);
 
   img {
-    width: 32px;
-    height: 32px;
-    margin-right: 8px;
-    opacity: 0.8;
-    transition: opacity 0.2s ease;
+    width: 24px;
+    height: 24px;
+    border-radius: 3px;
+    transition: filter 0.1s ease;
+  }
+
+  span {
+    padding: 0 6px;
   }
 
   &:hover img {
-    opacity: 1;
+    filter: brightness(1.3);
   }
 `;
 

@@ -199,9 +199,9 @@
   position: absolute;
 }
 
-/* Make sure shape elements display properly */
-.wmp .shapeshader,
-.wmp .wmpshapeholder {
+/* Make sure shapeshader elements display properly */
+/* Note: .wmpshapeholder uses position: unset from theme CSS - don't override */
+.wmp .shapeshader {
   display: inline-block;
   position: absolute;
 }

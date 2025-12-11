@@ -3,16 +3,17 @@ import ReactDOM from 'react-dom';
 import styled from 'styled-components';
 import { POWER_STATE } from '../constants';
 
-function Modal({ onClose, onRestart, onLogOff, onShutDown, mode }) {
+function Modal({ onClose, onRestart, onLogOff, onShutDown, onShutDownWithoutUpdates, mode, hasUpdates = false }) {
   const isLogOff = mode === POWER_STATE.LOG_OFF;
+  const isTurnOff = mode === POWER_STATE.TURN_OFF;
 
   return ReactDOM.createPortal(
     <Overlay>
-      <DialogContainer>
+      <DialogContainer $hasUpdates={hasUpdates && isTurnOff}>
         <DialogBody>
           <DialogHeader>
             <DialogHeaderText>
-              {isLogOff ? 'Log Off Windows' : 'Shut Down Windows'}
+              {isLogOff ? 'Log Off Windows' : 'Turn off computer'}
             </DialogHeaderText>
             <DialogHeaderIcon
               src="/assets/gui/boot/favicon.png"
@@ -33,17 +34,37 @@ function Modal({ onClose, onRestart, onLogOff, onShutDown, mode }) {
               </>
             ) : (
               <>
+                <DialogButton onClick={() => {}} role="button" tabIndex={0} $disabled>
+                  <HibernateIcon>
+                    <img src="/assets/gui/start-menu/standby.webp" alt="" />
+                  </HibernateIcon>
+                  <span>Hibernate</span>
+                </DialogButton>
+                <DialogButton onClick={hasUpdates ? onShutDown : onShutDown} role="button" tabIndex={0} $hasUpdateOverlay={hasUpdates}>
+                  <ButtonIconWrapper>
+                    <img src="/assets/gui/start-menu/shutdown.webp" alt="" />
+                    {hasUpdates && <UpdateShieldOverlay src="/icons/security-center.png" alt="" />}
+                  </ButtonIconWrapper>
+                  <span>Turn Off</span>
+                </DialogButton>
                 <DialogButton onClick={onRestart} role="button" tabIndex={0}>
                   <img src="/assets/gui/start-menu/restart.webp" alt="" />
                   <span>Restart</span>
                 </DialogButton>
-                <DialogButton onClick={onShutDown} role="button" tabIndex={0} $disabled>
-                  <img src="/assets/gui/start-menu/shutdown.webp" alt="" />
-                  <span>Shut Down</span>
-                </DialogButton>
               </>
             )}
           </DialogButtonContainer>
+          {hasUpdates && isTurnOff && (
+            <UpdateNotice>
+              <UpdateNoticeIcon src="/icons/security-center.png" alt="" />
+              <UpdateNoticeText>
+                Click Turn Off to install important updates and turn off your computer.{' '}
+                <UpdateNoticeLink onClick={onShutDownWithoutUpdates}>
+                  Click here to turn off without installing updates.
+                </UpdateNoticeLink>
+              </UpdateNoticeText>
+            </UpdateNotice>
+          )}
           <DialogFooter>
             <CancelButton onClick={onClose}>Cancel</CancelButton>
           </DialogFooter>
@@ -73,7 +94,7 @@ const DialogContainer = styled.div`
   font-size: 11px;
   padding: 0;
   position: relative;
-  width: 350px;
+  width: ${({ $hasUpdates }) => ($hasUpdates ? '400px' : '350px')};
   z-index: 2;
 `;
 
@@ -138,6 +159,43 @@ const DialogButtonContainer = styled.div`
   width: auto;
 `;
 
+const ButtonIconWrapper = styled.div`
+  position: relative;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 6px;
+`;
+
+const HibernateIcon = styled.div`
+  width: 40px;
+  height: 40px;
+  margin-bottom: 6px;
+  background: linear-gradient(180deg, #f5d96b 0%, #e8a815 50%, #d4940a 100%);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.4),
+    inset -1px -1px 0 rgba(0, 0, 0, 0.2),
+    1px 1px 2px rgba(0, 0, 0, 0.3);
+
+  img {
+    width: 28px !important;
+    height: 28px !important;
+    filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.3));
+  }
+`;
+
+const UpdateShieldOverlay = styled.img`
+  position: absolute;
+  bottom: -3px;
+  right: -5px;
+  width: 20px;
+  height: 20px;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
+`;
+
 const DialogButton = styled.div`
   display: flex;
   flex-direction: column;
@@ -160,9 +218,12 @@ const DialogButton = styled.div`
     border: none !important;
     width: 40px;
     height: 40px;
-    margin-bottom: 6px;
     filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.4));
     transition: filter 0.15s ease-in-out;
+  }
+
+  ${ButtonIconWrapper} img {
+    margin-bottom: 0;
   }
 
   span {
@@ -171,6 +232,37 @@ const DialogButton = styled.div`
     font-size: 13.5px;
     line-height: 1.2;
     text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4);
+  }
+`;
+
+const UpdateNotice = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #ece9d8;
+  border-top: 1px solid #a0a0a0;
+`;
+
+const UpdateNoticeIcon = styled.img`
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+`;
+
+const UpdateNoticeText = styled.div`
+  font-size: 11px;
+  line-height: 1.4;
+  color: #000;
+`;
+
+const UpdateNoticeLink = styled.a`
+  color: #0066cc;
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:hover {
+    color: #0044aa;
   }
 `;
 
