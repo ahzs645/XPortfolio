@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { ProgramLayout } from '../../../components';
+import { useConfig } from '../../../contexts/ConfigContext';
 
 const TABS = [
   { id: 'taskbar', label: 'Taskbar' },
@@ -8,6 +9,7 @@ const TABS = [
 ];
 
 function TaskbarProperties({ onClose, onMinimize }) {
+  const { getDisplayName } = useConfig();
   const [activeTab, setActiveTab] = useState('taskbar');
   const [lockTaskbar, setLockTaskbar] = useState(true);
   const [autoHide, setAutoHide] = useState(false);
@@ -127,7 +129,7 @@ function TaskbarProperties({ onClose, onMinimize }) {
                   <StartMenuPreviewMenu>
                     <StartMenuHeader>
                       <UserAvatar />
-                      <UserName>Owner</UserName>
+                      <UserName>{getDisplayName()}</UserName>
                     </StartMenuHeader>
                     <StartMenuBody>
                       <StartMenuLeft>

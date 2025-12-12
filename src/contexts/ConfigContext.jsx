@@ -433,6 +433,119 @@ export function ConfigProvider({ children }) {
 
   // Get about content (load from markdown)
   const [aboutContent, setAboutContent] = useState(null);
+  const [dynamicXPSvgUrl, setDynamicXPSvgUrl] = useState(null);
+
+  // Generate dynamic XP SVG with custom name
+  useEffect(() => {
+    if (!config || !cvData) return;
+
+    async function generateDynamicSvg() {
+      try {
+        const displayName = getDisplayName();
+        const osSuffix = (config?.OS_SUFFIX || 'XP').toLowerCase();
+
+        // Fetch the SVG file
+        const response = await fetch('/xp.svg');
+        let svgContent = await response.text();
+
+        // Replace the name text content in the SVG
+        svgContent = svgContent.replace(
+          /<tspan x="587\.5" y="0">Ahmad<\/tspan>/g,
+          `<tspan x="587.5" y="0">${displayName}</tspan>`
+        );
+
+        // Replace the OS suffix (xp)
+        svgContent = svgContent.replace(
+          /<tspan x="0" y="0">xp<\/tspan>/g,
+          `<tspan x="0" y="0">${osSuffix}</tspan>`
+        );
+
+        // Try to embed the font for better rendering
+        try {
+          const fontResponse = await fetch('/fonts/Franklin Gothic Medium.woff2');
+          if (fontResponse.ok) {
+            const fontBuffer = await fontResponse.arrayBuffer();
+            const fontBase64 = btoa(String.fromCharCode(...new Uint8Array(fontBuffer)));
+
+            // Embed the font directly in the SVG
+            const fontDef = `
+        @font-face {
+          font-family: 'FranklinGothicURW-Med';
+          src: url('data:font/woff2;base64,${fontBase64}') format('woff2');
+          font-weight: 500;
+          font-style: normal;
+        }
+        @font-face {
+          font-family: 'FranklinGothic URW';
+          src: url('data:font/woff2;base64,${fontBase64}') format('woff2');
+          font-weight: 500;
+          font-style: normal;
+        }`;
+
+            // Insert the font definition into the SVG's style section
+            svgContent = svgContent.replace(
+              /<style>/,
+              `<style>${fontDef}`
+            );
+
+            // Auto-fit long display names by reducing the name font-size if needed
+            try {
+              const face = new FontFace('FranklinGothicURW-Med', `url(data:font/woff2;base64,${fontBase64}) format("woff2")`);
+              await face.load();
+              if (document && document.fonts) {
+                document.fonts.add(face);
+              }
+
+              // Measure name at the base font-size used in the SVG
+              const baseFontSize = 199.5; // px (from .st63)
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d');
+              ctx.font = `${baseFontSize}px 'FranklinGothicURW-Med', 'FranklinGothic URW'`;
+              const nameWidth = ctx.measureText(displayName).width;
+
+              // Max width before hitting x=0 (leave a small left margin)
+              const rightAnchorX = 587.5;
+              const leftMargin = 12;
+              const maxWidth = Math.max(1, rightAnchorX - leftMargin);
+              const scale = Math.min(1, maxWidth / nameWidth);
+
+              if (scale < 1) {
+                const newFontSize = Math.floor(baseFontSize * scale);
+                // Update the font-size in the SVG
+                svgContent = svgContent.replace(
+                  /\.st63\s*\{[^}]*font-size:\s*199\.5px/,
+                  `.st63 {\n        fill: #fff;\n        font-size: ${newFontSize}px`
+                );
+              }
+            } catch (measureErr) {
+              // Font measurement failed, continue without scaling
+              console.warn('Font measurement failed:', measureErr);
+            }
+          }
+        } catch (fontErr) {
+          // Font embedding failed, continue without embedded font
+          console.warn('Font embedding failed:', fontErr);
+        }
+
+        // Create blob URL
+        const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+
+        // Clean up previous URL if exists
+        if (dynamicXPSvgUrl) {
+          URL.revokeObjectURL(dynamicXPSvgUrl);
+        }
+
+        setDynamicXPSvgUrl(url);
+      } catch (err) {
+        console.error('Failed to generate dynamic SVG:', err);
+        // Fall back to static SVG
+        setDynamicXPSvgUrl('/xp.svg');
+      }
+    }
+
+    generateDynamicSvg();
+  }, [config, cvData]);
 
   useEffect(() => {
     if (!config) return;
@@ -469,6 +582,11 @@ export function ConfigProvider({ children }) {
     };
   };
 
+  // Get the dynamic XP SVG URL (with replaced name)
+  const getDynamicXPSvgUrl = () => {
+    return dynamicXPSvgUrl || '/xp.svg';
+  };
+
   const value = {
     config,
     cvData,
@@ -484,6 +602,7 @@ export function ConfigProvider({ children }) {
     getStartMenuIcon,
     getProfilePhotoPath,
     getLoadingImagePath,
+    getDynamicXPSvgUrl,
     getWallpaperPath,
     setWallpaperPath,
     // Screensaver

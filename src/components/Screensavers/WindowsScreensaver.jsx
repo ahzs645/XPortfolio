@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
-import XPLogoSVG from '../../assets/xp.svg?react';
+import { useConfig } from '../../contexts/ConfigContext';
 
 function WindowsScreensaver() {
+  const { getDynamicXPSvgUrl } = useConfig();
   const containerRef = useRef(null);
   const logoRef = useRef(null);
   const [position, setPosition] = useState({ x: 10, y: 10 });
@@ -73,6 +74,8 @@ function WindowsScreensaver() {
     <Container ref={containerRef}>
       <Logo
         ref={logoRef}
+        src={getDynamicXPSvgUrl()}
+        alt="Windows XP"
         style={{
           left: position.x,
           top: position.y,
@@ -90,7 +93,7 @@ const Container = styled.div`
   position: relative;
 `;
 
-const Logo = styled(XPLogoSVG)`
+const Logo = styled.img`
   position: absolute;
   width: 40%;
   min-width: 30px;

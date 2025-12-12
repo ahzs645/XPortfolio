@@ -33,7 +33,7 @@ export const EXTERNAL_PROJECTS = [
     description: 'Dynamic web forms application for creating and managing online forms with validation',
     category: 'tool',
     version: '2.1.0',
-    author: 'Ahmad Jalil',
+    // author: omitted - will use owner name from CV.yaml
     size: 856000, // ~856 KB
     releaseDate: '2024-03-15',
     windowSettings: { width: 900, height: 650, resizable: true },
@@ -46,7 +46,7 @@ export const EXTERNAL_PROJECTS = [
     description: 'UNBC Door access monitoring and control system interface',
     category: 'tool',
     version: '1.2.0',
-    author: 'Ahmad Jalil',
+    // author: omitted - will use owner name from CV.yaml
     size: 425000, // ~425 KB
     releaseDate: '2024-01-20',
     windowSettings: { width: 800, height: 600, resizable: true },
@@ -59,7 +59,7 @@ export const EXTERNAL_PROJECTS = [
     description: 'Web-based client for Proxmark3 RFID/NFC research tool with Serial API support',
     category: 'tool',
     version: '1.0.5',
-    author: 'Ahmad Jalil',
+    // author: omitted - will use owner name from CV.yaml
     size: 1240000, // ~1.24 MB
     releaseDate: '2024-06-10',
     windowSettings: { width: 1000, height: 700, resizable: true, mobileAvailable: false },  // Requires Serial API
@@ -72,7 +72,7 @@ export const EXTERNAL_PROJECTS = [
     description: 'Real-time air quality monitoring and visualization dashboard with historical data',
     category: 'visualization',
     version: '1.5.0',
-    author: 'Ahmad Jalil',
+    // author: omitted - will use owner name from CV.yaml
     size: 1560000, // ~1.56 MB
     releaseDate: '2024-04-22',
     windowSettings: { width: 1000, height: 700, resizable: true },
@@ -85,7 +85,7 @@ export const EXTERNAL_PROJECTS = [
     description: 'Interactive visualization of UNBC water quality and flow data with charts and maps',
     category: 'visualization',
     version: '2.0.0',
-    author: 'Ahmad Jalil',
+    // author: omitted - will use owner name from CV.yaml
     size: 2100000, // ~2.1 MB
     releaseDate: '2024-05-18',
     windowSettings: { width: 1100, height: 750, resizable: true },
@@ -98,7 +98,7 @@ export const EXTERNAL_PROJECTS = [
     description: 'Interactive 3D forest ecosystem visualization and simulation',
     category: 'visualization',
     version: '1.1.0',
-    author: 'Ahmad Jalil',
+    // author: omitted - will use owner name from CV.yaml
     size: 3200000, // ~3.2 MB
     releaseDate: '2024-02-28',
     windowSettings: { width: 1000, height: 700, resizable: true },
@@ -111,7 +111,7 @@ export const EXTERNAL_PROJECTS = [
     description: 'Immersive 3D portfolio experience built with Three.js and WebGL',
     category: 'experiment',
     version: '1.3.0',
-    author: 'Ahmad Jalil',
+    // author: omitted - will use owner name from CV.yaml
     size: 4500000, // ~4.5 MB
     releaseDate: '2024-07-05',
     windowSettings: { width: 1100, height: 750, resizable: true },
@@ -124,7 +124,7 @@ export const EXTERNAL_PROJECTS = [
     description: 'Extract and download icons from websites, favicons, and image files',
     category: 'utility',
     version: '1.0.2',
-    author: 'Ahmad Jalil',
+    // author: omitted - will use owner name from CV.yaml
     size: 320000, // ~320 KB
     releaseDate: '2024-08-12',
     windowSettings: { width: 800, height: 600, resizable: true },

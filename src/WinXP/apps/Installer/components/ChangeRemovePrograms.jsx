@@ -22,6 +22,7 @@ import {
   EmptyIcon,
 } from './styles';
 import styled from 'styled-components';
+import { useConfig } from '../../../../contexts/ConfigContext';
 
 const ProgramUsage = styled.div`
   text-align: right;
@@ -90,6 +91,10 @@ const DisabledItem = styled.div`
 function ChangeRemovePrograms({ apps, onRun, onUninstall, onToggleApp }) {
   const [expandedAppId, setExpandedAppId] = useState(null);
   const [sortBy, setSortBy] = useState('name');
+  const { getFullName } = useConfig();
+
+  // Get owner name for built-in apps that don't have an explicit author
+  const ownerName = getFullName();
 
   const sortedApps = [...apps].sort((a, b) => {
     switch (sortBy) {
@@ -179,7 +184,9 @@ function ChangeRemovePrograms({ apps, onRun, onUninstall, onToggleApp }) {
                   </ProgramName>
                   <ProgramMeta>
                     {app.version && <span>Version {app.version}</span>}
-                    {app.author && <span> &bull; {app.author}</span>}
+                    {(app.author || app.isBuiltIn) && (
+                      <span> &bull; {app.author || ownerName}</span>
+                    )}
                     {app.category && (
                       <>
                         <span> &bull; </span>

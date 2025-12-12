@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import styled from 'styled-components';
 import { ProgramLayout, FileChooser } from '../../../components';
 import { useUserSettings } from '../../../contexts/UserSettingsContext';
 import { useScreensaver } from '../../../contexts/ScreensaverContext';
+import { useConfig } from '../../../contexts/ConfigContext';
 import WindowsScreensaver from '../../../components/Screensavers/WindowsScreensaver';
 
-const WALLPAPERS = [
+// Base wallpapers - the custom one will have its name derived from config
+const BASE_WALLPAPERS = [
   { id: 'none', name: '(None)', path: null },
   { id: 'ascent', name: 'Ascent', path: '/wallpapers/Ascent.jpg' },
   { id: 'autumn', name: 'Autumn', path: '/wallpapers/Autumn.jpg' },
@@ -19,7 +21,8 @@ const WALLPAPERS = [
   { id: 'redmoon', name: 'Red Moon Desert', path: '/wallpapers/Redmoondesert.jpg' },
   { id: 'tulips', name: 'Tulips', path: '/wallpapers/Tulips.jpg' },
   { id: 'wind', name: 'Wind', path: '/wallpapers/Wind.jpg' },
-  { id: 'custom', name: 'Ahmad XP', path: '/Ahmadxp.png' },
+  // Custom wallpaper - name will be set dynamically using getOSName()
+  { id: 'custom', name: null, path: '/Ahmadxp.png' },
 ];
 
 const TABS = [
@@ -122,7 +125,16 @@ function DisplayProperties({ onClose, onMinimize }) {
     setWaitMinutes,
     previewScreensaver,
   } = useScreensaver();
+  const { getOSName } = useConfig();
   const currentDesktop = getWallpaperPath(false);
+
+  // Build wallpapers list with dynamic OS name for custom wallpaper
+  const WALLPAPERS = useMemo(() => {
+    const osName = getOSName();
+    return BASE_WALLPAPERS.map(w =>
+      w.id === 'custom' ? { ...w, name: osName } : w
+    );
+  }, [getOSName]);
   const [selected, setSelected] = useState(currentDesktop);
   const [activeTab, setActiveTab] = useState('desktop');
   const [applyToMobile, setApplyToMobile] = useState(true);

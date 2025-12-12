@@ -43,7 +43,7 @@ export const APPLETS = [
     icon: APPLET_ICONS.raincheck,
     description: 'Generate and print rain check vouchers for customers',
     version: '1.0.0',
-    author: 'Ahmad Jalil',
+    // author: omitted - will use owner name from CV.yaml
     size: 125000, // ~125 KB
     releaseDate: '2024-09-01',
     windowSettings: { width: 500, height: 600, resizable: true },
@@ -56,7 +56,7 @@ export const APPLETS = [
   //   icon: APPLET_ICONS.myapplet || DEFAULT_APPLET_ICON,
   //   description: 'Description here',
   //   version: '1.0.0',
-  //   author: 'Ahmad Jalil',
+  //   // author: omitted - will use owner name from CV.yaml
   //   size: 100000,
   //   releaseDate: '2024-01-01',
   //   windowSettings: { width: 500, height: 400, resizable: true },

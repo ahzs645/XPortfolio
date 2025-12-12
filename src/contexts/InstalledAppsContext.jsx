@@ -15,6 +15,8 @@ const parseReleaseDate = (dateString) => {
 };
 
 // Convert external projects to built-in apps format
+// Note: author is intentionally left as project.author (may be undefined)
+// The UI will use getFullName() from ConfigContext for built-in apps without explicit author
 const BUILT_IN_PROJECTS = EXTERNAL_PROJECTS.reduce((acc, project) => {
   acc[`builtin-${project.id}`] = {
     id: `builtin-${project.id}`,
@@ -22,7 +24,7 @@ const BUILT_IN_PROJECTS = EXTERNAL_PROJECTS.reduce((acc, project) => {
     name: project.name,
     icon: project.icon || DEFAULT_PROJECT_ICON,
     description: project.description || '',
-    author: project.author || 'Ahmad Jalil',
+    author: project.author || '', // Empty string if not specified - UI will handle fallback
     version: project.version || '1.0.0',
     size: project.size || null,
     manifest: null,
@@ -43,6 +45,8 @@ const BUILT_IN_PROJECTS = EXTERNAL_PROJECTS.reduce((acc, project) => {
 }, {});
 
 // Convert applets to built-in apps format
+// Note: author is intentionally left as applet.author (may be undefined)
+// The UI will use getFullName() from ConfigContext for built-in apps without explicit author
 const BUILT_IN_APPLETS = APPLETS.reduce((acc, applet) => {
   acc[`applet-${applet.id}`] = {
     id: `applet-${applet.id}`,
@@ -50,7 +54,7 @@ const BUILT_IN_APPLETS = APPLETS.reduce((acc, applet) => {
     name: applet.name,
     icon: applet.icon || DEFAULT_APPLET_ICON,
     description: applet.description || '',
-    author: applet.author || 'Ahmad Jalil',
+    author: applet.author || '', // Empty string if not specified - UI will handle fallback
     version: applet.version || '1.0.0',
     size: applet.size || null,
     manifest: null,
