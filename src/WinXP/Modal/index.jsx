@@ -240,8 +240,7 @@ const UpdateNotice = styled.div`
   align-items: flex-start;
   gap: 10px;
   padding: 12px 16px;
-  background: #ece9d8;
-  border-top: 1px solid #a0a0a0;
+  background: linear-gradient(90deg, #002a8c, #0039a9 50%, #002a8c);
 `;
 
 const UpdateNoticeIcon = styled.img`
@@ -253,16 +252,17 @@ const UpdateNoticeIcon = styled.img`
 const UpdateNoticeText = styled.div`
   font-size: 11px;
   line-height: 1.4;
-  color: #000;
+  color: #fff;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4);
 `;
 
 const UpdateNoticeLink = styled.a`
-  color: #0066cc;
+  color: #b8d4ff;
   text-decoration: underline;
   cursor: pointer;
 
   &:hover {
-    color: #0044aa;
+    color: #fff;
   }
 `;
 
