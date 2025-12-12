@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import styled from 'styled-components';
+import { withBaseUrl } from '../../utils/baseUrl';
 
 /**
  * MenuBar Component - Windows XP style menu bar
@@ -272,7 +273,7 @@ function MenuBar({ menus = [], logo, onAction, windowActions = {} }) {
             »
           </ChevronButton>
         )}
-        {logo && <MenuBarLogo src={logo} alt="Logo" />}
+        {logo && <MenuBarLogo src={withBaseUrl(logo)} alt="Logo" />}
       </MenuBarInner>
 
       {activeMenu && activeMenuData && (

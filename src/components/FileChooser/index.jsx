@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../../contexts/FileSystemContext';
 import { isMobileDevice } from '../../utils/deviceDetection';
+import { withBaseUrl } from '../../utils/baseUrl';
 
 const DOUBLE_TAP_DELAY = 400; // ms for double-tap detection
 
@@ -316,21 +317,21 @@ function FileChooser({
                 disabled={historyIndex === 0}
                 title="Back"
               >
-                <img src="/gui/toolbar/back.webp" alt="Back" />
+                <img src={withBaseUrl('/gui/toolbar/back.webp')} alt="Back" />
               </ToolbarButton>
               <ToolbarButton
                 onClick={goForward}
                 disabled={historyIndex >= history.length - 1}
                 title="Forward"
               >
-                <img src="/gui/toolbar/forward.webp" alt="Forward" />
+                <img src={withBaseUrl('/gui/toolbar/forward.webp')} alt="Forward" />
               </ToolbarButton>
               <ToolbarButton
                 onClick={goUp}
                 disabled={isMyComputer}
                 title="Up"
               >
-                <img src="/gui/toolbar/up.webp" alt="Up" />
+                <img src={withBaseUrl('/gui/toolbar/up.webp')} alt="Up" />
               </ToolbarButton>
             </Toolbar>
 

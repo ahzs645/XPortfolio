@@ -1,9 +1,10 @@
 import { useRef, useCallback, useEffect } from 'react';
+import { withBaseUrl } from '../utils/baseUrl';
 
 const SOUNDS = {
-  login: '/sounds/login.wav',
-  logoff: '/sounds/logoff.wav',
-  balloon: '/sounds/balloon.wav',
+  login: withBaseUrl('/sounds/login.wav'),
+  logoff: withBaseUrl('/sounds/logoff.wav'),
+  balloon: withBaseUrl('/sounds/balloon.wav'),
 };
 
 let audioCache = {};

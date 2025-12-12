@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import Balloon from '../../components/Balloon';
 import useSystemSounds from '../../hooks/useSystemSounds';
+import { withBaseUrl } from '../../utils/baseUrl';
 
-const SPRITE_SHEET_URL = '/clippy/map.png';
+const SPRITE_SHEET_URL = withBaseUrl('/clippy/map.png');
 const FRAME_WIDTH = 124;
 const FRAME_HEIGHT = 93;
 
@@ -54,8 +55,8 @@ function Clippy({ isMobile, onHideMobile }) {
     const loadData = async () => {
       try {
         const [animRes, msgRes] = await Promise.all([
-          fetch('/clippy/animations.json'),
-          fetch('/clippy/messages.json'),
+          fetch(withBaseUrl('/clippy/animations.json')),
+          fetch(withBaseUrl('/clippy/messages.json')),
         ]);
 
         const animData = await animRes.json();

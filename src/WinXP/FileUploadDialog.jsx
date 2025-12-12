@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
+import { withBaseUrl } from '../utils/baseUrl';
 
 function FileUploadDialog({ files, onConfirm, onCancel, uploading, progress }) {
   const hasStartedRef = useRef(false);
@@ -30,7 +31,7 @@ function FileUploadDialog({ files, onConfirm, onCancel, uploading, progress }) {
         </div>
 
         <Content className="window-body">
-          <AnimationImage src="/gui/copying.gif" alt="Copying animation" />
+          <AnimationImage src={withBaseUrl('/gui/copying.gif')} alt="Copying animation" />
 
           <InfoText>
             Copying {currentFileName}...

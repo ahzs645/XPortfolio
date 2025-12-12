@@ -5,6 +5,7 @@ import { useInstalledApps } from '../../contexts/InstalledAppsContext';
 import { useUserAccounts } from '../../contexts/UserAccountsContext';
 import { useStartMenu } from '../../contexts/StartMenuContext';
 import { isAppDisabled } from '../apps/Installer';
+import { withBaseUrl } from '../../utils/baseUrl';
 import {
   START_MENU_CATALOG,
   PINNED_LEFT,
@@ -149,7 +150,7 @@ function FooterMenu({ className, onClick, onLaunchInstalledApp }) {
           >
             <div className={`all-programs-button ${showAllPrograms ? 'active' : ''}`}>
               <span>All Programs</span>
-              <img src="/icons/arrow.webp" alt="" />
+              <img src={withBaseUrl('/icons/arrow.webp')} alt="" />
             </div>
             {showAllPrograms && (
               <AllProgramsMenu
@@ -181,7 +182,7 @@ function FooterMenu({ className, onClick, onLaunchInstalledApp }) {
               onMouseLeave={() => setShowInstalledApps(false)}
             >
               <div className={`menu__item menu__item--with-arrow ${showInstalledApps ? 'active' : ''}`}>
-                <img className="menu__item__img" src="/icons/xp/Programs.png" alt="Installed Apps" />
+                <img className="menu__item__img" src={withBaseUrl('/icons/xp/Programs.png')} alt="Installed Apps" />
                 <div className="menu__item__texts">
                   <div className="menu__item__text">Installed Apps</div>
                 </div>
@@ -207,7 +208,7 @@ function FooterMenu({ className, onClick, onLaunchInstalledApp }) {
             onMouseLeave={() => setShowRecentlyUsed(false)}
           >
             <div className={`menu__item menu__item--with-arrow ${showRecentlyUsed ? 'active' : ''}`}>
-              <img className="menu__item__img" src="/icons/recently-used.webp" alt="Recently Used" />
+              <img className="menu__item__img" src={withBaseUrl('/icons/recently-used.webp')} alt="Recently Used" />
               <div className="menu__item__texts">
                 <div className="menu__item__text">Recently Used</div>
               </div>
@@ -222,11 +223,11 @@ function FooterMenu({ className, onClick, onLaunchInstalledApp }) {
       <footer>
         <div className="footer-buttons">
           <div className="footer-button" onClick={() => onClick('Log Off')}>
-            <img src="/icons/logoff.webp" alt="Log Off" />
+            <img src={withBaseUrl('/icons/logoff.webp')} alt="Log Off" />
             <span>Log Off</span>
           </div>
           <div className="footer-button" onClick={() => onClick('Turn Off Computer')}>
-            <img src="/icons/shutdown.webp" alt="Turn Off" />
+            <img src={withBaseUrl('/icons/shutdown.webp')} alt="Turn Off" />
             <span>Turn Off</span>
           </div>
         </div>
@@ -241,7 +242,7 @@ function MenuItem({ item, onClick, emphasize = false }) {
       className={`menu__item ${emphasize ? 'menu__item--emphasize' : ''}`}
       onClick={onClick}
     >
-      <img className="menu__item__img" src={item.icon} alt={item.title} />
+      <img className="menu__item__img" src={withBaseUrl(item.icon)} alt={item.title} />
       <div className="menu__item__texts">
         <div className="menu__item__text">{item.title}</div>
         {item.description && (
@@ -296,7 +297,7 @@ function AllProgramsMenu({ items, activeFolder, onItemClick, onFolderHover }) {
               className="all-programs-item"
               onClick={() => onItemClick(item)}
             >
-              <img src={item.icon} alt="" />
+              <img src={withBaseUrl(item.icon)} alt="" />
               <span>{item.title}</span>
             </li>
           );
@@ -360,7 +361,7 @@ function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemC
       onMouseLeave={onLeave}
       ref={itemRef}
     >
-      <img src={folder.icon} alt="" />
+      <img src={withBaseUrl(folder.icon)} alt="" />
       <span>{folder.title}</span>
       {isOpen && (
         <div
@@ -397,16 +398,16 @@ function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemC
               );
             }
 
-            return (
-              <div
-                key={item.key}
-                className="folder-submenu-item"
-                onClick={() => onItemClick(item)}
-              >
-                <img src={item.icon} alt="" />
-                <span>{item.title}</span>
-              </div>
-            );
+              return (
+                <div
+                  key={item.key}
+                  className="folder-submenu-item"
+                  onClick={() => onItemClick(item)}
+                >
+                  <img src={withBaseUrl(item.icon)} alt="" />
+                  <span>{item.title}</span>
+                </div>
+              );
           })}
         </div>
       )}
@@ -461,7 +462,7 @@ function NestedFolderItem({ folder, isOpen, folderItems, onHover, onLeave, onIte
       onMouseLeave={onLeave}
       ref={itemRef}
     >
-      <img src={folder.icon} alt="" />
+      <img src={withBaseUrl(folder.icon)} alt="" />
       <span>{folder.title}</span>
       <span className="nested-arrow">►</span>
       {isOpen && (
@@ -477,7 +478,7 @@ function NestedFolderItem({ folder, isOpen, folderItems, onHover, onLeave, onIte
               className="folder-submenu-item"
               onClick={() => onItemClick(item)}
             >
-              <img src={item.icon} alt="" />
+              <img src={withBaseUrl(item.icon)} alt="" />
               <span>{item.title}</span>
             </div>
           ))}
@@ -497,7 +498,7 @@ function RecentlyUsedMenu({ items }) {
             key={item.key}
             className={`recently-used-item ${item.disabled ? 'disabled' : ''}`}
           >
-            <img src={item.icon} alt="" />
+            <img src={withBaseUrl(item.icon)} alt="" />
             <span>{item.title}</span>
           </li>
         ))}
@@ -517,7 +518,11 @@ function InstalledAppsMenu({ apps, onAppClick }) {
             className="installed-apps-item"
             onClick={() => onAppClick(app)}
           >
-            <img src={app.icon || '/icons/xp/Programs.png'} alt="" onError={(e) => { e.target.src = '/icons/xp/Programs.png'; }} />
+            <img
+              src={withBaseUrl(app.icon || '/icons/xp/Programs.png')}
+              alt=""
+              onError={(e) => { e.target.src = withBaseUrl('/icons/xp/Programs.png'); }}
+            />
             <span>{app.name}</span>
           </li>
         ))}

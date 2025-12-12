@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useLayoutEffect, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import styled, { css } from 'styled-components';
+import { withBaseUrl } from '../../utils/baseUrl';
 
 /**
  * Toolbar Component - Windows XP style toolbar with buttons
@@ -301,8 +302,8 @@ function Toolbar({ items = [], onAction, onChange, bottomBorder = true, topBorde
 
     if (isInOverflow) {
       // Render as dropdown menu item
-      return (
-        <OverflowMenuItem
+          return (
+            <OverflowMenuItem
           key={item.id}
           className={isDisabled ? 'disabled' : ''}
           onClick={(e) => {
@@ -313,7 +314,7 @@ function Toolbar({ items = [], onAction, onChange, bottomBorder = true, topBorde
           }}
         >
           <img
-            src={item.icon}
+            src={withBaseUrl(item.icon)}
             alt={item.label || item.id}
             width={16}
             height={16}
@@ -338,7 +339,7 @@ function Toolbar({ items = [], onAction, onChange, bottomBorder = true, topBorde
         $hidden={isHidden}
       >
         <img
-          src={item.icon}
+          src={withBaseUrl(item.icon)}
           alt={item.label || item.id}
           width={iconSize}
           height={iconSize}

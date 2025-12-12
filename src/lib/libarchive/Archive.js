@@ -2,12 +2,14 @@
  * Archive class for extracting zip/rar files using libarchive.js
  */
 
+import { withBaseUrl } from '../../utils/baseUrl';
+
 class Archive {
   static _options = null;
 
   static init(options = {}) {
     Archive._options = {
-      workerUrl: '/js/libarchive/worker-bundle.js',
+      workerUrl: withBaseUrl('/js/libarchive/worker-bundle.js'),
       ...options
     };
     return Archive._options;

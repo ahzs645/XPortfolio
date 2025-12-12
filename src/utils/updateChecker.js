@@ -1,3 +1,5 @@
+import { withBaseUrl } from './baseUrl';
+
 /**
  * Update checker utility for checking new versions
  *
@@ -49,7 +51,7 @@ function storeVersion(version, buildNumber) {
  */
 async function fetchServerVersion() {
   try {
-    const response = await fetch('/version.json', {
+    const response = await fetch(withBaseUrl('/version.json'), {
       cache: 'no-store',
       headers: {
         'Cache-Control': 'no-cache',

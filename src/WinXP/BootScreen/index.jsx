@@ -4,6 +4,7 @@ import { BOOT_STATE } from '../constants';
 import { useConfig } from '../../contexts/ConfigContext';
 import { useUserAccounts } from '../../contexts/UserAccountsContext';
 import useSystemSounds from '../../hooks/useSystemSounds';
+import { withBaseUrl } from '../../utils/baseUrl';
 
 function BootScreen({ bootState, onComplete }) {
   const [showLogin, setShowLogin] = useState(false);
@@ -201,7 +202,7 @@ function BootScreen({ bootState, onComplete }) {
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   <img
-                                    src="/apps/openlair-viewer/static/images/interface/explorer/go.png"
+                                    src={withBaseUrl('/apps/openlair-viewer/static/images/interface/explorer/go.png')}
                                     alt="Go"
                                   />
                                 </InlinePasswordButton>
@@ -269,7 +270,7 @@ function BootScreen({ bootState, onComplete }) {
         </LoginScreenInner>
         <TurnOffContainer $fadeOut={showWelcome}>
           <TurnOffButton>
-            <img src="/icons/shutdown.webp" alt="" />
+            <img src={withBaseUrl('/icons/shutdown.webp')} alt="" />
             <span>Turn off computer</span>
           </TurnOffButton>
         </TurnOffContainer>
@@ -296,7 +297,7 @@ function BootScreen({ bootState, onComplete }) {
         <span>Enter Full Screen (F11)</span>
       </BootBottomLeft>
       <BootBottomRight>
-        <img src="/boot-wordmark.webp" alt="Microsoft Windows XP" />
+        <img src={withBaseUrl('/boot-wordmark.webp')} alt="Microsoft Windows XP" />
       </BootBottomRight>
     </BootContainer>
   );

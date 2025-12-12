@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import styled from 'styled-components';
+import { withBaseUrl } from '../../utils/baseUrl';
 
 /**
  * AddressBar Component - Windows XP style address bar with progress indicator
@@ -164,14 +165,14 @@ function AddressBar({
           ) : (
             <AddressContent>
               {icon && (
-                <AddressIcon src={icon} alt="" width={14} height={14} draggable={false} />
+                <AddressIcon src={withBaseUrl(icon)} alt="" width={14} height={14} draggable={false} />
               )}
               <AddressTitle>{title}</AddressTitle>
             </AddressContent>
           )}
 
           <DropdownIcon
-            src={dropdownIcon}
+            src={withBaseUrl(dropdownIcon)}
             alt="dropdown"
             width={16}
             height={18}
@@ -186,7 +187,7 @@ function AddressBar({
 
         {showGoButton && (
           <GoButton onClick={handleGoClick} $active={isEditing || onNavigate}>
-            <img src={goIcon} alt="go" width={20} height={20} draggable={false} />
+            <img src={withBaseUrl(goIcon)} alt="go" width={20} height={20} draggable={false} />
             <span>Go</span>
           </GoButton>
         )}

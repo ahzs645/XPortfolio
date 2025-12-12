@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import { isMobileDevice } from '../../utils/deviceDetection';
+import { withBaseUrl } from '../../utils/baseUrl';
 import { useFileSystem } from '../../contexts/FileSystemContext';
 import { useTooltip } from '../../contexts/TooltipContext';
 
@@ -562,7 +563,7 @@ function Icons({
             <IconImageWrapper>
               <IconImage src={icon.icon} alt={icon.title} draggable={false} $isCut={isCut} />
               {icon.type === 'shortcut' && (
-                <ShortcutOverlay src="/icons/xp/Shortcutoverlay.png" alt="" draggable={false} />
+                <ShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" draggable={false} />
               )}
             </IconImageWrapper>
             {isRenaming ? (

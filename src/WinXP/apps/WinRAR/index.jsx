@@ -72,7 +72,7 @@ function WinRAR({ onClose, fileData, fileName, parentFolderId }) {
       setProgress('Opening archive...');
 
       // Initialize Archive
-      Archive.init({ workerUrl: '/js/libarchive/worker-bundle.js' });
+      Archive.init();
 
       const archive = await Archive.open(file);
       archiveRef.current = archive;
@@ -124,7 +124,7 @@ function WinRAR({ onClose, fileData, fileName, parentFolderId }) {
         const file = dataUrlToFile(fileData, fileName);
 
         // Initialize Archive
-        Archive.init({ workerUrl: '/js/libarchive/worker-bundle.js' });
+        Archive.init();
 
         setProgress('Checking encryption...');
         const archive = await Archive.open(file);

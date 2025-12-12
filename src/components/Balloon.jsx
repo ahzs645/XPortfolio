@@ -1,4 +1,5 @@
 import styled, { css, keyframes } from 'styled-components';
+import { withBaseUrl } from '../utils/baseUrl';
 
 const fadeIn = keyframes`
   from {
@@ -257,12 +258,12 @@ export default function Balloon({
           aria-label="Close"
           onClick={onClose}
         >
-          <img src="/apps/openlair-viewer/static/images/interface/balloon/close.png" alt="" />
+          <img src={withBaseUrl('/apps/openlair-viewer/static/images/interface/balloon/close.png')} alt="" />
         </button>
       )}
       {(icon || title) && (
         <div className="balloon__header">
-          {icon && <img src={icon} alt={iconAlt || title || 'balloon icon'} />}
+          {icon && <img src={withBaseUrl(icon)} alt={iconAlt || title || 'balloon icon'} />}
           {title && <span>{title}</span>}
         </div>
       )}

@@ -1,11 +1,12 @@
 import React from 'react';
 import styled from 'styled-components';
+import { withBaseUrl } from '../../utils/baseUrl';
 
 export function DesktopDropOverlay() {
   return (
     <Overlay>
       <Message>
-        <Icon src="/icons/xp/FolderOpened.png" alt="" />
+        <Icon src={withBaseUrl('/icons/xp/FolderOpened.png')} alt="" />
         <span>Drop files here to upload to My Documents</span>
       </Message>
     </Overlay>

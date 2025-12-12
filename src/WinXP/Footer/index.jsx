@@ -6,6 +6,7 @@ import FooterMenu from './FooterMenu';
 import QuickLaunch from './QuickLaunch';
 import { ContextMenu } from '../components/ContextMenu';
 import { isMobileDevice } from '../../utils/deviceDetection';
+import { withBaseUrl } from '../../utils/baseUrl';
 
 const QUICK_LAUNCH_ENABLED_KEY = 'xp-quick-launch-enabled';
 const VOLUME_KEY = 'xp-volume';
@@ -409,7 +410,7 @@ function Footer({
         </div>
         <StartButton
           ref={startButtonRef}
-          src="/start-button.webp"
+          src={withBaseUrl('/start-button.webp')}
           alt="start"
           onMouseDown={toggleMenu}
           onContextMenu={handleStartContextMenu}
@@ -439,14 +440,14 @@ function Footer({
       <div className="footer__items right">
         <TrayIcon
           ref={welcomeIconRef}
-          src="/gui/taskbar/welcome.webp"
+          src={withBaseUrl('/gui/taskbar/welcome.webp')}
           alt="Welcome"
           title="Welcome"
           onClick={handleWelcomeClick}
         />
         {isMobile && clippyHiddenOnMobile && (
           <TrayIcon
-            src="/icons/about.webp"
+            src={withBaseUrl('/icons/about.webp')}
             alt="Clippy"
             title="Show Clippy"
             onClick={onShowClippy}
@@ -456,21 +457,21 @@ function Footer({
           <TrayIcon
             ref={updateIconRef}
             className="tray-icon--update"
-            src="/gui/taskbar/windows-update.png"
+            src={withBaseUrl('/gui/taskbar/windows-update.png')}
             alt="Windows Update"
             title={updateTooltip}
             onClick={() => window.dispatchEvent(new Event('xp:update-icon-click'))}
           />
         )}
         <TrayIcon
-          src={crtEnabled ? '/gui/taskbar/crt.webp' : '/gui/taskbar/crt-off.webp'}
+          src={withBaseUrl(crtEnabled ? '/gui/taskbar/crt.webp' : '/gui/taskbar/crt-off.webp')}
           alt="CRT Effects"
           title={crtEnabled ? 'CRT Effects: ON' : 'CRT Effects: OFF'}
           onClick={onToggleCRT}
         />
         {!isMobile && (
           <TrayIcon
-            src="/gui/taskbar/fullscreen.webp"
+            src={withBaseUrl('/gui/taskbar/fullscreen.webp')}
             alt="Fullscreen"
             title="Toggle Fullscreen"
             onClick={handleFullscreenClick}
@@ -478,7 +479,7 @@ function Footer({
         )}
         <TrayIcon
           ref={volumeIconRef}
-          src="/gui/taskbar/speaker.png"
+          src={withBaseUrl('/gui/taskbar/speaker.png')}
           alt="Volume"
           title={muted ? 'Volume: Muted' : `Volume: ${volume}%`}
           onClick={handleVolumeClick}

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import yaml from 'js-yaml';
 import { marked } from 'marked';
+import { withBaseUrl } from '../utils/baseUrl';
 
 const ConfigContext = createContext(null);
 
@@ -44,8 +45,8 @@ function getDefaultConfig() {
 
     // Content paths
     PROFILE_PHOTO: 'profile.jpg',
-    CV_YAML_PATH: 'public/CV.yaml',
-    CV_PDF_PATH: 'public/CV.pdf',
+    CV_YAML_PATH: 'CV.yaml',
+    CV_PDF_PATH: 'CV.pdf',
     ABOUT_MD: 'content/about.md',
 
     // User interface assets
@@ -134,7 +135,7 @@ export function ConfigProvider({ children }) {
     async function loadConfig() {
       try {
         // Load config.env
-        const configResponse = await fetch('/config.env');
+        const configResponse = await fetch(withBaseUrl('/config.env'));
         let envConfig = getDefaultConfig();
 
         if (configResponse.ok) {
@@ -143,8 +144,11 @@ export function ConfigProvider({ children }) {
         }
 
         // Load CV.yaml
-        const cvPath = envConfig.CV_YAML_PATH || 'public/CV.yaml';
-        const cvResponse = await fetch(`/${cvPath}`);
+        let cvPath = envConfig.CV_YAML_PATH || 'CV.yaml';
+        if (cvPath.startsWith('public/')) {
+          cvPath = cvPath.substring(7);
+        }
+        const cvResponse = await fetch(withBaseUrl(cvPath));
         let cvContent = getDefaultCVData();
 
         if (cvResponse.ok) {
@@ -259,14 +263,14 @@ export function ConfigProvider({ children }) {
       if (iconPath.startsWith('./')) {
         iconPath = iconPath.substring(1);
       }
-      return iconPath;
+      return withBaseUrl(iconPath);
     }
-    return '/favicon.png';
+    return withBaseUrl('/favicon.png');
   };
 
   // Get profile photo path
   const getProfilePhotoPath = () => {
-    return `/${config?.PROFILE_PHOTO || 'profile.jpg'}`;
+    return withBaseUrl(config?.PROFILE_PHOTO || 'profile.jpg');
   };
 
   // Get CV PDF URL
@@ -276,7 +280,7 @@ export function ConfigProvider({ children }) {
     if (pdfPath.startsWith('public/')) {
       pdfPath = pdfPath.substring(7);
     }
-    return `/${pdfPath}`;
+    return withBaseUrl(pdfPath);
   };
 
   // Get full name from CV
@@ -335,9 +339,9 @@ export function ConfigProvider({ children }) {
       if (iconPath.startsWith('./')) {
         iconPath = iconPath.substring(1);
       }
-      return iconPath;
+      return withBaseUrl(iconPath);
     }
-    return '/favicon.png';
+    return withBaseUrl('/favicon.png');
   };
 
   // Get loading/boot image path
@@ -347,15 +351,15 @@ export function ConfigProvider({ children }) {
       if (imgPath.startsWith('./')) {
         imgPath = imgPath.substring(1);
       }
-      return imgPath;
+      return withBaseUrl(imgPath);
     }
-    return '/xp.svg';
+    return withBaseUrl('/xp.svg');
   };
 
   // Get wallpaper path (desktop or mobile)
   const getWallpaperPath = (isMobile = false) => {
     const override = isMobile ? wallpaperOverrides.mobile : wallpaperOverrides.desktop;
-    if (override) return override;
+    if (override) return withBaseUrl(override);
 
     const key = isMobile ? 'WALLPAPER_MOBILE_PATH' : 'WALLPAPER_DESKTOP_PATH';
     if (config?.[key]) {
@@ -363,9 +367,9 @@ export function ConfigProvider({ children }) {
       if (wallpaperPath.startsWith('./')) {
         wallpaperPath = wallpaperPath.substring(1);
       }
-      return wallpaperPath;
+      return withBaseUrl(wallpaperPath);
     }
-    return '/bliss.jpg';
+    return withBaseUrl('/bliss.jpg');
   };
 
   const setWallpaperPath = (path, options = {}) => {
@@ -445,7 +449,7 @@ export function ConfigProvider({ children }) {
         const osSuffix = (config?.OS_SUFFIX || 'XP').toLowerCase();
 
         // Fetch the SVG file
-        const response = await fetch('/xp.svg');
+        const response = await fetch(withBaseUrl('/xp.svg'));
         let svgContent = await response.text();
 
         // Replace the name text content in the SVG
@@ -462,7 +466,7 @@ export function ConfigProvider({ children }) {
 
         // Try to embed the font for better rendering
         try {
-          const fontResponse = await fetch('/fonts/Franklin Gothic Medium.woff2');
+          const fontResponse = await fetch(withBaseUrl('/fonts/Franklin Gothic Medium.woff2'));
           if (fontResponse.ok) {
             const fontBuffer = await fontResponse.arrayBuffer();
             const fontBase64 = btoa(String.fromCharCode(...new Uint8Array(fontBuffer)));
@@ -540,7 +544,7 @@ export function ConfigProvider({ children }) {
       } catch (err) {
         console.error('Failed to generate dynamic SVG:', err);
         // Fall back to static SVG
-        setDynamicXPSvgUrl('/xp.svg');
+        setDynamicXPSvgUrl(withBaseUrl('/xp.svg'));
       }
     }
 
@@ -553,7 +557,7 @@ export function ConfigProvider({ children }) {
     async function loadAboutContent() {
       try {
         const aboutPath = config.ABOUT_MD || 'content/about.md';
-        const response = await fetch(`/${aboutPath}`);
+        const response = await fetch(withBaseUrl(aboutPath));
         if (response.ok) {
           const markdown = await response.text();
           const html = marked(markdown);
@@ -584,7 +588,7 @@ export function ConfigProvider({ children }) {
 
   // Get the dynamic XP SVG URL (with replaced name)
   const getDynamicXPSvgUrl = () => {
-    return dynamicXPSvgUrl || '/xp.svg';
+    return withBaseUrl(dynamicXPSvgUrl || '/xp.svg');
   };
 
   const value = {
