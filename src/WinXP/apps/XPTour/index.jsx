@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 function XPTour() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -13,7 +14,7 @@ function XPTour() {
         </Overlay>
       )}
       <Frame
-        src="/apps/xp-tour/index.html"
+        src={withBaseUrl('/apps/xp-tour/index.html')}
         title="Tour Windows XP"
         allow="autoplay"
         onLoad={() => setIsLoaded(true)}

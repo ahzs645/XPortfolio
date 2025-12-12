@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { withBaseUrl } from '../../utils/baseUrl';
 
 /**
  * TaskPanel - Windows XP-style sidebar with collapsible sections
@@ -36,9 +37,9 @@ function Section({
   return (
     <SectionContainer className={expanded ? '' : 'collapsed'}>
       <SectionHeader $isPrimary={isPrimary} onClick={() => setExpanded(!expanded)}>
-        {icon && <HeaderIcon src={icon} alt="" />}
+        {icon && <HeaderIcon src={withBaseUrl(icon)} alt="" />}
         <span>{title}</span>
-        <ToggleIcon src={toggleIcon} alt="" />
+        <ToggleIcon src={withBaseUrl(toggleIcon)} alt="" />
       </SectionHeader>
       <SectionContent>
         <SectionContentInner>{children}</SectionContentInner>
@@ -51,7 +52,7 @@ function Section({
 function Item({ icon, children, onClick, disabled = false }) {
   return (
     <ItemRow onClick={disabled ? undefined : onClick} $disabled={disabled} $clickable={!!onClick}>
-      {icon && <ItemIcon src={icon} alt="" />}
+      {icon && <ItemIcon src={withBaseUrl(icon)} alt="" />}
       <span>{children}</span>
     </ItemRow>
   );
@@ -66,7 +67,7 @@ function Link({ icon, children, href, target = '_blank' }) {
 
   return (
     <ItemRow as="a" href={href} onClick={handleClick} $clickable>
-      {icon && <ItemIcon src={icon} alt="" />}
+      {icon && <ItemIcon src={withBaseUrl(icon)} alt="" />}
       <span>{children}</span>
     </ItemRow>
   );
@@ -76,7 +77,7 @@ function Link({ icon, children, href, target = '_blank' }) {
 function Text({ icon, children }) {
   return (
     <ItemRow $clickable={false}>
-      {icon && <ItemIcon src={icon} alt="" />}
+      {icon && <ItemIcon src={withBaseUrl(icon)} alt="" />}
       <span>{children}</span>
     </ItemRow>
   );

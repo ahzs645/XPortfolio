@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
 import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../../../contexts/FileSystemContext';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 // Container
 const Container = styled.div`
@@ -397,14 +398,14 @@ function OpenFileDialog({
       <LookInRow>
         <LookInLabel>Look in:</LookInLabel>
         <LookInSelect>
-          <img src={getFolderIcon()} alt="" />
+          <img src={withBaseUrl(getFolderIcon())} alt="" />
           <span>{getFolderDisplayName()}</span>
         </LookInSelect>
         <ToolbarButton onClick={goBack} disabled={history.length === 0} title="Back">
-          <img src="/gui/toolbar/back.webp" alt="Back" />
+          <img src={withBaseUrl('/gui/toolbar/back.webp')} alt="Back" />
         </ToolbarButton>
         <ToolbarButton onClick={goUp} disabled={!currentFolder?.parentId} title="Up One Level">
-          <img src="/icons/xp/FolderUp.png" alt="Up" />
+          <img src={withBaseUrl('/icons/xp/FolderUp.png')} alt="Up" />
         </ToolbarButton>
       </LookInRow>
 
@@ -420,7 +421,7 @@ function OpenFileDialog({
                 onClick={() => handleItemClick(item)}
                 onDoubleClick={() => handleItemDoubleClick(item)}
               >
-                <img src={getFileIcon(item)} alt="" />
+                <img src={withBaseUrl(getFileIcon(item))} alt="" />
                 <span>{item.name}</span>
               </FileItem>
             ))}

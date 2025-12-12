@@ -4,6 +4,7 @@ import { useFileSystem } from '../../../contexts/FileSystemContext';
 import { useUserAccounts } from '../../../contexts/UserAccountsContext';
 import { useUserSettings } from '../../../contexts/UserSettingsContext';
 import * as idb from 'idb-keyval';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 function SystemRecovery({ onClose }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -114,7 +115,7 @@ function SystemRecovery({ onClose }) {
     <Container>
       <Header>
         <HeaderContent>
-          <HeaderIcon src="/icons/xp/Recovery.png" alt="Recovery" />
+          <HeaderIcon src={withBaseUrl('/icons/xp/Recovery.png')} alt="Recovery" />
           <HeaderTitle>System Recovery</HeaderTitle>
         </HeaderContent>
       </Header>
@@ -130,7 +131,7 @@ function SystemRecovery({ onClose }) {
 
             <OptionsSection>
               <OptionCard>
-                <OptionIcon src="/icons/xp/UserAccounts.png" alt="" />
+                <OptionIcon src={withBaseUrl('/icons/xp/UserAccounts.png')} alt="" />
                 <OptionContent>
                   <OptionTitle>Reset Current User</OptionTitle>
                   <OptionDescription>
@@ -145,7 +146,7 @@ function SystemRecovery({ onClose }) {
               <Divider />
 
               <OptionCard>
-                <OptionIcon src="/icons/xp/MyComputer.png" alt="" />
+                <OptionIcon src={withBaseUrl('/icons/xp/MyComputer.png')} alt="" />
                 <OptionContent>
                   <OptionTitle>Reset Entire Computer</OptionTitle>
                   <OptionDescription>

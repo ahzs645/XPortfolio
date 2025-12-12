@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 function MSNMessenger() {
   const chatContainerRef = useRef(null);
@@ -79,27 +80,27 @@ function MSNMessenger() {
       <ToolbarStatic>
         <ToolbarMainButtons>
           <StaticImageButton>
-            <img src="/apps/msn-messenger/toolbar/invite.png" alt="Invite" />
+            <img src={withBaseUrl('/apps/msn-messenger/toolbar/invite.png')} alt="Invite" />
             <ButtonText><span>I</span>nvite</ButtonText>
           </StaticImageButton>
           <StaticImageButton>
-            <img src="/apps/msn-messenger/toolbar/send.png" alt="Send Files" />
+            <img src={withBaseUrl('/apps/msn-messenger/toolbar/send.png')} alt="Send Files" />
             <ButtonText>Send Fi<span>l</span>es</ButtonText>
           </StaticImageButton>
           <StaticImageButton>
-            <img src="/apps/msn-messenger/toolbar/video.png" alt="Video" />
+            <img src={withBaseUrl('/apps/msn-messenger/toolbar/video.png')} alt="Video" />
             <ButtonText>Vide<span>o</span></ButtonText>
           </StaticImageButton>
           <StaticImageButton>
-            <img src="/apps/msn-messenger/toolbar/voice.png" alt="Voice" />
+            <img src={withBaseUrl('/apps/msn-messenger/toolbar/voice.png')} alt="Voice" />
             <ButtonText>Voi<span>c</span>e</ButtonText>
           </StaticImageButton>
           <StaticImageButton>
-            <img src="/apps/msn-messenger/toolbar/activities.png" alt="Activities" />
+            <img src={withBaseUrl('/apps/msn-messenger/toolbar/activities.png')} alt="Activities" />
             <ButtonText>Acti<span>v</span>ities</ButtonText>
           </StaticImageButton>
           <StaticImageButton>
-            <img src="/apps/msn-messenger/toolbar/games.png" alt="Games" />
+            <img src={withBaseUrl('/apps/msn-messenger/toolbar/games.png')} alt="Games" />
             <ButtonText><span>G</span>ames</ButtonText>
           </StaticImageButton>
         </ToolbarMainButtons>
@@ -119,7 +120,7 @@ function MSNMessenger() {
 const MSNContainer = styled.div`
   width: 100%;
   height: 100%;
-  background: #D7E4F5 url(/apps/msn-messenger/ui/main-background.png) bottom right no-repeat;
+  background: #D7E4F5 url(${withBaseUrl('/apps/msn-messenger/ui/main-background.png')}) bottom right no-repeat;
   background-size: cover;
   display: flex;
   flex-direction: column;
@@ -140,7 +141,7 @@ const ToolbarMainButtons = styled.div`
   grid-template-columns: 40px 56px 44px 40px 54px 44px;
   justify-content: flex-end;
   align-items: center;
-  background: url(/apps/msn-messenger/ui/toolbar-background.png) repeat;
+  background: url(${withBaseUrl('/apps/msn-messenger/ui/toolbar-background.png')}) repeat;
   background-size: contain;
 `;
 
@@ -176,21 +177,21 @@ const ToolbarLogoArea = styled.div`
 `;
 
 const LogoLeft = styled.div`
-  background: url(/apps/msn-messenger/ui/small-toolbar-left-background.png) no-repeat;
+  background: url(${withBaseUrl('/apps/msn-messenger/ui/small-toolbar-left-background.png')}) no-repeat;
 `;
 
 const LogoCenter = styled.div`
-  background: url(/apps/msn-messenger/ui/msn-logo.png) top left 4px,
-              url(/apps/msn-messenger/ui/small-toolbar-center-background.png);
+  background: url(${withBaseUrl('/apps/msn-messenger/ui/msn-logo.png')}) top left 4px,
+              url(${withBaseUrl('/apps/msn-messenger/ui/small-toolbar-center-background.png')});
   background-repeat: no-repeat, repeat-x;
 `;
 
 const LogoRight = styled.div`
-  background: url(/apps/msn-messenger/ui/small-toolbar-right-background.png) no-repeat;
+  background: url(${withBaseUrl('/apps/msn-messenger/ui/small-toolbar-right-background.png')}) no-repeat;
 `;
 
 const LogoEnd = styled.div`
-  background: url(/apps/msn-messenger/ui/small-toolbar-end-background.png) repeat-x;
+  background: url(${withBaseUrl('/apps/msn-messenger/ui/small-toolbar-end-background.png')}) repeat-x;
 `;
 
 const ChatangoWrapper = styled.div`

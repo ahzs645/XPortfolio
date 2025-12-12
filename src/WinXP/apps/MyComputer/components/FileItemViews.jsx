@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { XP_ICONS } from '../../../../contexts/FileSystemContext';
 import { getFileType, formatFileSize, formatDate, calculateFolderSize } from '../utils';
+import { withBaseUrl } from '../../../../utils/baseUrl';
 
 // Check if item is a shortcut
 const isShortcut = (item) => item.type === 'shortcut' || item.name?.endsWith('.lnk');
@@ -63,8 +64,8 @@ export function IconItem({
       onMouseLeave={onMouseLeave}
     >
       <IconImageWrapper>
-        <IconImage src={item.icon || XP_ICONS.folder} alt="" />
-        {isShortcut(item) && <ShortcutOverlay src="/icons/xp/Shortcutoverlay.png" alt="" />}
+        <IconImage src={withBaseUrl(item.icon || XP_ICONS.folder)} alt="" />
+        {isShortcut(item) && <ShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" />}
       </IconImageWrapper>
       {isRenaming ? (
         <RenameForm onSubmit={onRenameSubmit}>
@@ -132,8 +133,8 @@ export function ListItem({
       onMouseLeave={onMouseLeave}
     >
       <ListIconWrapper>
-        <ListIcon src={item.icon || XP_ICONS.folder} alt="" />
-        {isShortcut(item) && <SmallShortcutOverlay src="/icons/xp/Shortcutoverlay.png" alt="" />}
+        <ListIcon src={withBaseUrl(item.icon || XP_ICONS.folder)} alt="" />
+        {isShortcut(item) && <SmallShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" />}
       </ListIconWrapper>
       {isRenaming ? (
         <RenameForm onSubmit={onRenameSubmit}>
@@ -207,8 +208,8 @@ export function DetailsRow({
     >
       <DetailsCell $width="40%">
         <DetailsIconWrapper>
-          <DetailsIcon src={item.icon || XP_ICONS.folder} alt="" />
-          {isShortcut(item) && <SmallShortcutOverlay src="/icons/xp/Shortcutoverlay.png" alt="" />}
+          <DetailsIcon src={withBaseUrl(item.icon || XP_ICONS.folder)} alt="" />
+          {isShortcut(item) && <SmallShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" />}
         </DetailsIconWrapper>
         {isRenaming ? (
           <RenameForm onSubmit={onRenameSubmit}>
@@ -282,8 +283,8 @@ export function ThumbnailItem({
       onMouseLeave={onMouseLeave}
     >
       <ThumbnailImageWrapper $selected={selected}>
-        <ThumbnailImage src={item.icon || XP_ICONS.folder} alt="" />
-        {isShortcut(item) && <ShortcutOverlay src="/icons/xp/Shortcutoverlay.png" alt="" />}
+        <ThumbnailImage src={withBaseUrl(item.icon || XP_ICONS.folder)} alt="" />
+        {isShortcut(item) && <ShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" />}
       </ThumbnailImageWrapper>
       {isRenaming ? (
         <RenameForm onSubmit={onRenameSubmit}>
@@ -351,8 +352,8 @@ export function TileItem({
       onMouseLeave={onMouseLeave}
     >
       <TileIconWrapper>
-        <TileIcon src={item.icon || XP_ICONS.folder} alt="" />
-        {isShortcut(item) && <TileShortcutOverlay src="/icons/xp/Shortcutoverlay.png" alt="" />}
+        <TileIcon src={withBaseUrl(item.icon || XP_ICONS.folder)} alt="" />
+        {isShortcut(item) && <TileShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" />}
       </TileIconWrapper>
       <TileInfo>
         {isRenaming ? (

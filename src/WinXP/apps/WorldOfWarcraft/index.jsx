@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 const Container = styled.div`
   width: 100%;
@@ -95,7 +96,7 @@ function WorldOfWarcraft({ onClose, onMinimize, isFocus }) {
         <LoadingOverlay>
           <img
             className="loading-icon"
-            src="/icons/games/wow.webp"
+            src={withBaseUrl('/icons/games/wow.webp')}
             alt="World of Warcraft"
             onError={(e) => { e.target.style.display = 'none'; }}
           />
@@ -105,7 +106,7 @@ function WorldOfWarcraft({ onClose, onMinimize, isFocus }) {
       )}
       <IframeContainer>
         <AppFrame
-          src="/apps/wow/wow.html"
+          src={withBaseUrl('/apps/wow/wow.html')}
           onLoad={() => setIsLoading(false)}
           title="World of Warcraft"
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-modals allow-downloads"

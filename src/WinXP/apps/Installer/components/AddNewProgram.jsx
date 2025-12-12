@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import styled from 'styled-components';
+import { withBaseUrl } from '../../../../utils/baseUrl';
 import {
   ContentArea,
   ContentHeader,
@@ -155,7 +156,7 @@ function AddNewProgram({ fetchManifest, installApp, isInstalled, onSuccess }) {
 
       <ScrollContent>
         <Section>
-          <SectionIcon src="/icons/xp/InternetExplorer6.png" alt="" />
+          <SectionIcon src={withBaseUrl('/icons/xp/InternetExplorer6.png')} alt="" />
           <SectionContent>
             <SectionTitle>Add a program from the Internet</SectionTitle>
             <SectionDesc>
@@ -182,14 +183,14 @@ function AddNewProgram({ fetchManifest, installApp, isInstalled, onSuccess }) {
 
             {error && (
               <StatusMessage $error>
-                <StatusIcon src="/icons/xp/Critical.png" alt="" />
+                <StatusIcon src={withBaseUrl('/icons/xp/Critical.png')} alt="" />
                 {error}
               </StatusMessage>
             )}
 
             {installSuccess && (
               <StatusMessage $success>
-                <StatusIcon src="/icons/xp/HelpandSupport.png" alt="" />
+                <StatusIcon src={withBaseUrl('/icons/xp/HelpandSupport.png')} alt="" />
                 Program installed successfully! You can find it in the Start Menu under "Installed Apps".
               </StatusMessage>
             )}
@@ -198,9 +199,9 @@ function AddNewProgram({ fetchManifest, installApp, isInstalled, onSuccess }) {
               <PreviewCard>
                 <PreviewHeader>
                   <PreviewIcon
-                    src={appPreview.icon}
+                    src={withBaseUrl(appPreview.icon)}
                     alt=""
-                    onError={(e) => { e.target.src = '/icons/xp/Programs.png'; }}
+                    onError={(e) => { e.target.src = withBaseUrl('/icons/xp/Programs.png'); }}
                   />
                   <PreviewInfo>
                     <PreviewName>{appPreview.name}</PreviewName>
@@ -247,7 +248,7 @@ function AddNewProgram({ fetchManifest, installApp, isInstalled, onSuccess }) {
 
                 {appPreview.alreadyInstalled ? (
                   <StatusMessage $error style={{ marginTop: '12px', marginBottom: 0 }}>
-                    <StatusIcon src="/icons/xp/Critical.png" alt="" />
+                    <StatusIcon src={withBaseUrl('/icons/xp/Critical.png')} alt="" />
                     This program is already installed.
                   </StatusMessage>
                 ) : (

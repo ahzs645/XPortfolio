@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 const Container = styled.div`
   width: 100%;
@@ -63,7 +64,7 @@ function QQArcade({ onClose, onMinimize }) {
         </LoadingOverlay>
       )}
       <AppFrame
-        src="/games/QQArcade/index.html"
+        src={withBaseUrl('/games/QQArcade/index.html')}
         onLoad={() => setIsLoading(false)}
         title="QQ Games Arcade"
         allow="autoplay"

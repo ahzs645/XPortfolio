@@ -8,6 +8,7 @@ import {
   InfoIcon,
   InfoText,
 } from './styles';
+import { withBaseUrl } from '../../../../utils/baseUrl';
 
 export const VIEWS = {
   CHANGE_REMOVE: 'change_remove',
@@ -22,7 +23,7 @@ function Sidebar({ activeView, setActiveView, installedCount }) {
         $active={activeView === VIEWS.CHANGE_REMOVE}
         onClick={() => setActiveView(VIEWS.CHANGE_REMOVE)}
       >
-        <SidebarIcon src="/icons/xp/programs/change.png" alt="" />
+        <SidebarIcon src={withBaseUrl('/icons/xp/programs/change.png')} alt="" />
         <SidebarLabel>Change or Remove Programs</SidebarLabel>
       </SidebarItem>
 
@@ -30,7 +31,7 @@ function Sidebar({ activeView, setActiveView, installedCount }) {
         $active={activeView === VIEWS.ADD_NEW}
         onClick={() => setActiveView(VIEWS.ADD_NEW)}
       >
-        <SidebarIcon src="/icons/xp/programs/add.png" alt="" />
+        <SidebarIcon src={withBaseUrl('/icons/xp/programs/add.png')} alt="" />
         <SidebarLabel>Add New Programs</SidebarLabel>
       </SidebarItem>
 
@@ -38,14 +39,14 @@ function Sidebar({ activeView, setActiveView, installedCount }) {
         $active={activeView === VIEWS.SET_DEFAULTS}
         onClick={() => setActiveView(VIEWS.SET_DEFAULTS)}
       >
-        <SidebarIcon src="/icons/xp/programs/defaults.png" alt="" />
+        <SidebarIcon src={withBaseUrl('/icons/xp/programs/defaults.png')} alt="" />
         <SidebarLabel>Set Program Access and Defaults</SidebarLabel>
       </SidebarItem>
 
       <SidebarDivider />
 
       <SidebarInfo>
-        <InfoIcon src="/icons/xp/HelpandSupport.png" alt="" />
+        <InfoIcon src={withBaseUrl('/icons/xp/HelpandSupport.png')} alt="" />
         <InfoText>
           Currently installed programs: <strong>{installedCount}</strong>
         </InfoText>

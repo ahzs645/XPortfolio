@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useInstalledApps } from '../../../contexts/InstalledAppsContext';
 import { useApp } from '../../../contexts/AppContext';
+import { withBaseUrl } from '../../../utils/baseUrl';
 import {
   Sidebar,
   VIEWS,
@@ -284,7 +285,7 @@ function Installer({ onClose }) {
   return (
     <Container>
       <Header>
-        <HeaderIcon src="/icons/xp/programs/add.png" alt="" />
+        <HeaderIcon src={withBaseUrl('/icons/xp/programs/add.png')} alt="" />
         <HeaderText>Add or Remove Programs</HeaderText>
       </Header>
 

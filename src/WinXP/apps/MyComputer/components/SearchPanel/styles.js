@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { withBaseUrl } from '../../../../../utils/baseUrl';
 
 export const Container = styled.div`
   width: 210px;
@@ -349,7 +350,7 @@ export const RoverArea = styled.div`
 export const RoverSprite = styled.div`
   width: 80px;
   height: 80px;
-  background-image: url('/agents/Rover/map.png');
+  background-image: url(${withBaseUrl('/agents/Rover/map.png')});
   background-repeat: no-repeat;
   image-rendering: pixelated;
 `;

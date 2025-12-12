@@ -1,4 +1,8 @@
 import styled, { css } from 'styled-components';
+import { withBaseUrl } from '../../../../utils/baseUrl';
+
+const WMP_ASSET_BASE = withBaseUrl('/ui/wmp/');
+const LUNA_GRABBER = withBaseUrl('/ui/luna/grabber.png');
 
 // Theme definitions
 export const wmp8Theme = {
@@ -43,7 +47,7 @@ export const AppContentHolder = styled.div`
 
   ${props => props.$frameless && !props.$collapsed && css`
     &:after {
-      background: url("/ui/wmp/xplogo_big.png");
+      background: url(${WMP_ASSET_BASE}xplogo_big.png);
       background-size: contain;
       width: 57px;
       height: 49px;
@@ -600,7 +604,7 @@ export const NavToggle = styled.div`
     z-index: 2;
 
     &:after {
-      background: url("/ui/wmp/navtoggle_grip.png");
+      background: url(${WMP_ASSET_BASE}navtoggle_grip.png);
       width: 7px;
       height: 72px;
       position: absolute;
@@ -740,19 +744,19 @@ export const FnButton = styled.div`
     width: 17px;
     height: 16px;
     border-radius: 100%;
-    background: url("/ui/wmp/sprite_topbuttons.png"), linear-gradient(to bottom, #b9babb, #8f93a1);
+    background: url(${WMP_ASSET_BASE}sprite_topbuttons.png), linear-gradient(to bottom, #b9babb, #8f93a1);
     box-shadow: 0 1px 1px #d1d2d7, 0 -1px 0 #dedede, inset 0 1px 1px #9fa3af, inset 0 -2px 3px #616982;
     margin: 3px 2px 0 2px;
     background-position-x: ${props.$iconOffset || 0}px;
 
     &:hover {
-      background: url("/ui/wmp/sprite_topbuttons.png"), linear-gradient(to bottom, #edc746, #f6c348, #feae40, #f79532, #d7812b);
+      background: url(${WMP_ASSET_BASE}sprite_topbuttons.png), linear-gradient(to bottom, #edc746, #f6c348, #feae40, #f79532, #d7812b);
       box-shadow: 0 1px 1px #d1d2d7, 0 -1px 0 #dedede, inset 0 1px 1px #e2ab38, inset 0 -2px 3px #91581f;
       background-position-x: ${props.$iconOffset || 0}px;
     }
 
     &.active, &:active {
-      background: url("/ui/wmp/sprite_topbuttons.png"), linear-gradient(to bottom, #000095, #000389, #002c9c, #0042b4, #0050ec);
+      background: url(${WMP_ASSET_BASE}sprite_topbuttons.png), linear-gradient(to bottom, #000095, #000389, #002c9c, #0042b4, #0050ec);
       background-position-y: 32px;
       box-shadow: 0 1px 1px #d1d2d7, 0 -1px 0 #dedede, inset 0 1px 1px #03082e, inset 0 -1px 3px #002c88;
       background-position-x: ${props.$iconOffset || 0}px;
@@ -803,7 +807,7 @@ export const ToggleUIButton = styled(FnButton)`
       height: 14px;
       display: block;
       content: " ";
-      background: url("/ui/wmp/wmp9_buttons.png");
+      background: url(${WMP_ASSET_BASE}wmp9_buttons.png);
       background-position-x: -28px;
     }
   `}
@@ -825,7 +829,7 @@ export const ShuffleButton = styled(FnButton)`
       height: 14px;
       display: block;
       content: " ";
-      background: url("/ui/wmp/wmp9_buttons.png");
+      background: url(${WMP_ASSET_BASE}wmp9_buttons.png);
     }
   `}
 
@@ -846,18 +850,18 @@ export const PlaylistButton = styled(FnButton)`
     height: 14px;
     border: 1px solid #545455;
     border-radius: 3px;
-    background: ${props.$playlistHidden ? '-98px' : '-48px'} 0 url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #9e9e9c 0, #737375 40%, #68686a 49%, #6d6d6e 100%);
+    background: ${props.$playlistHidden ? '-98px' : '-48px'} 0 url(${WMP_ASSET_BASE}wmp9_glyphs.png), linear-gradient(150deg, #9e9e9c 0, #737375 40%, #68686a 49%, #6d6d6e 100%);
     box-shadow: inset 1px 1px #dadad855, inset -1px -1px #acacac33;
     right: ${props.$playlistHidden ? '38px' : '226px'};
     bottom: 38px;
 
     &:hover {
-      background: ${props.$playlistHidden ? '-98px' : '-48px'} 0 url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #c7c7c6 0, #8d8d8e 35%, #7f7f81 45%, #828384 65%, #959595 75%, #aeaeaf 100%);
+      background: ${props.$playlistHidden ? '-98px' : '-48px'} 0 url(${WMP_ASSET_BASE}wmp9_glyphs.png), linear-gradient(150deg, #c7c7c6 0, #8d8d8e 35%, #7f7f81 45%, #828384 65%, #959595 75%, #aeaeaf 100%);
       box-shadow: inset 1px 1px #dadad988, inset -1px -1px #63636488;
     }
 
     &:active {
-      background: ${props.$playlistHidden ? '-98px' : '-48px'} 0 url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #747474 0, #707070 35%, #666668 45%, #656566 65%, #6e7175 75%, #8a8a89 100%);
+      background: ${props.$playlistHidden ? '-98px' : '-48px'} 0 url(${WMP_ASSET_BASE}wmp9_glyphs.png), linear-gradient(150deg, #747474 0, #707070 35%, #666668 45%, #656566 65%, #6e7175 75%, #8a8a89 100%);
       box-shadow: inset 1px 1px #575758bb, inset -1px -1px #9d9d9d88;
     }
   `}
@@ -1035,7 +1039,7 @@ export const LowerMetalButton = styled(FnButton)`
     }
 
     &:before {
-      background: url("/ui/wmp/sprite_skinmode.png");
+      background: url(${WMP_ASSET_BASE}sprite_skinmode.png);
       background-position-x: 0;
       filter: drop-shadow(1px 1px #838b9477);
       width: 18px;
@@ -1070,7 +1074,7 @@ export const LowerMetalButton = styled(FnButton)`
     }
 
     &:after {
-      background: url("/ui/wmp/wmp9_buttons.png");
+      background: url(${WMP_ASSET_BASE}wmp9_buttons.png);
       background-position-x: -14px;
       width: 14px;
       height: 14px;
@@ -1107,7 +1111,7 @@ export const WMPResizer = styled.div`
   bottom: ${props => props.$theme === 'wmp9' ? '1px' : '0'};
   width: ${props => props.$theme === 'wmp9' ? '11px' : '15px'};
   height: ${props => props.$theme === 'wmp9' ? '11px' : '15px'};
-  background: url("/ui/luna/grabber.png");
+  background: url(${LUNA_GRABBER});
   background-repeat: no-repeat;
   filter: ${props => props.$theme === 'wmp9'
     ? 'invert(41%) sepia(12%) saturate(682%) hue-rotate(182deg) brightness(95%) contrast(90%) drop-shadow(1px 1px 0 #fff)'
@@ -1231,7 +1235,7 @@ export const VisButton = styled.div`
   ${props => props.$theme === 'wmp8' && css`
     width: 18px;
     height: 18px;
-    background-image: url("/ui/wmp/wmp8_sprites.png");
+    background-image: url(${WMP_ASSET_BASE}wmp8_sprites.png);
     background-position-y: ${props.$posY || 0}px;
 
     &:hover {
@@ -1248,16 +1252,16 @@ export const VisButton = styled.div`
     height: 14px;
     border: 1px solid #545455;
     border-radius: 3px;
-    background: url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #9e9e9c 0, #737375 40%, #68686a 49%, #6d6d6e 100%);
+    background: url(${WMP_ASSET_BASE}wmp9_glyphs.png), linear-gradient(150deg, #9e9e9c 0, #737375 40%, #68686a 49%, #6d6d6e 100%);
     box-shadow: inset 1px 1px #dadad855, inset -1px -1px #acacac33;
 
     &:hover {
-      background: url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #c7c7c6 0, #8d8d8e 35%, #7f7f81 45%, #828384 65%, #959595 75%, #aeaeaf 100%);
+      background: url(${WMP_ASSET_BASE}wmp9_glyphs.png), linear-gradient(150deg, #c7c7c6 0, #8d8d8e 35%, #7f7f81 45%, #828384 65%, #959595 75%, #aeaeaf 100%);
       box-shadow: inset 1px 1px #dadad988, inset -1px -1px #63636488;
     }
 
     &:active {
-      background: url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #747474 0, #707070 35%, #666668 45%, #656566 65%, #6e7175 75%, #8a8a89 100%);
+      background: url(${WMP_ASSET_BASE}wmp9_glyphs.png), linear-gradient(150deg, #747474 0, #707070 35%, #666668 45%, #656566 65%, #6e7175 75%, #8a8a89 100%);
       box-shadow: inset 1px 1px #575758bb, inset -1px -1px #9d9d9d88;
     }
   `}
@@ -1273,14 +1277,14 @@ export const VisPrevButton = styled(VisButton)`
     height: 13px;
     border-radius: 100%;
     margin-bottom: 1px;
-    background: -17px -1px url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #9e9e9c 0, #737375 40%, #68686a 49%, #6d6d6e 100%);
+    background: -17px -1px url(${WMP_ASSET_BASE}wmp9_glyphs.png), linear-gradient(150deg, #9e9e9c 0, #737375 40%, #68686a 49%, #6d6d6e 100%);
 
     &:hover {
-      background: -17px -1px url("/ui/wmp/wmp9_glyphs.png"), radial-gradient(circle at 20% 20%, #6ae974 0, #6ae974 10%, #2fd33d 25%, #09d319 40%, #14cc24 49%, #56da61 60%, #5ddf69 75%, #4bcc56 100%);
+      background: -17px -1px url(${WMP_ASSET_BASE}wmp9_glyphs.png), radial-gradient(circle at 20% 20%, #6ae974 0, #6ae974 10%, #2fd33d 25%, #09d319 40%, #14cc24 49%, #56da61 60%, #5ddf69 75%, #4bcc56 100%);
     }
 
     &:active {
-      background: -17px -1px url("/ui/wmp/wmp9_glyphs.png"), radial-gradient(circle at 20% 20%, #94d699 0, #57c860 10%, #35bc40 25%, #37ad41 40%, #30a239 49%, #56b25f 60%, #60b668 75%, #68bd6f 100%);
+      background: -17px -1px url(${WMP_ASSET_BASE}wmp9_glyphs.png), radial-gradient(circle at 20% 20%, #94d699 0, #57c860 10%, #35bc40 25%, #37ad41 40%, #30a239 49%, #56b25f 60%, #60b668 75%, #68bd6f 100%);
     }
   `}
 `;
@@ -1295,14 +1299,14 @@ export const VisNextButton = styled(VisButton)`
     height: 13px;
     border-radius: 100%;
     margin-bottom: 1px;
-    background: -32px -1px url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #9e9e9c 0, #737375 40%, #68686a 49%, #6d6d6e 100%);
+    background: -32px -1px url(${WMP_ASSET_BASE}wmp9_glyphs.png), linear-gradient(150deg, #9e9e9c 0, #737375 40%, #68686a 49%, #6d6d6e 100%);
 
     &:hover {
-      background: -32px -1px url("/ui/wmp/wmp9_glyphs.png"), radial-gradient(circle at 20% 20%, #6ae974 0, #6ae974 10%, #2fd33d 25%, #09d319 40%, #14cc24 49%, #56da61 60%, #5ddf69 75%, #4bcc56 100%);
+      background: -32px -1px url(${WMP_ASSET_BASE}wmp9_glyphs.png), radial-gradient(circle at 20% 20%, #6ae974 0, #6ae974 10%, #2fd33d 25%, #09d319 40%, #14cc24 49%, #56da61 60%, #5ddf69 75%, #4bcc56 100%);
     }
 
     &:active {
-      background: -32px -1px url("/ui/wmp/wmp9_glyphs.png"), radial-gradient(circle at 20% 20%, #94d699 0, #57c860 10%, #35bc40 25%, #37ad41 40%, #30a239 49%, #56b25f 60%, #60b668 75%, #68bd6f 100%);
+      background: -32px -1px url(${WMP_ASSET_BASE}wmp9_glyphs.png), radial-gradient(circle at 20% 20%, #94d699 0, #57c860 10%, #35bc40 25%, #37ad41 40%, #30a239 49%, #56b25f 60%, #60b668 75%, #68bd6f 100%);
     }
   `}
 `;
@@ -1314,16 +1318,16 @@ export const VisFullscreenButton = styled(VisButton)`
   `}
 
   ${props => props.$theme === 'wmp9' && css`
-    background: -64px 0 url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #9e9e9c 0, #737375 40%, #68686a 49%, #6d6d6e 100%);
+    background: -64px 0 url(${WMP_ASSET_BASE}wmp9_glyphs.png), linear-gradient(150deg, #9e9e9c 0, #737375 40%, #68686a 49%, #6d6d6e 100%);
     right: ${props.$playlistHidden ? '7px' : '195px'};
     position: absolute;
 
     &:hover {
-      background: -64px 0 url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #c7c7c6 0, #8d8d8e 35%, #7f7f81 45%, #828384 65%, #959595 75%, #aeaeaf 100%);
+      background: -64px 0 url(${WMP_ASSET_BASE}wmp9_glyphs.png), linear-gradient(150deg, #c7c7c6 0, #8d8d8e 35%, #7f7f81 45%, #828384 65%, #959595 75%, #aeaeaf 100%);
     }
 
     &:active {
-      background: -64px 0 url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #747474 0, #707070 35%, #666668 45%, #656566 65%, #6e7175 75%, #8a8a89 100%);
+      background: -64px 0 url(${WMP_ASSET_BASE}wmp9_glyphs.png), linear-gradient(150deg, #747474 0, #707070 35%, #666668 45%, #656566 65%, #6e7175 75%, #8a8a89 100%);
     }
   `}
 `;
@@ -1364,7 +1368,7 @@ export const PlaylistContainer = styled.div`
       box-shadow: 0 2px #71717b;
       display: block;
       content: " ";
-      background: 50% 0/contain no-repeat url("/ui/wmp/wmp9_mediagraphic.png");
+      background: 50% 0/contain no-repeat url(${WMP_ASSET_BASE}wmp9_mediagraphic.png);
       margin-left: -12px;
       margin-bottom: 2px;
     }
@@ -1473,7 +1477,7 @@ export const RewindButton = styled.div`
   ${props => props.$theme === 'wmp8' && css`
     width: 19px;
     height: 12px;
-    background: url("/ui/wmp/sprite_rewind.png");
+    background: url(${WMP_ASSET_BASE}sprite_rewind.png);
     bottom: 28px;
     opacity: 0.5;
     left: ${props.$next ? '223px' : '67px'};
@@ -1483,7 +1487,7 @@ export const RewindButton = styled.div`
   ${props => props.$theme === 'wmp9' && css`
     width: 28px;
     height: 9px;
-    background: 9px 2px no-repeat url("/ui/wmp/wmp9_sprite_rewind_disabled.png"), linear-gradient(#fff 0, #fff 45%, #c7e0f1 55%, #c7e0f1 100%);
+    background: 9px 2px no-repeat url(${WMP_ASSET_BASE}wmp9_sprite_rewind_disabled.png), linear-gradient(#fff 0, #fff 45%, #c7e0f1 55%, #c7e0f1 100%);
     box-shadow: inset 0 1px #f5f5f3, inset 0 -1px #b5cfde, inset 0 -2px #c7e0f1, inset 3px 0 1px #fff, inset 0 2px #fff, inset -3px 0 1px #c7ddef;
     bottom: 42px;
     border: 1px solid;
@@ -1643,22 +1647,22 @@ export const ButtonBody = styled.div`
     height: calc(100% - 6px);
     margin: 3px;
     background: ${props.$playing
-      ? 'url("/ui/wmp/sprite_pause.png"), radial-gradient(circle at 50% 15%, #fff 0, #fff 7%, #7789a8 100%)'
-      : 'url("/ui/wmp/sprite_play.png"), radial-gradient(circle at 50% 15%, #fff 0, #fff 7%, #7789a8 100%)'};
+      ? `url(${WMP_ASSET_BASE}sprite_pause.png), radial-gradient(circle at 50% 15%, #fff 0, #fff 7%, #7789a8 100%)`
+      : `url(${WMP_ASSET_BASE}sprite_play.png), radial-gradient(circle at 50% 15%, #fff 0, #fff 7%, #7789a8 100%)`};
     box-shadow: inset 0 -1px 2px 1px #030a46, inset 0 -2px 1px #235aff, inset 3px -3px 2px #dfe3ec, inset 0 -1px 1px #081e81, inset 0 -5px 3px #7083ad, 0 0 1px 0 #222a7a;
 
     &:hover {
       background: ${props.$playing
-        ? 'url("/ui/wmp/sprite_pause.png"), radial-gradient(circle at 50% 15%, #fff 0, #fff 30%, #658ad5 100%)'
-        : 'url("/ui/wmp/sprite_play.png"), radial-gradient(circle at 50% 15%, #fff 0, #fff 30%, #658ad5 100%)'};
+        ? `url(${WMP_ASSET_BASE}sprite_pause.png), radial-gradient(circle at 50% 15%, #fff 0, #fff 30%, #658ad5 100%)`
+        : `url(${WMP_ASSET_BASE}sprite_play.png), radial-gradient(circle at 50% 15%, #fff 0, #fff 30%, #658ad5 100%)`};
       background-position: ${props.$playing ? '-37px 0' : '-36px 0'};
       box-shadow: inset 0 -1px 2px 1px #000795, inset 3px -4px 1px #90e5ff, inset 0 -4px 2px #4a72bb, 0 -1px 1px #27647999, inset 0 2px 2px #feffff, 0 -1px 1px 1px #1ebfffa8;
     }
 
     &:active {
       background: ${props.$playing
-        ? 'url("/ui/wmp/sprite_pause.png"), radial-gradient(circle at 50% 20%, #f6fdfd 0, #f6fdfd 13%, #495b92 100%)'
-        : 'url("/ui/wmp/sprite_play.png"), radial-gradient(circle at 50% 20%, #f6fdfd 0, #f6fdfd 13%, #495b92 100%)'};
+        ? `url(${WMP_ASSET_BASE}sprite_pause.png), radial-gradient(circle at 50% 20%, #f6fdfd 0, #f6fdfd 13%, #495b92 100%)`
+        : `url(${WMP_ASSET_BASE}sprite_play.png), radial-gradient(circle at 50% 20%, #f6fdfd 0, #f6fdfd 13%, #495b92 100%)`};
       background-position: ${props.$playing ? '-73px 0' : '-72px 0'};
       box-shadow: inset 0 0 1px 1px #000f42d6, inset 0 -2px 2px #002877, inset 4px -3px 1px #94b4d7, inset 0 -5px 1px #4e659f, inset 0 0 2px 2px #9da9bf;
     }
@@ -1689,7 +1693,7 @@ export const ButtonBody = styled.div`
       content: " ";
       position: relative;
       display: block;
-      background: url(${props.$playing ? '"/ui/wmp/wmp9_sprite_pause.png"' : '"/ui/wmp/wmp9_sprite_play.png"'});
+      background: url(${props.$playing ? WMP_ASSET_BASE + 'wmp9_sprite_pause.png' : WMP_ASSET_BASE + 'wmp9_sprite_play.png'});
       filter: drop-shadow(0 0 1px #fff);
       margin: ${props.$playing ? '10px' : '10px 11px'};
     }
@@ -1740,7 +1744,7 @@ export const StopButtonBody = styled.div`
 
     &:before {
       transform: rotate(26deg) translateX(1px);
-      background: url("/ui/wmp/sprite_stop.png");
+      background: url(${WMP_ASSET_BASE}sprite_stop.png);
       content: " ";
       width: 16px;
       height: 25px;
@@ -1775,7 +1779,7 @@ export const StopButtonBody = styled.div`
     box-shadow: inset -1px -1px #8a909c, inset -1px 1px #5a6b7782, inset 1px -1px #6f7983b5, inset 1px 1px #3441461c, inset 1px 1px #e9ebf6, inset -2px -2px 1px #a3cfe1, 0 0 1px #a4b2c5;
 
     &:after {
-      background: url("/ui/wmp/wmp9_sprite_stop.png");
+      background: url(${WMP_ASSET_BASE}wmp9_sprite_stop.png);
       filter: drop-shadow(0 0 1px #fff);
       content: " ";
       width: 6px;
@@ -1836,7 +1840,7 @@ export const TrackButton = styled.div`
       height: 8px;
       content: " ";
       display: block;
-      background: url(${props.$next ? '"/ui/wmp/wmp9_sprite_tracknext.png"' : '"/ui/wmp/wmp9_sprite_trackback.png"'});
+      background: url(${props.$next ? WMP_ASSET_BASE + 'wmp9_sprite_tracknext.png' : WMP_ASSET_BASE + 'wmp9_sprite_trackback.png'});
       filter: drop-shadow(0 0 1px #fff);
       position: relative;
       margin: 8px ${props.$next ? '9px' : '7px'};
@@ -1850,7 +1854,7 @@ export const TrackButtonBody = styled.div`
     margin: 3px 1px 2px;
     width: 24px;
     height: 14px;
-    background: url("/ui/wmp/sprite_changetrack.png"), linear-gradient(to bottom, #f3f9ff 0, #f9fdff 30%, #7a8fb5 100%);
+    background: url(${WMP_ASSET_BASE}sprite_changetrack.png), linear-gradient(to bottom, #f3f9ff 0, #f9fdff 30%, #7a8fb5 100%);
     box-shadow: inset 0 -1px 1px #000839, inset 0 -2px 1px #003077, 0 -1px 3px #4763a0;
     ${props.$next && 'transform: scaleX(-1);'}
 
@@ -1906,7 +1910,7 @@ export const MuteButton = styled.div`
       height: 8px;
       content: " ";
       display: block;
-      background: url("/ui/wmp/wmp9_sprite_mute.png");
+      background: url(${WMP_ASSET_BASE}wmp9_sprite_mute.png);
       filter: drop-shadow(0 0 1px #fff);
       position: relative;
       margin: 8px 7px;
@@ -1920,7 +1924,7 @@ export const MuteButtonBody = styled.div`
     margin: 3px 1px 2px;
     width: 24px;
     height: 14px;
-    background: url("/ui/wmp/sprite_mute.png"), linear-gradient(to bottom, #f3f9ff 0, #f9fdff 30%, #7a8fb5 100%);
+    background: url(${WMP_ASSET_BASE}sprite_mute.png), linear-gradient(to bottom, #f3f9ff 0, #f9fdff 30%, #7a8fb5 100%);
     box-shadow: inset 0 -1px 1px #000839, inset 0 -2px 1px #003077, 0 -1px 3px #4763a0;
 
     &:hover {

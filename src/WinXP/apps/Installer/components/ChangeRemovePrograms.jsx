@@ -23,6 +23,7 @@ import {
 } from './styles';
 import styled from 'styled-components';
 import { useConfig } from '../../../../contexts/ConfigContext';
+import { withBaseUrl } from '../../../../utils/baseUrl';
 
 const ProgramUsage = styled.div`
   text-align: right;
@@ -159,7 +160,7 @@ function ChangeRemovePrograms({ apps, onRun, onUninstall, onToggleApp }) {
       <ProgramList>
         {sortedApps.length === 0 ? (
           <EmptyMessage>
-            <EmptyIcon src="/icons/xp/Programs.png" alt="" />
+            <EmptyIcon src={withBaseUrl('/icons/xp/Programs.png')} alt="" />
             <p>No programs are currently installed.</p>
             <p>Click "Add New Programs" to install web apps.</p>
           </EmptyMessage>
@@ -172,9 +173,9 @@ function ChangeRemovePrograms({ apps, onRun, onUninstall, onToggleApp }) {
             >
               <ProgramHeader>
                 <ProgramIcon
-                  src={app.icon}
+                  src={withBaseUrl(app.icon)}
                   alt=""
-                  onError={(e) => { e.target.src = '/icons/xp/Programs.png'; }}
+                  onError={(e) => { e.target.src = withBaseUrl('/icons/xp/Programs.png'); }}
                 />
                 <ProgramInfo style={app.isDisabled ? { opacity: 0.6 } : {}}>
                   <ProgramName>

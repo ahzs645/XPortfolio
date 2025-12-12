@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import { ProgramLayout } from '../../../components';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -314,7 +315,7 @@ function DateTimeProperties({ onClose, onMinimize }) {
                   </option>
                 ))}
               </TimezoneSelect>
-              <MapImage src="/gui/datetime/map.png" alt="World Time Zones" />
+              <MapImage src={withBaseUrl('/gui/datetime/map.png')} alt="World Time Zones" />
             </TimezonePane>
           )}
           </article>

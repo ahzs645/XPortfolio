@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import styled from 'styled-components';
 import { VIEW_MODES } from '../constants';
+import { withBaseUrl } from '../../../../utils/baseUrl';
 
 function ViewMenu({ viewMode, onViewChange, onClose, position }) {
   const menuRef = useRef(null);
@@ -27,35 +28,35 @@ function ViewMenu({ viewMode, onViewChange, onClose, position }) {
         $active={viewMode === VIEW_MODES.THUMBNAILS}
         onClick={() => handleSelect(VIEW_MODES.THUMBNAILS)}
       >
-        <MenuIcon src="/gui/views/thumbnails.png" alt="" onError={(e) => e.target.style.display = 'none'} />
+        <MenuIcon src={withBaseUrl('/gui/views/thumbnails.png')} alt="" onError={(e) => e.target.style.display = 'none'} />
         Thumbnails
       </MenuItem>
       <MenuItem
         $active={viewMode === VIEW_MODES.TILES}
         onClick={() => handleSelect(VIEW_MODES.TILES)}
       >
-        <MenuIcon src="/gui/views/tiles.png" alt="" onError={(e) => e.target.style.display = 'none'} />
+        <MenuIcon src={withBaseUrl('/gui/views/tiles.png')} alt="" onError={(e) => e.target.style.display = 'none'} />
         Tiles
       </MenuItem>
       <MenuItem
         $active={viewMode === VIEW_MODES.ICONS}
         onClick={() => handleSelect(VIEW_MODES.ICONS)}
       >
-        <MenuIcon src="/gui/views/icons.png" alt="" onError={(e) => e.target.style.display = 'none'} />
+        <MenuIcon src={withBaseUrl('/gui/views/icons.png')} alt="" onError={(e) => e.target.style.display = 'none'} />
         Icons
       </MenuItem>
       <MenuItem
         $active={viewMode === VIEW_MODES.LIST}
         onClick={() => handleSelect(VIEW_MODES.LIST)}
       >
-        <MenuIcon src="/gui/views/list.png" alt="" onError={(e) => e.target.style.display = 'none'} />
+        <MenuIcon src={withBaseUrl('/gui/views/list.png')} alt="" onError={(e) => e.target.style.display = 'none'} />
         List
       </MenuItem>
       <MenuItem
         $active={viewMode === VIEW_MODES.DETAILS}
         onClick={() => handleSelect(VIEW_MODES.DETAILS)}
       >
-        <MenuIcon src="/gui/views/details.png" alt="" onError={(e) => e.target.style.display = 'none'} />
+        <MenuIcon src={withBaseUrl('/gui/views/details.png')} alt="" onError={(e) => e.target.style.display = 'none'} />
         Details
       </MenuItem>
     </Container>,

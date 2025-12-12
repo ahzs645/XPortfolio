@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { ProgramLayout } from '../../../components';
 import { useConfig } from '../../../contexts/ConfigContext';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 const TABS = [
   { id: 'taskbar', label: 'Taskbar' },
@@ -58,12 +59,12 @@ function TaskbarProperties({ onClose, onMinimize }) {
                   <TaskbarPreviewBar>
                     <StartButtonPreview />
                     <WindowButton $active>
-                      <img src="/icons/xp/InternetExplorer6.png" alt="" />
+                      <img src={withBaseUrl('/icons/xp/InternetExplorer6.png')} alt="" />
                       <span>2 Internet...</span>
                       <DropdownArrow>▼</DropdownArrow>
                     </WindowButton>
                     <WindowButton>
-                      <img src="/icons/xp/FolderClosed.png" alt="" />
+                      <img src={withBaseUrl('/icons/xp/FolderClosed.png')} alt="" />
                       <span>Folder</span>
                     </WindowButton>
                     <QuickLaunchSpacer />
@@ -133,25 +134,25 @@ function TaskbarProperties({ onClose, onMinimize }) {
                     </StartMenuHeader>
                     <StartMenuBody>
                       <StartMenuLeft>
-                        <MenuItem><MenuIcon src="/icons/xp/InternetExplorer6.png" /><MenuLabel>Internet<br/><small>Internet Explorer</small></MenuLabel></MenuItem>
-                        <MenuItem><MenuIcon src="/icons/outlook/outlook.png" /><MenuLabel>E-mail<br/><small>Outlook Express</small></MenuLabel></MenuItem>
+                        <MenuItem><MenuIcon src={withBaseUrl('/icons/xp/InternetExplorer6.png')} /><MenuLabel>Internet<br/><small>Internet Explorer</small></MenuLabel></MenuItem>
+                        <MenuItem><MenuIcon src={withBaseUrl('/icons/outlook/outlook.png')} /><MenuLabel>E-mail<br/><small>Outlook Express</small></MenuLabel></MenuItem>
                         <MenuDividerLine />
-                        <MenuItem><MenuIcon src="/icons/xp/WindowsMediaPlayer9.png" /><MenuLabel>Windows Media Player</MenuLabel></MenuItem>
-                        <MenuItem><MenuIcon src="/icons/xp/messenger.png" /><MenuLabel>Windows Messenger</MenuLabel></MenuItem>
-                        <MenuItem><MenuIcon src="/icons/solitaire-icon.png" /><MenuLabel>Hearts</MenuLabel></MenuItem>
-                        <MenuItem><MenuIcon src="/icons/xp/Notepad.png" /><MenuLabel>Notepad</MenuLabel></MenuItem>
-                        <MenuItem><MenuIcon src="/icons/xp/WindowsMediaPlayer9.png" /><MenuLabel>Windows Movie Maker</MenuLabel></MenuItem>
+                        <MenuItem><MenuIcon src={withBaseUrl('/icons/xp/WindowsMediaPlayer9.png')} /><MenuLabel>Windows Media Player</MenuLabel></MenuItem>
+                        <MenuItem><MenuIcon src={withBaseUrl('/icons/xp/messenger.png')} /><MenuLabel>Windows Messenger</MenuLabel></MenuItem>
+                        <MenuItem><MenuIcon src={withBaseUrl('/icons/solitaire-icon.png')} /><MenuLabel>Hearts</MenuLabel></MenuItem>
+                        <MenuItem><MenuIcon src={withBaseUrl('/icons/xp/Notepad.png')} /><MenuLabel>Notepad</MenuLabel></MenuItem>
+                        <MenuItem><MenuIcon src={withBaseUrl('/icons/xp/WindowsMediaPlayer9.png')} /><MenuLabel>Windows Movie Maker</MenuLabel></MenuItem>
                         <AllProgramsButton>All Programs ▸</AllProgramsButton>
                       </StartMenuLeft>
                       <StartMenuRight>
-                        <MenuItemRight><MenuIcon src="/icons/xp/MyDocuments.png" /><MenuLabel>My Documents</MenuLabel></MenuItemRight>
-                        <MenuItemRight><MenuIcon src="/icons/xp/MyPictures.png" /><MenuLabel>My Pictures</MenuLabel></MenuItemRight>
-                        <MenuItemRight><MenuIcon src="/icons/xp/MyMusic.png" /><MenuLabel>My Music</MenuLabel></MenuItemRight>
-                        <MenuItemRight><MenuIcon src="/icons/xp/MyComputer.png" /><MenuLabel>My Computer</MenuLabel></MenuItemRight>
+                        <MenuItemRight><MenuIcon src={withBaseUrl('/icons/xp/MyDocuments.png')} /><MenuLabel>My Documents</MenuLabel></MenuItemRight>
+                        <MenuItemRight><MenuIcon src={withBaseUrl('/icons/xp/MyPictures.png')} /><MenuLabel>My Pictures</MenuLabel></MenuItemRight>
+                        <MenuItemRight><MenuIcon src={withBaseUrl('/icons/xp/MyMusic.png')} /><MenuLabel>My Music</MenuLabel></MenuItemRight>
+                        <MenuItemRight><MenuIcon src={withBaseUrl('/icons/xp/MyComputer.png')} /><MenuLabel>My Computer</MenuLabel></MenuItemRight>
                         <MenuDividerLine />
-                        <MenuItemRight><MenuIcon src="/icons/xp/ControlPanel.png" /><MenuLabel>Control Panel</MenuLabel></MenuItemRight>
-                        <MenuItemRight><MenuIcon src="/icons/help.png" /><MenuLabel>Help and Support</MenuLabel></MenuItemRight>
-                        <MenuItemRight><MenuIcon src="/icons/xp/Search.png" /><MenuLabel>Search</MenuLabel></MenuItemRight>
+                        <MenuItemRight><MenuIcon src={withBaseUrl('/icons/xp/ControlPanel.png')} /><MenuLabel>Control Panel</MenuLabel></MenuItemRight>
+                        <MenuItemRight><MenuIcon src={withBaseUrl('/icons/help.png')} /><MenuLabel>Help and Support</MenuLabel></MenuItemRight>
+                        <MenuItemRight><MenuIcon src={withBaseUrl('/icons/xp/Search.png')} /><MenuLabel>Search</MenuLabel></MenuItemRight>
                       </StartMenuRight>
                     </StartMenuBody>
                     <StartMenuFooter>
@@ -333,7 +334,7 @@ const TaskbarPreviewBar = styled.div`
 const StartButtonPreview = styled.div`
   width: 70px;
   height: 22px;
-  background: url('/start-button.webp') no-repeat left center;
+  background: url(${withBaseUrl('/start-button.webp')}) no-repeat left center;
   background-size: contain;
   margin-right: 4px;
 `;
@@ -454,7 +455,7 @@ const StartMenuPreviewContainer = styled.div`
 `;
 
 const StartMenuPreviewDesktop = styled.div`
-  background: url('/wallpapers/Bliss.jpg') center center;
+  background: url(${withBaseUrl('/wallpapers/Bliss.jpg')}) center center;
   background-size: cover;
   height: 220px;
   position: relative;
@@ -487,7 +488,7 @@ const StartMenuHeader = styled.div`
 const UserAvatar = styled.div`
   width: 32px;
   height: 32px;
-  background: #ddd url('/icons/xp/UserAccounts.png') center center no-repeat;
+  background: #ddd url(${withBaseUrl('/icons/xp/UserAccounts.png')}) center center no-repeat;
   background-size: contain;
   border: 2px solid #fff;
   border-radius: 3px;
@@ -611,7 +612,7 @@ const StartMenuTaskbar = styled.div`
 `;
 
 const StartButtonSmall = styled.div`
-  background: url('/start-button.webp') no-repeat left center;
+  background: url(${withBaseUrl('/start-button.webp')}) no-repeat left center;
   background-size: contain;
   width: 55px;
   height: 20px;

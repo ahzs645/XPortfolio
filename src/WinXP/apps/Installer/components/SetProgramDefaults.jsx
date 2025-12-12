@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { withBaseUrl } from '../../../../utils/baseUrl';
 import {
   ContentArea,
   ContentHeader,
@@ -279,7 +280,7 @@ function SetProgramDefaults({ installedApps }) {
 
       <ScrollContent>
         <Section>
-          <SectionIcon src="/icons/xp/programs/defaults.png" alt="" />
+          <SectionIcon src={withBaseUrl('/icons/xp/programs/defaults.png')} alt="" />
           <SectionContent>
             <SectionTitle>Choose Default Programs</SectionTitle>
             <SectionDesc>
@@ -290,14 +291,14 @@ function SetProgramDefaults({ installedApps }) {
         </Section>
 
         <StatusMessage $info style={{ marginBottom: '16px' }}>
-          <StatusIcon src="/icons/xp/HelpandSupport.png" alt="" />
+          <StatusIcon src={withBaseUrl('/icons/xp/HelpandSupport.png')} alt="" />
           Changes will take effect immediately for new file operations. Desktop icons and file explorer will use these defaults.
         </StatusMessage>
 
         {Object.entries(PROGRAM_CATEGORIES).map(([key, category]) => (
           <SettingsGroup key={key}>
             <SettingsGroupHeader onClick={() => setExpandedCategory(expandedCategory === key ? null : key)}>
-              <SettingsGroupIcon src={category.icon} alt="" />
+              <SettingsGroupIcon src={withBaseUrl(category.icon)} alt="" />
               <SettingsGroupTitle>{category.title}</SettingsGroupTitle>
               <Select
                 value={defaults[key] || category.builtIn[0] || ''}
@@ -323,7 +324,7 @@ function SetProgramDefaults({ installedApps }) {
                 {category.fileTypes.map(fileType => (
                   <FileTypeRow key={fileType}>
                     <FileTypeIcon
-                      src={FILE_TYPE_ICONS[fileType] || '/icons/xp/Default.png'}
+                      src={withBaseUrl(FILE_TYPE_ICONS[fileType] || '/icons/xp/Default.png')}
                       alt=""
                     />
                     <FileTypeExt>{fileType}</FileTypeExt>

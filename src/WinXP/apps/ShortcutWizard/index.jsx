@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { useFileSystem, SYSTEM_IDS } from '../../../contexts/FileSystemContext';
 import { useApp } from '../../../contexts/AppContext';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 // Main wizard container
 const WizardContainer = styled.div`
@@ -314,7 +315,7 @@ function ShortcutWizard({ onClose }) {
     <WizardContainer>
       <WizardBody>
         <SidebarImage>
-          <img src="/icons/wizard/shortcut-wizard-sidebar.png" alt="" />
+          <img src={withBaseUrl('/icons/wizard/shortcut-wizard-sidebar.png')} alt="" />
         </SidebarImage>
 
         <ContentArea>

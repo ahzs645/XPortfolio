@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useFileSystem, SYSTEM_IDS } from '../../../contexts/FileSystemContext';
+import { withBaseUrl } from '../../../utils/baseUrl';
 import './wmp.css';
 
 // Navigation items matching quenq
@@ -95,7 +96,7 @@ function MediaPlayerClassic({
   useEffect(() => {
     if (onUpdateHeader) {
       onUpdateHeader({
-        icon: '/icons/xp/WindowsMediaPlayer9.png',
+        icon: withBaseUrl('/icons/xp/WindowsMediaPlayer9.png'),
         title: 'Windows Media Player',
         buttons: ['minimize', 'maximize', 'close'],
         invisible: frameless,
@@ -116,7 +117,7 @@ function MediaPlayerClassic({
       document.head.appendChild(link);
     }
 
-    link.href = `/ui/wmp/${theme}-fixed.css`;
+    link.href = withBaseUrl(`/ui/wmp/${theme}-fixed.css`);
 
     // Style overrides removed - fixed in CSS files directly
 
@@ -662,7 +663,7 @@ function MediaPlayerClassic({
               </div>
 
               {/* Brand logo outside nav */}
-              <div id="brand"><img src="/ui/wmp/xplogo_small.png" alt="" /></div>
+              <div id="brand"><img src={withBaseUrl('/ui/wmp/xplogo_small.png')} alt="" /></div>
 
               {/* Control area shapes */}
               <div className="shapeshader" id="ctrlleft">
@@ -706,7 +707,7 @@ function MediaPlayerClassic({
                     {item.expands && <div className="expander"></div>}
                   </div>
                 ))}
-                <div id="brand"><img src="/ui/wmp/xplogo_small.png" alt="" /></div>
+                <div id="brand"><img src={withBaseUrl('/ui/wmp/xplogo_small.png')} alt="" /></div>
               </div>
 
               {/* Nav toggle button */}
@@ -870,7 +871,7 @@ function MediaPlayerClassic({
           </div>
 
           {/* WMP9 brand logo */}
-          <div id="wmp9brand"><img src="/ui/wmp/xplogo_small.png" alt="" /></div>
+          <div id="wmp9brand"><img src={withBaseUrl('/ui/wmp/xplogo_small.png')} alt="" /></div>
         </div>
       </div>
     </div>

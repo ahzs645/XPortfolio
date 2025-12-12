@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import styled from 'styled-components';
 import { useFileSystem, XP_ICONS } from '../../../contexts/FileSystemContext';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 // Helper function to format bytes with both readable and raw bytes
 const formatBytes = (bytes) => {
@@ -232,7 +233,7 @@ function Properties({ onClose, itemId, itemData }) {
                 <GroupPane>
                   <GroupTitle>Local sharing and security</GroupTitle>
                   <GroupContent>
-                    <GroupIcon src="/icons/xp/MyComputer.png" alt="" />
+                    <GroupIcon src={withBaseUrl('/icons/xp/MyComputer.png')} alt="" />
                     <GroupText>
                       <p>
                         To share this folder with other users of this computer
@@ -255,7 +256,7 @@ function Properties({ onClose, itemId, itemData }) {
                 <GroupPane>
                   <GroupTitle>Network sharing and security</GroupTitle>
                   <GroupContent>
-                    <GroupIcon src="/icons/xp/Workgroup.png" alt="" />
+                    <GroupIcon src={withBaseUrl('/icons/xp/Workgroup.png')} alt="" />
                     <GroupText>
                       <p>
                         As a security measure, Windows has disabled remote access

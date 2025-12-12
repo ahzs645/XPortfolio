@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { useConfig } from '../../../contexts/ConfigContext';
 import { ProgramLayout, TaskPanel } from '../../../components';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 // Social network icon mapping
 const SOCIAL_ICONS = {
@@ -161,7 +162,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: row;
   height: 100%;
-  background-image: url('/gui/bgs/aboutbg.webp');
+  background-image: url(${withBaseUrl('/gui/bgs/aboutbg.webp')});
   background-position: bottom;
   background-repeat: no-repeat;
   background-size: cover;

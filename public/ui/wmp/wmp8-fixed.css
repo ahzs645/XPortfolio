@@ -57,7 +57,7 @@
     inset -2px 0 #848591;
 }
 .wmp .appcontentholder:after {
-  background: url("/ui/wmp/xplogo_big.png");
+  background: url("./xplogo_big.png");
   background-size: contain;
   width: 57px;
   height: 49px;
@@ -490,7 +490,7 @@
   z-index: 2;
 }
 .wmp .wmpmainframe #navtoggle:after {
-  background: url("/ui/wmp/navtoggle_grip.png");
+  background: url("./navtoggle_grip.png");
   width: 7px;
   height: 72px;
   position: absolute;
@@ -544,7 +544,7 @@
   height: 16px;
   border-radius: 100%;
   background:
-    url("/ui/wmp/sprite_topbuttons.png"),
+    url("./sprite_topbuttons.png"),
     linear-gradient(to bottom, #b9babb, #8f93a1);
   box-shadow:
     0 1px 1px #d1d2d7,
@@ -557,7 +557,7 @@
 }
 .wmp .wmpmainframe #topmetal .fnbutton:hover {
   background:
-    url("/ui/wmp/sprite_topbuttons.png"),
+    url("./sprite_topbuttons.png"),
     linear-gradient(to bottom, #edc746, #f6c348, #feae40, #f79532, #d7812b);
   box-shadow:
     0 1px 1px #d1d2d7,
@@ -568,7 +568,7 @@
 .wmp .wmpmainframe #topmetal .fnbutton.active,
 .wmp .wmpmainframe #topmetal .fnbutton:active {
   background:
-    url("/ui/wmp/sprite_topbuttons.png"),
+    url("./sprite_topbuttons.png"),
     linear-gradient(to bottom, #000095, #000389, #002c9c, #0042b4, #0050ec);
   background-position-y: 32px;
   box-shadow:
@@ -747,7 +747,7 @@
   border-color: #060b24;
 }
 .wmp .wmpmainframe #lowermetal .fnbutton:before {
-  background: url("/ui/wmp/sprite_skinmode.png");
+  background: url("./sprite_skinmode.png");
   background-position-x: 0;
   filter: drop-shadow(1px 1px #838b9477);
   width: 18px;
@@ -788,10 +788,10 @@
   bottom: 0;
   width: 15px;
   height: 15px;
-  background: url("/ui/luna/grabber.png");
+  background: url("../luna/grabber.png");
   background-repeat: no-repeat;
   filter: invert(56%) drop-shadow(1px 1px 0 #e0e0e2);
-  cursor: url("/ui/cursors/resize_nwse.cur"), nwse-resize;
+  cursor: url("../cursors/resize_nwse.cur"), nwse-resize;
 }
 .wmp .wmpmainframe .metaledge {
   display: block;
@@ -909,7 +909,7 @@
 .wmp .wmpmainframe .wmpcontent #playbackcontainer #viscontrols .fnbutton {
   width: 18px;
   height: 18px;
-  background-image: url("/ui/wmp/wmp8_sprites.png");
+  background-image: url("./wmp8_sprites.png");
   display: inline-block;
   position: relative;
 }
@@ -1128,7 +1128,7 @@
   width: 19px;
   height: 12px;
   display: block;
-  background: url("/ui/wmp/sprite_rewind.png");
+  background: url("./sprite_rewind.png");
   bottom: 28px;
   opacity: 0.5;
 }
@@ -1148,12 +1148,12 @@
 }
 .wmp .wmpmainframe .playbackcontrols .fnbutton#playpause .buttonbody {
   background:
-    url("/ui/wmp/sprite_play.png"),
+    url("./sprite_play.png"),
     radial-gradient(circle at 50% 15%, #fff 0, #fff 7%, #7789a8 100%);
 }
 .wmp .wmpmainframe .playbackcontrols .fnbutton#playpause:hover .buttonbody {
   background:
-    url("/ui/wmp/sprite_play.png"),
+    url("./sprite_play.png"),
     radial-gradient(circle at 50% 15%, #fff 0, #fff 30%, #658ad5 100%);
   box-shadow:
     inset 0 -1px 2px 1px #000795,
@@ -1166,7 +1166,7 @@
 }
 .wmp .wmpmainframe .playbackcontrols .fnbutton#playpause:active .buttonbody {
   background:
-    url("/ui/wmp/sprite_play.png"),
+    url("./sprite_play.png"),
     radial-gradient(circle at 50% 20%, #f6fdfd 0, #f6fdfd 13%, #495b92 100%);
   box-shadow:
     inset 0 0 1px 1px #000f42d6,
@@ -1178,7 +1178,7 @@
 }
 .wmp .wmpmainframe .playbackcontrols .fnbutton#playpause.playing .buttonbody {
   background:
-    url("/ui/wmp/sprite_pause.png"),
+    url("./sprite_pause.png"),
     radial-gradient(circle at 50% 15%, #fff 0, #fff 7%, #7789a8 100%);
 }
 .wmp
@@ -1187,7 +1187,7 @@
   .fnbutton#playpause.playing:hover
   .buttonbody {
   background:
-    url("/ui/wmp/sprite_pause.png"),
+    url("./sprite_pause.png"),
     radial-gradient(circle at 50% 15%, #fff 0, #fff 30%, #658ad5 100%);
   background-position: -37px 0;
 }
@@ -1197,7 +1197,7 @@
   .fnbutton#playpause.playing:active
   .buttonbody {
   background:
-    url("/ui/wmp/sprite_pause.png"),
+    url("./sprite_pause.png"),
     radial-gradient(circle at 50% 20%, #f6fdfd 0, #f6fdfd 13%, #495b92 100%);
   background-position: -73px 0;
 }
@@ -1264,7 +1264,7 @@
 }
 .wmp .wmpmainframe .playbackcontrols .fnbutton#stop .buttonbody:before {
   transform: rotate(26deg) translateX(1px);
-  background: url("/ui/wmp/sprite_stop.png");
+  background: url("./sprite_stop.png");
   content: " ";
   width: 16px;
   height: 25px;
@@ -1296,20 +1296,20 @@
 }
 .wmp .wmpmainframe .playbackcontrols .fnbutton#prev .buttonbody {
   background:
-    url("/ui/wmp/sprite_changetrack.png"),
+    url("./sprite_changetrack.png"),
     linear-gradient(to bottom, #f3f9ff 0, #f9fdff 30%, #7a8fb5 100%);
 }
 .wmp .wmpmainframe .playbackcontrols .fnbutton#next:hover .buttonbody,
 .wmp .wmpmainframe .playbackcontrols .fnbutton#prev:hover .buttonbody {
   background:
-    url("/ui/wmp/sprite_changetrack.png"),
+    url("./sprite_changetrack.png"),
     linear-gradient(to bottom, #f3f9ff 0, #f9fdff 30%, #7a8fb5 100%);
   background-position-x: -24px;
 }
 .wmp .wmpmainframe .playbackcontrols .fnbutton#next:active .buttonbody,
 .wmp .wmpmainframe .playbackcontrols .fnbutton#prev:active .buttonbody {
   background:
-    url("/ui/wmp/sprite_changetrack.png"),
+    url("./sprite_changetrack.png"),
     linear-gradient(to bottom, #f3f9ff 0, #f9fdff 30%, #7a8fb5 100%);
   background-position-x: -48px;
 }
@@ -1318,7 +1318,7 @@
 }
 .wmp .wmpmainframe .playbackcontrols .fnbutton#next .buttonbody {
   background:
-    url("/ui/wmp/sprite_changetrack.png"),
+    url("./sprite_changetrack.png"),
     linear-gradient(to bottom, #f3f9ff 0, #f9fdff 30%, #7a8fb5 100%);
   transform: scaleX(-1);
 }
@@ -1327,18 +1327,18 @@
 }
 .wmp .wmpmainframe .playbackcontrols .fnbutton#mute .buttonbody {
   background:
-    url("/ui/wmp/sprite_mute.png"),
+    url("./sprite_mute.png"),
     linear-gradient(to bottom, #f3f9ff 0, #f9fdff 30%, #7a8fb5 100%);
 }
 .wmp .wmpmainframe .playbackcontrols .fnbutton#mute:hover .buttonbody {
   background:
-    url("/ui/wmp/sprite_mute.png"),
+    url("./sprite_mute.png"),
     linear-gradient(to bottom, #f3f9ff 0, #f9fdff 30%, #7a8fb5 100%);
   background-position-x: -24px;
 }
 .wmp .wmpmainframe .playbackcontrols .fnbutton#mute.active .buttonbody {
   background:
-    url("/ui/wmp/sprite_mute.png"),
+    url("./sprite_mute.png"),
     linear-gradient(to bottom, #f3f9ff 0, #f9fdff 30%, #7a8fb5 100%);
   background-position-x: -48px;
 }

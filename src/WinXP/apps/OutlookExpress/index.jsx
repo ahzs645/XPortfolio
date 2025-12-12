@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import DOMPurify from 'dompurify';
 import ProgramLayout from '../../../components/WindowBars/ProgramLayout';
 import { useApp } from '../../../contexts/AppContext';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 // EML Parsing utilities
 function parseEmailContent(content) {
@@ -271,11 +272,11 @@ const EmailContent = {
               <table border="0" cellPadding="0" cellSpacing="0" style={{ width: '100%', height: '50px', backgroundColor: '#fff' }}>
                 <tbody>
                   <tr>
-                    <td style={{ width: '141px' }}><img src="/outlook/outlook_welcome/oelogo1.gif" alt="Logo 1" /></td>
+                    <td style={{ width: '141px' }}><img src={withBaseUrl('/outlook/outlook_welcome/oelogo1.gif')} alt="Logo 1" /></td>
                     <td colSpan="2" style={{ height: '25px', textAlign: 'right' }}>&nbsp;</td>
                   </tr>
                   <tr>
-                    <td style={{ width: '141px' }}><img src="/outlook/outlook_welcome/oelogo2.gif" alt="Logo 2" /></td>
+                    <td style={{ width: '141px' }}><img src={withBaseUrl('/outlook/outlook_welcome/oelogo2.gif')} alt="Logo 2" /></td>
                     <td valign="bottom" style={{ height: '22px', backgroundColor: '#000', paddingBottom: '2px', color: '#fff', fontWeight: 'bold' }}>
                       The solution for all your messaging needs
                     </td>
@@ -294,12 +295,12 @@ const EmailContent = {
                         <span style={{ fontWeight: 'bold' }}>Featuring</span>
                       </div>
                       <div style={{ paddingLeft: '15%', paddingTop: '10px' }}>
-                        <p><img src="/outlook/outlook_welcome/dot.gif" alt="" /> E-mail and Newsgroups</p>
-                        <p><img src="/outlook/outlook_welcome/dot.gif" alt="" /> Multiple accounts and Identities</p>
-                        <p><img src="/outlook/outlook_welcome/dot.gif" alt="" /> HTML message support</p>
-                        <p><img src="/outlook/outlook_welcome/dot.gif" alt="" /> Address Book and directory services</p>
-                        <p><img src="/outlook/outlook_welcome/dot.gif" alt="" /> Offline synchronization</p>
-                        <p><img src="/outlook/outlook_welcome/dot.gif" alt="" /> Improved Inbox rules</p>
+                        <p><img src={withBaseUrl('/outlook/outlook_welcome/dot.gif')} alt="" /> E-mail and Newsgroups</p>
+                        <p><img src={withBaseUrl('/outlook/outlook_welcome/dot.gif')} alt="" /> Multiple accounts and Identities</p>
+                        <p><img src={withBaseUrl('/outlook/outlook_welcome/dot.gif')} alt="" /> HTML message support</p>
+                        <p><img src={withBaseUrl('/outlook/outlook_welcome/dot.gif')} alt="" /> Address Book and directory services</p>
+                        <p><img src={withBaseUrl('/outlook/outlook_welcome/dot.gif')} alt="" /> Offline synchronization</p>
+                        <p><img src={withBaseUrl('/outlook/outlook_welcome/dot.gif')} alt="" /> Improved Inbox rules</p>
                       </div>
                       <div style={{ marginTop: '20px', backgroundColor: '#ccc', width: '140px', height: '18px', padding: '0 4px' }}>
                         <span style={{ fontWeight: 'bold' }}>More Information</span>
@@ -314,11 +315,11 @@ const EmailContent = {
                     </td>
                     <td style={{ height: '100%', backgroundColor: '#003399', width: '8px' }}>&nbsp;</td>
                     <td style={{ height: '100%', width: '160px', backgroundColor: '#fff', padding: '10px' }} valign="top">
-                      <img src="/outlook/outlook_welcome/hotmail.gif" alt="Hotmail" /><br />
+                      <img src={withBaseUrl('/outlook/outlook_welcome/hotmail.gif')} alt="Hotmail" /><br />
                       <p style={{ fontSize: '8pt' }}>Tired of sharing your e-mail account? <a href="#" style={{ color: '#0099FF' }}>Get a free Hotmail account!</a></p>
-                      <img src="/outlook/outlook_welcome/infobeat.gif" alt="InfoBeat" style={{ marginTop: '10px' }} /><br />
+                      <img src={withBaseUrl('/outlook/outlook_welcome/infobeat.gif')} alt="InfoBeat" style={{ marginTop: '10px' }} /><br />
                       <p style={{ fontSize: '8pt' }}>Surf, search and sift no more! <a href="#" style={{ color: '#0099FF' }}>InfoBeat</a> delivers personalized news.</p>
-                      <img src="/outlook/outlook_welcome/verisign.gif" alt="VeriSign" style={{ marginTop: '10px' }} /><br />
+                      <img src={withBaseUrl('/outlook/outlook_welcome/verisign.gif')} alt="VeriSign" style={{ marginTop: '10px' }} /><br />
                       <p style={{ fontSize: '8pt' }}>Obtain a free trial personal digital ID from <a href="#" style={{ color: '#0099FF' }}>VeriSign</a>.</p>
                     </td>
                   </tr>

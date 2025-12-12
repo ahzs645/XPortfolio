@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { ProgramLayout } from '../../../components';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 const TABS = [
   { id: 'textToSpeech', label: 'Text To Speech', enabled: true },
@@ -107,7 +108,7 @@ function SpeechProperties({ onClose, onMinimize }) {
           >
             <SpeechPane>
               <HeaderRow>
-                <SpeechIcon src="/icons/xp/speech.png" alt="Speech" />
+                <SpeechIcon src={withBaseUrl('/icons/xp/speech.png')} alt="Speech" />
                 <HeaderText>
                   You can control the voice properties, speed and other options for text-to-speech translation
                 </HeaderText>

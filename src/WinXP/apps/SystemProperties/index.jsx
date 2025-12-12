@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { ProgramLayout } from '../../../components';
 import { useConfig } from '../../../contexts/ConfigContext';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 const TABS = [
   { id: 'general', label: 'General', enabled: true },
@@ -48,7 +49,7 @@ function SystemProperties({ onClose, onMinimize }) {
             <SystemPane>
               <SplitView>
                 <LeftColumn>
-                  <SystemImage src="/gui/display/reference/systemmonitor.png" alt="System" />
+                  <SystemImage src={withBaseUrl('/gui/display/reference/systemmonitor.png')} alt="System" />
                 </LeftColumn>
                 <RightColumn>
                   <InfoSection>

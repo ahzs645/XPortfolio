@@ -1,10 +1,11 @@
 import React from 'react';
 import styled from 'styled-components';
+import { withBaseUrl } from '../../../../utils/baseUrl';
 
 function SearchBar({ searchQuery, onSearchChange, onClear }) {
   return (
     <Container>
-      <Icon src="/gui/toolbar/search.webp" alt="" />
+      <Icon src={withBaseUrl('/gui/toolbar/search.webp')} alt="" />
       <Input
         type="text"
         placeholder="Search in folder..."

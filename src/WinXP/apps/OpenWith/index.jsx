@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 /**
  * OpenWith Dialog Component - Windows XP style "Open With" dialog
@@ -107,7 +108,7 @@ function OpenWith({
     if (onUpdateHeader) {
       onUpdateHeader({
         title: 'Open With',
-        icon: '/icons/xp/Default.png',
+        icon: withBaseUrl('/icons/xp/Default.png'),
         buttons: ['close'],
       });
     }
@@ -158,7 +159,7 @@ function OpenWith({
   return (
     <DialogContainer>
       <HeaderSection>
-        <IconImage src="/icons/xp/Default.png" alt="Unknown file" />
+        <IconImage src={withBaseUrl('/icons/xp/Default.png')} alt="Unknown file" />
         <HeaderText>
           <div style={{ marginBottom: '5px' }}>
             Choose the program you want to use to open this file:
@@ -183,7 +184,7 @@ function OpenWith({
                     onClick={() => handleProgramSelect(program.id)}
                     onDoubleClick={() => handleDoubleClick(program.id)}
                   >
-                    <ProgramIcon src={program.icon} alt={program.name} />
+                    <ProgramIcon src={withBaseUrl(program.icon)} alt={program.name} />
                     <ProgramName>{program.name}</ProgramName>
                   </ProgramOption>
                 ))}
@@ -198,7 +199,7 @@ function OpenWith({
                   onClick={() => handleProgramSelect(program.id)}
                   onDoubleClick={() => handleDoubleClick(program.id)}
                 >
-                  <ProgramIcon src={program.icon} alt={program.name} />
+                  <ProgramIcon src={withBaseUrl(program.icon)} alt={program.name} />
                   <ProgramName>{program.name}</ProgramName>
                 </ProgramOption>
               ))}

@@ -647,7 +647,7 @@
     height: 14px;
     display: block;
     content: " ";
-    background: url("/ui/wmp/wmp9_buttons.png");
+    background: url("./wmp9_buttons.png");
     background-position-x: -28px
 }
 
@@ -662,7 +662,7 @@
     height: 14px;
     display: block;
     content: " ";
-    background: url("/ui/wmp/wmp9_buttons.png")
+    background: url("./wmp9_buttons.png")
 }
 
 .wmp .wmpmainframe #topmetal .fnbutton#equalizer {
@@ -677,7 +677,7 @@
     height: 14px;
     border: 1px solid #545455;
     border-radius: 3px;
-    background: -48px 0 url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #9e9e9c 0, #737375 40%, #68686a 49%, #6d6d6e 100%);
+    background: -48px 0 url("./wmp9_glyphs.png"), linear-gradient(150deg, #9e9e9c 0, #737375 40%, #68686a 49%, #6d6d6e 100%);
     box-shadow: inset 1px 1px #dadad855, inset -1px -1px #acacac33;
     display: inline-block;
     right: 226px;
@@ -685,12 +685,12 @@
 }
 
 .wmp .wmpmainframe #topmetal .fnbutton#playlist:hover {
-    background: -48px 0 url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #c7c7c6 0, #8d8d8e 35%, #7f7f81 45%, #828384 65%, #959595 75%, #aeaeaf 100%);
+    background: -48px 0 url("./wmp9_glyphs.png"), linear-gradient(150deg, #c7c7c6 0, #8d8d8e 35%, #7f7f81 45%, #828384 65%, #959595 75%, #aeaeaf 100%);
     box-shadow: inset 1px 1px #dadad988, inset -1px -1px #63636488
 }
 
 .wmp .wmpmainframe #topmetal .fnbutton#playlist:active {
-    background: -48px 0 url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #747474 0, #707070 35%, #666668 45%, #656566 65%, #6e7175 75%, #8a8a89 100%);
+    background: -48px 0 url("./wmp9_glyphs.png"), linear-gradient(150deg, #747474 0, #707070 35%, #666668 45%, #656566 65%, #6e7175 75%, #8a8a89 100%);
     box-shadow: inset 1px 1px #575758bb, inset -1px -1px #9d9d9d88
 }
 
@@ -706,7 +706,7 @@
     border-color: #a9b4d7 #95a9d2aa #90a2ce #95a9d2aa;
     box-shadow: 0 1px #f8fafd, inset 0 1px #fdfefe, inset -1px 0 #d9e0f0cc, inset 1px 0 #d9e0f0cc;
     /* Simulate the 'img in option' icon using background image while keeping the gradient */
-    background-image: url("/ui/wmp/sprite_skinmode.png"), linear-gradient(to bottom, #e9eff9 10%, #d0d7ef 57%, #c7d2ec 63%, #bfd2ea 100%);
+    background-image: url("./sprite_skinmode.png"), linear-gradient(to bottom, #e9eff9 10%, #d0d7ef 57%, #c7d2ec 63%, #bfd2ea 100%);
     background-repeat: no-repeat, no-repeat;
     background-position: 4px center, 0 0;
     background-size: 14px, auto;
@@ -716,7 +716,7 @@
 
 /* Attempt to show icon on options (works in Firefox, ignored in Chrome/Safari) */
 .wmp .wmpmainframe #topright #playlistselector option {
-    background-image: url("/ui/wmp/sprite_skinmode.png");
+    background-image: url("./sprite_skinmode.png");
     background-repeat: no-repeat;
     background-position: 4px center;
     background-size: 14px;
@@ -779,7 +779,7 @@
     content: " ";
     display: block;
     pointer-events: none;
-    background-image: url("/ui/wmp/wmp9_controls.png");
+    background-image: url("./wmp9_controls.png");
     image-rendering: pixelated
 }
 
@@ -860,7 +860,7 @@
 }
 
 .wmp .wmpmainframe #lowermetal .fnbutton:after {
-    background: url("/ui/wmp/wmp9_buttons.png");
+    background: url("./wmp9_buttons.png");
     background-position-x: -14px;
     width: 14px;
     height: 14px;
@@ -878,10 +878,10 @@
     bottom: 1px;
     width: 11px;
     height: 11px;
-    background: url("/ui/luna/grabber.png");
+    background: url("../luna/grabber.png");
     background-repeat: no-repeat;
     filter: invert(41%) sepia(12%) saturate(682%) hue-rotate(182deg) brightness(95%) contrast(90%) drop-shadow(1px 1px 0 #fff);
-    cursor: url('/ui/cursors/resize_nwse.cur'), nwse-resize
+    cursor: url('../cursors/resize_nwse.cur'), nwse-resize
 }
 
 .wmp .wmpmainframe .metaledge {
@@ -1030,16 +1030,16 @@
 
 .wmp.playlisthidden .wmpmainframe #topmetal .fnbutton#playlist {
     right: 38px;
-    background: -98px 0 url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #9e9e9c 0, #737375 40%, #68686a 49%, #6d6d6e 100%)
+    background: -98px 0 url("./wmp9_glyphs.png"), linear-gradient(150deg, #9e9e9c 0, #737375 40%, #68686a 49%, #6d6d6e 100%)
 }
 
 .wmp.playlisthidden .wmpmainframe #topmetal .fnbutton#playlist:hover {
-    background: -98px 0 url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #c7c7c6 0, #8d8d8e 35%, #7f7f81 45%, #828384 65%, #959595 75%, #aeaeaf 100%);
+    background: -98px 0 url("./wmp9_glyphs.png"), linear-gradient(150deg, #c7c7c6 0, #8d8d8e 35%, #7f7f81 45%, #828384 65%, #959595 75%, #aeaeaf 100%);
     box-shadow: inset 1px 1px #dadad988, inset -1px -1px #63636488
 }
 
 .wmp.playlisthidden .wmpmainframe #topmetal .fnbutton#playlist:active {
-    background: -98px 0 url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #747474 0, #707070 35%, #666668 45%, #656566 65%, #6e7175 75%, #8a8a89 100%);
+    background: -98px 0 url("./wmp9_glyphs.png"), linear-gradient(150deg, #747474 0, #707070 35%, #666668 45%, #656566 65%, #6e7175 75%, #8a8a89 100%);
     box-shadow: inset 1px 1px #575758bb, inset -1px -1px #9d9d9d88
 }
 
@@ -1048,19 +1048,19 @@
     height: 14px;
     border: 1px solid #545455;
     border-radius: 3px;
-    background: url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #9e9e9c 0, #737375 40%, #68686a 49%, #6d6d6e 100%);
+    background: url("./wmp9_glyphs.png"), linear-gradient(150deg, #9e9e9c 0, #737375 40%, #68686a 49%, #6d6d6e 100%);
     box-shadow: inset 1px 1px #dadad855, inset -1px -1px #acacac33;
     display: inline-block;
     position: relative
 }
 
 .wmp .wmpmainframe .wmpcontent #playbackcontainer #viscontrols .fnbutton#visgroups:hover {
-    background: url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #c7c7c6 0, #8d8d8e 35%, #7f7f81 45%, #828384 65%, #959595 75%, #aeaeaf 100%);
+    background: url("./wmp9_glyphs.png"), linear-gradient(150deg, #c7c7c6 0, #8d8d8e 35%, #7f7f81 45%, #828384 65%, #959595 75%, #aeaeaf 100%);
     box-shadow: inset 1px 1px #dadad988, inset -1px -1px #63636488
 }
 
 .wmp .wmpmainframe .wmpcontent #playbackcontainer #viscontrols .fnbutton#visgroups:active {
-    background: url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #747474 0, #707070 35%, #666668 45%, #656566 65%, #6e7175 75%, #8a8a89 100%);
+    background: url("./wmp9_glyphs.png"), linear-gradient(150deg, #747474 0, #707070 35%, #666668 45%, #656566 65%, #6e7175 75%, #8a8a89 100%);
     box-shadow: inset 1px 1px #575758bb, inset -1px -1px #9d9d9d88
 }
 
@@ -1073,27 +1073,27 @@
 }
 
 .wmp .wmpmainframe .wmpcontent #playbackcontainer #viscontrols #prevvis {
-    background: -17px -1px url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #9e9e9c 0, #737375 40%, #68686a 49%, #6d6d6e 100%)
+    background: -17px -1px url("./wmp9_glyphs.png"), linear-gradient(150deg, #9e9e9c 0, #737375 40%, #68686a 49%, #6d6d6e 100%)
 }
 
 .wmp .wmpmainframe .wmpcontent #playbackcontainer #viscontrols #nextvis {
-    background: -32px -1px url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #9e9e9c 0, #737375 40%, #68686a 49%, #6d6d6e 100%)
+    background: -32px -1px url("./wmp9_glyphs.png"), linear-gradient(150deg, #9e9e9c 0, #737375 40%, #68686a 49%, #6d6d6e 100%)
 }
 
 .wmp .wmpmainframe .wmpcontent #playbackcontainer #viscontrols #nextvis:hover {
-    background: -32px -1px url("/ui/wmp/wmp9_glyphs.png"), radial-gradient(circle at 20% 20%, #6ae974 0, #6ae974 10%, #2fd33d 25%, #09d319 40%, #14cc24 49%, #56da61 60%, #5ddf69 75%, #4bcc56 100%)
+    background: -32px -1px url("./wmp9_glyphs.png"), radial-gradient(circle at 20% 20%, #6ae974 0, #6ae974 10%, #2fd33d 25%, #09d319 40%, #14cc24 49%, #56da61 60%, #5ddf69 75%, #4bcc56 100%)
 }
 
 .wmp .wmpmainframe .wmpcontent #playbackcontainer #viscontrols #nextvis:active {
-    background: -32px -1px url("/ui/wmp/wmp9_glyphs.png"), radial-gradient(circle at 20% 20%, #94d699 0, #57c860 10%, #35bc40 25%, #37ad41 40%, #30a239 49%, #56b25f 60%, #60b668 75%, #68bd6f 100%)
+    background: -32px -1px url("./wmp9_glyphs.png"), radial-gradient(circle at 20% 20%, #94d699 0, #57c860 10%, #35bc40 25%, #37ad41 40%, #30a239 49%, #56b25f 60%, #60b668 75%, #68bd6f 100%)
 }
 
 .wmp .wmpmainframe .wmpcontent #playbackcontainer #viscontrols #prevvis:hover {
-    background: -17px -1px url("/ui/wmp/wmp9_glyphs.png"), radial-gradient(circle at 20% 20%, #6ae974 0, #6ae974 10%, #2fd33d 25%, #09d319 40%, #14cc24 49%, #56da61 60%, #5ddf69 75%, #4bcc56 100%)
+    background: -17px -1px url("./wmp9_glyphs.png"), radial-gradient(circle at 20% 20%, #6ae974 0, #6ae974 10%, #2fd33d 25%, #09d319 40%, #14cc24 49%, #56da61 60%, #5ddf69 75%, #4bcc56 100%)
 }
 
 .wmp .wmpmainframe .wmpcontent #playbackcontainer #viscontrols #prevvis:active {
-    background: -17px -1px url("/ui/wmp/wmp9_glyphs.png"), radial-gradient(circle at 20% 20%, #94d699 0, #57c860 10%, #35bc40 25%, #37ad41 40%, #30a239 49%, #56b25f 60%, #60b668 75%, #68bd6f 100%)
+    background: -17px -1px url("./wmp9_glyphs.png"), radial-gradient(circle at 20% 20%, #94d699 0, #57c860 10%, #35bc40 25%, #37ad41 40%, #30a239 49%, #56b25f 60%, #60b668 75%, #68bd6f 100%)
 }
 
 .wmp .wmpmainframe .wmpcontent #playbackcontainer #viscontrols .fnbutton:hover {
@@ -1112,16 +1112,16 @@
 .wmp .wmpmainframe .wmpcontent #playbackcontainer #viscontrols .fnbutton#fullscreen {
     right: 195px;
     position: absolute;
-    background: -64px 0 url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #9e9e9c 0, #737375 40%, #68686a 49%, #6d6d6e 100%)
+    background: -64px 0 url("./wmp9_glyphs.png"), linear-gradient(150deg, #9e9e9c 0, #737375 40%, #68686a 49%, #6d6d6e 100%)
 }
 
 .wmp .wmpmainframe .wmpcontent #playbackcontainer #viscontrols .fnbutton#fullscreen:hover {
-    background: -64px 0 url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #c7c7c6 0, #8d8d8e 35%, #7f7f81 45%, #828384 65%, #959595 75%, #aeaeaf 100%);
+    background: -64px 0 url("./wmp9_glyphs.png"), linear-gradient(150deg, #c7c7c6 0, #8d8d8e 35%, #7f7f81 45%, #828384 65%, #959595 75%, #aeaeaf 100%);
     box-shadow: inset 1px 1px #dadad988, inset -1px -1px #63636488
 }
 
 .wmp .wmpmainframe .wmpcontent #playbackcontainer #viscontrols .fnbutton#fullscreen:active {
-    background: -64px 0 url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #747474 0, #707070 35%, #666668 45%, #656566 65%, #6e7175 75%, #8a8a89 100%);
+    background: -64px 0 url("./wmp9_glyphs.png"), linear-gradient(150deg, #747474 0, #707070 35%, #666668 45%, #656566 65%, #6e7175 75%, #8a8a89 100%);
     box-shadow: inset 1px 1px #575758bb, inset -1px -1px #9d9d9d88
 }
 
@@ -1143,7 +1143,7 @@
     box-shadow: 0 2px #71717b;
     display: block;
     content: " ";
-    background: 50% 0/contain no-repeat url("/ui/wmp/wmp9_mediagraphic.png");
+    background: 50% 0/contain no-repeat url("./wmp9_mediagraphic.png");
     margin-left: -12px;
     margin-bottom: 2px
 }
@@ -1156,7 +1156,7 @@
     position: absolute;
     border: 1px solid #545455;
     border-radius: 1px;
-    background: 33px 0 url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #9e9e9c 0, #737375 40%, #68686a 49%, #6d6d6e 100%);
+    background: 33px 0 url("./wmp9_glyphs.png"), linear-gradient(150deg, #9e9e9c 0, #737375 40%, #68686a 49%, #6d6d6e 100%);
     image-rendering: pixelated;
     box-shadow: inset 1px 1px #dadad855, inset -1px -1px #acacac33;
     outline: 1px solid #242424;
@@ -1166,12 +1166,12 @@
 }
 
 .wmp .wmpmainframe .wmpcontent #viscontrols:after:hover {
-    background: 33px 0 url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #c7c7c6 0, #8d8d8e 35%, #7f7f81 45%, #828384 65%, #959595 75%, #aeaeaf 100%);
+    background: 33px 0 url("./wmp9_glyphs.png"), linear-gradient(150deg, #c7c7c6 0, #8d8d8e 35%, #7f7f81 45%, #828384 65%, #959595 75%, #aeaeaf 100%);
     box-shadow: inset 1px 1px #dadad988, inset -1px -1px #63636488
 }
 
 .wmp .wmpmainframe .wmpcontent #viscontrols:after:active {
-    background: 33px 0 url("/ui/wmp/wmp9_glyphs.png"), linear-gradient(150deg, #747474 0, #707070 35%, #666668 45%, #656566 65%, #6e7175 75%, #8a8a89 100%);
+    background: 33px 0 url("./wmp9_glyphs.png"), linear-gradient(150deg, #747474 0, #707070 35%, #666668 45%, #656566 65%, #6e7175 75%, #8a8a89 100%);
     box-shadow: inset 1px 1px #575758bb, inset -1px -1px #9d9d9d88
 }
 
@@ -1426,7 +1426,7 @@
     width: 28px;
     height: 9px;
     display: block;
-    background: 9px 2px no-repeat url("/ui/wmp/wmp9_sprite_rewind_disabled.png"), linear-gradient(#fff 0, #fff 45%, #c7e0f1 55%, #c7e0f1 100%);
+    background: 9px 2px no-repeat url("./wmp9_sprite_rewind_disabled.png"), linear-gradient(#fff 0, #fff 45%, #c7e0f1 55%, #c7e0f1 100%);
     box-shadow: inset 0 1px #f5f5f3, inset 0 -1px #b5cfde, inset 0 -2px #c7e0f1, inset 3px 0 1px #fff, inset 0 2px #fff, inset -3px 0 1px #c7ddef;
     bottom: 42px;
     border: 1px solid;
@@ -1476,13 +1476,13 @@
     content: " ";
     position: relative;
     display: block;
-    background: url("/ui/wmp/wmp9_sprite_play.png");
+    background: url("./wmp9_sprite_play.png");
     filter: drop-shadow(0 0 1px #fff);
     margin: 10px 11px
 }
 
 .wmp .wmpmainframe .playbackcontrols .fnbutton#playpause.playing .buttonbody:after {
-    background: url("/ui/wmp/wmp9_sprite_pause.png");
+    background: url("./wmp9_sprite_pause.png");
     margin: 10px
 }
 
@@ -1491,7 +1491,7 @@
 }
 
 .wmp .wmpmainframe .playbackcontrols .fnbutton#stop .buttonbody:after {
-    background: url("/ui/wmp/wmp9_sprite_stop.png");
+    background: url("./wmp9_sprite_stop.png");
     filter: drop-shadow(0 0 1px #fff);
     content: " ";
     width: 6px;
@@ -1521,7 +1521,7 @@
     height: 8px;
     content: " ";
     display: block;
-    background: url("/ui/wmp/wmp9_sprite_trackback.png");
+    background: url("./wmp9_sprite_trackback.png");
     filter: drop-shadow(0 0 1px #fff);
     position: relative;
     margin: 8px 7px
@@ -1545,7 +1545,7 @@
     height: 8px;
     content: " ";
     display: block;
-    background: url("/ui/wmp/wmp9_sprite_tracknext.png");
+    background: url("./wmp9_sprite_tracknext.png");
     filter: drop-shadow(0 0 1px #fff);
     position: relative;
     margin: 8px 9px
@@ -1573,7 +1573,7 @@
     height: 8px;
     content: " ";
     display: block;
-    background: url("/ui/wmp/wmp9_sprite_mute.png");
+    background: url("./wmp9_sprite_mute.png");
     filter: drop-shadow(0 0 1px #fff);
     position: relative;
     margin: 8px 7px

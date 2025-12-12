@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './flash-player.css';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 function FlashPlayer({
   onClose,
@@ -178,7 +179,7 @@ function FlashPlayer({
       {showPrompt && (
         <div className="flash-open-prompt">
           <img
-            src="/icons/flash/flash_player.png"
+            src={withBaseUrl('/icons/flash/flash_player.png')}
             alt="Flash Player"
             className="flash-prompt-icon"
           />
@@ -196,7 +197,7 @@ function FlashPlayer({
       {isLoading && (
         <div className="flash-open-prompt">
           <img
-            src="/icons/flash/flash_player.png"
+            src={withBaseUrl('/icons/flash/flash_player.png')}
             alt="Flash Player"
             className="flash-prompt-icon"
           />

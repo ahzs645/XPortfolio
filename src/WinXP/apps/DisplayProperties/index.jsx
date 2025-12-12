@@ -5,6 +5,7 @@ import { ProgramLayout, FileChooser } from '../../../components';
 import { useUserSettings } from '../../../contexts/UserSettingsContext';
 import { useScreensaver } from '../../../contexts/ScreensaverContext';
 import { useConfig } from '../../../contexts/ConfigContext';
+import { withBaseUrl } from '../../../utils/baseUrl';
 import WindowsScreensaver from '../../../components/Screensavers/WindowsScreensaver';
 
 // Base wallpapers - the custom one will have its name derived from config
@@ -214,7 +215,7 @@ function DisplayProperties({ onClose, onMinimize }) {
               <DesktopMonitor>
                 <DesktopWallpaperPreview
                   style={{
-                    backgroundImage: selected ? `url(${selected})` : 'none',
+                    backgroundImage: selected ? `url(${withBaseUrl(selected)})` : 'none',
                     backgroundColor: selected ? 'transparent' : '#004e98'
                   }}
                 />
@@ -287,7 +288,7 @@ function DisplayProperties({ onClose, onMinimize }) {
                   </ThemeControls>
                   <SmallText style={{ marginTop: 6 }}>Sample:</SmallText>
                   <ThemePreview>
-                    <img src={THEMES.find(t => t.id === theme)?.preview} alt={`${theme} preview`} />
+                    <img src={withBaseUrl(THEMES.find(t => t.id === theme)?.preview)} alt={`${theme} preview`} />
                   </ThemePreview>
                 </ThemesPane>
               )}
@@ -309,7 +310,7 @@ function DisplayProperties({ onClose, onMinimize }) {
                       if (screensaver?.embed) {
                         return (
                           <ScreensaverIframe
-                            src={screensaver.embed}
+                            src={withBaseUrl(screensaver.embed)}
                             title="Screensaver preview"
                           />
                         );
@@ -317,7 +318,7 @@ function DisplayProperties({ onClose, onMinimize }) {
                       return (
                         <ScreensaverPreviewImg
                           style={{
-                            backgroundImage: `url(${screensaver?.preview || '/gui/display/sample.png'})`,
+                            backgroundImage: `url(${withBaseUrl(screensaver?.preview || '/gui/display/sample.png')})`,
                           }}
                         />
                       );
@@ -358,7 +359,7 @@ function DisplayProperties({ onClose, onMinimize }) {
                   <Fieldset>
                     <Legend>Monitor power</Legend>
                     <MonitorPowerContent>
-                      <EnergyStarLogo src="/gui/display/energystar.png" alt="Energy Star" />
+                      <EnergyStarLogo src={withBaseUrl('/gui/display/energystar.png')} alt="Energy Star" />
                       <MonitorPowerText>
                         <p>To adjust monitor power settings and save energy, click Power.</p>
                         <MonitorPowerButton>
@@ -373,7 +374,7 @@ function DisplayProperties({ onClose, onMinimize }) {
               {tab.id === 'appearance' && (
                 <AppearancePane>
                   <AppearancePreview>
-                    <img src="/gui/display/reference/appearance.png" alt="Appearance preview" />
+                    <img src={withBaseUrl('/gui/display/reference/appearance.png')} alt="Appearance preview" />
                   </AppearancePreview>
                   <AppearanceControlsRow>
                     <AppearanceSelects>
@@ -413,7 +414,7 @@ function DisplayProperties({ onClose, onMinimize }) {
               {tab.id === 'settings' && (
                 <SettingsPane>
                   <SettingsMonitor>
-                    <SettingsMonitorImg src="/gui/display/reference/resolutionsetting.png" alt="Resolution" />
+                    <SettingsMonitorImg src={withBaseUrl('/gui/display/reference/resolutionsetting.png')} alt="Resolution" />
                   </SettingsMonitor>
                   <SettingsDisplayInfo>Display:<br />Default Monitor on Standard VGA Graphics Adapter</SettingsDisplayInfo>
                   <SettingsGroup>
@@ -558,7 +559,7 @@ const DesktopMonitor = styled.div`
   width: 177px;
   height: 159px;
   margin: 0 auto;
-  background: url('/gui/display/monitor.png') no-repeat center center;
+  background: url(${withBaseUrl('/gui/display/monitor.png')}) no-repeat center center;
   background-size: contain;
   flex-shrink: 0;
 `;
@@ -621,7 +622,7 @@ const MonitorShell = styled.div`
 const MonitorFrame = styled.div`
   position: absolute;
   inset: 0;
-  background: url('/gui/display/monitor.png') no-repeat center center;
+  background: url(${withBaseUrl('/gui/display/monitor.png')}) no-repeat center center;
   background-size: contain;
 `;
 
@@ -793,7 +794,7 @@ const ScreensaverMonitor = styled.div`
   width: 177px;
   height: 159px;
   margin: 0 auto 10px auto;
-  background: url('/gui/display/monitor.png') no-repeat center center;
+  background: url(${withBaseUrl('/gui/display/monitor.png')}) no-repeat center center;
   background-size: contain;
 `;
 
@@ -1052,7 +1053,7 @@ const SettingsMonitor = styled.div`
   width: 177px;
   height: 159px;
   margin: 0 auto 10px auto;
-  background: url('/gui/display/reference/displaysettings.png') no-repeat center center;
+  background: url(${withBaseUrl('/gui/display/reference/displaysettings.png')}) no-repeat center center;
   background-size: contain;
 `;
 

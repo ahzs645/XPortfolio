@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { useApp } from '../../../contexts/AppContext';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 /**
  * Windows Picture and Fax Viewer (React implementation).
@@ -27,17 +28,16 @@ function ImageViewer({ initialImages, initialImage }) {
   const [slideshowActive, setSlideshowActive] = useState(false);
   const slideshowRef = useRef(null);
 
-  const ICON_BASE = '/apps/openlair-viewer/static/images/interface/viewer';
+  const ICON_BASE = withBaseUrl('/apps/openlair-viewer/static/images/interface/viewer');
 
   const normalizeSrc = (src) => {
     if (!src) return null;
-    if (/^(https?:)?\/\//i.test(src)) return src;
-    return '/' + src.replace(/^\//, '');
+    return withBaseUrl(src);
   };
 
   const fetchProjectImages = useCallback(async () => {
     try {
-      const res = await fetch('/projects.json');
+      const res = await fetch(withBaseUrl('/projects.json'));
       if (!res.ok) throw new Error('projects.json fetch failed');
       const projects = await res.json();
       const collected = [];

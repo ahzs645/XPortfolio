@@ -24,6 +24,7 @@ import {
   BlueDivider,
   RightAlignedButtonRow,
 } from '../styles';
+import { withBaseUrl } from '../../../../utils/baseUrl';
 
 // Change Name View
 export function ChangeNameView({
@@ -71,7 +72,7 @@ export function ChangePictureView({
     <ContentPane>
       <PageTitle>Pick a new picture for {selectedUser?.name}'s account</PageTitle>
       <CurrentPictureRow>
-        <UserAvatar src={selectedUser?.picture} alt={selectedUser?.name} $large />
+        <UserAvatar src={withBaseUrl(selectedUser?.picture)} alt={selectedUser?.name} $large />
         <div>
           <strong>{selectedUser?.name}</strong>
           <br />
@@ -265,7 +266,7 @@ export function DeleteAccountView({
     <ContentPane>
       <PageTitle>Do you want to keep {selectedUser?.name}'s files?</PageTitle>
       <DeleteWarning>
-        <WarningIcon src="/icons/xp/Critical.png" alt="Warning" />
+        <WarningIcon src={withBaseUrl('/icons/xp/Critical.png')} alt="Warning" />
         <div>
           <p>Before you delete {selectedUser?.name}'s account, Windows can automatically
           save the contents of {selectedUser?.name}'s desktop and My Documents folder to a

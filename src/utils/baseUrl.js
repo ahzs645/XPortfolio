@@ -1,6 +1,7 @@
 export const BASE_URL = import.meta.env.BASE_URL || '/';
 
-const ABSOLUTE_URL_REGEX = /^[a-zA-Z][a-zA-Z\\d+\\-.]*:/;
+// RFC 3986 scheme: ALPHA *( ALPHA / DIGIT / "+" / "-" / "." ) ":"
+const ABSOLUTE_URL_REGEX = /^[A-Za-z][A-Za-z0-9+.-]*:/;
 
 /**
  * Prefix a public (or app-relative) path with Vite's base URL.

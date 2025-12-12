@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import { ProgramLayout } from '../../../components';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 // Special URL for home page
 const HOME_PAGE = 'about:home';
@@ -112,7 +113,7 @@ function WelcomePage({ onNavigate }) {
   return (
     <WelcomeContainer>
       <WelcomeHeader>
-        <WelcomeLogo src="/icons/xp/InternetExplorer6.png" alt="IE" />
+        <WelcomeLogo src={withBaseUrl('/icons/xp/InternetExplorer6.png')} alt="IE" />
         <WelcomeTitle>Welcome to Internet Explorer</WelcomeTitle>
       </WelcomeHeader>
       <WelcomeContent>
@@ -364,7 +365,7 @@ function InternetExplorer({ onClose, onMinimize, onMaximize, isFocus, initialUrl
         <AddressBarContainer>
           <AddressLabel>Address</AddressLabel>
           <AddressInputWrapper>
-            <AddressIcon src="/icons/xp/InternetShortcut.png" alt="" />
+            <AddressIcon src={withBaseUrl('/icons/xp/InternetShortcut.png')} alt="" />
             <AddressInput
               ref={inputRef}
               type="text"
@@ -375,7 +376,7 @@ function InternetExplorer({ onClose, onMinimize, onMaximize, isFocus, initialUrl
             />
           </AddressInputWrapper>
           <GoButton onClick={() => navigateToUrl(inputUrl)}>
-            <GoIcon src="/icons/xp/Go.png" alt="Go" />
+            <GoIcon src={withBaseUrl('/icons/xp/Go.png')} alt="Go" />
             <GoText>Go</GoText>
           </GoButton>
         </AddressBarContainer>
@@ -395,11 +396,11 @@ function InternetExplorer({ onClose, onMinimize, onMaximize, isFocus, initialUrl
         </IframeContainer>
         <StatusBarCustom>
           <StatusLeft>
-            <StatusIcon src="/icons/xp/InternetShortcut.png" alt="" />
+            <StatusIcon src={withBaseUrl('/icons/xp/InternetShortcut.png')} alt="" />
             <StatusText>{loading ? 'Loading...' : 'Done'}</StatusText>
           </StatusLeft>
           <StatusRight>
-            <StatusIcon src="/icons/xp/InternetShortcut.png" alt="" />
+            <StatusIcon src={withBaseUrl('/icons/xp/InternetShortcut.png')} alt="" />
             <StatusText>Internet</StatusText>
           </StatusRight>
         </StatusBarCustom>

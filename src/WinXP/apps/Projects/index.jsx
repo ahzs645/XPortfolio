@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { ProgramLayout } from '../../../components';
 import { useConfig } from '../../../contexts/ConfigContext';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 // Menu configuration for Projects window
 const PROJECTS_MENUS = [
@@ -103,7 +104,7 @@ function Projects({ onClose, onMinimize, onMaximize, isFocus }) {
 
     try {
       // First try to load from projects.json
-      const response = await fetch('/projects.json');
+      const response = await fetch(withBaseUrl('/projects.json'));
       if (response.ok) {
         const data = await response.json();
         if (Array.isArray(data) && data.length > 0) {
@@ -175,7 +176,7 @@ function Projects({ onClose, onMinimize, onMaximize, isFocus }) {
                 onClick={() => handleProjectClick(project)}
               >
                 <ProjectImage
-                  src={project.image}
+                  src={withBaseUrl(project.image)}
                   alt={project.title}
                   onError={(e) => {
                     e.target.style.background = 'linear-gradient(135deg, #1a1a2e, #16213e 50%, #0f172a)';

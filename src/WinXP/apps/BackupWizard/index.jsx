@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import styled from 'styled-components';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 // All localStorage keys used by the XP environment
 const BACKUP_KEYS = [
@@ -486,7 +487,7 @@ function BackupWizard({ onClose }) {
     <WizardContainer>
       <ContentArea>
         <LeftPane>
-          <img src="/ui/ntbackup.png" alt="" />
+          <img src={withBaseUrl('/ui/ntbackup.png')} alt="" />
         </LeftPane>
         <RightPane>{renderStep()}</RightPane>
       </ContentArea>

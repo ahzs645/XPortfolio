@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import styled from 'styled-components';
 import { POWER_STATE } from '../constants';
+import { withBaseUrl } from '../../utils/baseUrl';
 
 function Modal({ onClose, onRestart, onLogOff, onShutDown, onShutDownWithoutUpdates, mode, hasUpdates = false }) {
   const isLogOff = mode === POWER_STATE.LOG_OFF;
@@ -16,7 +17,7 @@ function Modal({ onClose, onRestart, onLogOff, onShutDown, onShutDownWithoutUpda
               {isLogOff ? 'Log Off Windows' : 'Turn off computer'}
             </DialogHeaderText>
             <DialogHeaderIcon
-              src="/assets/gui/boot/favicon.png"
+              src={withBaseUrl('/assets/gui/boot/favicon.png')}
               alt=""
             />
           </DialogHeader>
@@ -24,11 +25,11 @@ function Modal({ onClose, onRestart, onLogOff, onShutDown, onShutDownWithoutUpda
             {isLogOff ? (
               <>
                 <DialogButton onClick={onRestart} role="button" tabIndex={0}>
-                  <img src="/assets/gui/start-menu/restart.webp" alt="" />
+                  <img src={withBaseUrl('/assets/gui/start-menu/restart.webp')} alt="" />
                   <span>Restart</span>
                 </DialogButton>
                 <DialogButton onClick={onLogOff} role="button" tabIndex={0}>
-                  <img src="/assets/gui/start-menu/logoff.webp" alt="" />
+                  <img src={withBaseUrl('/assets/gui/start-menu/logoff.webp')} alt="" />
                   <span>Log Off</span>
                 </DialogButton>
               </>
@@ -36,19 +37,19 @@ function Modal({ onClose, onRestart, onLogOff, onShutDown, onShutDownWithoutUpda
               <>
                 <DialogButton onClick={() => {}} role="button" tabIndex={0} $disabled>
                   <HibernateIcon>
-                    <img src="/assets/gui/start-menu/standby.webp" alt="" />
+                    <img src={withBaseUrl('/assets/gui/start-menu/standby.webp')} alt="" />
                   </HibernateIcon>
                   <span>Hibernate</span>
                 </DialogButton>
                 <DialogButton onClick={hasUpdates ? onShutDown : onShutDown} role="button" tabIndex={0} $hasUpdateOverlay={hasUpdates}>
                   <ButtonIconWrapper>
-                    <img src="/assets/gui/start-menu/shutdown.webp" alt="" />
-                    {hasUpdates && <UpdateShieldOverlay src="/icons/security-center.png" alt="" />}
+                    <img src={withBaseUrl('/assets/gui/start-menu/shutdown.webp')} alt="" />
+                    {hasUpdates && <UpdateShieldOverlay src={withBaseUrl('/icons/security-center.png')} alt="" />}
                   </ButtonIconWrapper>
                   <span>Turn Off</span>
                 </DialogButton>
                 <DialogButton onClick={onRestart} role="button" tabIndex={0}>
-                  <img src="/assets/gui/start-menu/restart.webp" alt="" />
+                  <img src={withBaseUrl('/assets/gui/start-menu/restart.webp')} alt="" />
                   <span>Restart</span>
                 </DialogButton>
               </>
@@ -56,7 +57,7 @@ function Modal({ onClose, onRestart, onLogOff, onShutDown, onShutDownWithoutUpda
           </DialogButtonContainer>
           {hasUpdates && isTurnOff && (
             <UpdateNotice>
-              <UpdateNoticeIcon src="/icons/security-center.png" alt="" />
+              <UpdateNoticeIcon src={withBaseUrl('/icons/security-center.png')} alt="" />
               <UpdateNoticeText>
                 Click Turn Off to install important updates and turn off your computer.{' '}
                 <UpdateNoticeLink onClick={onShutDownWithoutUpdates}>

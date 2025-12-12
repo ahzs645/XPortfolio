@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { useConfig } from '../../../contexts/ConfigContext';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 // Emoticons data
 const EMOTICONS = [
@@ -198,7 +199,7 @@ function Messenger({ onClose, onMinimize, onMaximize, isFocus, onResize }) {
           </StatusValue>
         </StatusSection>
 
-        <BarImage src="/images/interface/messenger/bar.png" alt="" />
+        <BarImage src={withBaseUrl('/images/interface/messenger/bar.png')} alt="" />
 
         <SearchInput
           type="text"
@@ -229,7 +230,7 @@ function Messenger({ onClose, onMinimize, onMaximize, isFocus, onResize }) {
                       className={activeContact?.hash === contact.hash ? 'active' : ''}
                       onClick={() => selectContact(contact, 'online')}
                     >
-                      <ContactIcon src="/images/interface/messenger/online.png" alt="" />
+                      <ContactIcon src={withBaseUrl('/images/interface/messenger/online.png')} alt="" />
                       <ContactName>{contact.name}</ContactName>
                     </Contact>
                   ))}
@@ -259,7 +260,7 @@ function Messenger({ onClose, onMinimize, onMaximize, isFocus, onResize }) {
                       className={activeContact?.hash === contact.hash ? 'active' : ''}
                       onClick={() => selectContact(contact, 'offline')}
                     >
-                      <ContactIcon src="/images/interface/messenger/offline.png" alt="" />
+                      <ContactIcon src={withBaseUrl('/images/interface/messenger/offline.png')} alt="" />
                       <ContactName>{contact.name}</ContactName>
                     </Contact>
                   ))}
@@ -300,7 +301,7 @@ function Messenger({ onClose, onMinimize, onMaximize, isFocus, onResize }) {
               {EMOTICONS.map((emoji, idx) => (
                 <EmojiImg
                   key={idx}
-                  src={emoji.src}
+                  src={withBaseUrl(emoji.src)}
                   alt={emoji.key}
                   title={emoji.key}
                   onClick={() => handleEmojiClick(emoji)}
@@ -427,13 +428,13 @@ const GroupHeader = styled.div`
 const Arrow = styled.span`
   width: 16px;
   height: 16px;
-  background-image: url('/images/interface/messenger/toggledown.png');
+  background-image: url(${withBaseUrl('/images/interface/messenger/toggledown.png')});
   background-size: contain;
   background-repeat: no-repeat;
   flex-shrink: 0;
 
   &.open {
-    background-image: url('/images/interface/messenger/toggleup.png');
+    background-image: url(${withBaseUrl('/images/interface/messenger/toggleup.png')});
   }
 `;
 

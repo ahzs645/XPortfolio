@@ -5,6 +5,7 @@ import { useConfig } from '../../../contexts/ConfigContext';
 import { useTooltip } from '../../../contexts/TooltipContext';
 import { isMobileDevice } from '../../../utils/deviceDetection';
 import { ProgramLayout, TaskPanel } from '../../../components';
+import { withBaseUrl } from '../../../utils/baseUrl';
 import { ContextMenu } from '../../components/ContextMenu';
 import { useFileContextMenu, useBackgroundContextMenu } from '../../hooks/useFileContextMenu';
 import { createArchive, extractArchive } from '../../../utils/archiveUtils';
@@ -868,7 +869,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
                 {filteredMyComputerItems.folders.length > 0 && (
                   <CategorySection>
                     <CategoryHeader>
-                      <CategoryIcon src="/gui/mycomputer/files_header.png" alt="" onError={(e) => e.target.style.display = 'none'} />
+                      <CategoryIcon src={withBaseUrl('/gui/mycomputer/files_header.png')} alt="" onError={(e) => e.target.style.display = 'none'} />
                       <CategoryTitle>Files Stored on This Computer</CategoryTitle>
                     </CategoryHeader>
                     <CategoryDivider />
@@ -887,7 +888,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
                 {filteredMyComputerItems.drives.length > 0 && (
                   <CategorySection>
                     <CategoryHeader>
-                      <CategoryIcon src="/gui/mycomputer/drives_header.png" alt="" onError={(e) => e.target.style.display = 'none'} />
+                      <CategoryIcon src={withBaseUrl('/gui/mycomputer/drives_header.png')} alt="" onError={(e) => e.target.style.display = 'none'} />
                       <CategoryTitle>Hard Disk Drives</CategoryTitle>
                     </CategoryHeader>
                     <CategoryDivider />
@@ -1046,7 +1047,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
               <UploadProgressDialog>
                 <UploadProgressTitle>Copying...</UploadProgressTitle>
                 <CopyingAnimation>
-                  <img src="/gui/copying.gif" alt="Copying" onError={(e) => e.target.style.display = 'none'} />
+                  <img src={withBaseUrl('/gui/copying.gif')} alt="Copying" onError={(e) => e.target.style.display = 'none'} />
                 </CopyingAnimation>
                 <UploadProgressFile>{uploadProgress.fileName}</UploadProgressFile>
                 <UploadProgressBar>

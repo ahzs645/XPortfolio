@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import styled from 'styled-components';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 const WizardContainer = styled.div`
   display: flex;
@@ -409,7 +410,7 @@ function TransferWizard({ onClose }) {
     <WizardContainer>
       <ContentArea>
         <LeftPane>
-          <img src="/ui/migwiz.png" alt="" />
+          <img src={withBaseUrl('/ui/migwiz.png')} alt="" />
         </LeftPane>
         <RightPane>{renderStep()}</RightPane>
       </ContentArea>

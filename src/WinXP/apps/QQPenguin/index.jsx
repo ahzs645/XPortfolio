@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 import styled from 'styled-components';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 // Animation data extracted from original QQ Pet
 const ANIMATIONS = [
@@ -401,17 +402,17 @@ function QQPenguin({ onClose, onMinimize }) {
                 {detailMenuType === 'feed' ? (
                   <>
                     <ItemCard onClick={() => handleFeedItem({ name: '冰淇淋', value: 15 })}>
-                      <ItemIcon src="/games/qqpenguin/assets/icecream.png" />
+                      <ItemIcon src={withBaseUrl('/games/qqpenguin/assets/icecream.png')} />
                       <ItemText>冰淇淋 +15</ItemText>
                     </ItemCard>
                     <ItemCard onClick={() => handleFeedItem({ name: '月饼', value: 25 })}>
-                      <ItemIcon src="/games/qqpenguin/assets/mooncake.png" />
+                      <ItemIcon src={withBaseUrl('/games/qqpenguin/assets/mooncake.png')} />
                       <ItemText>月饼 +25</ItemText>
                     </ItemCard>
                   </>
                 ) : (
                   <ItemCard onClick={handleMedicineItem}>
-                    <ItemIcon src="/games/qqpenguin/assets/riyongping.png" />
+                    <ItemIcon src={withBaseUrl('/games/qqpenguin/assets/riyongping.png')} />
                     <ItemText>感冒药 +20</ItemText>
                   </ItemCard>
                 )}
@@ -458,7 +459,7 @@ const LoginOverlay = styled.div`
 const LoginDialog = styled.div`
   width: 330px;
   height: 229px;
-  background-image: url('/games/qqpenguin/assets/bg.png');
+  background-image: url(${withBaseUrl('/games/qqpenguin/assets/bg.png')});
   background-size: cover;
   position: absolute;
   left: 50%;
@@ -478,7 +479,7 @@ const LoginHeader = styled.div`
 const CloseBtn = styled.div`
   width: 38px;
   height: 18px;
-  background-image: url('/games/qqpenguin/assets/close-btn.png');
+  background-image: url(${withBaseUrl('/games/qqpenguin/assets/close-btn.png')});
   background-repeat: no-repeat;
   background-size: 100% 100%;
   cursor: pointer;
@@ -488,7 +489,7 @@ const CloseBtn = styled.div`
 const MinBtn = styled.div`
   width: 25px;
   height: 18px;
-  background-image: url('/games/qqpenguin/assets/min-btn.bmp');
+  background-image: url(${withBaseUrl('/games/qqpenguin/assets/min-btn.bmp')});
   background-repeat: no-repeat;
   background-size: 100% 100%;
   cursor: pointer;
@@ -502,7 +503,7 @@ const PetIcon = styled.div`
   transform: translate(-50%, -50%);
   width: 135px;
   height: 136px;
-  background-image: url('/games/qqpenguin/assets/icon.png');
+  background-image: url(${withBaseUrl('/games/qqpenguin/assets/icon.png')});
   background-size: cover;
 `;
 
@@ -521,7 +522,7 @@ const PetLabel = styled.div`
     content: '';
     width: 17px;
     height: 17px;
-    background-image: url('/games/qqpenguin/assets/pet-label-icon.png');
+    background-image: url(${withBaseUrl('/games/qqpenguin/assets/pet-label-icon.png')});
     background-size: cover;
   }
 `;
@@ -542,7 +543,7 @@ const CheckboxRow = styled.div`
 const CheckboxIcon = styled.div`
   width: 17px;
   height: 17px;
-  background-image: url('/games/qqpenguin/assets/checkbox.png');
+  background-image: url(${withBaseUrl('/games/qqpenguin/assets/checkbox.png')});
   background-size: cover;
   cursor: pointer;
 `;
@@ -558,7 +559,7 @@ const OkButton = styled.div`
   transform: translate(100%, 410%);
   width: 69px;
   height: 21px;
-  background-image: url('/games/qqpenguin/assets/ok-btn.png');
+  background-image: url(${withBaseUrl('/games/qqpenguin/assets/ok-btn.png')});
   background-repeat: no-repeat;
   background-size: 100% 100%;
   cursor: pointer;
@@ -641,7 +642,7 @@ const ContextMenu = styled.div`
 const ContextMenuStart = styled.div`
   width: 100%;
   height: 7px;
-  background-image: url('/games/qqpenguin/assets/menu-start.bmp');
+  background-image: url(${withBaseUrl('/games/qqpenguin/assets/menu-start.bmp')});
   background-repeat: repeat-x;
   background-size: auto 100%;
 `;
@@ -649,7 +650,7 @@ const ContextMenuStart = styled.div`
 const ContextMenuOption = styled.div`
   width: 100%;
   height: 22px;
-  background-image: url('/games/qqpenguin/assets/menu-option.bmp');
+  background-image: url(${withBaseUrl('/games/qqpenguin/assets/menu-option.bmp')});
   background-repeat: repeat-x;
   background-size: auto 100%;
   display: flex;
@@ -666,7 +667,7 @@ const ContextMenuOption = styled.div`
 const ContextMenuEnd = styled.div`
   width: 100%;
   height: 7px;
-  background-image: url('/games/qqpenguin/assets/menu-end.bmp');
+  background-image: url(${withBaseUrl('/games/qqpenguin/assets/menu-end.bmp')});
   background-repeat: repeat-x;
   background-size: auto 100%;
 `;

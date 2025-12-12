@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { MenuBar } from '../../../components';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 const MENUS = [
   {
@@ -461,7 +462,7 @@ const CtrlBtn = styled.button`
 const BtnIcon = styled.div`
   width: 44px;
   height: 20px;
-  background-image: url('/icons/xp/sound-recorder-buttons.png');
+  background-image: url(${withBaseUrl('/icons/xp/sound-recorder-buttons.png')});
   background-repeat: no-repeat;
   background-position: ${props => -props.$index * 44}px 0;
   ${props => props.$disabled && 'opacity: 0.4; filter: grayscale(100%);'}

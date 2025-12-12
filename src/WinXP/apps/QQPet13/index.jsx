@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 const Container = styled.div`
   width: 100%;
@@ -61,7 +62,7 @@ function QQPet13({ onClose, onMinimize }) {
         <LoadingOverlay>
           <img
             className="loading-icon"
-            src="/games/QQPet13/logo.png"
+            src={withBaseUrl('/games/QQPet13/logo.png')}
             alt="QQ Pet"
             onError={(e) => { e.target.style.display = 'none'; }}
           />
@@ -70,7 +71,7 @@ function QQPet13({ onClose, onMinimize }) {
         </LoadingOverlay>
       )}
       <AppFrame
-        src="/games/QQPet13/index.html"
+        src={withBaseUrl('/games/QQPet13/index.html')}
         onLoad={() => setIsLoading(false)}
         title="QQ Pet 13"
         allow="autoplay"

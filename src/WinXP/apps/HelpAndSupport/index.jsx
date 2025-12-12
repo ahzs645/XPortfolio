@@ -1,5 +1,11 @@
 import React, { useState, useCallback } from 'react';
 import styled from 'styled-components';
+import { withBaseUrl } from '../../../utils/baseUrl';
+
+const HELP_ICON = withBaseUrl('/icons/help.png');
+const BACK_ICON = withBaseUrl('/gui/toolbar/back.webp');
+const FORWARD_ICON = withBaseUrl('/gui/toolbar/forward.webp');
+const GO_ICON = withBaseUrl('/gui/toolbar/go.webp');
 
 // Help content topics
 const HELP_TOPICS = {
@@ -390,19 +396,19 @@ function HelpAndSupport({ onClose, onMinimize, onMaximize, initialTopic }) {
         <h2>Pick a Help topic</h2>
         <TopicList>
           <TopicItem onClick={() => navigate('whatsnew_overview')}>
-            <TopicIcon src="/icons/help.png" alt="" />
+            <TopicIcon src={HELP_ICON} alt="" />
             <span>What's new in Windows XP</span>
           </TopicItem>
           <TopicItem onClick={() => navigate('acc_dis_custom_nt')}>
-            <TopicIcon src="/icons/help.png" alt="" />
+            <TopicIcon src={HELP_ICON} alt="" />
             <span>Customizing your computer</span>
           </TopicItem>
           <TopicItem onClick={() => navigate('usercpl_overview')}>
-            <TopicIcon src="/icons/help.png" alt="" />
+            <TopicIcon src={HELP_ICON} alt="" />
             <span>User Accounts</span>
           </TopicItem>
           <TopicItem onClick={() => navigate('windows_security_whynot_admin')}>
-            <TopicIcon src="/icons/help.png" alt="" />
+            <TopicIcon src={HELP_ICON} alt="" />
             <span>Security and administration</span>
           </TopicItem>
         </TopicList>
@@ -411,7 +417,7 @@ function HelpAndSupport({ onClose, onMinimize, onMaximize, initialTopic }) {
         <h2>Ask for assistance</h2>
         <TopicList>
           <TopicItem>
-            <TopicIcon src="/icons/help.png" alt="" />
+            <TopicIcon src={HELP_ICON} alt="" />
             <span>Get support, or find information in Windows XP newsgroups</span>
           </TopicItem>
         </TopicList>
@@ -445,7 +451,7 @@ function HelpAndSupport({ onClose, onMinimize, onMaximize, initialTopic }) {
             disabled={historyIndex <= 0}
             title="Back"
           >
-            <img src="/gui/toolbar/back.webp" alt="Back" height="24" />
+            <img src={BACK_ICON} alt="Back" height="24" />
             <span>Back</span>
           </NavButton>
           <NavButton
@@ -453,10 +459,10 @@ function HelpAndSupport({ onClose, onMinimize, onMaximize, initialTopic }) {
             disabled={historyIndex >= history.length - 1}
             title="Forward"
           >
-            <img src="/gui/toolbar/forward.webp" alt="Forward" height="24" />
+            <img src={FORWARD_ICON} alt="Forward" height="24" />
           </NavButton>
           <NavButton onClick={goHome} title="Home">
-            <img src="/icons/help.png" alt="Home" height="24" />
+            <img src={HELP_ICON} alt="Home" height="24" />
             <span>Home</span>
           </NavButton>
         </NavButtons>
@@ -470,15 +476,15 @@ function HelpAndSupport({ onClose, onMinimize, onMaximize, initialTopic }) {
             <SidebarTitle>Learn More</SidebarTitle>
             <SidebarLinks>
               <SidebarLink onClick={() => navigate('whatsnew_overview')}>
-                <img src="/icons/help.png" alt="" />
+                <img src={HELP_ICON} alt="" />
                 What's New In Windows XP
               </SidebarLink>
               <SidebarLink onClick={() => navigate('acc_dis_custom_nt')}>
-                <img src="/icons/help.png" alt="" />
+                <img src={HELP_ICON} alt="" />
                 Customizing Windows
               </SidebarLink>
               <SidebarLink onClick={() => navigate('usercpl_overview')}>
-                <img src="/icons/help.png" alt="" />
+                <img src={HELP_ICON} alt="" />
                 User Accounts
               </SidebarLink>
             </SidebarLinks>
@@ -498,11 +504,11 @@ function HelpAndSupport({ onClose, onMinimize, onMaximize, initialTopic }) {
                 placeholder=""
               />
               <SearchGoButton>
-                <img src="/gui/toolbar/go.webp" alt="Go" />
+                <img src={GO_ICON} alt="Go" />
               </SearchGoButton>
             </SearchLeft>
             <SearchRight>
-              <img src="/icons/help.png" alt="" width="24" height="24" />
+              <img src={HELP_ICON} alt="" width="24" height="24" />
               <span>Help and Support Center</span>
             </SearchRight>
           </SearchHeader>

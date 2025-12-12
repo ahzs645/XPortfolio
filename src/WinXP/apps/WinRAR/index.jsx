@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import styled from 'styled-components';
 import Archive from '../../../lib/libarchive/Archive';
 import { useFileSystem, SYSTEM_IDS } from '../../../contexts/FileSystemContext';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 function WinRAR({ onClose, fileData, fileName, parentFolderId }) {
   const [status, setStatus] = useState('initializing');
@@ -203,7 +204,7 @@ function WinRAR({ onClose, fileData, fileName, parentFolderId }) {
       {status === 'error' && (
         <>
           <ErrorRow>
-            <ErrorIcon src="/icons/xp/Critical.png" alt="" />
+            <ErrorIcon src={withBaseUrl('/icons/xp/Critical.png')} alt="" />
             <ErrorTitle>Error</ErrorTitle>
           </ErrorRow>
           <ErrorText>{error}</ErrorText>

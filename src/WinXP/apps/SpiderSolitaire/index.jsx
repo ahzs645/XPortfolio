@@ -1,6 +1,7 @@
 import React, { useRef, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
 import { MenuBar } from '../../../components';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 function SpiderSolitaire({ onClose, isFocus }) {
   const iframeRef = useRef(null);
@@ -39,7 +40,7 @@ function SpiderSolitaire({ onClose, isFocus }) {
       <IframeWrapper>
         <iframe
           ref={iframeRef}
-          src="/games/spider-solitaire/index.html"
+          src={withBaseUrl('/games/spider-solitaire/index.html')}
           title="Spider Solitaire"
           frameBorder="0"
           allowFullScreen
