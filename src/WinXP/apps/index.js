@@ -50,6 +50,7 @@ import TransferWizard from './TransferWizard';
 import MSNMessenger from './MSNMessenger';
 import FlashPlayer from './FlashPlayer';
 import WorldOfWarcraft from './WorldOfWarcraft';
+import RuneScape from './RuneScape';
 // ControlPanel is now integrated into MyComputer as a navigable view
 
 // XP Icons paths
@@ -158,6 +159,7 @@ export const appCategoryMap = {
   'QQ Pet 13': APP_CATEGORIES.GAME,
   'QQ Arcade': APP_CATEGORIES.GAME,
   'World of Warcraft': APP_CATEGORIES.GAME,
+  'RuneScape Classic': APP_CATEGORIES.GAME,
 };
 
 // Helper to get app category
@@ -372,6 +374,11 @@ export const desktopIconCatalog = {
     title: 'World of Warcraft',
     component: WorldOfWarcraft,
   },
+  runescape: {
+    icon: '/icons/runescape-icon.png',
+    title: 'RuneScape Classic',
+    component: RuneScape,
+  },
 };
 
 // Load saved icon positions from localStorage
@@ -436,6 +443,7 @@ const CATALOG_TO_APP_KEY = {
   transferWizard: 'Transfer Wizard',
   flashPlayer: 'Adobe Flash Player',
   worldOfWarcraft: 'World of Warcraft',
+  runescape: 'RuneScape Classic',
 };
 
 // Generate desktop icon state from program list
@@ -1594,6 +1602,26 @@ export const appSettings = {
     maximized: false,
     multiInstance: false,
   },
+  'RuneScape Classic': {
+    header: {
+      icon: '/icons/runescape-icon.png',
+      title: 'RuneScape Classic - Offline',
+      buttons: ['minimize', 'close'],
+    },
+    component: RuneScape,
+    defaultSize: {
+      width: 532,
+      height: 394,
+    },
+    defaultOffset: {
+      x: 100,
+      y: 50,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
   // Control Panel is now integrated into MyComputer as a navigable view
   // Access via My Computer sidebar > Control Panel
 };
@@ -1647,4 +1675,5 @@ export {
   TransferWizard,
   FlashPlayer,
   WorldOfWarcraft,
+  RuneScape,
 };

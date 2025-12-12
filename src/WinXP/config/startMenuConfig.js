@@ -299,6 +299,13 @@ export const START_MENU_CATALOG = {
     title: 'World of Warcraft',
     description: 'Classic WoW login screen',
   },
+  runescape: {
+    type: 'program',
+    appKey: 'RuneScape Classic',
+    icon: '/icons/runescape-icon.png',
+    title: 'RuneScape Classic',
+    description: 'Offline singleplayer RSC',
+  },
   'divider-main': {
     type: 'separator',
   },
@@ -344,7 +351,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Games',
     icon: '/icons/xp/FolderClosed.png',
-    items: ['minesweeper', 'solitaire', 'spiderSolitaire', 'pinball', 'worldOfWarcraft', 'qqGames'],
+    items: ['minesweeper', 'solitaire', 'spiderSolitaire', 'pinball', 'runescape', 'worldOfWarcraft', 'qqGames'],
   },
   systemTools: {
     type: 'folder',
