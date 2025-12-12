@@ -560,6 +560,55 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     }
   }, [contextMenu, setContextMenu]);
 
+  // Mobile touch handler for My Computer root view
+  const handleMyComputerItemTouchStart = useCallback((e, item) => {
+    if (!isMobile) return;
+    if (e.touches.length !== 1) return;
+
+    const touch = e.touches[0];
+    const now = Date.now();
+
+    // Clear any existing long press timer
+    clearLongPressTimer();
+
+    // Check for double-tap
+    if (lastTapRef.current &&
+        lastTapRef.current.id === item.id &&
+        now - lastTapRef.current.time < DOUBLE_TAP_DELAY) {
+      e.preventDefault();
+      e.stopPropagation();
+      lastTapRef.current = null;
+      setTimeout(() => handleItemDoubleClick(item), 0);
+      return;
+    }
+
+    // Record this tap
+    lastTapRef.current = { id: item.id, time: now };
+
+    // Start long press timer for context menu
+    longPressTimerRef.current = setTimeout(() => {
+      // Create a synthetic event with touch coordinates
+      const syntheticEvent = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+        pageX: touch.pageX,
+        pageY: touch.pageY,
+      };
+      handleContextMenu(syntheticEvent, item);
+      lastTapRef.current = null;
+    }, LONG_PRESS_DELAY);
+
+    // Trigger click/select
+    handleItemClick(e, item);
+  }, [isMobile, handleItemClick, handleItemDoubleClick, handleContextMenu, clearLongPressTimer]);
+
+  // Mobile touch end handler
+  const handleMyComputerItemTouchEnd = useCallback(() => {
+    clearLongPressTimer();
+  }, [clearLongPressTimer]);
+
   if (isLoading) {
     return (
       <ProgramLayout
@@ -645,55 +694,6 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     : searchQuery.trim()
     ? `${visibleItems} of ${totalItems} object(s)`
     : `${visibleItems} object(s)`;
-
-  // Mobile touch handler for My Computer root view
-  const handleMyComputerItemTouchStart = useCallback((e, item) => {
-    if (!isMobile) return;
-    if (e.touches.length !== 1) return;
-
-    const touch = e.touches[0];
-    const now = Date.now();
-
-    // Clear any existing long press timer
-    clearLongPressTimer();
-
-    // Check for double-tap
-    if (lastTapRef.current &&
-        lastTapRef.current.id === item.id &&
-        now - lastTapRef.current.time < DOUBLE_TAP_DELAY) {
-      e.preventDefault();
-      e.stopPropagation();
-      lastTapRef.current = null;
-      setTimeout(() => handleItemDoubleClick(item), 0);
-      return;
-    }
-
-    // Record this tap
-    lastTapRef.current = { id: item.id, time: now };
-
-    // Start long press timer for context menu
-    longPressTimerRef.current = setTimeout(() => {
-      // Create a synthetic event with touch coordinates
-      const syntheticEvent = {
-        preventDefault: () => {},
-        stopPropagation: () => {},
-        clientX: touch.clientX,
-        clientY: touch.clientY,
-        pageX: touch.pageX,
-        pageY: touch.pageY,
-      };
-      handleContextMenu(syntheticEvent, item);
-      lastTapRef.current = null;
-    }, LONG_PRESS_DELAY);
-
-    // Trigger click/select
-    handleItemClick(e, item);
-  }, [isMobile, handleItemClick, handleItemDoubleClick, handleContextMenu, clearLongPressTimer]);
-
-  // Mobile touch end handler
-  const handleMyComputerItemTouchEnd = useCallback(() => {
-    clearLongPressTimer();
-  }, [clearLongPressTimer]);
 
   // Render item for My Computer root view
   const renderMyComputerItem = (item) => {

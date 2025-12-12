@@ -144,7 +144,7 @@ function parseGitHubUrl(inputUrl) {
 
     // jsDelivr CDN URL
     if (url.hostname === 'cdn.jsdelivr.net') {
-      const ghMatch = url.pathname.match(/\/gh\/([^\/]+)\/([^@\/]+)@([^\/]+)\/?(.*)$/);
+      const ghMatch = url.pathname.match(/\/gh\/([^/]+)\/([^@/]+)@([^/]+)\/?(.*)$/);
       if (ghMatch) {
         const [, user, repo, branch, subPath] = ghMatch;
         return {

@@ -195,9 +195,11 @@ function InternetExplorer({ onClose, onMinimize, onMaximize, isFocus, initialUrl
   }, [historyIndex, history]);
 
   const refresh = useCallback(() => {
-    if (iframeRef.current && !isHomePage) {
+    const iframe = iframeRef.current;
+    if (iframe && !isHomePage) {
       setLoading(true);
-      iframeRef.current.src = iframeRef.current.src;
+      const currentSrc = iframe.src;
+      iframe.src = currentSrc;
     }
   }, [isHomePage]);
 

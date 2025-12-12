@@ -230,7 +230,7 @@ function Calculator({ onClose, isFocus }) {
     setHasMemory(false);
   }, []);
 
-  const useHistoryItem = useCallback((result) => {
+  const applyHistoryItem = useCallback((result) => {
     setDisplay(result);
     setWaitingForOperand(true);
   }, []);
@@ -348,7 +348,7 @@ function Calculator({ onClose, isFocus }) {
                   ) : (
                     <>
                       {history.map((item, index) => (
-                        <HistoryItem key={index} onClick={() => useHistoryItem(item.result)}>
+                        <HistoryItem key={index} onClick={() => applyHistoryItem(item.result)}>
                           <div className="expression">{item.expression}</div>
                           <div className="result">= {item.result}</div>
                         </HistoryItem>
@@ -364,7 +364,7 @@ function Calculator({ onClose, isFocus }) {
                   ) : (
                     <>
                       {memoryList.map((value, index) => (
-                        <MemoryItem key={index} onClick={() => useHistoryItem(String(value))}>
+                        <MemoryItem key={index} onClick={() => applyHistoryItem(String(value))}>
                           <div className="value">{value}</div>
                         </MemoryItem>
                       ))}

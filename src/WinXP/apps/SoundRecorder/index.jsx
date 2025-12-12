@@ -194,7 +194,9 @@ function SoundRecorder({ onClose, isFocus }) {
     if (sourceNodeRef.current) {
       try {
         sourceNodeRef.current.stop();
-      } catch (e) {}
+      } catch {
+        // Ignore stop errors (already stopped/disposed)
+      }
       sourceNodeRef.current = null;
     }
     setIsRecording(false);

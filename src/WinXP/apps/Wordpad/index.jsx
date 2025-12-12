@@ -160,8 +160,10 @@ function Wordpad({ onClose, onMinimize, onMaximize }) {
         break;
       case 'size':
         setFontSize(value);
-        const sizeMap = { '8': 1, '9': 1, '10': 2, '11': 2, '12': 3, '14': 4, '16': 4, '18': 5, '20': 5, '22': 5, '24': 6, '26': 6, '28': 6, '36': 7, '48': 7, '72': 7 };
-        execCommand('fontSize', sizeMap[value] || 3);
+        {
+          const sizeMap = { '8': 1, '9': 1, '10': 2, '11': 2, '12': 3, '14': 4, '16': 4, '18': 5, '20': 5, '22': 5, '24': 6, '26': 6, '28': 6, '36': 7, '48': 7, '72': 7 };
+          execCommand('fontSize', sizeMap[value] || 3);
+        }
         break;
       case 'textColor':
         setTextColor(value);

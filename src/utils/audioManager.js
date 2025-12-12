@@ -44,7 +44,7 @@ function applyVolume(element) {
  */
 function updateAllVolumes() {
   audioElements.forEach(element => {
-    if (element && !element.paused !== undefined) {
+    if (element) {
       applyVolume(element);
     }
   });
@@ -201,7 +201,7 @@ function patchIframe(iframe) {
       // Track existing audio/video in iframe
       iframeDoc.querySelectorAll('audio, video').forEach(trackAudio);
     }
-  } catch (e) {
+  } catch {
     // Cross-origin iframe - can't access, try messaging instead
     try {
       iframe.contentWindow?.postMessage({

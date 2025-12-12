@@ -21,8 +21,10 @@ function SpiderSolitaire({ onClose, isFocus }) {
   const handleMenuAction = useCallback((action) => {
     if (action === 'newGame') {
       // Reload the iframe to start a new game
-      if (iframeRef.current) {
-        iframeRef.current.src = iframeRef.current.src;
+      const iframe = iframeRef.current;
+      if (iframe) {
+        const currentSrc = iframe.src;
+        iframe.src = currentSrc;
       }
     }
   }, []);

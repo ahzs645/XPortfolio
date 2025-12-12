@@ -638,13 +638,14 @@ function Paint({ onClose, onMinimize, imagePath, fileId, fileName }) {
       case 'view:zoom-large':
         setZoom(4);
         break;
-      case 'view:zoom-custom':
+      case 'view:zoom-custom': {
         const zoomVal = prompt('Enter zoom percentage:', String(zoom * 100));
         if (zoomVal) {
           const z = parseInt(zoomVal, 10) / 100;
           if (z >= 0.125 && z <= 8) setZoom(z);
         }
         break;
+      }
       case 'image:flip-horizontal':
         flipHorizontal();
         break;
@@ -666,7 +667,7 @@ function Paint({ onClose, onMinimize, imagePath, fileId, fileName }) {
       case 'image:clear':
         clearCanvas();
         break;
-      case 'image:attributes':
+      case 'image:attributes': {
         const w = prompt('Width:', String(canvasSize.width));
         const h = prompt('Height:', String(canvasSize.height));
         if (w && h) {
@@ -688,6 +689,7 @@ function Paint({ onClose, onMinimize, imagePath, fileId, fileName }) {
           }
         }
         break;
+      }
       case 'colors:edit':
         // Could implement a color picker dialog
         break;
@@ -848,7 +850,7 @@ function Paint({ onClose, onMinimize, imagePath, fileId, fileName }) {
         if (shapeStyle.fill) ctx.fill();
         if (shapeStyle.stroke) ctx.stroke();
         break;
-      case 'roundRect':
+      case 'roundRect': {
         const radius = Math.min(w, h) / 4;
         ctx.beginPath();
         ctx.moveTo(x + radius, y);
@@ -864,6 +866,7 @@ function Paint({ onClose, onMinimize, imagePath, fileId, fileName }) {
         if (shapeStyle.fill) ctx.fill();
         if (shapeStyle.stroke) ctx.stroke();
         break;
+      }
       default:
         break;
     }
@@ -957,7 +960,7 @@ function Paint({ onClose, onMinimize, imagePath, fileId, fileName }) {
         drawBrush(ctx, pos.x, pos.y, brushShape.shape, brushShape.size, color);
         break;
 
-      case 'spray':
+      case 'spray': {
         sprayPosRef.current = pos;
         const sprayCfg = airbrushSize;
         sprayIntervalRef.current = setInterval(() => {
@@ -973,6 +976,7 @@ function Paint({ onClose, onMinimize, imagePath, fileId, fileName }) {
           }
         }, 30);
         break;
+      }
 
       case 'fill':
         try {

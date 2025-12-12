@@ -8,7 +8,7 @@
     "prebuild": "node scripts/generate-build-version.js",
     "build": "node scripts/generate-build-version.js && vite build",
     "build:all": "bash scripts/build-all.sh",
-    "lint": "eslint .",
+    "lint": "eslint src",
     "preview": "vite preview",
     "version:bump": "node scripts/generate-build-version.js --bump"
   },
