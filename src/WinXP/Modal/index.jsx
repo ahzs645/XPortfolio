@@ -189,8 +189,8 @@ const HibernateIcon = styled.div`
 
 const UpdateShieldOverlay = styled.img`
   position: absolute;
-  bottom: -3px;
-  right: -5px;
+  top: -15px;
+  left: 19px;
   width: 20px;
   height: 20px;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
