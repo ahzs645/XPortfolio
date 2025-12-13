@@ -131,6 +131,8 @@ jobs:
         run: npm run lint
 
       - name: Build main app
+        env:
+          VITE_BASE: /
         run: npm run build
 
       # ============================================================================
