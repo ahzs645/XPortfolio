@@ -1,8 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
 import { useRunningApps } from '../../../contexts/RunningAppsContext';
+import { PerformanceTab, NetworkingTab } from './components';
+import './taskmgr.css';
 
 const MENUS = ['File', 'Options', 'View', 'Help'];
+const HISTORY_POINTS = 300;
+const SIMULATED_CPU_CORES = 4;
+
+const initialAdapters = [
+  {
+    id: 'net-1',
+    name: 'Local Area Connection',
+    utilizationPercent: 0,
+    linkSpeed: '100 Mbps',
+    state: 'Operational',
+  },
+  {
+    id: 'net-2',
+    name: 'Wireless Network Connection',
+    utilizationPercent: 2,
+    linkSpeed: '54 Mbps',
+    state: 'Operational',
+  },
+];
+
+function clampPercent(value) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(100, value));
+}
 
 function TaskManager() {
   const { apps, onEndTask, onSwitchTo, showClippy, onEndClippy } = useRunningApps();
@@ -12,6 +38,133 @@ function TaskManager() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [processCount, setProcessCount] = useState(1);
   const [showAllProcesses, setShowAllProcesses] = useState(true);
+
+  // Performance tab state
+  const [cpuCoreCount] = useState(SIMULATED_CPU_CORES);
+  const [cpuHistory, setCpuHistory] = useState(() => ({
+    totalByCore: Array.from({ length: SIMULATED_CPU_CORES }, () =>
+      Array.from({ length: HISTORY_POINTS }, () => 0),
+    ),
+    kernelByCore: Array.from({ length: SIMULATED_CPU_CORES }, () =>
+      Array.from({ length: HISTORY_POINTS }, () => 0),
+    ),
+  }));
+  const [pageFileHistory, setPageFileHistory] = useState(() =>
+    Array.from({ length: HISTORY_POINTS }, () => 30),
+  );
+  const [physicalMemoryPercent, setPhysicalMemoryPercent] = useState(54);
+  const [upTime, setUpTime] = useState('0:00:00');
+  const [perfTick, setPerfTick] = useState(0);
+
+  const commitChargeLimitMb = 2446;
+  const pageFileUsagePercent = pageFileHistory[pageFileHistory.length - 1] ?? 0;
+  const commitChargeTotalMb = Math.round(
+    commitChargeLimitMb * (clampPercent(pageFileUsagePercent) / 100),
+  );
+
+  const cpuUsagePercent = useMemo(() => {
+    if (cpuHistory.totalByCore.length === 0) return 0;
+    const total = cpuHistory.totalByCore.reduce(
+      (sum, series) => sum + (series[series.length - 1] ?? 0),
+      0,
+    );
+    return Math.round(total / cpuHistory.totalByCore.length);
+  }, [cpuHistory.totalByCore]);
+
+  // Networking tab state
+  const [networkAdapters, setNetworkAdapters] = useState(() => initialAdapters);
+  const [selectedAdapterId, setSelectedAdapterId] = useState(() => initialAdapters[0]?.id ?? '');
+  const [networkHistoryByAdapter, setNetworkHistoryByAdapter] = useState(() => {
+    const entries = initialAdapters.map(
+      (adapter) => [
+        adapter.id,
+        Array.from({ length: HISTORY_POINTS }, () => adapter.utilizationPercent),
+      ],
+    );
+    return Object.fromEntries(entries);
+  });
+
+  // Uptime timer
+  useEffect(() => {
+    const startTimeMs = Date.now();
+    const update = () => {
+      const totalSeconds = Math.floor((Date.now() - startTimeMs) / 1000);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      setUpTime(
+        `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`,
+      );
+    };
+    update();
+    const intervalId = window.setInterval(update, 1000);
+    return () => window.clearInterval(intervalId);
+  }, []);
+
+  // Performance simulation
+  useEffect(() => {
+    const randomInt = (min, max) =>
+      Math.floor(Math.random() * (max - min + 1)) + min;
+
+    const tick = () => {
+      setCpuHistory((prev) => {
+        const totalByCore = [];
+        const kernelByCore = [];
+
+        for (let i = 0; i < cpuCoreCount; i += 1) {
+          const totalSeries = prev.totalByCore[i] ?? [];
+          const kernelSeries = prev.kernelByCore[i] ?? [];
+
+          const lastTotal = totalSeries[totalSeries.length - 1] ?? 0;
+          const nextTotal = clampPercent(lastTotal + randomInt(-10, 10));
+
+          const lastKernel = kernelSeries[kernelSeries.length - 1] ?? 0;
+          const kernelTarget = nextTotal * 0.35;
+          const drift = (kernelTarget - lastKernel) * 0.4;
+          const nextKernelCandidate = clampPercent(lastKernel + drift + randomInt(-4, 4));
+          const nextKernel = Math.min(nextTotal, nextKernelCandidate);
+
+          totalByCore.push([...totalSeries.slice(1), nextTotal]);
+          kernelByCore.push([...kernelSeries.slice(1), nextKernel]);
+        }
+
+        return { totalByCore, kernelByCore };
+      });
+
+      setPageFileHistory((prev) => {
+        const last = prev[prev.length - 1] ?? 0;
+        const next = clampPercent(last + randomInt(-2, 2));
+        return [...prev.slice(1), next];
+      });
+
+      setPhysicalMemoryPercent((prev) => clampPercent(prev + randomInt(-1, 1)));
+      setPerfTick((prev) => prev + 1);
+
+      setNetworkAdapters((prevAdapters) => {
+        const nextAdapters = prevAdapters.map((adapter) => {
+          const drift = randomInt(-12, 18);
+          const nextUtilization = clampPercent(adapter.utilizationPercent + drift);
+          return { ...adapter, utilizationPercent: nextUtilization };
+        });
+
+        setNetworkHistoryByAdapter((prevHistory) => {
+          const nextHistory = { ...prevHistory };
+          for (const adapter of nextAdapters) {
+            const series =
+              prevHistory[adapter.id] ??
+              Array.from({ length: HISTORY_POINTS }, () => adapter.utilizationPercent);
+            nextHistory[adapter.id] = [...series.slice(1), adapter.utilizationPercent];
+          }
+          return nextHistory;
+        });
+
+        return nextAdapters;
+      });
+    };
+
+    const intervalId = window.setInterval(tick, 1000);
+    return () => window.clearInterval(intervalId);
+  }, [cpuCoreCount]);
 
   // Filter apps that should appear in task manager (visible windows)
   const visibleApps = apps.filter(app =>
@@ -122,6 +275,20 @@ function TaskManager() {
           </button>
           <button
             role="tab"
+            aria-selected={activeTab === 'performance'}
+            onClick={() => setActiveTab('performance')}
+          >
+            Performance
+          </button>
+          <button
+            role="tab"
+            aria-selected={activeTab === 'networking'}
+            onClick={() => setActiveTab('networking')}
+          >
+            Networking
+          </button>
+          <button
+            role="tab"
             aria-selected={activeTab === 'users'}
             onClick={() => setActiveTab('users')}
           >
@@ -215,6 +382,34 @@ function TaskManager() {
               End Process
             </button>
           </ButtonRow>
+        </TabPanel>
+
+        {/* Performance Tab */}
+        <TabPanel role="tabpanel" hidden={activeTab !== 'performance'}>
+          <PerformanceTab
+            cpuUsagePercent={cpuUsagePercent}
+            cpuTotalHistoryByCore={cpuHistory.totalByCore}
+            cpuKernelHistoryByCore={cpuHistory.kernelByCore}
+            perfTick={perfTick}
+            pageFileUsageMb={commitChargeTotalMb}
+            pageFileHistory={pageFileHistory}
+            physicalMemoryPercent={physicalMemoryPercent}
+            upTime={upTime}
+            processCount={processCount}
+            commitChargeTotalMb={commitChargeTotalMb}
+            commitChargeLimitMb={commitChargeLimitMb}
+          />
+        </TabPanel>
+
+        {/* Networking Tab */}
+        <TabPanel role="tabpanel" hidden={activeTab !== 'networking'}>
+          <NetworkingTab
+            adapters={networkAdapters}
+            historyByAdapter={networkHistoryByAdapter}
+            perfTick={perfTick}
+            selectedAdapterId={selectedAdapterId}
+            onSelectAdapterId={setSelectedAdapterId}
+          />
         </TabPanel>
 
         {/* Users Tab */}

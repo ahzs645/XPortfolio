@@ -1,0 +1,190 @@
+.tm-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tm-list {
+  border: 1px solid #7f9db9;
+  background: #fff;
+  overflow: auto;
+  height: 360px;
+}
+
+.tm-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.tm-th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: linear-gradient(#ffffff, #ece9d8);
+  border-bottom: 1px solid #d0d0d0;
+  font-weight: normal;
+  text-align: left;
+  padding: 2px 6px;
+}
+
+.tm-row {
+  cursor: default;
+}
+
+.tm-row:hover {
+  background: #eaf2fe;
+}
+
+.tm-row-selected,
+.tm-row-selected:hover {
+  background: #316ac5;
+  color: #fff;
+}
+
+.tm-td {
+  padding: 1px 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tm-td-right {
+  text-align: right;
+}
+
+.tm-group {
+  padding: 10px;
+}
+
+.tm-group progress {
+  width: 100%;
+}
+
+.tm-performance legend {
+  color: #003399;
+}
+
+.tm-performance-layout {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 10px;
+}
+
+.tm-perf-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tm-perf-label {
+  color: #003399;
+}
+
+.tm-gauge-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.tm-graph {
+  width: 100%;
+}
+
+.tm-core-grid {
+  display: grid;
+  gap: 6px;
+}
+
+.tm-graph,
+.tm-gauge {
+  border: 1px solid #7f9db9;
+  background: #000;
+}
+
+.tm-graph canvas,
+.tm-gauge canvas {
+  display: block;
+}
+
+.tm-performance-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.tm-kv {
+  display: grid;
+  gap: 4px;
+}
+
+.tm-kv-row {
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  gap: 10px;
+}
+
+.tm-kv-key {
+  color: #003399;
+}
+
+.tm-kv-value {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.tm-performance-footer {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.tm-performance-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.tm-performance-meta {
+  margin-top: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.tm-networking {
+  gap: 10px;
+}
+
+.tm-network-title {
+  margin-left: 2px;
+}
+
+.tm-network-graph-frame {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  border: 1px solid #7f9db9;
+  background: #000;
+}
+
+.tm-network-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 6px 6px;
+  border-right: 1px solid #006600;
+  background: #000;
+  color: #ff0;
+  font-size: 12px;
+}
+
+.tm-network-graph-frame .tm-graph {
+  border: none;
+}
+
+.tm-network-table {
+  height: 86px;
+}
+
+.tm-muted {
+  color: #555;
+}
