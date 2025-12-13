@@ -190,17 +190,19 @@ const Window = memo(function ({
         />
       )}
       <div className="window-body" style={currentHeader.invisible ? { margin: 0 } : undefined}>
-        <AppComponent
-          onClose={_onMouseUpClose}
-          onMinimize={_onMouseUpMinimize}
-          onMaximize={_onMouseUpMaximize}
-          onResize={onResize}
-          isFocus={isFocus}
-          isMaximized={maximized}
-          onUpdateHeader={setDynamicHeader}
-          dragRef={currentHeader.invisible ? dragRef : undefined}
-          {...injectProps}
-        />
+        <React.Suspense fallback={<div style={{ padding: 12 }}>Loading…</div>}>
+          <AppComponent
+            onClose={_onMouseUpClose}
+            onMinimize={_onMouseUpMinimize}
+            onMaximize={_onMouseUpMaximize}
+            onResize={onResize}
+            isFocus={isFocus}
+            isMaximized={maximized}
+            onUpdateHeader={setDynamicHeader}
+            dragRef={currentHeader.invisible ? dragRef : undefined}
+            {...injectProps}
+          />
+        </React.Suspense>
       </div>
     </WindowContainer>
   );

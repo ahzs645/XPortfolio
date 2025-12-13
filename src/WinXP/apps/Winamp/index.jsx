@@ -98,7 +98,7 @@ function Winamp({ onClose, onMinimize, fileData, fileName, fileUrl }) {
         // Try to load Butterchurn for Milkdrop visualizations
         const [butterchurnModule, presetsModule] = await Promise.all([
           import('butterchurn'),
-          import('butterchurn-presets'),
+          import('butterchurn-presets/dist/minimal.min.js'),
         ]);
         butterchurn = butterchurnModule.default;
         butterchurnPresets = presetsModule.default;

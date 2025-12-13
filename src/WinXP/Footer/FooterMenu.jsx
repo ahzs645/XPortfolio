@@ -4,7 +4,7 @@ import { useConfig } from '../../contexts/ConfigContext';
 import { useInstalledApps } from '../../contexts/InstalledAppsContext';
 import { useUserAccounts } from '../../contexts/UserAccountsContext';
 import { useStartMenu } from '../../contexts/StartMenuContext';
-import { isAppDisabled } from '../apps/Installer';
+import { isAppDisabled } from '../apps/Installer/disabledApps';
 import { withBaseUrl } from '../../utils/baseUrl';
 import {
   START_MENU_CATALOG,

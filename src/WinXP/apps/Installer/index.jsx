@@ -17,7 +17,7 @@ import {
   CloseButton,
 } from './components';
 
-const DISABLED_APPS_KEY = 'xportfolio-disabled-apps';
+import { DISABLED_APPS_KEY, getDisabledApps } from './disabledApps';
 
 // Built-in programs that ship with XPortfolio
 const BUILTIN_PROGRAMS = [
@@ -191,21 +191,7 @@ const BUILTIN_PROGRAMS = [
   },
 ];
 
-// Helper to get disabled apps from localStorage
-export const getDisabledApps = () => {
-  try {
-    const saved = localStorage.getItem(DISABLED_APPS_KEY);
-    return saved ? JSON.parse(saved) : [];
-  } catch {
-    return [];
-  }
-};
-
-// Helper to check if an app is disabled
-export const isAppDisabled = (appKey) => {
-  const disabled = getDisabledApps();
-  return disabled.includes(appKey);
-};
+export { getDisabledApps, isAppDisabled } from './disabledApps';
 
 // Export built-in programs list for use elsewhere
 export { BUILTIN_PROGRAMS };
