@@ -226,7 +226,6 @@ export function InstalledAppsProvider({ children }) {
     const githubInfo = parseGitHubUrl(inputUrl);
 
     // Determine the URL to use for fetching
-    let url = inputUrl;
     let manifestBaseUrls = [];
 
     if (githubInfo.isGitHub) {
@@ -237,7 +236,6 @@ export function InstalledAppsProvider({ children }) {
         githubInfo.rawUrl,
         githubInfo.pagesUrl,
       ].filter(Boolean);
-      url = githubInfo.pagesUrl; // Default to GitHub Pages for running the app
     } else {
       manifestBaseUrls = [inputUrl];
     }

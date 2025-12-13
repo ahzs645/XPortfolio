@@ -4,7 +4,7 @@ import { useRunningApps } from '../../../contexts/RunningAppsContext';
 
 const MENUS = ['File', 'Options', 'View', 'Help'];
 
-function TaskManager({ onClose, onMinimize }) {
+function TaskManager() {
   const { apps, onEndTask, onSwitchTo, showClippy, onEndClippy } = useRunningApps();
   const [activeTab, setActiveTab] = useState('applications');
   const [selectedAppId, setSelectedAppId] = useState(null);

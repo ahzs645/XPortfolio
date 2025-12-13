@@ -138,8 +138,7 @@ function DisplayProperties({ onClose, onMinimize }) {
   }, [getOSName]);
   const [selected, setSelected] = useState(currentDesktop);
   const [activeTab, setActiveTab] = useState('desktop');
-  const [applyToMobile, setApplyToMobile] = useState(true);
-  const [requirePassword, setRequirePassword] = useState(true);
+  const applyToMobile = true;
   const [showBrowse, setShowBrowse] = useState(false);
   const [customWallpapers, setCustomWallpapers] = useState([]);
   const [theme, setTheme] = useState('xp');

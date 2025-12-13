@@ -5,7 +5,6 @@ import { ProgramLayout } from '../../../components';
 
 function RecycleBin({ onClose, onMinimize, onMaximize }) {
   const {
-    fileSystem,
     isLoading,
     getFolderContents,
     restoreFromRecycleBin,

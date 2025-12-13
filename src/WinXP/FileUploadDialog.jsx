@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import styled from 'styled-components';
 import { withBaseUrl } from '../utils/baseUrl';
 
@@ -6,7 +6,7 @@ function FileUploadDialog({ files, onConfirm, onCancel, uploading, progress }) {
   const hasStartedRef = useRef(false);
 
   // Get flat file list from structure
-  const fileList = files?.files || [];
+  const fileList = useMemo(() => files?.files || [], [files?.files]);
 
   // Auto-start upload when dialog opens
   useEffect(() => {

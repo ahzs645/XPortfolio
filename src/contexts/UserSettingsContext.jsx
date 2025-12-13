@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useCallback, useMemo } from 'react';
 import { useUserAccounts } from './UserAccountsContext';
 import { useConfig } from './ConfigContext';
 
@@ -21,7 +21,6 @@ export function UserSettingsProvider({ children }) {
   } = useUserAccounts();
 
   const {
-    config,
     getWallpaperPath: getGlobalWallpaperPath,
     getScreensaverSettings: getGlobalScreensaverSettings,
   } = useConfig();

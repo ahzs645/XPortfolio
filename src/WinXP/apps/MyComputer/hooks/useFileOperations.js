@@ -14,7 +14,6 @@ export function useFileOperations({
   copy: fsCopy,
   cut: fsCut,
   paste: fsPaste,
-  closeContextMenu,
 }) {
   const [renamingItem, setRenamingItem] = useState(null);
   const [renameValue, setRenameValue] = useState('');

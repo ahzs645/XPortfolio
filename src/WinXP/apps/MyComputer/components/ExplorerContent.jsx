@@ -9,13 +9,15 @@ import { getFileType, formatFileSize, formatDate, calculateFolderSize } from '..
 const DOUBLE_TAP_DELAY = 400; // ms for double-tap detection
 const LONG_PRESS_DELAY = 500; // ms for long-press context menu
 
+// Image file extensions
+const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.ico', '.svg'];
+
 function ExplorerContent({
   items,
   viewMode,
   sortBy,
   sortOrder,
   searchQuery,
-  isSearching,
   selectedItems,
   clipboard,
   clipboardOp,
@@ -29,8 +31,6 @@ function ExplorerContent({
   contentRef,
   fileSystem,
   onSortChange,
-  onSearchChange,
-  onSearchClear,
   onRenameChange,
   onRenameSubmit,
   onItemClick,
@@ -52,9 +52,6 @@ function ExplorerContent({
   const { tooltip, showTooltip, hideTooltip, updatePosition } = useTooltip();
   const CURSOR_OFFSET_X = 12;
   const CURSOR_OFFSET_Y = 20;
-
-  // Image file extensions
-  const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.ico', '.svg'];
 
   // Get tooltip text for an item
   const getTooltipText = useCallback((item) => {

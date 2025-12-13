@@ -111,7 +111,6 @@ export function ChangePictureView({
 
 // Create Password View
 export function CreatePasswordView({
-  selectedUser,
   formData,
   setFormData,
   error,

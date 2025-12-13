@@ -45,10 +45,12 @@ function AddressBar({
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
   const inputRef = useRef(null);
+  const wasLoadingRef = useRef(false);
 
   // Handle loading state with animated progress
   useEffect(() => {
     if (loading) {
+      wasLoadingRef.current = true;
       setProgressState('loading');
       setProgress(0);
 
@@ -66,7 +68,10 @@ function AddressBar({
       }, 100);
 
       return () => clearInterval(interval);
-    } else if (progressState === 'loading') {
+    }
+
+    if (wasLoadingRef.current) {
+      wasLoadingRef.current = false;
       // Complete the progress when loading ends
       setProgress(100);
       setProgressState('complete');

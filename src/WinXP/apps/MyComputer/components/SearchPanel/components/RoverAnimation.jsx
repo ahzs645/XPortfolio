@@ -60,9 +60,8 @@ const RoverAnimation = forwardRef(({ character, onExitComplete, onShowComplete, 
     frameSize,
     play,
     hasAnimation,
-    playIdle,
     animations,
-  } = useClippyAnimation(animationData, 'Show', soundsData);
+  } = useClippyAnimation(animationData, soundsData);
 
   // Notify parent of height changes
   useEffect(() => {

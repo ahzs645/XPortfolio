@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
 import { useConfig } from '../../../contexts/ConfigContext';
 import { withBaseUrl } from '../../../utils/baseUrl';
@@ -73,7 +73,7 @@ function formatTimeAgo(timestamp) {
   return `${days} day${days > 1 ? 's' : ''} ago`;
 }
 
-function Messenger({ onClose, onMinimize, onMaximize, isFocus, onResize }) {
+function Messenger({ onResize }) {
   const { getFullName, cvData } = useConfig();
   const [searchTerm, setSearchTerm] = useState('');
   const [openGroups, setOpenGroups] = useState({ online: true, offline: false });
@@ -87,14 +87,14 @@ function Messenger({ onClose, onMinimize, onMaximize, isFocus, onResize }) {
   const userName = getFullName() || 'User';
 
   // Get links from CV data
-  const links = {
+  const links = useMemo(() => ({
     github: cvData?.cv?.links?.github || 'https://github.com',
     linkedin: cvData?.cv?.links?.linkedin || 'https://linkedin.com',
     portfolio: window.location.href,
     twitter: cvData?.cv?.links?.twitter || 'https://twitter.com',
     discord: cvData?.cv?.links?.discord || '#',
     email: cvData?.cv?.email ? `mailto:${cvData.cv.email}` : '#',
-  };
+  }), [cvData]);
 
   // Filter contacts based on search
   const filterContacts = useCallback((contacts) => {
@@ -185,7 +185,7 @@ function Messenger({ onClose, onMinimize, onMaximize, isFocus, onResize }) {
   // Set initial size on mount
   useEffect(() => {
     onResize?.(218, 434);
-  }, []);
+  }, [onResize]);
 
   return (
     <MessengerContainer>

@@ -136,7 +136,8 @@ function Icons({
       return;
     }
     const { x: sx, y: sy } = selecting;
-    const { docX: x, docY: y } = mouse;
+    const x = mouse.docX;
+    const y = mouse.docY;
     const sw = Math.abs(x - sx);
     const sh = Math.abs(y - sy);
     const left = Math.min(x, sx);
@@ -434,7 +435,7 @@ function Icons({
       }
       setDropTargetId(foundTarget);
     }
-  }, [touchState, hasDragStarted, dragThreshold, icons, dragging, iconsRect]);
+  }, [touchState, hasDragStarted, dragThreshold, icons, dragging, iconsRect, clearLongPressTimer]);
 
   const handleTouchEnd = useCallback((e, icon) => {
     // Always clear long press timer on touch end

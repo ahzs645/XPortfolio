@@ -175,7 +175,7 @@ export function openFileWithApp({
     try {
       const base64Data = fileData.split(',')[1] || fileData;
       emlContent = atob(base64Data);
-    } catch (e) {
+    } catch {
       emlContent = fileData;
     }
 
@@ -281,7 +281,7 @@ export function openFileWithApp({
     try {
       const base64Data = fileData.split(',')[1] || fileData;
       textContent = atob(base64Data);
-    } catch (e) {
+    } catch {
       textContent = fileData;
     }
 

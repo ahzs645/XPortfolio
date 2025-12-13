@@ -345,7 +345,6 @@ function ControlPanelView({
   selectedItems = [],
   onItemClick,
   onItemDoubleClick,
-  onNavigateBack,
   isCategoryView = true,
   onToggleView,
 }) {

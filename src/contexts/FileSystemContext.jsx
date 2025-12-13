@@ -641,6 +641,9 @@ const FileSystemContext = createContext(null);
 // Helper to get storage key for a user's file system
 const getFileSystemKey = (userId) => userId ? `fileSystem-${userId}` : 'fileSystem';
 
+// IDs of old shortcuts that should be removed (now system icons or replaced with folders)
+const OLD_SHORTCUT_IDS = ['shortcut-my-computer', 'shortcut-recycle-bin', 'shortcut-projects'];
+
 export function FileSystemProvider({ children }) {
   const { getDesktopPrograms, cvData, getDisplayName, isLoading: configLoading } = useConfig();
   const { activeUserId, isLoading: userLoading } = useUserAccounts();
@@ -668,9 +671,6 @@ export function FileSystemProvider({ children }) {
     if (configLoading) return 'User';
     return getDisplayName() || 'User';
   }, [configLoading, getDisplayName]);
-
-  // IDs of old shortcuts that should be removed (now system icons or replaced with folders)
-  const OLD_SHORTCUT_IDS = ['shortcut-my-computer', 'shortcut-recycle-bin', 'shortcut-projects'];
 
   // Ensure Projects folder structure exists and is up-to-date
   const ensureProjectsFolder = (fs, projects) => {
@@ -1072,7 +1072,7 @@ export function FileSystemProvider({ children }) {
   };
 
   // Ensure desktop shortcuts exist in file system
-  const ensureDesktopShortcuts = (fs, desktopShortcuts) => {
+  const ensureDesktopShortcuts = useCallback((fs, desktopShortcuts) => {
     const now = Date.now();
     let modified = false;
 
@@ -1161,7 +1161,7 @@ export function FileSystemProvider({ children }) {
     });
 
     return modified;
-  };
+  }, []);
 
   // Force update all shortcuts to have correct type and icon from catalog
   const migrateShortcuts = (fs, desktopShortcuts) => {
@@ -1271,7 +1271,7 @@ export function FileSystemProvider({ children }) {
     };
 
     loadFileSystem();
-  }, [configLoading, userLoading, activeUserId, desktopShortcuts, folderProjects]);
+  }, [configLoading, userLoading, activeUserId, fileSystem, desktopShortcuts, folderProjects, userName, ensureDesktopShortcuts]);
 
   // Save file system to IndexedDB whenever it changes
   useEffect(() => {

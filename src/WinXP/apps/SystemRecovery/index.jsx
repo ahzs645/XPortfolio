@@ -6,7 +6,7 @@ import { useUserSettings } from '../../../contexts/UserSettingsContext';
 import * as idb from 'idb-keyval';
 import { withBaseUrl } from '../../../utils/baseUrl';
 
-function SystemRecovery({ onClose }) {
+function SystemRecovery() {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
   const { resetFileSystem } = useFileSystem();

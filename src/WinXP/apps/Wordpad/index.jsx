@@ -32,12 +32,6 @@ function Wordpad({ onClose, onMinimize, onMaximize }) {
     olist: false,
   });
 
-  const execCommand = useCallback((command, value = null) => {
-    document.execCommand(command, false, value);
-    editorRef.current?.focus();
-    updateToolbar();
-  }, []);
-
   const updateToolbar = useCallback(() => {
     if (!editorRef.current) return;
 
@@ -63,13 +57,19 @@ function Wordpad({ onClose, onMinimize, onMaximize }) {
     }
   }, []);
 
-  const handleNew = () => {
+  const execCommand = useCallback((command, value = null) => {
+    document.execCommand(command, false, value);
+    editorRef.current?.focus();
+    updateToolbar();
+  }, [updateToolbar]);
+
+  const handleNew = useCallback(() => {
     if (editorRef.current) {
       editorRef.current.innerHTML = '<div style="font-family: Arial; font-size: 12px;"><br></div>';
     }
-  };
+  }, []);
 
-  const handleFind = () => {
+  const handleFind = useCallback(() => {
     const term = prompt('Enter text to find:');
     if (!term) return;
 
@@ -98,9 +98,9 @@ function Wordpad({ onClose, onMinimize, onMaximize }) {
     }
 
     if (!found) alert('Text not found.');
-  };
+  }, []);
 
-  const handlePrint = () => {
+  const handlePrint = useCallback(() => {
     const content = editorRef.current?.innerHTML || '';
     const printWindow = window.open('', '', 'width=800,height=600');
     printWindow.document.write(`
@@ -111,14 +111,14 @@ function Wordpad({ onClose, onMinimize, onMaximize }) {
     `);
     printWindow.document.close();
     printWindow.print();
-  };
+  }, []);
 
-  const handlePreview = () => {
+  const handlePreview = useCallback(() => {
     const content = editorRef.current?.innerHTML || '';
     const previewWindow = window.open('', '', 'width=800,height=600');
     previewWindow.document.write(`<html><body>${content}</body></html>`);
     previewWindow.document.close();
-  };
+  }, []);
 
   useEffect(() => {
     if (editorRef.current) {
@@ -127,7 +127,7 @@ function Wordpad({ onClose, onMinimize, onMaximize }) {
   }, []);
 
   // Handle toolbar button actions
-  const handleToolbarAction = useCallback((action, toolbarId) => {
+  const handleToolbarAction = useCallback((action) => {
     switch (action) {
       case 'file:new': handleNew(); break;
       case 'file:print': handlePrint(); break;
@@ -148,8 +148,7 @@ function Wordpad({ onClose, onMinimize, onMaximize }) {
       case 'list:ordered': execCommand('insertOrderedList'); break;
       default: break;
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [execCommand]);
+  }, [execCommand, handleFind, handleNew, handlePreview, handlePrint]);
 
   // Handle select/color changes
   const handleToolbarChange = useCallback((toolbarId, itemId, value) => {

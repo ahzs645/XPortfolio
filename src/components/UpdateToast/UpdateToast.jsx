@@ -16,7 +16,6 @@ const UpdateBalloon = styled(Balloon)`
 
 export default function UpdateToast() {
   const [updateInfo, setUpdateInfo] = useState(null);
-  const [isClosing, setIsClosing] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [anchor, setAnchor] = useState(null);
   const { playBalloon } = useSystemSounds();
@@ -47,7 +46,6 @@ export default function UpdateToast() {
         window.location.reload();
       },
     });
-    setIsClosing(false);
     setIsVisible(true);
     computeAnchor();
     window.dispatchEvent(new CustomEvent('xp:update-available', { detail: { version: '1.1', buildNumber: 'test123' } }));
@@ -57,7 +55,6 @@ export default function UpdateToast() {
   useEffect(() => {
     initUpdateChecker((info) => {
       setUpdateInfo(info);
-      setIsClosing(false);
       setIsVisible(true);
       computeAnchor();
       window.dispatchEvent(new CustomEvent('xp:update-available', { detail: info }));
@@ -104,7 +101,6 @@ export default function UpdateToast() {
   }, [isVisible, updateInfo, playBalloon]);
 
   const handleClose = () => {
-    setIsClosing(true);
     setTimeout(() => {
       setIsVisible(false);
     }, 200);
@@ -125,7 +121,6 @@ export default function UpdateToast() {
 
     const onIconClick = () => {
       if (!updateInfo) return;
-      setIsClosing(false);
       setIsVisible((prev) => !prev);
       computeAnchor();
     };

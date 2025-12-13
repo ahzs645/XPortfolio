@@ -53,7 +53,7 @@ const LoadingOverlay = styled.div`
   }
 `;
 
-function QQPet13({ onClose, onMinimize }) {
+function QQPet13() {
   const [isLoading, setIsLoading] = useState(true);
 
   return (

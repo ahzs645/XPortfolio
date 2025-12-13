@@ -217,7 +217,7 @@ function SetProgramDefaults({ installedApps }) {
   const getProgramsForFileType = (fileType) => {
     const programs = new Set();
 
-    Object.entries(PROGRAM_CATEGORIES).forEach(([key, cat]) => {
+    Object.entries(PROGRAM_CATEGORIES).forEach(([, cat]) => {
       if (cat.fileTypes.includes(fileType)) {
         cat.builtIn.forEach(p => programs.add(p));
       }
@@ -248,27 +248,6 @@ function SetProgramDefaults({ installedApps }) {
   // Handle individual file type change
   const handleFileTypeChange = (fileType, program) => {
     setFileAssociations({ ...fileAssociations, [fileType]: program });
-  };
-
-  // Get current default for a file type
-  const getDefaultForFileType = (fileType) => {
-    if (fileAssociations[fileType]) return fileAssociations[fileType];
-
-    // Find category default
-    for (const [key, cat] of Object.entries(PROGRAM_CATEGORIES)) {
-      if (cat.fileTypes.includes(fileType) && defaults[key]) {
-        return defaults[key];
-      }
-    }
-
-    // Return first built-in program
-    for (const [key, cat] of Object.entries(PROGRAM_CATEGORIES)) {
-      if (cat.fileTypes.includes(fileType) && cat.builtIn[0]) {
-        return cat.builtIn[0];
-      }
-    }
-
-    return 'None';
   };
 
   return (
@@ -385,7 +364,7 @@ export const getDefaultProgramForFile = (filename) => {
   }
 
   // Return first built-in program for the category
-  for (const [key, cat] of Object.entries(PROGRAM_CATEGORIES)) {
+  for (const [, cat] of Object.entries(PROGRAM_CATEGORIES)) {
     if (cat.fileTypes.includes(ext) && cat.builtIn[0]) {
       return cat.builtIn[0];
     }

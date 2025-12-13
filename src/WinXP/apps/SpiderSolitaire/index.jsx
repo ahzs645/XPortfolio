@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { MenuBar } from '../../../components';
 import { withBaseUrl } from '../../../utils/baseUrl';
 
-function SpiderSolitaire({ onClose, isFocus }) {
+function SpiderSolitaire({ onClose }) {
   const iframeRef = useRef(null);
 
   const menus = useMemo(() => [

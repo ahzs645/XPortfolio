@@ -354,7 +354,7 @@ const HELP_TOPICS = {
 // Default topic when none specified
 const DEFAULT_TOPIC = 'usercpl_overview';
 
-function HelpAndSupport({ onClose, onMinimize, onMaximize, initialTopic }) {
+function HelpAndSupport({ initialTopic }) {
   const [currentTopic, setCurrentTopic] = useState(initialTopic || DEFAULT_TOPIC);
   const [history, setHistory] = useState([initialTopic || DEFAULT_TOPIC]);
   const [historyIndex, setHistoryIndex] = useState(0);

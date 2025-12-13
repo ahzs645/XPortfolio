@@ -112,7 +112,6 @@ function IframeApp({
   onMinimize,
   onMaximize,
   updateHeader,
-  isFocus,
 }) {
   const iframeRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);

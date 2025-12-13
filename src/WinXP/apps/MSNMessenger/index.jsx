@@ -8,7 +8,8 @@ function MSNMessenger() {
 
   useEffect(() => {
     // Create and inject Chatango script
-    if (chatContainerRef.current && !scriptRef.current) {
+    const container = chatContainerRef.current;
+    if (container && !scriptRef.current) {
       const config = {
         handle: 'reborn-xp',
         arch: 'js',
@@ -46,16 +47,16 @@ function MSNMessenger() {
 
       // Observer to hide header if it appears
       const observer = new MutationObserver((mutations, obs) => {
-        const header = chatContainerRef.current?.querySelector('#HEAD');
+        const header = container.querySelector('#HEAD');
         if (header) {
           header.style.display = 'none';
           obs.disconnect();
         }
       });
 
-      observer.observe(chatContainerRef.current, { childList: true, subtree: true });
+      observer.observe(container, { childList: true, subtree: true });
 
-      chatContainerRef.current.appendChild(script);
+      container.appendChild(script);
       scriptRef.current = script;
 
       return () => {
@@ -65,12 +66,10 @@ function MSNMessenger() {
           scriptRef.current.parentNode.removeChild(scriptRef.current);
         }
         // Also clean up any iframe chatango might have created
-        if (chatContainerRef.current) {
-          const iframe = chatContainerRef.current.querySelector('iframe');
+        const iframe = container.querySelector('iframe');
           if (iframe) {
             iframe.remove();
           }
-        }
       };
     }
   }, []);

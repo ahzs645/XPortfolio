@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { MenuBar } from '../../../components';
 import { withBaseUrl } from '../../../utils/baseUrl';
 
-function RuneScape({ onClose, isFocus }) {
+function RuneScape({ onClose }) {
   const iframeRef = useRef(null);
 
   const menus = useMemo(() => [

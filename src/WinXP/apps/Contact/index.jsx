@@ -41,7 +41,7 @@ const CONTACT_TOOLBAR = [
   { type: 'button', id: 'paste', icon: '/gui/toolbar/paste.webp', label: 'Paste', disabled: true },
 ];
 
-function Contact({ onClose, onMinimize, onMaximize, isFocus }) {
+function Contact({ onClose, onMinimize, onMaximize }) {
   const { getFullName, cvData } = useConfig();
   const [formData, setFormData] = useState({
     from: '',

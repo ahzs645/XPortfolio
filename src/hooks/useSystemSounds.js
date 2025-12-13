@@ -64,7 +64,7 @@ function useSystemSounds() {
       setTimeout(() => {
         sound.play().catch(() => {});
       }, delay);
-    } catch (err) {
+    } catch {
       // Silently fail if audio playback fails
     }
   }, []);

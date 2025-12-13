@@ -233,6 +233,7 @@ function Paint({ onClose, onMinimize, imagePath, fileId, fileName }) {
   const canvasRef = useRef(null);
   const previewCanvasRef = useRef(null);
   const containerRef = useRef(null);
+  const didInitCanvasRef = useRef(false);
 
   // State
   const [currentTool, setCurrentTool] = useState('pencil');
@@ -261,10 +262,6 @@ function Paint({ onClose, onMinimize, imagePath, fileId, fileName }) {
 
   // Polygon tool state
   const [polygonPoints, setPolygonPoints] = useState([]);
-
-  // Selection state
-  const [selection, setSelection] = useState(null);
-  const [selectionData, setSelectionData] = useState(null);
 
   // File state
   const [currentFileName, setCurrentFileName] = useState(fileName || 'untitled.png');
@@ -314,6 +311,9 @@ function Paint({ onClose, onMinimize, imagePath, fileId, fileName }) {
 
   // Initialize canvas with white background
   useEffect(() => {
+    if (didInitCanvasRef.current) return;
+    didInitCanvasRef.current = true;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -322,7 +322,7 @@ function Paint({ onClose, onMinimize, imagePath, fileId, fileName }) {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     setTimeout(() => saveToHistory(), 0);
-  }, []);
+  }, [saveToHistory]);
 
   // Load image if imagePath is provided
   useEffect(() => {
@@ -555,26 +555,6 @@ function Paint({ onClose, onMinimize, imagePath, fileId, fileName }) {
     });
   }, []);
 
-  const handleSave = useCallback(async () => {
-    try {
-      const blob = await getCanvasBlob();
-
-      if (currentFileId) {
-        const success = await saveFileContent(currentFileId, blob);
-        if (success) {
-          alert('Image saved successfully!');
-        } else {
-          alert('Failed to save image.');
-        }
-      } else {
-        handleSaveAs();
-      }
-    } catch (err) {
-      console.error('Save failed:', err);
-      alert('Failed to save image.');
-    }
-  }, [currentFileId, getCanvasBlob, saveFileContent]);
-
   const handleSaveAs = useCallback(async () => {
     try {
       const blob = await getCanvasBlob();
@@ -601,6 +581,26 @@ function Paint({ onClose, onMinimize, imagePath, fileId, fileName }) {
       alert('Failed to save image.');
     }
   }, [currentFileName, getCanvasBlob]);
+
+  const handleSave = useCallback(async () => {
+    try {
+      const blob = await getCanvasBlob();
+
+      if (currentFileId) {
+        const success = await saveFileContent(currentFileId, blob);
+        if (success) {
+          alert('Image saved successfully!');
+        } else {
+          alert('Failed to save image.');
+        }
+      } else {
+        await handleSaveAs();
+      }
+    } catch (err) {
+      console.error('Save failed:', err);
+      alert('Failed to save image.');
+    }
+  }, [currentFileId, getCanvasBlob, saveFileContent, handleSaveAs]);
 
   const handleMenuAction = useCallback((action) => {
     switch (action) {

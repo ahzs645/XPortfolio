@@ -46,7 +46,7 @@ export function isMobileDevice() {
 
       // Consider it mobile if has touch capability and small screen
       isMobileCache = hasTouch && minDimension < 780 && smallScreen;
-    } catch (err) {
+    } catch {
       isMobileCache = false;
     }
   }

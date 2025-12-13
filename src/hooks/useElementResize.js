@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { isMobileDevice } from '../utils/deviceDetection';
 
 // Calculate mobile-friendly initial position and size
-function getMobileConstrainedValues(defaultOffset, defaultSize, minSize) {
+function getMobileConstrainedValues(defaultOffset, defaultSize) {
   if (!isMobileDevice()) {
     return { offset: defaultOffset, size: defaultSize };
   }
@@ -43,7 +43,7 @@ function useElementResize(ref, options) {
   const minHeight = minSize?.height || constraintSize;
 
   // Get mobile-constrained initial values
-  const initialValues = getMobileConstrainedValues(defaultOffset, defaultSize, minSize);
+  const initialValues = getMobileConstrainedValues(defaultOffset, defaultSize);
   const [offset, setOffset] = useState(initialValues.offset);
   const [size, setSize] = useState(initialValues.size);
   const cursorPos = useCursor(ref, resizeThreshold, resizable);
@@ -88,7 +88,7 @@ function useElementResize(ref, options) {
       window.removeEventListener('touchcancel', onDragEnd);
     }
 
-    function onDragStart(e) {
+    function onDragStart() {
       window.addEventListener('mousemove', onDragging);
       window.addEventListener('mouseup', onDragEnd);
       window.addEventListener('touchmove', onDragging, { passive: false });
@@ -113,7 +113,7 @@ function useElementResize(ref, options) {
       window.removeEventListener('touchcancel', onDragEndTop);
     }
 
-    function onDragStartTop(e) {
+    function onDragStartTop() {
       window.addEventListener('mousemove', onDraggingTop);
       window.addEventListener('mouseup', onDragEndTop);
       window.addEventListener('touchmove', onDraggingTop, { passive: false });
@@ -138,7 +138,7 @@ function useElementResize(ref, options) {
       window.removeEventListener('touchcancel', onDragEndLeft);
     }
 
-    function onDragStartLeft(e) {
+    function onDragStartLeft() {
       window.addEventListener('mousemove', onDraggingLeft);
       window.addEventListener('mouseup', onDragEndLeft);
       window.addEventListener('touchmove', onDraggingLeft, { passive: false });
@@ -163,7 +163,7 @@ function useElementResize(ref, options) {
       window.removeEventListener('touchcancel', onResizeEndRight);
     }
 
-    function onResizeStartRight(e) {
+    function onResizeStartRight() {
       window.addEventListener('mousemove', onResizingRight);
       window.addEventListener('mouseup', onResizeEndRight);
       window.addEventListener('touchmove', onResizingRight, { passive: false });
@@ -188,7 +188,7 @@ function useElementResize(ref, options) {
       window.removeEventListener('touchcancel', onResizeEndBottom);
     }
 
-    function onResizeStartBottom(e) {
+    function onResizeStartBottom() {
       window.addEventListener('mousemove', onResizingBottom);
       window.addEventListener('mouseup', onResizeEndBottom);
       window.addEventListener('touchmove', onResizingBottom, { passive: false });
@@ -213,7 +213,7 @@ function useElementResize(ref, options) {
       window.removeEventListener('touchcancel', onResizeEndLeft);
     }
 
-    function onResizeStartLeft(e) {
+    function onResizeStartLeft() {
       window.addEventListener('mousemove', onResizingLeft);
       window.addEventListener('mouseup', onResizeEndLeft);
       window.addEventListener('touchmove', onResizingLeft, { passive: false });
@@ -238,7 +238,7 @@ function useElementResize(ref, options) {
       window.removeEventListener('touchcancel', onResizeEndTop);
     }
 
-    function onResizeStartTop(e) {
+    function onResizeStartTop() {
       window.addEventListener('mousemove', onResizingTop);
       window.addEventListener('mouseup', onResizeEndTop);
       window.addEventListener('touchmove', onResizingTop, { passive: false });
@@ -264,7 +264,7 @@ function useElementResize(ref, options) {
       window.removeEventListener('touchcancel', onResizeEndTopLeft);
     }
 
-    function onResizeStartTopLeft(e) {
+    function onResizeStartTopLeft() {
       window.addEventListener('mousemove', onResizingTopLeft);
       window.addEventListener('mouseup', onResizeEndTopLeft);
       window.addEventListener('touchmove', onResizingTopLeft, { passive: false });
@@ -290,7 +290,7 @@ function useElementResize(ref, options) {
       window.removeEventListener('touchcancel', onResizeEndTopRight);
     }
 
-    function onResizeStartTopRight(e) {
+    function onResizeStartTopRight() {
       window.addEventListener('mousemove', onResizingTopRight);
       window.addEventListener('mouseup', onResizeEndTopRight);
       window.addEventListener('touchmove', onResizingTopRight, { passive: false });
@@ -316,7 +316,7 @@ function useElementResize(ref, options) {
       window.removeEventListener('touchcancel', onResizeEndBottomLeft);
     }
 
-    function onResizeStartBottomLeft(e) {
+    function onResizeStartBottomLeft() {
       window.addEventListener('mousemove', onResizingBottomLeft);
       window.addEventListener('mouseup', onResizeEndBottomLeft);
       window.addEventListener('touchmove', onResizingBottomLeft, { passive: false });
@@ -342,7 +342,7 @@ function useElementResize(ref, options) {
       window.removeEventListener('touchcancel', onResizeEndBottomRight);
     }
 
-    function onResizeStartBottomRight(e) {
+    function onResizeStartBottomRight() {
       window.addEventListener('mousemove', onResizingBottomRight);
       window.addEventListener('mouseup', onResizeEndBottomRight);
       window.addEventListener('touchmove', onResizingBottomRight, { passive: false });
@@ -527,13 +527,13 @@ function useCursor(ref, threshold, resizable) {
       window.addEventListener('mouseup', onMouseUp);
     }
 
-    function onMouseUp(e) {
+    function onMouseUp() {
       lock = false;
       cover.remove();
       window.removeEventListener('mouseup', onMouseUp);
     }
 
-    function onHoverEnd(e) {
+    function onHoverEnd() {
       if (lock) return;
       _setPosition('');
     }

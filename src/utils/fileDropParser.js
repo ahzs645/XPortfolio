@@ -154,7 +154,6 @@ export const parseFileStructure = async (event) => {
     } else {
       // File is inside folder(s)
       // pathParts = ['folderName', 'subFolder', 'file.txt']
-      const fileName = pathParts[pathParts.length - 1];
       const folderPath = pathParts.slice(0, -1); // All parts except the filename
 
       // Navigate/create folder structure

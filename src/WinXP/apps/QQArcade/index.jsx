@@ -52,7 +52,7 @@ const LoadingOverlay = styled.div`
   }
 `;
 
-function QQArcade({ onClose, onMinimize }) {
+function QQArcade() {
   const [isLoading, setIsLoading] = useState(true);
 
   return (

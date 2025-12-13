@@ -47,7 +47,7 @@ function QQPenguin({ onClose, onMinimize }) {
   const [detailMenuType, setDetailMenuType] = useState(null);
 
   // Pet stats
-  const [stats, setStats] = useState({
+  const [, setStats] = useState({
     hunger: 80,
     cleanliness: 90,
     health: 100,
@@ -69,28 +69,6 @@ function QQPenguin({ onClose, onMinimize }) {
     dragStart.current = { x: e.clientX - dialogPos.x, y: e.clientY - dialogPos.y };
   };
 
-  const handleMouseMove = (e) => {
-    if (isDragging) {
-      setDialogPos({
-        x: e.clientX - dragStart.current.x,
-        y: e.clientY - dragStart.current.y
-      });
-    }
-    if (isDraggingPet) {
-      hasDragged.current = true;
-      setPetPos({
-        x: e.clientX - dragStart.current.x,
-        y: e.clientY - dragStart.current.y
-      });
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-    setIsDraggingPet(false);
-    setTimeout(() => { hasDragged.current = false; }, 50);
-  };
-
   // Pet drag handlers
   const handlePetMouseDown = (e) => {
     if (e.button === 2) return; // Right click handled separately
@@ -101,14 +79,36 @@ function QQPenguin({ onClose, onMinimize }) {
   };
 
   useEffect(() => {
-    if (isDragging || isDraggingPet) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
+    if (!isDragging && !isDraggingPet) return;
+
+    const handleMouseMove = (e) => {
+      if (isDragging) {
+        setDialogPos({
+          x: e.clientX - dragStart.current.x,
+          y: e.clientY - dragStart.current.y,
+        });
+      }
+      if (isDraggingPet) {
+        hasDragged.current = true;
+        setPetPos({
+          x: e.clientX - dragStart.current.x,
+          y: e.clientY - dragStart.current.y,
+        });
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      setIsDraggingPet(false);
+      setTimeout(() => { hasDragged.current = false; }, 50);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
   }, [isDragging, isDraggingPet]);
 
   // Load animation helper using ref to avoid stale closures

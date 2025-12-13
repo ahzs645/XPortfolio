@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { withBaseUrl } from '../../../utils/baseUrl';
 
-function Pinball({ onClose, isFocus }) {
+function Pinball() {
   return (
     <Container>
       <iframe

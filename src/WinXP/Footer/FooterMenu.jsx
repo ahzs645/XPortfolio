@@ -286,8 +286,6 @@ function AllProgramsMenu({ items, activeFolder, onItemClick, onFolderHover }) {
                 onHover={() => onFolderHover(item)}
                 onLeave={() => onFolderHover(null)}
                 onItemClick={onItemClick}
-                onFolderHover={onFolderHover}
-                activeFolder={activeFolder}
               />
             );
           }
@@ -307,7 +305,7 @@ function AllProgramsMenu({ items, activeFolder, onItemClick, onFolderHover }) {
   );
 }
 
-function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemClick, onFolderHover, activeFolder }) {
+function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemClick }) {
   const itemRef = useRef(null);
   const submenuRef = useRef(null);
   const [submenuOffset, setSubmenuOffset] = useState(0);

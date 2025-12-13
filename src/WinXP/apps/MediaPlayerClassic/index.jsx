@@ -21,6 +21,9 @@ const VISUALIZERS = ['Bars', 'Scope', 'Fire Storm', 'Album Art'];
 // Audio file extensions
 const AUDIO_EXTENSIONS = ['.mp3', '.wav', '.ogg', '.m4a', '.flac', '.aac'];
 
+// Cycle through skins (wmp8, wmp9, wmp10)
+const SKINS = ['wmp8', 'wmp9', 'wmp10'];
+
 // Color schemes for WMP using hue-rotate filter (from original quenq code)
 // Original arrays: t=[0,86.5,115,143,...] r=[0,1,1,1,.5,1.8,...]
 const COLOR_SCHEMES = [
@@ -53,7 +56,6 @@ function MediaPlayerClassic({
   onClose,
   onMinimize,
   onMaximize,
-  isFocus,
   fileData,
   fileName,
   fileUrl, // URL to a media file (e.g., from My Music folder)
@@ -147,14 +149,47 @@ function MediaPlayerClassic({
     setColorSchemeIndex(prev => (prev + 1) % COLOR_SCHEMES.length);
   }, []);
 
-  // Cycle through skins (wmp8, wmp9, wmp10)
-  const SKINS = ['wmp8', 'wmp9', 'wmp10'];
   const cycleSkin = useCallback(() => {
     setTheme(prev => {
       const currentIndex = SKINS.indexOf(prev);
       return SKINS[(currentIndex + 1) % SKINS.length];
     });
   }, []);
+
+  // Load track by URL
+  const loadTrackUrl = useCallback(async (url, name) => {
+    if (!audioRef.current) return;
+
+    // Wait for any pending play() to finish before changing source
+    if (playPromiseRef.current) {
+      try {
+        await playPromiseRef.current;
+      } catch {
+        // Ignore - we're changing tracks anyway
+      }
+      playPromiseRef.current = null;
+    }
+
+    // Pause before changing source to avoid AbortError
+    audioRef.current.pause();
+    audioRef.current.src = url;
+    audioRef.current.load();
+    setStatusText(`Loading: ${name}`);
+
+    audioRef.current.oncanplay = () => {
+      setStatusText(`Ready: ${name}`);
+    };
+  }, []);
+
+  // Load track by index
+  const loadTrack = useCallback((index) => {
+    if (playlist[index]) {
+      setCurrentTrackIndex(index);
+      if (playlist[index].url) {
+        loadTrackUrl(playlist[index].url, playlist[index].name);
+      }
+    }
+  }, [playlist, loadTrackUrl]);
 
   // Initialize audio element
   useEffect(() => {
@@ -190,7 +225,7 @@ function MediaPlayerClassic({
       audio.removeEventListener('play', handlePlay);
       audio.removeEventListener('pause', handlePause);
     };
-  }, [playlist, currentTrackIndex]);
+  }, [playlist, currentTrackIndex, loadTrack]);
 
   // Initialize audio context for visualizer
   const initAudioContext = useCallback(() => {
@@ -410,42 +445,7 @@ function MediaPlayerClassic({
       loadTrackUrl(url, fileName);
       setDefaultPlaylistLoaded(true); // Prevent default playlist from loading
     }
-  }, [fileData, fileName, fileUrl]);
-
-  // Load track by URL
-  const loadTrackUrl = useCallback(async (url, name) => {
-    if (!audioRef.current) return;
-
-    // Wait for any pending play() to finish before changing source
-    if (playPromiseRef.current) {
-      try {
-        await playPromiseRef.current;
-      } catch {
-        // Ignore - we're changing tracks anyway
-      }
-      playPromiseRef.current = null;
-    }
-
-    // Pause before changing source to avoid AbortError
-    audioRef.current.pause();
-    audioRef.current.src = url;
-    audioRef.current.load();
-    setStatusText(`Loading: ${name}`);
-
-    audioRef.current.oncanplay = () => {
-      setStatusText(`Ready: ${name}`);
-    };
-  }, []);
-
-  // Load track by index
-  const loadTrack = useCallback((index) => {
-    if (playlist[index]) {
-      setCurrentTrackIndex(index);
-      if (playlist[index].url) {
-        loadTrackUrl(playlist[index].url, playlist[index].name);
-      }
-    }
-  }, [playlist, loadTrackUrl]);
+  }, [fileData, fileName, fileUrl, loadTrackUrl]);
 
   // Playback controls
   const play = useCallback(async () => {

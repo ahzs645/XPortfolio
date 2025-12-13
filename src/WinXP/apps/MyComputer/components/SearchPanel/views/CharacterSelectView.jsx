@@ -120,7 +120,7 @@ function CharacterSelectView({ previewCharacter, setPreviewCharacter }) {
       .catch(() => {});
   }, [character.dataUrl, character.soundsUrl]);
 
-  const { spritePosition, overlayPositions, frameSize, play, hasAnimation } = useClippyAnimation(animationData, 'Idle', soundsData);
+  const { spritePosition, overlayPositions, frameSize, play, hasAnimation } = useClippyAnimation(animationData, soundsData);
 
   // Play greeting animation when character loads, then idle
   useEffect(() => {

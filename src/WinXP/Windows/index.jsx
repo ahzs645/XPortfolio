@@ -43,7 +43,7 @@ const Window = memo(function ({
   defaultOffset,
   resizable,
   maximized,
-  component: Component,
+  component,
   zIndex,
   isFocus,
   show,
@@ -51,6 +51,7 @@ const Window = memo(function ({
   // State for dynamic header updates from child components
   const [dynamicHeader, setDynamicHeader] = React.useState(null);
   const currentHeader = dynamicHeader || header;
+  const AppComponent = component;
   function _onMouseDown(e) {
     // Stop propagation to prevent desktop from receiving the event
     // This ensures clicking anywhere in the window (not just the title bar) activates it
@@ -189,7 +190,7 @@ const Window = memo(function ({
         />
       )}
       <div className="window-body" style={currentHeader.invisible ? { margin: 0 } : undefined}>
-        <Component
+        <AppComponent
           onClose={_onMouseUpClose}
           onMinimize={_onMouseUpMinimize}
           onMaximize={_onMouseUpMaximize}

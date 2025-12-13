@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
  * Uses the same animation data format as clippyjs agent.js files
  * Supports multiple overlay layers for complex characters (like Bonzi)
  */
-export function useClippyAnimation(animationData, initialAnimation = 'Idle', soundsData = null) {
+export function useClippyAnimation(animationData, soundsData = null) {
   const [currentAnimation, setCurrentAnimation] = useState(null); // Start null, set by play()
   const [frameIndex, setFrameIndex] = useState(0);
   const [spritePosition, setSpritePosition] = useState([0, 0]);
@@ -62,8 +62,6 @@ export function useClippyAnimation(animationData, initialAnimation = 'Idle', sou
   // Get next frame index based on branching logic
   const getNextFrameIndex = useCallback((animation, currentFrame, currentIndex, exiting) => {
     if (!animation?.frames) return 0;
-
-    const frames = animation.frames;
 
     // No current frame, start at 0
     if (!currentFrame) return 0;

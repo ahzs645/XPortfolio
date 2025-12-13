@@ -10,7 +10,7 @@ import { ContextMenu } from '../../components/ContextMenu';
 import { useFileContextMenu, useBackgroundContextMenu } from '../../hooks/useFileContextMenu';
 import { createArchive, extractArchive } from '../../../utils/archiveUtils';
 import { ExplorerContent, ViewMenu, SearchPanel, FolderTree, ControlPanelView } from './components';
-import { getFileExtension, getSimpleFileType, sortItems, filterItems, formatDetailDate } from './utils';
+import { getSimpleFileType, sortItems, filterItems, formatDetailDate } from './utils';
 import {
   useNavigation,
   useSelection,
@@ -198,8 +198,6 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     isMyComputerRoot,
     isControlPanel,
     currentFolderData,
-    history,
-    historyIndex,
     navigateTo,
     navigateToPath,
     goBack,
@@ -213,7 +211,10 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   } = useNavigation({ fileSystem, initialPath });
 
   // Computed values
-  const contents = isMyComputerRoot || isControlPanel ? [] : getFolderContents(currentFolder);
+  const contents = React.useMemo(
+    () => (isMyComputerRoot || isControlPanel ? [] : getFolderContents(currentFolder)),
+    [isMyComputerRoot, isControlPanel, getFolderContents, currentFolder]
+  );
   const pathString = isMyComputerRoot ? 'My Computer' : isControlPanel ? 'Control Panel' : getPath(currentFolder);
 
   // Selection hook

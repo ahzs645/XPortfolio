@@ -20,7 +20,6 @@ function CMD({ onClose }) {
     moveItem,
     copy,
     paste,
-    saveFileContent,
   } = useFileSystem();
   const [history, setHistory] = useState([]);
   const [currentLine, setCurrentLine] = useState('');
@@ -34,12 +33,12 @@ function CMD({ onClose }) {
   const name = getFullName();
   const firstName = name ? name.split(' ')[0] : 'User';
 
-  const context = {
+  const context = useMemo(() => ({
     name,
     firstName,
     skills: getSkills(),
     socialLinks: getSocialLinks(),
-  };
+  }), [name, firstName, getSkills, getSocialLinks]);
 
   const prompt = `${cwd}>`;
 
@@ -249,17 +248,16 @@ Type 'help' to see available commands.
 
     // Determine destination
     let destNode = resolveNode(destArg);
-    let destParent, newName;
+    let destParent;
 
     if (destNode && destNode.children) {
       // Destination is a folder - copy into it with same name
       destParent = destNode;
-      newName = sourceNode.name;
     } else {
       // Destination is a new filename or doesn't exist
       const destPath = buildAbsolutePath(destArg);
       const parts = destPath.replace(/\/+$/, '').split('/').filter(Boolean);
-      newName = parts.pop();
+      parts.pop();
       const parentPath = parts.length > 0 ? parts.join('/') : '';
       destParent = parentPath ? resolveNode(parentPath) : resolveNode(cwd);
 
@@ -347,7 +345,7 @@ Type 'help' to see available commands.
     const startPath = buildAbsolutePath(arg || '').replace(/\/+$/, '') || 'C:';
     lines.push(startPath.replace(/\//g, '\\'));
 
-    const buildTree = (nodeId, prefix = '', isLast = true) => {
+    const buildTree = (nodeId, prefix = '') => {
       const children = getFolderContents(nodeId) || [];
       // Only show folders in tree
       const folders = children.filter(c => c.children);
@@ -359,7 +357,7 @@ Type 'help' to see available commands.
 
         if (child.children) {
           const newPrefix = prefix + (isLastChild ? '    ' : '│   ');
-          buildTree(child.id, newPrefix, isLastChild);
+          buildTree(child.id, newPrefix);
         }
       });
     };
@@ -577,7 +575,7 @@ Type 'help' to see available commands.
 
     return `'${cmd}' is not recognized as an internal or external command,
 operable program or batch file.`;
-  }, [commandHandlers]);
+  }, [commandHandlers, context]);
 
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Enter') {

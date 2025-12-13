@@ -7,13 +7,11 @@ import { XP_ICONS } from '../../contexts/FileSystemContext';
  */
 export function useFileContextMenu({
   // The item(s) being right-clicked
-  selectedItems = [],
   selectedItem = null,
 
   // Available operations from FileSystemContext
   onOpen,
   onExplore,
-  onSearch,
   onCut,
   onCopy,
   onDelete,
@@ -31,10 +29,6 @@ export function useFileContextMenu({
   onRemoveFromStartup,
   isPinnedToStartMenu = false,
   isInStartup = false,
-
-  // Clipboard state
-  clipboard = [],
-  clipboardOp = 'copy',
 
   // Optional: additional context
   isMultiSelect = false,
@@ -560,7 +554,6 @@ export function useBackgroundContextMenu({
   onPaste,
   onRefresh,
   onUpload,
-  onSelectAll,
   onProperties,
 
   // Arrange icons handlers
@@ -722,22 +715,21 @@ export function useBackgroundContextMenu({
     }
 
     return items;
-  }, [
-    hasClipboard,
-    onNewFolder,
-    onNewBriefcase,
-    onNewTextDoc,
-    onNewRichTextDoc,
-    onNewBitmapImage,
-    onNewShortcut,
-    onPaste,
-    onRefresh,
-    onUpload,
-    onSelectAll,
-    onProperties,
-    onArrangeByName,
-    onArrangeBySize,
-    onArrangeByType,
+	  }, [
+	    hasClipboard,
+	    onNewFolder,
+	    onNewBriefcase,
+	    onNewTextDoc,
+	    onNewRichTextDoc,
+	    onNewBitmapImage,
+	    onNewShortcut,
+	    onPaste,
+	    onRefresh,
+	    onUpload,
+	    onProperties,
+	    onArrangeByName,
+	    onArrangeBySize,
+	    onArrangeByType,
     onArrangeByModified,
     onAutoArrange,
     onAlignToGrid,

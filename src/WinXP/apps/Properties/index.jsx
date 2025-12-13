@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import styled from 'styled-components';
 import { useFileSystem, XP_ICONS } from '../../../contexts/FileSystemContext';
 import { withBaseUrl } from '../../../utils/baseUrl';
@@ -33,7 +33,7 @@ function Properties({ onClose, itemId, itemData }) {
   }, [itemId, itemData, fileSystem]);
 
   // Calculate folder size recursively
-  const calculateFolderSize = (folderId) => {
+  const calculateFolderSize = useCallback((folderId) => {
     if (!fileSystem || !fileSystem[folderId]) return 0;
     const folder = fileSystem[folderId];
     if (!folder.children) return folder.size || 0;
@@ -49,7 +49,7 @@ function Properties({ onClose, itemId, itemData }) {
       }
     }
     return totalSize;
-  };
+  }, [fileSystem]);
 
   // Get item details
   const details = useMemo(() => {
@@ -100,7 +100,7 @@ function Properties({ onClose, itemId, itemData }) {
       sizeOnDisk: formatBytes(sizeOnDisk),
       created: formatDate(item.dateCreated),
     };
-  }, [item, fileSystem, getPath]);
+  }, [item, getPath, calculateFolderSize]);
 
   // Get icon for the item
   const getItemIcon = () => {

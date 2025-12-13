@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import { useFileSystem, SYSTEM_IDS, XP_ICONS } from './FileSystemContext';
 import { useInstalledApps } from './InstalledAppsContext';
 import {
@@ -230,13 +230,9 @@ export function StartMenuProvider({ children }) {
       rightItems: staticRightItems,
       allProgramsItems,
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fileSystem, getFolderContents]);
 
-  // Memoized menu items - rebuilds when filesystem changes or when startMenuVersion is incremented
-  const menuItems = useMemo(() => {
-    return buildDynamicMenuItems();
-  }, [buildDynamicMenuItems, startMenuVersion]);
+  const menuItems = buildDynamicMenuItems();
 
   // Get recently used programs (from filesystem or static list)
   const getRecentPrograms = useCallback(() => {

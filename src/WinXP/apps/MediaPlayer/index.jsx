@@ -1,12 +1,13 @@
 import React, { useMemo, useEffect, useRef } from 'react';
 import styled from 'styled-components';
+import { withBaseUrl } from '../../../utils/baseUrl';
 
-function MediaPlayer({ onClose, isFocus, fileData, fileName }) {
+function MediaPlayer({ fileData, fileName }) {
   const blobUrlRef = useRef(null);
 
   // Convert base64 fileData to blob URL
   const playerUrl = useMemo(() => {
-    const baseUrl = '/apps/mediaPlayer/mediaPlayer.html';
+    const baseUrl = withBaseUrl('/apps/mediaPlayer/mediaPlayer.html');
 
     if (fileData) {
       try {

@@ -108,9 +108,6 @@ export function useFileHandler({
         }
       }
 
-      // Get file extension for handling empty files
-      const fileExt = icon.title.substring(icon.title.lastIndexOf('.')).toLowerCase();
-
       // Check for user-configured default program
       const defaultProgram = getDefaultProgramForFile(icon.title);
       if (defaultProgram && fileData) {
@@ -121,7 +118,7 @@ export function useFileHandler({
           try {
             const base64Data = fileData.split(',')[1] || fileData;
             textContent = atob(base64Data);
-          } catch (e) {
+          } catch {
             textContent = fileData;
           }
           dispatch({

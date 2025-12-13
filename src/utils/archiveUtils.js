@@ -19,7 +19,7 @@ export async function createArchive(fileSystem, itemIds, getFileContent) {
 
     if (item.type === 'folder') {
       // Create folder in zip
-      const folder = zip.folder(itemPath);
+      zip.folder(itemPath);
 
       // Add children recursively
       if (item.children) {

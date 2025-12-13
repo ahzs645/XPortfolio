@@ -59,7 +59,7 @@ const ABOUT_TOOLBAR = [
   { type: 'button', id: 'folder', icon: '/gui/toolbar/up.webp', disabled: true },
 ];
 
-function About({ onClose, onMinimize, onMaximize, isFocus }) {
+function About({ onClose, onMinimize, onMaximize }) {
   const {
     getSocialLinks,
     getSkills,

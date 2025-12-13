@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import yaml from 'js-yaml';
 import { marked } from 'marked';
 import { withBaseUrl } from '../utils/baseUrl';
@@ -202,7 +202,7 @@ export function ConfigProvider({ children }) {
   };
 
   // Get display name based on configuration
-  const getDisplayName = () => {
+  const getDisplayName = useCallback(() => {
     if (!config || !cvData?.cv?.name) {
       return config?.CUSTOM_NAME || 'User';
     }
@@ -222,7 +222,7 @@ export function ConfigProvider({ children }) {
       default:
         return nameParts[0] || 'User';
     }
-  };
+  }, [config, cvData]);
 
   // Get OS name (display name + suffix)
   const getOSName = () => {
@@ -438,10 +438,29 @@ export function ConfigProvider({ children }) {
   // Get about content (load from markdown)
   const [aboutContent, setAboutContent] = useState(null);
   const [dynamicXPSvgUrl, setDynamicXPSvgUrl] = useState(null);
+  const dynamicXPSvgUrlRef = useRef(null);
+
+  useEffect(() => {
+    const prevUrl = dynamicXPSvgUrlRef.current;
+    if (prevUrl && prevUrl.startsWith('blob:') && prevUrl !== dynamicXPSvgUrl) {
+      URL.revokeObjectURL(prevUrl);
+    }
+    dynamicXPSvgUrlRef.current = dynamicXPSvgUrl;
+  }, [dynamicXPSvgUrl]);
+
+  useEffect(() => {
+    return () => {
+      const url = dynamicXPSvgUrlRef.current;
+      if (url && url.startsWith('blob:')) {
+        URL.revokeObjectURL(url);
+      }
+    };
+  }, []);
 
   // Generate dynamic XP SVG with custom name
   useEffect(() => {
     if (!config || !cvData) return;
+    let cancelled = false;
 
     async function generateDynamicSvg() {
       try {
@@ -535,21 +554,26 @@ export function ConfigProvider({ children }) {
         const blob = new Blob([svgContent], { type: 'image/svg+xml' });
         const url = URL.createObjectURL(blob);
 
-        // Clean up previous URL if exists
-        if (dynamicXPSvgUrl) {
-          URL.revokeObjectURL(dynamicXPSvgUrl);
+        if (cancelled) {
+          URL.revokeObjectURL(url);
+          return;
         }
 
         setDynamicXPSvgUrl(url);
       } catch (err) {
         console.error('Failed to generate dynamic SVG:', err);
         // Fall back to static SVG
-        setDynamicXPSvgUrl(withBaseUrl('/xp.svg'));
+        if (!cancelled) {
+          setDynamicXPSvgUrl(withBaseUrl('/xp.svg'));
+        }
       }
     }
 
     generateDynamicSvg();
-  }, [config, cvData]);
+    return () => {
+      cancelled = true;
+    };
+  }, [config, cvData, getDisplayName]);
 
   useEffect(() => {
     if (!config) return;

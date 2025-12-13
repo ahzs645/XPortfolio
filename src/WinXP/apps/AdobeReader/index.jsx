@@ -146,7 +146,7 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
       try {
         setPdfUrl(pdfData);
         setIsLoading(false);
-      } catch (err) {
+      } catch {
         setError('Failed to load PDF');
         setIsLoading(false);
       }
@@ -256,7 +256,7 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
         const containerWidth = viewerRef.current.clientWidth - 60;
         const fitScale = containerWidth / viewport.width;
         setScale(Math.min(Math.max(fitScale, 0.5), 2.0)); // Clamp between 0.5 and 2.0
-      } catch (err) {
+      } catch {
         setScale(1.0); // Fallback to 100%
       }
     }

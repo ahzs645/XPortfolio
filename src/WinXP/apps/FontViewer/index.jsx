@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 
-function FontViewer({ onClose, fontData, fontName, fontPath }) {
+function FontViewer({ fontData, fontName, fontPath }) {
   const [fontFamily, setFontFamily] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);

@@ -19,7 +19,6 @@ function BootScreen({ bootState, onComplete }) {
     users,
     isLoading: usersLoading,
     loginUser,
-    activeUserId,
   } = useUserAccounts();
   const { playLogin, prewarmBalloon } = useSystemSounds();
 

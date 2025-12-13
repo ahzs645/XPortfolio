@@ -64,13 +64,13 @@ function WinXP() {
       return false;
     }
   });
-  const [hasPendingUpdates, setHasPendingUpdates] = useState(true); // Set to true to show update dialog
+  const [hasPendingUpdates] = useState(true); // Set to true to show update dialog
   const ref = useRef(null);
   const mouse = useMouse(ref);
   const { width } = useWindowSize();
   const focusedAppId = getFocusedAppId();
   const { playLogoff, playBalloon } = useSystemSounds();
-  const { isLoading: configLoading, isFileDropUploadEnabled, isFileDropOverlayEnabled } = useConfig();
+  const { isFileDropUploadEnabled, isFileDropOverlayEnabled } = useConfig();
   const { getWallpaperPath, getDesktopIconPositions, setDesktopIconPositions } = useUserSettings();
   const {
     createFile,

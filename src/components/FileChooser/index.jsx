@@ -123,39 +123,6 @@ function FileChooser({
     }
   }, [isDesiredFile]);
 
-  const handleItemDoubleClick = useCallback((item) => {
-    if (item.type === 'folder' || item.type === 'drive') {
-      navigateTo(item.id);
-    } else if (isDesiredFile(item)) {
-      handleOpen([item.id]);
-    }
-  }, [navigateTo, isDesiredFile]);
-
-  // Mobile touch handling for double-tap
-  const lastTapRef = useRef(null);
-  const isMobile = isMobileDevice();
-
-  const handleItemTouchStart = useCallback((e, item, action) => {
-    if (!isMobile) return;
-    if (e.touches.length !== 1) return;
-
-    const now = Date.now();
-
-    // Check for double-tap
-    if (lastTapRef.current &&
-        lastTapRef.current.id === item.id &&
-        now - lastTapRef.current.time < DOUBLE_TAP_DELAY) {
-      e.preventDefault();
-      e.stopPropagation();
-      lastTapRef.current = null;
-      setTimeout(() => action(item), 0);
-      return;
-    }
-
-    // Record this tap
-    lastTapRef.current = { id: item.id, time: now };
-  }, [isMobile]);
-
   const handleOpen = useCallback(async (itemIds = selectedItems) => {
     if (!itemIds || itemIds.length === 0) return;
 
@@ -189,6 +156,39 @@ function FileChooser({
     }
     onClose?.();
   }, [selectedItems, fileSystem, getFileContent, getPath, onSelect, onClose]);
+
+  const handleItemDoubleClick = useCallback((item) => {
+    if (item.type === 'folder' || item.type === 'drive') {
+      navigateTo(item.id);
+    } else if (isDesiredFile(item)) {
+      handleOpen([item.id]);
+    }
+  }, [navigateTo, isDesiredFile, handleOpen]);
+
+  // Mobile touch handling for double-tap
+  const lastTapRef = useRef(null);
+  const isMobile = isMobileDevice();
+
+  const handleItemTouchStart = useCallback((e, item, action) => {
+    if (!isMobile) return;
+    if (e.touches.length !== 1) return;
+
+    const now = Date.now();
+
+    // Check for double-tap
+    if (lastTapRef.current &&
+        lastTapRef.current.id === item.id &&
+        now - lastTapRef.current.time < DOUBLE_TAP_DELAY) {
+      e.preventDefault();
+      e.stopPropagation();
+      lastTapRef.current = null;
+      setTimeout(() => action(item), 0);
+      return;
+    }
+
+    // Record this tap
+    lastTapRef.current = { id: item.id, time: now };
+  }, [isMobile]);
 
   const handleQuickAccess = useCallback((folderId) => {
     navigateTo(folderId);

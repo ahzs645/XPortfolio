@@ -43,12 +43,12 @@ const MENUS = [
   },
 ];
 
-function SoundRecorder({ onClose, isFocus }) {
+function SoundRecorder({ onClose }) {
   const [position, setPosition] = useState(0);
   const [length, setLength] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [hasInput, setHasInput] = useState(false);
+  const [, setHasInput] = useState(false);
 
   const audioContextRef = useRef(null);
   const analyserRef = useRef(null);

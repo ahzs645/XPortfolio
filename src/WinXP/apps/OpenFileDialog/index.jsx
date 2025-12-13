@@ -255,7 +255,6 @@ function getFileIcon(item) {
 function OpenFileDialog({
   onClose,
   onSelect,
-  title = 'Open',
   filter = 'all',
   allowedFilters = ['all'],
 }) {

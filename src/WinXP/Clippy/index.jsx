@@ -35,7 +35,7 @@ const DEFAULT_CONFIG = {
 function Clippy({ isMobile, onHideMobile }) {
   const [animationsData, setAnimationsData] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [config, setConfig] = useState(DEFAULT_CONFIG);
+  const [config] = useState(DEFAULT_CONFIG);
   const [isReady, setIsReady] = useState(false);
   const [status, setStatus] = useState('hidden'); // hidden, showing, idle
   const [currentMessage, setCurrentMessage] = useState(null);

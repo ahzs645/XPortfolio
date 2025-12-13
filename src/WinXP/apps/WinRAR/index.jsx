@@ -1,8 +1,26 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import styled from 'styled-components';
 import Archive from '../../../lib/libarchive/Archive';
 import { useFileSystem, SYSTEM_IDS } from '../../../contexts/FileSystemContext';
 import { withBaseUrl } from '../../../utils/baseUrl';
+
+// Convert base64 data URL to File object
+function dataUrlToFile(dataUrl, filename) {
+  try {
+    const arr = dataUrl.split(',');
+    const mime = arr[0].match(/:(.*?);/)?.[1] || 'application/octet-stream';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
+  } catch (err) {
+    console.error('Error converting data URL to file:', err);
+    throw new Error('Invalid file data');
+  }
+}
 
 function WinRAR({ onClose, fileData, fileName, parentFolderId }) {
   const [status, setStatus] = useState('initializing');
@@ -12,59 +30,43 @@ function WinRAR({ onClose, fileData, fileName, parentFolderId }) {
   const [progress, setProgress] = useState('');
   const archiveRef = useRef(null);
   const cancelledRef = useRef(false);
-  const initRef = useRef(false);
   const { createFile, createItem } = useFileSystem();
 
-  // Convert base64 data URL to File object
-  const dataUrlToFile = (dataUrl, filename) => {
-    try {
-      const arr = dataUrl.split(',');
-      const mime = arr[0].match(/:(.*?);/)?.[1] || 'application/octet-stream';
-      const bstr = atob(arr[1]);
-      let n = bstr.length;
-      const u8arr = new Uint8Array(n);
-      while (n--) {
-        u8arr[n] = bstr.charCodeAt(n);
-      }
-      return new File([u8arr], filename, { type: mime });
-    } catch (err) {
-      console.error('Error converting data URL to file:', err);
-      throw new Error('Invalid file data');
-    }
-  };
-
   // Save extracted files to the file system
-  const saveToFileSystem = async (obj, parentId, key) => {
-    if (cancelledRef.current) return;
+  const saveToFileSystem = useCallback(
+    async function saveToFileSystemInner(obj, parentId, key) {
+      if (cancelledRef.current) return;
 
-    if (obj instanceof File) {
-      setProgress(`Saving ${obj.name}...`);
-      // Read file as base64
-      const reader = new FileReader();
-      const data = await new Promise((resolve, reject) => {
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(obj);
-      });
+      if (obj instanceof File) {
+        setProgress(`Saving ${obj.name}...`);
+        // Read file as base64
+        const reader = new FileReader();
+        const data = await new Promise((resolve, reject) => {
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(obj);
+        });
 
-      await createFile(parentId, obj.name, {
-        data: data,
-        size: obj.size,
-        type: obj.type,
-        lastModified: obj.lastModified || Date.now(),
-      });
-    } else if (typeof obj === 'object' && obj !== null) {
-      // It's a folder
-      setProgress(`Creating folder ${key}...`);
-      const folderId = await createItem(parentId, key, 'folder');
-      for (const k of Object.keys(obj)) {
-        await saveToFileSystem(obj[k], folderId, k);
+        await createFile(parentId, obj.name, {
+          data: data,
+          size: obj.size,
+          type: obj.type,
+          lastModified: obj.lastModified || Date.now(),
+        });
+      } else if (typeof obj === 'object' && obj !== null) {
+        // It's a folder
+        setProgress(`Creating folder ${key}...`);
+        const folderId = await createItem(parentId, key, 'folder');
+        for (const k of Object.keys(obj)) {
+          await saveToFileSystemInner(obj[k], folderId, k);
+        }
       }
-    }
-  };
+    },
+    [createFile, createItem]
+  );
 
   // Extract the archive
-  const doExtract = async (file, pwd = null) => {
+  const doExtract = useCallback(async (file, pwd = null) => {
     // Reset cancelled flag at start of extraction
     cancelledRef.current = false;
 
@@ -106,13 +108,10 @@ function WinRAR({ onClose, fileData, fileName, parentFolderId }) {
       setError(err.message || String(err) || 'Failed to extract archive');
       setStatus('error');
     }
-  };
+  }, [onClose, parentFolderId, saveToFileSystem]);
 
   // Check for encryption and start extraction
   useEffect(() => {
-    if (initRef.current) return;
-    initRef.current = true;
-
     const init = async () => {
       if (!fileData || !fileName) {
         setError('No file provided');
@@ -153,7 +152,7 @@ function WinRAR({ onClose, fileData, fileName, parentFolderId }) {
         archiveRef.current.terminate();
       }
     };
-  }, []);
+  }, [fileData, fileName, doExtract]);
 
   const handleDecrypt = async () => {
     setEncrypted(false);

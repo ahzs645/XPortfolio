@@ -72,7 +72,7 @@ const LoadingOverlay = styled.div`
   }
 `;
 
-function WorldOfWarcraft({ onClose, onMinimize, isFocus }) {
+function WorldOfWarcraft({ onClose, isFocus }) {
   const [isLoading, setIsLoading] = useState(true);
 
   // Listen for close message from iframe

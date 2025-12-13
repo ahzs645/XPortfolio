@@ -3,14 +3,9 @@ import './flash-player.css';
 import { withBaseUrl } from '../../../utils/baseUrl';
 
 function FlashPlayer({
-  onClose,
-  onMinimize,
-  onMaximize,
-  isFocus,
   fileData,
   fileName,
   onUpdateHeader,
-  isMaximized,
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -24,7 +19,7 @@ function FlashPlayer({
   useEffect(() => {
     if (onUpdateHeader) {
       onUpdateHeader({
-        icon: '/icons/flash/flash_player.png',
+        icon: withBaseUrl('/icons/flash/flash_player.png'),
         title: swfName ? `Adobe Flash Player - ${swfName}` : 'Adobe Flash Player',
         buttons: ['minimize', 'maximize', 'close'],
       });
@@ -47,7 +42,7 @@ function FlashPlayer({
 
       try {
         const script = document.createElement('script');
-        script.src = '/ruffle/ruffle.js';
+        script.src = withBaseUrl('/ruffle/ruffle.js');
         script.async = true;
         script.onload = () => {
           setIsRuffleReady(true);
@@ -113,7 +108,7 @@ function FlashPlayer({
       if (playerRef.current) {
         try {
           playerRef.current.remove();
-        } catch (e) {
+        } catch {
           // Ignore cleanup errors
         }
         playerRef.current = null;

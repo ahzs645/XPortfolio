@@ -166,11 +166,11 @@ function InternetExplorer({ onClose, onMinimize, onMaximize, isFocus, initialUrl
   const isLocalFile = currentUrl.startsWith('blob:');
 
   // Helper to get display URL for address bar
-  const getDisplayUrl = (url) => {
+  const getDisplayUrl = useCallback((url) => {
     if (url === HOME_PAGE) return HOME_PAGE;
     if (url.startsWith('blob:')) return filePathMap[url] || 'Local File';
     return url;
-  };
+  }, [filePathMap]);
 
   // Navigation functions
   const goBack = useCallback(() => {
@@ -182,7 +182,7 @@ function InternetExplorer({ onClose, onMinimize, onMaximize, isFocus, initialUrl
         setLoading(true);
       }
     }
-  }, [historyIndex, history]);
+  }, [historyIndex, history, getDisplayUrl]);
 
   const goForward = useCallback(() => {
     if (historyIndex < history.length - 1) {
@@ -193,7 +193,7 @@ function InternetExplorer({ onClose, onMinimize, onMaximize, isFocus, initialUrl
         setLoading(true);
       }
     }
-  }, [historyIndex, history]);
+  }, [historyIndex, history, getDisplayUrl]);
 
   const refresh = useCallback(() => {
     const iframe = iframeRef.current;
@@ -211,9 +211,7 @@ function InternetExplorer({ onClose, onMinimize, onMaximize, isFocus, initialUrl
     }
   }, []);
 
-  const goHome = useCallback(() => {
-    navigateToUrl(HOME_PAGE);
-  }, []);
+  const goHome = () => navigateToUrl(HOME_PAGE);
 
   const navigateToUrl = useCallback((url) => {
     let finalUrl = url.trim();

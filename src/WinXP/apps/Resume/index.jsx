@@ -37,7 +37,7 @@ const RESUME_MENUS = [
   },
 ];
 
-function Resume({ onClose, onMinimize, onMaximize, isFocus }) {
+function Resume({ onClose, onMinimize, onMaximize }) {
   const { getCVPDFUrl, getPDFDisplayMode, shouldUsePDFJS } = useConfig();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -203,10 +203,6 @@ function Resume({ onClose, onMinimize, onMaximize, isFocus }) {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [scaleMode, renderPages]);
-
-  const toggleZoom = useCallback(() => {
-    setScaleMode((prev) => (prev === 'fit' ? 'zoomed' : 'fit'));
-  }, []);
 
   const handlePrint = useCallback(() => {
     const pdfUrl = getCVPDFUrl();

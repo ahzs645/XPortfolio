@@ -25,12 +25,11 @@ const PROGRAM_NAME_TO_APP_KEY = {
 };
 
 export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
-  const { fileSystem, getFileContent } = useFileSystem();
+  const { getFileContent } = useFileSystem();
 
   // Helper to open a file with a specific program
   const openWithProgram = useCallback((programName, fileItem, fileData) => {
     const name = fileItem.name || '';
-    const ext = name.substring(name.lastIndexOf('.')).toLowerCase();
     const appKey = PROGRAM_NAME_TO_APP_KEY[programName];
 
     if (!appKey || !appSettings[appKey]) {
@@ -45,7 +44,7 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
           try {
             const base64Data = fileData.split(',')[1] || fileData;
             textContent = atob(base64Data);
-          } catch (e) {
+          } catch {
             textContent = fileData;
           }
         }
@@ -189,7 +188,7 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
         try {
           const base64Data = fileData.split(',')[1] || fileData;
           emlContent = atob(base64Data);
-        } catch (e) {
+        } catch {
           emlContent = fileData;
         }
         dispatch({
@@ -215,7 +214,7 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
           try {
             const base64Data = fileData.split(',')[1] || fileData;
             textContent = atob(base64Data);
-          } catch (e) {
+          } catch {
             textContent = fileData;
           }
         }
@@ -279,7 +278,6 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
     }
 
     const name = fileItem.name || '';
-    const ext = name.substring(name.lastIndexOf('.')).toLowerCase();
     const contentType = fileItem.contentType || '';
 
     // Check for user-configured default program (skip for inline content files)
@@ -338,7 +336,7 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
         downloadFile(fileData, name);
       }
     }
-  }, [fileSystem, getFileContent, appSettings, dispatch, addAppAction, openWithProgram]);
+  }, [getFileContent, appSettings, dispatch, addAppAction, openWithProgram]);
 
   // Open an app by name
   const openApp = useCallback((appName, injectProps = {}) => {

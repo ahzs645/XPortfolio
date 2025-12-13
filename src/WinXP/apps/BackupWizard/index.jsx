@@ -201,7 +201,7 @@ function BackupWizard({ onClose }) {
   const [mode, setMode] = useState('backup'); // 'backup' or 'restore'
   const [progress, setProgress] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
-  const [backupData, setBackupData] = useState(null);
+  const [, setBackupData] = useState(null);
   const [restoreFile, setRestoreFile] = useState(null);
   const [error, setError] = useState(null);
   const [itemsBackedUp, setItemsBackedUp] = useState([]);

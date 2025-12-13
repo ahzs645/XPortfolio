@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { SYSTEM_IDS, XP_ICONS } from '../../../../contexts/FileSystemContext';
 
 // Special virtual location ID for Control Panel
@@ -19,11 +19,13 @@ export function useNavigation({ fileSystem, initialPath = null }) {
   const isControlPanel = currentFolder === CONTROL_PANEL_ID;
 
   // For Control Panel, return a virtual folder data object
-  const currentFolderData = isMyComputerRoot
-    ? null
-    : isControlPanel
-      ? { id: CONTROL_PANEL_ID, name: 'Control Panel', icon: XP_ICONS.controlPanel, parent: null }
-      : fileSystem?.[currentFolder];
+  const currentFolderData = useMemo(() => {
+    if (isMyComputerRoot) return null;
+    if (isControlPanel) {
+      return { id: CONTROL_PANEL_ID, name: 'Control Panel', icon: XP_ICONS.controlPanel, parent: null };
+    }
+    return fileSystem?.[currentFolder];
+  }, [isMyComputerRoot, isControlPanel, fileSystem, currentFolder]);
 
   const navigateTo = useCallback((folderId) => {
     // Allow navigation to Control Panel (virtual location)

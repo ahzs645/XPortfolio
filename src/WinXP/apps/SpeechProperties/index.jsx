@@ -17,21 +17,30 @@ function SpeechProperties({ onClose, onMinimize }) {
   const synthRef = useRef(window.speechSynthesis);
 
   useEffect(() => {
+    const synth = synthRef.current;
+
     const loadVoices = () => {
-      const availableVoices = synthRef.current.getVoices();
+      const availableVoices = synth.getVoices();
       setVoices(availableVoices);
-      if (availableVoices.length > 0 && !selectedVoice) {
-        const defaultVoice = availableVoices[0];
-        setSelectedVoice(defaultVoice.name);
-        setPreviewText(`You have selected ${defaultVoice.name} as the computer's default voice.`);
-      }
+      if (availableVoices.length === 0) return;
+
+      const defaultVoice = availableVoices[0];
+      setSelectedVoice((prevVoice) => {
+        if (prevVoice) return prevVoice;
+        setPreviewText((prevText) => {
+          if (prevText) return prevText;
+          return `You have selected ${defaultVoice.name} as the computer's default voice.`;
+        });
+        return defaultVoice.name;
+      });
     };
 
     loadVoices();
-    synthRef.current.onvoiceschanged = loadVoices;
+    synth.onvoiceschanged = loadVoices;
 
     return () => {
-      synthRef.current.cancel();
+      synth.cancel();
+      synth.onvoiceschanged = null;
     };
   }, []);
 

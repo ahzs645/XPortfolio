@@ -86,9 +86,8 @@ const defaultProjects = [
   },
 ];
 
-function Projects({ onClose, onMinimize, onMaximize, isFocus }) {
+function Projects({ onClose, onMinimize, onMaximize }) {
   const {
-    getProjectsDir,
     isProjectMarkdownEnabled,
     shouldShowProjectsWithoutMarkdown,
   } = useConfig();
@@ -98,7 +97,6 @@ function Projects({ onClose, onMinimize, onMaximize, isFocus }) {
 
   // Try to load projects from projects.json or markdown files
   const loadProjects = useCallback(async () => {
-    const projectsDir = getProjectsDir();
     const markdownEnabled = isProjectMarkdownEnabled();
     const showWithoutMarkdown = shouldShowProjectsWithoutMarkdown();
 
@@ -129,10 +127,10 @@ function Projects({ onClose, onMinimize, onMaximize, isFocus }) {
           setProjects(projectList);
         }
       }
-    } catch (err) {
+    } catch {
       console.log('Using default projects');
     }
-  }, [getProjectsDir, isProjectMarkdownEnabled, shouldShowProjectsWithoutMarkdown]);
+  }, [isProjectMarkdownEnabled, shouldShowProjectsWithoutMarkdown]);
 
   useEffect(() => {
     loadProjects();

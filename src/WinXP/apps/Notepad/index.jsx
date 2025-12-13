@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { ProgramLayout } from '../../../components';
 import usageGuide from '../../../components/WindowBars/USAGE.md?raw';
 
-function Notepad({ onClose, onMinimize, initialContent, fileName }) {
+function Notepad({ onClose, onMinimize, initialContent }) {
   const usageGuideContent = useMemo(
     () => usageGuide.replace(/\r\n/g, '\n'),
     []

@@ -338,10 +338,6 @@ function ImageViewer({ initialImages, initialImage }) {
     setRotation((prev) => (prev + 90) % 360);
   };
 
-  const handleFlipH = () => {
-    setFlipH((prev) => prev * -1);
-  };
-
   const nextImage = () => {
     if (images.length < 2) return;
     setIndex((prev) => (prev + 1) % images.length);
