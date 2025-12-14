@@ -88,9 +88,11 @@
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+  padding: 6px;
+  margin: 0;
 }
 
-.tm-perf-label {
+.tm-perf-cell legend {
   color: #003399;
   font-size: 11px;
 }

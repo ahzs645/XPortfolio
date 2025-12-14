@@ -49,8 +49,8 @@ export default function PerformanceTab({
   return (
     <div className="tm-panel tm-performance">
       <div className="tm-performance-layout">
-        <div className="tm-perf-cell">
-          <div className="tm-perf-label">CPU Usage</div>
+        <fieldset className="tm-perf-cell">
+          <legend>CPU Usage</legend>
           <div className="tm-gauge-wrap">
             <UsageGauge
               ariaLabel="CPU Usage"
@@ -59,10 +59,10 @@ export default function PerformanceTab({
               height={gaugeHeightPx}
             />
           </div>
-        </div>
+        </fieldset>
 
-        <div className="tm-perf-cell">
-          <div className="tm-perf-label">CPU Usage History</div>
+        <fieldset className="tm-perf-cell">
+          <legend>CPU Usage History</legend>
           {coreCount <= 1 ? (
             <HistoryGraph
               ariaLabel="CPU Usage History"
@@ -96,10 +96,10 @@ export default function PerformanceTab({
                 ))}
             </div>
           )}
-        </div>
+        </fieldset>
 
-        <div className="tm-perf-cell">
-          <div className="tm-perf-label">PF Usage</div>
+        <fieldset className="tm-perf-cell">
+          <legend>PF Usage</legend>
           <div className="tm-gauge-wrap">
             <UsageGauge
               ariaLabel="PF Usage"
@@ -109,10 +109,10 @@ export default function PerformanceTab({
               height={gaugeHeightPx}
             />
           </div>
-        </div>
+        </fieldset>
 
-        <div className="tm-perf-cell">
-          <div className="tm-perf-label">Page File Usage History</div>
+        <fieldset className="tm-perf-cell">
+          <legend>Page File Usage History</legend>
           <HistoryGraph
             ariaLabel="Page File Usage History"
             series={[{ data: pageFileHistory, color: '#00ff00' }]}
@@ -121,7 +121,7 @@ export default function PerformanceTab({
             valueSpacing={VALUE_SPACING_PX}
             gridScrollOffset={gridScrollOffsetPx}
           />
-        </div>
+        </fieldset>
       </div>
 
       <div className="tm-performance-stats">
