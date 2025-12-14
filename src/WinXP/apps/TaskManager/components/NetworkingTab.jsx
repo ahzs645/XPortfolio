@@ -30,7 +30,7 @@ export default function NetworkingTab({
         <HistoryGraph
           ariaLabel="Network Utilization History"
           series={[{ data: graphSeries, color: '#00ff00' }]}
-          height={260}
+          height={120}
           gridSpacing={GRID_SPACING_PX}
           valueSpacing={VALUE_SPACING_PX}
           gridScrollOffset={gridScrollOffsetPx}

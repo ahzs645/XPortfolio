@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 function clampPercent(value) {
   if (!Number.isFinite(value)) return 0;
@@ -8,7 +8,7 @@ function clampPercent(value) {
 export default function HistoryGraph({
   ariaLabel,
   series,
-  height,
+  height: propHeight,
   gridSpacing = 10,
   valueSpacing = 2,
   gridScrollOffset = 0,
@@ -16,7 +16,8 @@ export default function HistoryGraph({
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
   const seriesRef = useRef(series);
-  const heightRef = useRef(height);
+  const [autoHeight, setAutoHeight] = useState(propHeight || 100);
+  const heightRef = useRef(propHeight || autoHeight);
   const gridSpacingRef = useRef(gridSpacing);
   const valueSpacingRef = useRef(valueSpacing);
   const gridScrollOffsetRef = useRef(gridScrollOffset);
@@ -26,8 +27,13 @@ export default function HistoryGraph({
   }, [series]);
 
   useEffect(() => {
-    heightRef.current = height;
-  }, [height]);
+    // If propHeight is provided, use it; otherwise use container height
+    if (propHeight) {
+      heightRef.current = propHeight;
+    } else {
+      heightRef.current = autoHeight;
+    }
+  }, [propHeight, autoHeight]);
 
   useEffect(() => {
     gridSpacingRef.current = Math.max(2, Math.round(gridSpacing));
@@ -121,16 +127,24 @@ export default function HistoryGraph({
 
   useEffect(() => {
     redraw();
-  }, [redraw, series, height, gridSpacing, valueSpacing, gridScrollOffset]);
+  }, [redraw, series, propHeight, autoHeight, gridSpacing, valueSpacing, gridScrollOffset]);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const observer = new ResizeObserver(() => redraw());
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const newHeight = entry.contentRect.height;
+        if (newHeight > 0 && !propHeight) {
+          setAutoHeight(newHeight);
+        }
+      }
+      redraw();
+    });
     observer.observe(container);
     return () => observer.disconnect();
-  }, [redraw]);
+  }, [redraw, propHeight]);
 
   return (
     <div

@@ -1,14 +1,19 @@
 .tm-panel {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  overflow: auto;
 }
 
 .tm-list {
   border: 1px solid #7f9db9;
   background: #fff;
   overflow: auto;
-  height: 360px;
+  flex-shrink: 0;
 }
 
 .tm-table {
@@ -54,7 +59,12 @@
 }
 
 .tm-group {
-  padding: 10px;
+  padding: 6px 8px;
+  margin: 0;
+}
+
+.tm-group legend {
+  font-size: 11px;
 }
 
 .tm-group progress {
@@ -67,34 +77,42 @@
 
 .tm-performance-layout {
   display: grid;
-  grid-template-columns: 140px 1fr;
-  gap: 10px;
+  grid-template-columns: 70px minmax(0, 1fr);
+  gap: 8px;
+  flex-shrink: 0;
+  width: 100%;
 }
 
 .tm-perf-cell {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+  min-width: 0;
 }
 
 .tm-perf-label {
   color: #003399;
+  font-size: 11px;
 }
 
 .tm-gauge-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .tm-graph {
   width: 100%;
+  min-width: 0;
+  flex: 1;
 }
 
 .tm-core-grid {
   display: grid;
-  gap: 6px;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
 }
 
 .tm-graph,
@@ -106,23 +124,29 @@
 .tm-graph canvas,
 .tm-gauge canvas {
   display: block;
+  max-width: 100%;
 }
 
 .tm-performance-stats {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  flex-shrink: 0;
+  width: 100%;
+  min-width: 0;
 }
 
 .tm-kv {
   display: grid;
-  gap: 4px;
+  gap: 2px;
+  min-width: 0;
 }
 
 .tm-kv-row {
   display: grid;
-  grid-template-columns: 1fr 120px;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  font-size: 11px;
 }
 
 .tm-kv-key {
@@ -137,44 +161,51 @@
 .tm-performance-footer {
   display: flex;
   justify-content: flex-start;
+  font-size: 11px;
+  flex-shrink: 0;
 }
 
 .tm-performance-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 8px;
 }
 
 .tm-performance-meta {
-  margin-top: 12px;
+  margin-top: 8px;
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 
 .tm-networking {
-  gap: 10px;
+  gap: 6px;
 }
 
 .tm-network-title {
   margin-left: 2px;
+  font-size: 11px;
+  flex-shrink: 0;
 }
 
 .tm-network-graph-frame {
   display: grid;
-  grid-template-columns: 42px 1fr;
+  grid-template-columns: 36px minmax(0, 1fr);
   border: 1px solid #7f9db9;
   background: #000;
+  flex-shrink: 0;
+  width: 100%;
+  min-width: 0;
 }
 
 .tm-network-axis {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 6px 6px;
+  padding: 4px;
   border-right: 1px solid #006600;
   background: #000;
   color: #ff0;
-  font-size: 12px;
+  font-size: 10px;
 }
 
 .tm-network-graph-frame .tm-graph {
@@ -182,7 +213,10 @@
 }
 
 .tm-network-table {
-  height: 86px;
+  max-height: 80px;
+  flex-shrink: 0;
+  width: 100%;
+  min-width: 0;
 }
 
 .tm-muted {

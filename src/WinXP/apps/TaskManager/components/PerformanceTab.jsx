@@ -33,7 +33,8 @@ export default function PerformanceTab({
 
   const gridScrollOffsetPx = (perfTick * VALUE_SPACING_PX) % GRID_SPACING_PX;
 
-  const cpuHistoryHeightPx = coreCount <= 1 ? 138 : 120;
+  // Dynamic heights based on core count - smaller for better fit
+  const cpuHistoryHeightPx = coreCount <= 1 ? 80 : 60;
   const gaugeHeightPx = cpuHistoryHeightPx;
 
   const availablePhysicalMemoryKb = Math.max(
@@ -54,7 +55,7 @@ export default function PerformanceTab({
             <UsageGauge
               ariaLabel="CPU Usage"
               percent={cpuUsagePercent}
-              width={70}
+              width={50}
               height={gaugeHeightPx}
             />
           </div>
@@ -104,7 +105,7 @@ export default function PerformanceTab({
               ariaLabel="PF Usage"
               percent={pageFileHistory[pageFileHistory.length - 1] ?? 0}
               label={`${pageFileUsageMb} MB`}
-              width={70}
+              width={50}
               height={gaugeHeightPx}
             />
           </div>
