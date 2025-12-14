@@ -3,10 +3,31 @@ import ReactDOM from 'react-dom';
 import styled from 'styled-components';
 import { POWER_STATE } from '../constants';
 import { withBaseUrl } from '../../utils/baseUrl';
+import useSystemSounds from '../../hooks/useSystemSounds';
 
 function Modal({ onClose, onRestart, onLogOff, onShutDown, onShutDownWithoutUpdates, mode, hasUpdates = false }) {
+  const { playShutdown } = useSystemSounds();
   const isLogOff = mode === POWER_STATE.LOG_OFF;
   const isTurnOff = mode === POWER_STATE.TURN_OFF;
+
+  // Wrap handlers to play shutdown sound for shutdown/restart actions
+  const handleShutDown = () => {
+    playShutdown();
+    onShutDown?.();
+  };
+
+  const handleShutDownWithoutUpdates = () => {
+    playShutdown();
+    onShutDownWithoutUpdates?.();
+  };
+
+  const handleRestart = () => {
+    // Play shutdown sound for restart too (Windows XP plays shutdown sound on restart)
+    if (isTurnOff) {
+      playShutdown();
+    }
+    onRestart?.();
+  };
 
   return ReactDOM.createPortal(
     <Overlay>
@@ -24,7 +45,7 @@ function Modal({ onClose, onRestart, onLogOff, onShutDown, onShutDownWithoutUpda
           <DialogButtonContainer>
             {isLogOff ? (
               <>
-                <DialogButton onClick={onRestart} role="button" tabIndex={0}>
+                <DialogButton onClick={handleRestart} role="button" tabIndex={0}>
                   <img src={withBaseUrl('/assets/gui/start-menu/restart.webp')} alt="" />
                   <span>Restart</span>
                 </DialogButton>
@@ -41,14 +62,14 @@ function Modal({ onClose, onRestart, onLogOff, onShutDown, onShutDownWithoutUpda
                   </HibernateIcon>
                   <span>Hibernate</span>
                 </DialogButton>
-                <DialogButton onClick={hasUpdates ? onShutDown : onShutDown} role="button" tabIndex={0} $hasUpdateOverlay={hasUpdates}>
+                <DialogButton onClick={handleShutDown} role="button" tabIndex={0} $hasUpdateOverlay={hasUpdates}>
                   <ButtonIconWrapper>
                     <img src={withBaseUrl('/assets/gui/start-menu/shutdown.webp')} alt="" />
                     {hasUpdates && <UpdateShieldOverlay src={withBaseUrl('/icons/security-center.png')} alt="" />}
                   </ButtonIconWrapper>
                   <span>Turn Off</span>
                 </DialogButton>
-                <DialogButton onClick={onRestart} role="button" tabIndex={0}>
+                <DialogButton onClick={handleRestart} role="button" tabIndex={0}>
                   <img src={withBaseUrl('/assets/gui/start-menu/restart.webp')} alt="" />
                   <span>Restart</span>
                 </DialogButton>
@@ -60,7 +81,7 @@ function Modal({ onClose, onRestart, onLogOff, onShutDown, onShutDownWithoutUpda
               <UpdateNoticeIcon src={withBaseUrl('/icons/security-center.png')} alt="" />
               <UpdateNoticeText>
                 Click Turn Off to install important updates and turn off your computer.{' '}
-                <UpdateNoticeLink onClick={onShutDownWithoutUpdates}>
+                <UpdateNoticeLink onClick={handleShutDownWithoutUpdates}>
                   Click here to turn off without installing updates.
                 </UpdateNoticeLink>
               </UpdateNoticeText>

@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
+import useSystemSounds from '../../../hooks/useSystemSounds';
 
 /**
  * ErrorDialog Component - Windows XP style error dialog
@@ -12,6 +13,23 @@ import styled from 'styled-components';
  * @param {Function} props.onUpdateHeader - Callback to update window header
  */
 function ErrorDialog({ title = 'Error', message = '', icon = 'error', onClose, onUpdateHeader }) {
+  const { playError, playExclamation, playDing } = useSystemSounds();
+  const soundPlayedRef = useRef(false);
+
+  // Play appropriate sound on mount based on icon type
+  useEffect(() => {
+    if (soundPlayedRef.current) return;
+    soundPlayedRef.current = true;
+
+    if (icon === 'error') {
+      playError();
+    } else if (icon === 'warning') {
+      playExclamation();
+    } else if (icon === 'info') {
+      playDing();
+    }
+  }, [icon, playError, playExclamation, playDing]);
+
   // Update window header with the provided title
   useEffect(() => {
     if (onUpdateHeader && title) {
@@ -31,11 +49,12 @@ function ErrorDialog({ title = 'Error', message = '', icon = 'error', onClose, o
     onClose?.();
   };
 
+  // Use Luna icons for the dialog content (48x48, scales well)
   const iconSrc = icon === 'warning'
-    ? '/icons/xp/Warning.png'
+    ? '/icons/luna/dialog_warning.png'
     : icon === 'info'
-    ? '/icons/xp/Info.png'
-    : '/icons/xp/Error.png';
+    ? '/icons/luna/dialog_info.png'
+    : '/icons/luna/dialog_error.png';
 
   return (
     <DialogContainer>

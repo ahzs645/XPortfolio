@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { useConfig } from '../../../contexts/ConfigContext';
 import { useApp } from '../../../contexts/AppContext';
 import { useFileSystem, SYSTEM_IDS } from '../../../contexts/FileSystemContext';
+import useSystemSounds from '../../../hooks/useSystemSounds';
 
 function CMD({ onClose }) {
   const { getFullName, getSkills, getSocialLinks, getTerminalWelcome } = useConfig();
@@ -21,6 +22,7 @@ function CMD({ onClose }) {
     copy,
     paste,
   } = useFileSystem();
+  const { playRecycle } = useSystemSounds();
   const [history, setHistory] = useState([]);
   const [currentLine, setCurrentLine] = useState('');
   const [commandHistory, setCommandHistory] = useState([]);
@@ -230,10 +232,11 @@ Type 'help' to see available commands.
     if (node.children) return 'Access is denied.';
 
     // Move to recycle bin instead of permanent delete
+    playRecycle();
     const success = moveToRecycleBin(node.id);
     if (!success) return 'Access is denied.';
     return null;
-  }, [fileSystem, fsLoading, moveToRecycleBin, resolveNode]);
+  }, [fileSystem, fsLoading, moveToRecycleBin, resolveNode, playRecycle]);
 
   // copy - Copy files
   const runCopy = useCallback(async (args) => {

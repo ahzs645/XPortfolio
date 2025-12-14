@@ -69,9 +69,9 @@ function WinXP() {
   const mouse = useMouse(ref);
   const { width } = useWindowSize();
   const focusedAppId = getFocusedAppId();
-  const { playLogoff, playBalloon } = useSystemSounds();
+  const { playLogoff, playBalloon, playMinimize, playRestore } = useSystemSounds();
   const { isFileDropUploadEnabled, isFileDropOverlayEnabled } = useConfig();
-  const { getWallpaperPath, getDesktopIconPositions, setDesktopIconPositions } = useUserSettings();
+  const { getWallpaperPath, getDesktopIconPositions, setDesktopIconPositions, windowSoundsEnabled } = useUserSettings();
   const {
     createFile,
     createItem,
@@ -314,19 +314,25 @@ function WinXP() {
   const onMaximizeWindow = useCallback(
     (id) => {
       if (focusedAppId === id) {
+        if (windowSoundsEnabled) {
+          playRestore();
+        }
         dispatch({ type: 'TOGGLE_MAXIMIZE_APP', payload: id });
       }
     },
-    [focusedAppId, dispatch]
+    [focusedAppId, dispatch, windowSoundsEnabled, playRestore]
   );
 
   const onMinimizeWindow = useCallback(
     (id) => {
       if (focusedAppId === id) {
+        if (windowSoundsEnabled) {
+          playMinimize();
+        }
         dispatch({ type: MINIMIZE_APP, payload: id });
       }
     },
-    [focusedAppId, dispatch]
+    [focusedAppId, dispatch, windowSoundsEnabled, playMinimize]
   );
 
   const onCloseApp = useCallback(

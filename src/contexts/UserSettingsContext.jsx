@@ -135,6 +135,39 @@ export function UserSettingsProvider({ children }) {
     setScreensaverSettings({ waitMinutes: minutes });
   }, [setScreensaverSettings]);
 
+  // Get window sounds enabled setting - user-specific, defaults to false
+  const getWindowSoundsEnabled = useCallback(() => {
+    if (!isLoggedIn || !currentUser) {
+      // Fall back to localStorage for non-logged-in state
+      try {
+        const saved = localStorage.getItem('windowSoundsEnabled');
+        return saved === 'true';
+      } catch {
+        return false;
+      }
+    }
+    return userSettings?.windowSoundsEnabled || false;
+  }, [isLoggedIn, currentUser, userSettings]);
+
+  // Set window sounds enabled - saves to user profile
+  const setWindowSoundsEnabled = useCallback((enabled) => {
+    if (!isLoggedIn) {
+      // Save to localStorage for non-logged-in state
+      try {
+        localStorage.setItem('windowSoundsEnabled', String(enabled));
+      } catch (err) {
+        console.warn('Failed to save window sounds setting', err);
+      }
+      return;
+    }
+    updateCurrentUserSettings({ windowSoundsEnabled: enabled });
+  }, [isLoggedIn, updateCurrentUserSettings]);
+
+  // Memoized value for direct access
+  const windowSoundsEnabled = useMemo(() => {
+    return getWindowSoundsEnabled();
+  }, [getWindowSoundsEnabled]);
+
   const value = {
     // Wallpaper
     getWallpaperPath,
@@ -151,6 +184,11 @@ export function UserSettingsProvider({ children }) {
     // Desktop icons
     getDesktopIconPositions,
     setDesktopIconPositions,
+
+    // Sound settings
+    windowSoundsEnabled,
+    getWindowSoundsEnabled,
+    setWindowSoundsEnabled,
 
     // User info
     isLoggedIn,

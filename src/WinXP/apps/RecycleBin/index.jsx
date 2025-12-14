@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../../../contexts/FileSystemContext';
 import { ProgramLayout } from '../../../components';
+import useSystemSounds from '../../../hooks/useSystemSounds';
 
 function RecycleBin({ onClose, onMinimize, onMaximize }) {
   const {
@@ -11,6 +12,8 @@ function RecycleBin({ onClose, onMinimize, onMaximize }) {
     deleteItem,
     emptyRecycleBin,
   } = useFileSystem();
+
+  const { playRecycle } = useSystemSounds();
 
   const [selectedItems, setSelectedItems] = useState([]);
   const [contextMenu, setContextMenu] = useState(null);
@@ -60,20 +63,23 @@ function RecycleBin({ onClose, onMinimize, onMaximize }) {
   }, [selectedItems, restoreFromRecycleBin]);
 
   const handleDeletePermanently = useCallback(async () => {
+    if (selectedItems.length === 0) return;
+    playRecycle();
     for (const id of selectedItems) {
       await deleteItem(id);
     }
     setSelectedItems([]);
     setContextMenu(null);
-  }, [selectedItems, deleteItem]);
+  }, [selectedItems, deleteItem, playRecycle]);
 
   const handleEmptyRecycleBin = useCallback(async () => {
     if (contents.length === 0) return;
     if (window.confirm('Are you sure you want to permanently delete all items in the Recycle Bin?')) {
+      playRecycle();
       await emptyRecycleBin();
     }
     setContextMenu(null);
-  }, [contents.length, emptyRecycleBin]);
+  }, [contents.length, emptyRecycleBin, playRecycle]);
 
   const handleContainerClick = useCallback(() => {
     setSelectedItems([]);

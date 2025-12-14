@@ -7,6 +7,8 @@ import QuickLaunch from './QuickLaunch';
 import { ContextMenu } from '../components/ContextMenu';
 import { isMobileDevice } from '../../utils/deviceDetection';
 import { withBaseUrl } from '../../utils/baseUrl';
+import useSystemSounds from '../../hooks/useSystemSounds';
+import { useUserSettings } from '../../contexts/UserSettingsContext';
 
 const QUICK_LAUNCH_ENABLED_KEY = 'xp-quick-launch-enabled';
 const VOLUME_KEY = 'xp-volume';
@@ -45,6 +47,8 @@ function Footer({
   isMobile,
   onShowClippy,
 }) {
+  const { playStart } = useSystemSounds();
+  const { windowSoundsEnabled } = useUserSettings();
   const [time, setTime] = useState(getTime);
   const [menuOn, setMenuOn] = useState(false);
   const [showWelcomeBalloon, setShowWelcomeBalloon] = useState(false);
@@ -147,7 +151,13 @@ function Footer({
 
   function toggleMenu(e) {
     e.stopPropagation();
-    setMenuOn((on) => !on);
+    setMenuOn((on) => {
+      // Play start sound when opening menu (not closing)
+      if (!on && windowSoundsEnabled) {
+        playStart();
+      }
+      return !on;
+    });
   }
 
   function _onMouseDown(e) {

@@ -74,6 +74,57 @@ export const XP_ICONS = {
   programs: '/icons/xp/Programs.png',
   run: '/icons/xp/Run.png',
   startMenu: '/icons/xp/StartMenu.png',
+  // Luna icons - Dialog
+  dialogError: '/icons/luna/dialog_error.png',
+  dialogWarning: '/icons/luna/dialog_warning.png',
+  dialogInfo: '/icons/luna/dialog_info.png',
+  // Luna icons - File types
+  fileDoc: '/icons/luna/file_doc.png',
+  fileXls: '/icons/luna/file_xls.png',
+  filePpt: '/icons/luna/file_ppt.png',
+  fileHtml: '/icons/luna/file_html.png',
+  fileTxt: '/icons/luna/file_txt.png',
+  fileJpg: '/icons/luna/file_jpg.png',
+  fileBmp: '/icons/luna/file_bmp.png',
+  fileIso: '/icons/luna/file_iso.png',
+  fileCab: '/icons/luna/file_cab.png',
+  fileGeneric: '/icons/luna/file_generic.png',
+  fileExecutable: '/icons/luna/file_generic_executable.png',
+  fileMedia: '/icons/luna/file_generic_media.png',
+  fileFont: '/icons/luna/file_generic_font.png',
+  // Luna icons - Special folders
+  folderMusic: '/icons/luna/folder_music.png',
+  folderPictures: '/icons/luna/folder_pictures.png',
+  folderVideos: '/icons/luna/folder_videos.png',
+  folderFonts: '/icons/luna/folder_fonts.png',
+  folderCompressed: '/icons/luna/folder_compressed.png',
+  folderNetwork: '/icons/luna/folder_network.png',
+  folderShared: '/icons/luna/folder_shared.png',
+  // Luna icons - Drives
+  driveOptical: '/icons/luna/drive_optical.png',
+  driveExternal: '/icons/luna/drive_external.png',
+  driveFloppy: '/icons/luna/drive_floppy.png',
+  // Luna icons - Network
+  netConnections: '/icons/luna/net_connections.png',
+  netInternet: '/icons/luna/net_internet.png',
+  netLan: '/icons/luna/net_lan.png',
+  netPlaces: '/icons/luna/net_places.png',
+  // Luna icons - Devices
+  printer: '/icons/luna/printer.png',
+  scanner: '/icons/luna/scanner.png',
+  camera: '/icons/luna/camera.png',
+  camcorder: '/icons/luna/camcorder.png',
+  gamepad: '/icons/luna/gamepad.png',
+  // Luna icons - System
+  volumeOn: '/icons/luna/volume_on.png',
+  volumeOff: '/icons/luna/volume_off.png',
+  lock: '/icons/luna/lock.png',
+  shutdown: '/icons/luna/shutdown.png',
+  logoff: '/icons/luna/logoff.png',
+  accessibility: '/icons/luna/accessibility.png',
+  recentDocs: '/icons/luna/recent_docs.png',
+  personal: '/icons/luna/personal.png',
+  people: '/icons/luna/people.png',
 };
 
 // Special folder IDs

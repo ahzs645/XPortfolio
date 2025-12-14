@@ -3,6 +3,7 @@ import { ADD_APP } from '../constants/actions';
 import { SYSTEM_IDS } from '../../contexts/FileSystemContext';
 import { createArchive, extractArchive } from '../../utils/archiveUtils';
 import { useMobileAppLauncher } from './useMobileAppLauncher';
+import useSystemSounds from '../../hooks/useSystemSounds';
 
 /**
  * Hook for handling desktop and icon context menu state and actions
@@ -32,6 +33,7 @@ export function useContextMenuActions({
   refreshIcons,
 }) {
   const { applyMobileSettings } = useMobileAppLauncher(dispatch);
+  const { playRecycle } = useSystemSounds();
   const [desktopContextMenu, setDesktopContextMenu] = useState(null);
   const [iconContextMenu, setIconContextMenu] = useState(null);
   const [renamingIconId, setRenamingIconId] = useState(null);
@@ -162,8 +164,11 @@ export function useContextMenuActions({
         copy(targetIds);
         break;
       case 'delete':
-        for (const id of targetIds) {
-          moveToRecycleBin(id);
+        if (targetIds.length > 0) {
+          playRecycle();
+          for (const id of targetIds) {
+            moveToRecycleBin(id);
+          }
         }
         break;
       case 'rename': {
@@ -269,7 +274,7 @@ export function useContextMenuActions({
       default:
         console.log('Icon action:', action);
     }
-  }, [iconContextMenu, icons, fileSystem, appSettings, dispatch, onDoubleClickIcon, copy, cut, moveToRecycleBin, getFileContent, createFile, createItem, pinToStartMenu, unpinFromStartMenu, addToStartup, removeFromStartup, applyMobileSettings]);
+  }, [iconContextMenu, icons, fileSystem, appSettings, dispatch, onDoubleClickIcon, copy, cut, moveToRecycleBin, getFileContent, createFile, createItem, pinToStartMenu, unpinFromStartMenu, addToStartup, removeFromStartup, applyMobileSettings, playRecycle]);
 
   // Handle rename submission
   const handleIconRenameSubmit = useCallback((e) => {

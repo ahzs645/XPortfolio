@@ -2,9 +2,21 @@ import { useRef, useCallback, useEffect } from 'react';
 import { withBaseUrl } from '../utils/baseUrl';
 
 const SOUNDS = {
+  // Existing sounds
   login: withBaseUrl('/sounds/login.wav'),
   logoff: withBaseUrl('/sounds/logoff.wav'),
   balloon: withBaseUrl('/sounds/balloon.wav'),
+  // New sounds - always enabled
+  shutdown: withBaseUrl('/sounds/shutdown.wav'),
+  error: withBaseUrl('/sounds/error.wav'),
+  exclamation: withBaseUrl('/sounds/exclamation.wav'),
+  ding: withBaseUrl('/sounds/ding.wav'),
+  notify: withBaseUrl('/sounds/notify.wav'),
+  recycle: withBaseUrl('/sounds/recycle.wav'),
+  // New sounds - optional (respect windowSoundsEnabled setting)
+  minimize: withBaseUrl('/sounds/minimize.wav'),
+  restore: withBaseUrl('/sounds/restore.wav'),
+  start: withBaseUrl('/sounds/start.wav'),
 };
 
 let audioCache = {};
@@ -97,12 +109,62 @@ function useSystemSounds() {
     });
   }, []);
 
+  // New sound functions - always enabled
+  const playShutdown = useCallback(() => {
+    playSound('shutdown');
+  }, [playSound]);
+
+  const playError = useCallback(() => {
+    playSound('error');
+  }, [playSound]);
+
+  const playExclamation = useCallback(() => {
+    playSound('exclamation');
+  }, [playSound]);
+
+  const playDing = useCallback(() => {
+    playSound('ding');
+  }, [playSound]);
+
+  const playNotify = useCallback(() => {
+    playSound('notify');
+  }, [playSound]);
+
+  const playRecycle = useCallback(() => {
+    playSound('recycle');
+  }, [playSound]);
+
+  // Optional sound functions - callers should check windowSoundsEnabled setting
+  const playMinimize = useCallback(() => {
+    playSound('minimize');
+  }, [playSound]);
+
+  const playRestore = useCallback(() => {
+    playSound('restore');
+  }, [playSound]);
+
+  const playStart = useCallback(() => {
+    playSound('start');
+  }, [playSound]);
+
   return {
+    // Existing
     playLogin,
     playLogoff,
     playBalloon,
     prewarmBalloon,
     playSound,
+    // New - always enabled
+    playShutdown,
+    playError,
+    playExclamation,
+    playDing,
+    playNotify,
+    playRecycle,
+    // New - optional (caller should check windowSoundsEnabled)
+    playMinimize,
+    playRestore,
+    playStart,
   };
 }
 
