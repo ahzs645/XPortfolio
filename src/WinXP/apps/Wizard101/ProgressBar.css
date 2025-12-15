@@ -1,0 +1,81 @@
+.progress-area {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: 15px;
+}
+
+.progress-column {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.progress-column.file-column {
+  flex: 2;
+}
+
+.progress-column.total-column {
+  flex: 1;
+}
+
+.wiz101-progress-labels {
+  display: flex;
+  gap: 8px;
+}
+
+.wiz101-progress-label {
+  color: #d4c4a4;
+  font-size: 11px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+  white-space: nowrap;
+}
+
+.progress-status {
+  color: #d4c4a4;
+  font-size: 11px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+  white-space: nowrap;
+}
+
+.wiz101-progress-container {
+  position: relative;
+  height: 28px;
+}
+
+.wiz101-progress-frame {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.wiz101-progress-fill-wrapper {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  right: 3px;
+  bottom: 3px;
+  overflow: hidden;
+}
+
+.wiz101-progress-fill {
+  height: 100%;
+  background: url('/apps/wizard101/images/skin/033_fill.png');
+  background-size: auto 100%;
+  background-repeat: repeat-x;
+  transition: width 0.3s ease;
+}
+
+/* Animated fill during active patching */
+.wiz101-progress-fill.animating {
+  animation: progress-pulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes progress-pulse {
+  0% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 1;
+  }
+}

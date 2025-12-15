@@ -306,6 +306,13 @@ export const START_MENU_CATALOG = {
     title: 'RuneScape Classic',
     description: 'Offline singleplayer RSC',
   },
+  wizard101: {
+    type: 'program',
+    appKey: 'Wizard101',
+    icon: '/apps/wizard101/images/icon.ico',
+    title: 'Wizard101',
+    description: 'Wizard101 Game Launcher',
+  },
   'divider-main': {
     type: 'separator',
   },
@@ -344,37 +351,37 @@ export const START_MENU_FOLDERS = {
   qqGames: {
     type: 'folder',
     title: 'QQ Games',
-    icon: '/games/QQPet13/logo.png',
+    icon: '/icons/folder-icon.png',
     items: ['qqPet13', 'qqArcade', 'qqPenguin'],
   },
   games: {
     type: 'folder',
     title: 'Games',
-    icon: '/icons/xp/FolderClosed.png',
-    items: ['minesweeper', 'solitaire', 'spiderSolitaire', 'pinball', 'runescape', 'worldOfWarcraft', 'qqGames'],
+    icon: '/icons/folder-icon.png',
+    items: ['minesweeper', 'solitaire', 'spiderSolitaire', 'pinball', 'runescape', 'worldOfWarcraft', 'wizard101', 'qqGames'],
   },
   systemTools: {
     type: 'folder',
     title: 'System Tools',
-    icon: '/icons/xp/FolderClosed.png',
+    icon: '/icons/folder-icon.png',
     items: ['backupWizard', 'transferWizard', 'systemRecovery'],
   },
   accessories: {
     type: 'folder',
     title: 'Accessories',
-    icon: '/icons/xp/FolderClosed.png',
+    icon: '/icons/folder-icon.png',
     items: ['calculator', 'notepad', 'wordpad', 'displayProperties', 'speechProperties', 'systemProperties', 'userAccounts', 'paint', 'cmd', 'imageViewer', 'installer', 'systemTools'],
   },
   entertainment: {
     type: 'folder',
     title: 'Entertainment',
-    icon: '/icons/xp/FolderClosed.png',
+    icon: '/icons/folder-icon.png',
     items: ['mediaPlayer', 'mediaPlayerClassic', 'winamp', 'soundRecorder', 'flashPlayer'],
   },
   myProjects: {
     type: 'folder',
     title: 'My Projects',
-    icon: '/icons/xp/FolderClosed.png',
+    icon: '/icons/folder-icon.png',
     items: [...externalProjectMenuItems, ...appletMenuItems],
   },
 };

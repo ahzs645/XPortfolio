@@ -1,0 +1,98 @@
+.wiz101-content-area {
+  position: absolute;
+  top: 140px;
+  left: 35px;
+  width: 704px;
+  height: 335px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-tabs {
+  display: flex;
+  gap: 2px;
+  margin-left: 5px;
+  margin-bottom: 3px;
+}
+
+.tab {
+  background: url('/apps/wizard101/images/skin/012_IEND.png');
+  background-size: 100% 100%;
+  border: none;
+  padding: 5px 18px;
+  color: #d4c4a4;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+}
+
+.tab:hover,
+.tab.active {
+  background: url('/apps/wizard101/images/skin/013_IEND.png');
+  background-size: 100% 100%;
+  color: #fff;
+}
+
+.content-body {
+  flex: 1;
+  background: url('/apps/wizard101/images/parchment-texture.jpg');
+  background-size: cover;
+  overflow-y: auto;
+  padding: 12px 15px;
+}
+
+.news-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.wiz101-news-item {
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(139, 90, 43, 0.3);
+}
+
+.wiz101-news-item:last-child {
+  border-bottom: none;
+}
+
+.wiz101-news-item h3 {
+  color: #4a2a0a;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.wiz101-news-item p {
+  color: #3a2a1a;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.help-content {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 10px;
+}
+
+.help-image {
+  max-width: 100%;
+  max-height: 280px;
+}
+
+/* Scrollbar */
+.content-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.content-body::-webkit-scrollbar-track {
+  background: rgba(139, 90, 43, 0.2);
+}
+
+.content-body::-webkit-scrollbar-thumb {
+  background: rgba(139, 90, 43, 0.5);
+  border-radius: 4px;
+}

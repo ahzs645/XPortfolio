@@ -56,6 +56,7 @@ const MSNMessenger = lazy(() => import('./MSNMessenger'));
 const FlashPlayer = lazy(() => import('./FlashPlayer'));
 const WorldOfWarcraft = lazy(() => import('./WorldOfWarcraft'));
 const RuneScape = lazy(() => import('./RuneScape'));
+const Wizard101 = lazy(() => import('./Wizard101'));
 // ControlPanel is now integrated into MyComputer as a navigable view
 
 // XP Icons paths
@@ -165,6 +166,7 @@ export const appCategoryMap = {
   'QQ Arcade': APP_CATEGORIES.GAME,
   'World of Warcraft': APP_CATEGORIES.GAME,
   'RuneScape Classic': APP_CATEGORIES.GAME,
+  'Wizard101': APP_CATEGORIES.GAME,
 };
 
 // Helper to get app category
@@ -384,6 +386,11 @@ export const desktopIconCatalog = {
     title: 'RuneScape Classic',
     component: RuneScape,
   },
+  wizard101: {
+    icon: '/apps/wizard101/images/icon.ico',
+    title: 'Wizard101',
+    component: Wizard101,
+  },
 };
 
 // Load saved icon positions from localStorage
@@ -449,6 +456,7 @@ const CATALOG_TO_APP_KEY = {
   flashPlayer: 'Adobe Flash Player',
   worldOfWarcraft: 'World of Warcraft',
   runescape: 'RuneScape Classic',
+  wizard101: 'Wizard101',
 };
 
 // Generate desktop icon state from program list
@@ -1627,6 +1635,27 @@ export const appSettings = {
     maximized: false,
     multiInstance: false,
   },
+  'Wizard101': {
+    header: {
+      icon: '/apps/wizard101/images/icon.ico',
+      title: 'Wizard101',
+      buttons: ['close'],
+      invisible: true,
+    },
+    component: Wizard101,
+    defaultSize: {
+      width: 810,
+      height: 620,
+    },
+    defaultOffset: {
+      x: 80,
+      y: 30,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
   // Control Panel is now integrated into MyComputer as a navigable view
   // Access via My Computer sidebar > Control Panel
 };
@@ -1681,4 +1710,5 @@ export {
   FlashPlayer,
   WorldOfWarcraft,
   RuneScape,
+  Wizard101,
 };

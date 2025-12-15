@@ -1,0 +1,191 @@
+.wiz101-window {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.6));
+}
+
+/* Title Bar - 3 pieces: left cap, middle (repeat), right cap */
+.wiz101-titlebar {
+  display: flex;
+  height: 43px;
+  cursor: grab;
+  margin-left: 0px;
+  margin-right: 0px;
+}
+
+.wiz101-titlebar:active {
+  cursor: grabbing;
+}
+
+/* Left cap */
+.wiz101-titlebar-left {
+  flex-shrink: 0;
+  position: relative;
+}
+
+.wiz101-titlebar-left-bg {
+  display: block;
+  height: 43px;
+  width: auto;
+}
+
+.wiz101-titlebar-title-wrapper {
+  position: absolute;
+  top: 18px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+}
+
+/* Middle section - repeats the middle image */
+.wiz101-titlebar-middle {
+  flex: 1;
+  background: url('/apps/wizard101/images/skin/027_IEND.png') repeat-x;
+  background-size: auto 43px;
+  min-width: 0;
+  position: relative;
+}
+
+.wiz101-titlebar-center-text {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #d4a84b;
+  font-size: 12px;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+}
+
+.wiz101-window-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+}
+
+.wiz101-window-title {
+  color: #d4a84b;
+  font-size: 12px;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Right cap with buttons */
+.wiz101-titlebar-right {
+  flex-shrink: 0;
+  position: relative;
+}
+
+.wiz101-titlebar-right-bg {
+  display: block;
+  height: 43px;
+  width: auto;
+}
+
+.wiz101-window-controls {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 1;
+  display: flex;
+  gap: 2px;
+}
+
+.wiz101-window-btn {
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wiz101-window-btn img {
+  width: 20px;
+  height: 20px;
+}
+
+.wiz101-window-btn:active img {
+  transform: translateY(1px);
+}
+
+/* Content wrapper with side borders */
+.wiz101-window-content-wrapper {
+  display: flex;
+}
+
+.wiz101-window-border-left {
+  width: 13px;
+  background: url('/apps/wizard101/images/borders/left middle.bmp') repeat-y;
+  background-size: 13px auto;
+}
+
+.wiz101-window-border-right {
+  width: 13px;
+  background: url('/apps/wizard101/images/borders/right middle.bmp') repeat-y;
+  background-size: 13px auto;
+}
+
+.wiz101-window-body {
+  flex: 1;
+}
+
+/* Bottom border - using 3 pieces: left corner, middle repeat, right corner */
+.wiz101-window-border-bottom {
+  display: flex;
+  height: 13px;
+}
+
+.wiz101-bottom-border-left {
+  width: 100px;
+  height: 13px;
+  background: url('/apps/wizard101/images/borders/bottom left.bmp') no-repeat;
+  background-size: 100px 13px;
+  flex-shrink: 0;
+}
+
+.wiz101-bottom-border-middle {
+  flex: 1;
+  background: url('/apps/wizard101/images/borders/bottom middle.bmp') repeat-x;
+  background-size: auto 13px;
+}
+
+.wiz101-bottom-border-right {
+  width: 100px;
+  height: 13px;
+  background: url('/apps/wizard101/images/borders/bottom right.bmp') no-repeat;
+  background-size: 100px 13px;
+  flex-shrink: 0;
+}
+
+/* Inactive window border styles */
+.wiz101-window-inactive .wiz101-window-border-left {
+  background-image: url('/apps/wizard101/images/borders/left middle inactive.bmp');
+}
+
+.wiz101-window-inactive .wiz101-window-border-right {
+  background-image: url('/apps/wizard101/images/borders/right middle inactive.bmp');
+}
+
+.wiz101-window-inactive .wiz101-bottom-border-left {
+  background-image: url('/apps/wizard101/images/borders/bottom left inactive.bmp');
+}
+
+.wiz101-window-inactive .wiz101-bottom-border-middle {
+  background-image: url('/apps/wizard101/images/borders/bottom middle inactive.bmp');
+}
+
+.wiz101-window-inactive .wiz101-bottom-border-right {
+  background-image: url('/apps/wizard101/images/borders/bottom right inactive.bmp');
+}
+
+/* Inactive title bar - need to swap via JS since these are img tags */

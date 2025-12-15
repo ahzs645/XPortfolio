@@ -1,0 +1,135 @@
+.wiz101-login-form {
+  display: flex;
+  gap: 15px;
+  align-items: flex-end;
+  flex: 1;
+  justify-content: space-between;
+  padding: 0 10px;
+}
+
+.wiz101-login-form.logged-in {
+  align-items: center;
+}
+
+.wiz101-welcome-text {
+  color: #d4c4a4;
+  font-size: 11px;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+/* Three column layout */
+.wiz101-login-column {
+  display: flex;
+  align-items: flex-end;
+}
+
+.wiz101-login-column-left {
+  flex-shrink: 0;
+}
+
+.wiz101-login-column-middle {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 15px;
+}
+
+.wiz101-login-column-right {
+  flex-shrink: 0;
+}
+
+.wiz101-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.wiz101-input-label {
+  color: #d4c4a4;
+  font-size: 11px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+  margin-left: 2px;
+}
+
+.wiz101-input-field {
+  width: 150px;
+  height: 26px;
+  background: url('/apps/wizard101/images/skin/017_image_17.png');
+  background-size: 100% 100%;
+  border: none;
+  padding: 0 8px;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 12px;
+  color: #2a1a0a;
+  outline: none;
+}
+
+.wiz101-input-field::placeholder {
+  color: #8a7a6a;
+  font-size: 11px;
+}
+
+.wiz101-input-field:focus {
+  box-shadow: 0 0 4px rgba(212, 168, 75, 0.4);
+}
+
+.wiz101-checkbox-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+/* Custom checkbox styles */
+.wiz101-custom-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.wiz101-custom-checkbox-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.wiz101-custom-checkbox-image {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+.wiz101-custom-checkbox-label {
+  color: #d4c4a4;
+  font-size: 11px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+.wiz101-login-btn {
+  height: 28px;
+  padding: 0 16px;
+  background-size: 100% 100%;
+  border: none;
+  cursor: pointer;
+  color: #e8d8b8;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 11px;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+}
+
+.wiz101-login-btn:active {
+  transform: translateY(1px);
+}
+
+.wiz101-login-btn.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.wiz101-login-btn.disabled:active {
+  transform: none;
+}

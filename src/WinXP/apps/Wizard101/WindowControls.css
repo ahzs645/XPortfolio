@@ -1,0 +1,28 @@
+.window-controls {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: flex;
+  gap: 1px;
+  z-index: 10;
+}
+
+.window-btn {
+  width: 13px;
+  height: 13px;
+  border: none;
+  cursor: pointer;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  padding: 0;
+  transition: transform 0.1s ease;
+}
+
+.window-btn:hover {
+  transform: scale(1.1);
+}
+
+.window-btn:active {
+  transform: scale(0.95);
+}
