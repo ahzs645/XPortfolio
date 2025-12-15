@@ -371,17 +371,11 @@ export const START_MENU_FOLDERS = {
     icon: '/icons/xp/FolderClosed.png',
     items: ['mediaPlayer', 'mediaPlayerClassic', 'winamp', 'soundRecorder', 'flashPlayer'],
   },
-  webProjects: {
+  myProjects: {
     type: 'folder',
-    title: 'My Web Projects',
-    icon: '/icons/xp/Briefcase.png',
-    items: externalProjectMenuItems,
-  },
-  applets: {
-    type: 'folder',
-    title: 'Applets',
-    icon: '/icons/xp/Programs.png',
-    items: appletMenuItems,
+    title: 'My Projects',
+    icon: '/icons/xp/FolderClosed.png',
+    items: [...externalProjectMenuItems, ...appletMenuItems],
   },
 };
 
@@ -398,8 +392,7 @@ export const ALL_PROGRAMS_ORDER = [
   'resume',
   'contact',
   'divider-main',
-  'applets', // folder with mini applets
-  'webProjects', // folder with external web projects
+  'myProjects', // folder with web projects and applets
   'accessories', // folder with Calculator, Notepad, Paint, CMD, Image Viewer
   'entertainment', // folder with Media Player
   'games', // folder with Minesweeper, Solitaire, Spider Solitaire, Pinball, QQ Games

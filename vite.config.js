@@ -1,6 +1,17 @@
 import { defineConfig } from 'vite'
+import { execSync } from 'child_process'
 import react from '@vitejs/plugin-react'
 import svgr from 'vite-plugin-svgr'
+
+// Get build version for cache busting
+function getBuildVersion() {
+  try {
+    const commitSha = execSync('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim()
+    return commitSha
+  } catch {
+    return Date.now().toString(36)
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig(() => {
@@ -14,9 +25,14 @@ export default defineConfig(() => {
     process.env.VITE_BASE ||
     (isGitHubActions && repoName && !isUserOrOrgPagesRepo ? `/${repoName}/` : '/')
 
+  const buildVersion = getBuildVersion()
+
   return {
     base,
     plugins: [react(), svgr()],
+    define: {
+      __BUILD_VERSION__: JSON.stringify(buildVersion),
+    },
     build: {
       rollupOptions: {
         output: {

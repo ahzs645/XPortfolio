@@ -2,6 +2,7 @@
 
 import templateHtml from "./template.html?raw";
 import { withBaseUrl } from "../../../../../utils/baseUrl.js";
+import { withCacheBust } from "../../../../../utils/buildVersion.js";
 
 import {
   COLOR_HUE_ROTATE,
@@ -47,7 +48,7 @@ registerApp({ _template: null, _singleInstance: true, _instanceIdentifier: "wmp"
     const c2 = G2;
     e["wmpUiCssLink"] = document["getElementById"]("wmpCSS_instance_" + e["hWnd"]), !e["wmpUiCssLink"] && (e.wmpUiCssLink = document.createElement("link"), e["wmpUiCssLink"].id = "wmpCSS_instance_" + e["hWnd"], e["wmpUiCssLink"]["rel"] = "stylesheet", e["wmpUiCssLink"]["type"] = "text/css", document["head"]["appendChild"](e["wmpUiCssLink"])), e["wmpUiCssLink"]["onload"] = () => i2(), e["wmpUiCssLink"]["onerror"] = () => {
       wmpCssLoadFailed = true, i2();
-    }, e["wmpUiCssLink"]["href"] = withBaseUrl("/ui/wmp/" + n[e.currentUI]);
+    }, e["wmpUiCssLink"]["href"] = withCacheBust(withBaseUrl("/ui/wmp/" + n[e.currentUI]));
   });
   await D;
   if (wmpCssLoadFailed || !e["wmpUiCssLink"] || !e["wmpUiCssLink"]["sheet"]) {
@@ -327,7 +328,7 @@ registerApp({ _template: null, _singleInstance: true, _instanceIdentifier: "wmp"
   }
   function Ai() {
     const i2 = G2;
-    e["currentUI"] += 1, e["currentUI"] > n["length"] - 1 && (e["currentUI"] = 0), e["wmpUiCssLink"] && e.wmpUiCssLink["setAttribute"]("href", withBaseUrl("/ui/wmp/" + n[e["currentUI"]])), wm["setIcon"](e["hWnd"], g[e["currentUI"]]), localStorage["setItem"](shell["_currentUser"] + ".wmpVersion", e["currentUI"]), wm && wm._desktop && (wm._desktop.dataset.wmpUi = String(e["currentUI"])), Mi(), setTimeout(Li, 50);
+    e["currentUI"] += 1, e["currentUI"] > n["length"] - 1 && (e["currentUI"] = 0), e["wmpUiCssLink"] && e.wmpUiCssLink["setAttribute"]("href", withCacheBust(withBaseUrl("/ui/wmp/" + n[e["currentUI"]]))), wm["setIcon"](e["hWnd"], g[e["currentUI"]]), localStorage["setItem"](shell["_currentUser"] + ".wmpVersion", e["currentUI"]), wm && wm._desktop && (wm._desktop.dataset.wmpUi = String(e["currentUI"])), Mi(), setTimeout(Li, 50);
   }
   async function li() {
     const i2 = G2;
