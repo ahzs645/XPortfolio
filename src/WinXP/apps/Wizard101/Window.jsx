@@ -1,39 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import './Window.css';
 
-function Window({ children, title = "Wizard101", onClose, onMinimize }) {
-  const [position, setPosition] = useState({ x: 100, y: 50 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+function Window({ children, title = "Wizard101", onClose, onMinimize, dragRef }) {
   const [closeState, setCloseState] = useState('normal');
   const [minState, setMinState] = useState('normal');
   const [isActive, setIsActive] = useState(true);
   const windowRef = useRef(null);
-
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      if (isDragging) {
-        setPosition({
-          x: e.clientX - dragOffset.x,
-          y: e.clientY - dragOffset.y
-        });
-      }
-    };
-
-    const handleMouseUp = () => {
-      setIsDragging(false);
-    };
-
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-    }
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging, dragOffset]);
 
   // Track window focus state
   useEffect(() => {
@@ -48,16 +20,6 @@ function Window({ children, title = "Wizard101", onClose, onMinimize }) {
       window.removeEventListener('blur', handleBlur);
     };
   }, []);
-
-  const handleTitleBarMouseDown = (e) => {
-    if (e.target.closest('.window-btn')) return;
-
-    setIsDragging(true);
-    setDragOffset({
-      x: e.clientX - position.x,
-      y: e.clientY - position.y
-    });
-  };
 
   // Close button images (X)
   const closeImages = {
@@ -81,7 +43,7 @@ function Window({ children, title = "Wizard101", onClose, onMinimize }) {
       {/* Title Bar - using 3 pieces: left, middle (repeat), right */}
       <div
         className="wiz101-titlebar"
-        onMouseDown={handleTitleBarMouseDown}
+        ref={dragRef}
       >
         {/* Left cap with icon and title */}
         <div className="wiz101-titlebar-left">

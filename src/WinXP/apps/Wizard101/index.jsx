@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import styled from 'styled-components';
 import { LauncherProvider } from './context/LauncherContext';
 import Window from './Window';
@@ -26,19 +25,47 @@ const Container = styled.div`
       margin: 0 !important;
     }
 
-    /* Reset button styles */
+    /* Reset button styles - remove XP.css overrides but keep our custom styles */
     button {
-      all: unset;
-      cursor: pointer;
+      box-sizing: border-box;
+      min-width: 0;
+      min-height: 0;
     }
 
-    /* Reset input styles */
+    /* Reset input styles - remove XP.css overrides but keep our custom styles */
     input[type="text"],
     input[type="password"] {
-      all: unset;
-      display: block;
-      width: 100%;
       box-sizing: border-box;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    /* Ensure our Wizard101 specific styles take precedence */
+    .wiz101-login-btn {
+      height: 28px !important;
+      padding: 0 16px !important;
+      background-size: 100% 100% !important;
+      border: none !important;
+      cursor: pointer !important;
+      color: #e8d8b8 !important;
+      font-family: Tahoma, Arial, sans-serif !important;
+      font-size: 11px !important;
+      font-weight: bold !important;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.7) !important;
+      background-color: transparent !important;
+    }
+
+    .wiz101-input-field {
+      width: 150px !important;
+      height: 26px !important;
+      background-size: 100% 100% !important;
+      border: none !important;
+      padding: 0 8px !important;
+      font-family: Tahoma, Arial, sans-serif !important;
+      font-size: 12px !important;
+      color: #2a1a0a !important;
+      outline: none !important;
+      background-color: transparent !important;
     }
   }
 `;
@@ -58,22 +85,16 @@ const LauncherWrapper = styled.div`
  * @param {Function} props.onClose - Called when the app should close
  * @param {string} props.defaultMode - Initial mode: 'default', 'patchClient', or 'offline'
  */
-function Wizard101({ onClose, defaultMode = 'default' }) {
-  const [isMinimized, setIsMinimized] = useState(false);
-
-  const handleMinimize = () => {
-    setIsMinimized(true);
-    setTimeout(() => setIsMinimized(false), 500);
-  };
-
+function Wizard101({ onClose, onMinimize, dragRef, defaultMode = 'patchClient' }) {
   return (
     <LauncherProvider defaultMode={defaultMode}>
       <Container className="wiz101-app">
-        <LauncherWrapper className={isMinimized ? 'minimized' : ''}>
+        <LauncherWrapper>
           <Window
             title="Wizard101"
             onClose={onClose}
-            onMinimize={handleMinimize}
+            onMinimize={onMinimize}
+            dragRef={dragRef}
           >
             <Launcher />
           </Window>

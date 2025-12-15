@@ -1,9 +1,8 @@
 .wiz101-window {
-  position: absolute;
+  position: relative;
   display: flex;
   flex-direction: column;
   user-select: none;
-  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.6));
 }
 
 /* Title Bar - 3 pieces: left cap, middle (repeat), right cap */
