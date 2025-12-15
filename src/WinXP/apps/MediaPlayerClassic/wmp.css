@@ -18,6 +18,23 @@
   background: transparent;
 }
 
+/* Baseline typography (quenq relies on global theme CSS for this). */
+.wmp-desktop app.wmp {
+  font-family: Tahoma, "Segoe UI", system-ui, sans-serif;
+  font-size: 8.5pt;
+  line-height: 1.15;
+}
+
+/* Match the nav sizing you’re expecting for WMP8/WMP9. */
+.wmp-desktop[data-wmp-ui='0'] app.wmp wmpmainframe #nav,
+.wmp-desktop[data-wmp-ui='1'] app.wmp wmpmainframe #nav {
+  width: 89px !important;
+  top: 45px !important;
+  height: calc(100% - 142px) !important;
+  padding: 13px 9px 0 6px !important;
+  overflow: hidden !important;
+}
+
 /* WMP uses custom tags heavily; define baseline display/layout so it behaves consistently. */
 .wmp-desktop :where(
     app,
@@ -152,24 +169,29 @@
   height: 100% !important;
 }
 
-/* WMP template expects a layout system (quenq OS provides this via global CSS). */
-.wmp-desktop app.wmp appcontentholder {
+/* WMP10 template expects a layout system (quenq OS provides this via global CSS). */
+.wmp-desktop[data-wmp-ui='2'] app.wmp appcontentholder {
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-.wmp-desktop app.wmp appnavigation {
+.wmp-desktop[data-wmp-ui='2'] app.wmp appnavigation {
   flex: 0 0 auto;
 }
 
-.wmp-desktop app.wmp wmpmainframe {
+.wmp-desktop[data-wmp-ui='2'] app.wmp wmpmainframe {
   flex: 1 1 auto;
   min-height: 0;
   position: relative;
 }
 
-.wmp-desktop app.wmp wmpmainframe wmpcolorifier {
+.wmp-desktop[data-wmp-ui='2'] app.wmp wmpmainframe wmpcolorifier {
   width: 100% !important;
   height: 100% !important;
+}
+
+/* Keep the WMP10 title text on a single line when it is shown (framehidden mode). */
+.wmp-desktop[data-wmp-ui='2'] app.wmp wmpmainframe #brand:after {
+  white-space: nowrap;
 }
