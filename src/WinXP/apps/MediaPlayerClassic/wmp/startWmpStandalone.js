@@ -8,7 +8,10 @@ async function ensureJsMediaTagsLoaded() {
   // Skip loading to avoid 404 errors
 }
 
-export async function startWmpStandalone({ desktopEl, onFrameToggle, dragRef }) {
+// Cache the registered WMP app at module level so it persists across opens
+let cachedWmpApp = null;
+
+export async function startWmpStandalone({ desktopEl, onFrameToggle, dragRef, onXPMinimize, onXPMaximize, onXPClose }) {
   if (!desktopEl) throw new Error("Missing desktopEl");
 
   await ensureJsMediaTagsLoaded();
@@ -22,7 +25,7 @@ export async function startWmpStandalone({ desktopEl, onFrameToggle, dragRef }) 
   };
 
   const dm = createDm();
-  const wm = createWm({ desktopEl, dm, onFrameToggle, dragRef });
+  const wm = createWm({ desktopEl, dm, onFrameToggle, dragRef, onXPMinimize, onXPMaximize, onXPClose });
   const shell = createShell();
   const dialogHandler = createDialogHandler();
 
@@ -31,42 +34,46 @@ export async function startWmpStandalone({ desktopEl, onFrameToggle, dragRef }) 
   window.shell = shell;
   window.dialogHandler = dialogHandler;
 
-  let capturedApp = null;
+  let capturedApp = cachedWmpApp;
 
-  const originalConsole = window.console;
-  const originalConsoleMethods = {};
-  for (const key of [
-    "log",
-    "info",
-    "warn",
-    "error",
-    "debug",
-    "trace",
-    "table",
-    "group",
-    "groupCollapsed",
-    "groupEnd",
-    "clear",
-  ]) {
-    originalConsoleMethods[key] = originalConsole?.[key];
-  }
-
-  window.registerApp = (app) => {
-    capturedApp = app;
-  };
-
-  await import("./app/registerWmpApp.js");
-
-  window.console = originalConsole;
-  for (const [key, value] of Object.entries(originalConsoleMethods)) {
-    try {
-      if (typeof value === "function") window.console[key] = value;
-    } catch {
-      // ignore
+  // Only import and register if not already cached
+  if (!capturedApp) {
+    const originalConsole = window.console;
+    const originalConsoleMethods = {};
+    for (const key of [
+      "log",
+      "info",
+      "warn",
+      "error",
+      "debug",
+      "trace",
+      "table",
+      "group",
+      "groupCollapsed",
+      "groupEnd",
+      "clear",
+    ]) {
+      originalConsoleMethods[key] = originalConsole?.[key];
     }
-  }
 
-  window.registerApp = prevGlobals.registerApp;
+    window.registerApp = (app) => {
+      capturedApp = app;
+      cachedWmpApp = app; // Cache for future opens
+    };
+
+    await import("./app/registerWmpApp.js");
+
+    window.console = originalConsole;
+    for (const [key, value] of Object.entries(originalConsoleMethods)) {
+      try {
+        if (typeof value === "function") window.console[key] = value;
+      } catch {
+        // ignore
+      }
+    }
+
+    window.registerApp = prevGlobals.registerApp;
+  }
 
   if (!capturedApp || typeof capturedApp.setup !== "function") {
     throw new Error("WMP did not register correctly");

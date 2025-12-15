@@ -28,7 +28,7 @@ function ensureRestoreButtonStyles() {
   document.head.appendChild(style);
 }
 
-export function createWm({ desktopEl, dm, onFrameToggle, dragRef }) {
+export function createWm({ desktopEl, dm, onFrameToggle, dragRef, onXPMinimize, onXPMaximize, onXPClose }) {
   if (!desktopEl) throw new Error("Missing desktopEl");
   if (!dm) throw new Error("Missing dm");
 
@@ -42,6 +42,10 @@ export function createWm({ desktopEl, dm, onFrameToggle, dragRef }) {
   const _onFrameToggle = onFrameToggle;
   // Store the dragRef from React for frameless window dragging
   const _dragRef = dragRef;
+  // Store XPortfolio window callbacks for frameless mode
+  const _onXPMinimize = onXPMinimize;
+  const _onXPMaximize = onXPMaximize;
+  const _onXPClose = onXPClose;
 
   const getWindowEl = (id) => windows[id];
 
@@ -220,6 +224,33 @@ export function createWm({ desktopEl, dm, onFrameToggle, dragRef }) {
     }
   };
 
+  // Use XPortfolio window minimize (for frameless mode)
+  const xpMinimize = () => {
+    if (typeof _onXPMinimize === 'function') {
+      _onXPMinimize();
+      return true;
+    }
+    return false;
+  };
+
+  // Use XPortfolio window maximize (for frameless mode)
+  const xpMaximize = () => {
+    if (typeof _onXPMaximize === 'function') {
+      _onXPMaximize();
+      return true;
+    }
+    return false;
+  };
+
+  // Use XPortfolio window close (for frameless mode)
+  const xpClose = () => {
+    if (typeof _onXPClose === 'function') {
+      _onXPClose();
+      return true;
+    }
+    return false;
+  };
+
   return {
     _desktop: desktopEl,
     _windows: windows,
@@ -238,5 +269,8 @@ export function createWm({ desktopEl, dm, onFrameToggle, dragRef }) {
     openFileDialog,
     toggleXPFrame,
     attachDragRef,
+    xpMinimize,
+    xpMaximize,
+    xpClose,
   };
 }

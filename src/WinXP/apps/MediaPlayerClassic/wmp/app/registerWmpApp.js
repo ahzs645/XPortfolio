@@ -377,16 +377,29 @@ registerApp({ _template: null, _singleInstance: true, _instanceIdentifier: "wmp"
     var c2 = parseInt(s["querySelector"]("appcontents")["style"]["width"], 10), a2 = parseInt(s.querySelector("appcontents")["style"]["height"], 10);
     let n2 = z[e["currentUI"]], g2 = wm["getPosition"](e.hWnd), t2 = g2 ? g2[0] : 0, r2 = g2 ? g2[1] : 0;
     e.navPaneVisible ? (s["classList"]["add"]("collapsed"), C.classList["add"]("collapsed"), x.classList.add("collapsed"), wm["setSize"](e["hWnd"], c2 - n2, a2), wm["setPosition"](e.hWnd, parseInt(t2) + n2, r2)) : (s["classList"]["remove"]("collapsed"), C["classList"].remove("collapsed"), x["classList"]["remove"]("collapsed"), wm.setSize(e["hWnd"], c2 + n2, a2), wm["setPosition"](e["hWnd"], parseInt(t2) - n2, r2)), e["navPaneVisible"] = !e.navPaneVisible, setTimeout(Li, 50);
-  }), u["addEventListener"]("pointerup", () => window.wm["minimizeWindow"](e["hWnd"])), M["addEventListener"]("pointerup", () => {
+  }), u["addEventListener"]("pointerup", () => {
+    // Use XPortfolio minimize in frameless mode
+    if (!wm.xpMinimize()) {
+      window.wm["minimizeWindow"](e["hWnd"]);
+    }
+  }), M["addEventListener"]("pointerup", () => {
     const i2 = G2;
-    window.wm["toggleMaximizeWindow"](e["hWnd"]), setTimeout(Li, 150);
+    // Use XPortfolio maximize in frameless mode
+    if (!wm.xpMaximize()) {
+      window.wm["toggleMaximizeWindow"](e["hWnd"]);
+    }
+    setTimeout(Li, 150);
   });
   const di = () => {
     const i2 = G2;
     e["killVizProcess"] = true, e["audioContext"] && "closed" !== e["audioContext"]["state"] && e["audioContext"].close()["catch"]((i3) => {
     }), ri(), e.songDisplayNames = [], e["songPlayableSources"] = [], e.songVFSPaths = [], e["songBlobs"] = [], e["songCoverArtData"] = [], e.currentCoverArtImage = null;
     const c2 = document.getElementById("wmpCSS_instance_" + e["hWnd"]);
-    c2 && c2.remove(), s["_wmpState"] && delete s["_wmpState"], window.wm["closeWindow"](e["hWnd"]);
+    c2 && c2.remove(), s["_wmpState"] && delete s["_wmpState"];
+    // Use XPortfolio close in frameless mode, otherwise internal close
+    if (!wm.xpClose()) {
+      window.wm["closeWindow"](e["hWnd"]);
+    }
   };
   A["addEventListener"]("pointerup", di), $ && ($["onclick"] = di), s["addEventListener"]("wm:windowClosed", di, { once: true }), l.addEventListener("pointerup", function() {
     const i2 = G2;

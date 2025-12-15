@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { startWmpStandalone } from './wmp/startWmpStandalone';
 import './wmp.css';
 
-function WmpWrapper({ onUpdateHeader, dragRef }) {
+function WmpWrapper({ onUpdateHeader, dragRef, onMinimize, onMaximize, onClose }) {
   const desktopRef = useRef(null);
   const [error, setError] = useState(null);
 
@@ -30,6 +30,10 @@ function WmpWrapper({ onUpdateHeader, dragRef }) {
           desktopEl: desktopRef.current,
           onFrameToggle: handleFrameToggle,
           dragRef: dragRef,
+          // Pass XPortfolio window callbacks for frameless mode
+          onXPMinimize: onMinimize,
+          onXPMaximize: onMaximize,
+          onXPClose: onClose,
         });
         if (cancelled) {
           if (typeof nextCleanup === 'function') nextCleanup();
