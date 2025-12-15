@@ -21,18 +21,18 @@ function Window({ children, title = "Wizard101", onClose, onMinimize, dragRef })
     };
   }, []);
 
-  // Close button images (X)
+  // Close button images
   const closeImages = {
-    normal: '018_image_18',
-    hover: '019_IEND',
-    pressed: '020_IEND'
+    normal: 'close_normal',
+    hover: 'close_hover',
+    pressed: 'close_pressed'
   };
 
-  // Minimize button images (bar)
+  // Minimize button images
   const minImages = {
-    normal: '022_IEND',
-    hover: '023_IEND',
-    pressed: '024_IEND'
+    normal: 'minimize_normal',
+    hover: 'minimize_hover',
+    pressed: 'minimize_pressed'
   };
 
   return (
