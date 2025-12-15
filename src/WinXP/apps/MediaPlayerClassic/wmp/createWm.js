@@ -28,7 +28,7 @@ function ensureRestoreButtonStyles() {
   document.head.appendChild(style);
 }
 
-export function createWm({ desktopEl, dm, onFrameToggle, dragRef, onXPMinimize, onXPMaximize, onXPClose }) {
+export function createWm({ desktopEl, dm, onFrameToggle, dragRef, onXPMinimize, onXPMaximize, onXPClose, myMusicPlaylist }) {
   if (!desktopEl) throw new Error("Missing desktopEl");
   if (!dm) throw new Error("Missing dm");
 
@@ -46,6 +46,8 @@ export function createWm({ desktopEl, dm, onFrameToggle, dragRef, onXPMinimize, 
   const _onXPMinimize = onXPMinimize;
   const _onXPMaximize = onXPMaximize;
   const _onXPClose = onXPClose;
+  // Store My Music playlist from file system
+  const _myMusicPlaylist = myMusicPlaylist;
 
   const getWindowEl = (id) => windows[id];
 
@@ -251,6 +253,9 @@ export function createWm({ desktopEl, dm, onFrameToggle, dragRef, onXPMinimize, 
     return false;
   };
 
+  // Get My Music playlist from file system (for default playlist)
+  const getMyMusicPlaylist = () => _myMusicPlaylist;
+
   return {
     _desktop: desktopEl,
     _windows: windows,
@@ -272,5 +277,6 @@ export function createWm({ desktopEl, dm, onFrameToggle, dragRef, onXPMinimize, 
     xpMinimize,
     xpMaximize,
     xpClose,
+    getMyMusicPlaylist,
   };
 }

@@ -70,6 +70,11 @@ export function createDm() {
       return url;
     }
 
+    // Handle direct URLs (e.g., /content/sample-music/...)
+    if (normalized.startsWith("/")) {
+      return normalized;
+    }
+
     const m = normalized.match(/^([A-Za-z]):\/(.*)$/);
     if (m) {
       const drive = m[1].toUpperCase();

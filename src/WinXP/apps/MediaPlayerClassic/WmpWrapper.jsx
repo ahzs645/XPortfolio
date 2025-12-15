@@ -1,10 +1,36 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { startWmpStandalone } from './wmp/startWmpStandalone';
+import { useFileSystem, SYSTEM_IDS } from '../../../contexts/FileSystemContext';
 import './wmp.css';
 
 function WmpWrapper({ onUpdateHeader, dragRef, onMinimize, onMaximize, onClose }) {
+  const { fileSystem, getFolderContents } = useFileSystem();
   const desktopRef = useRef(null);
   const [error, setError] = useState(null);
+
+  // Get music files from My Music folder dynamically
+  const myMusicPlaylist = useMemo(() => {
+    if (!fileSystem || !getFolderContents) return null;
+
+    const myMusicFolder = fileSystem[SYSTEM_IDS.MY_MUSIC];
+    if (!myMusicFolder) return null;
+
+    const contents = getFolderContents(SYSTEM_IDS.MY_MUSIC);
+    // Filter for audio files only
+    const audioFiles = contents.filter(item => {
+      if (item.type !== 'file') return false;
+      const ext = (item.ext || '').toLowerCase();
+      return ['.mp3', '.wav', '.wma', '.ogg', '.m4a', '.flac', '.aac'].includes(ext);
+    });
+
+    if (audioFiles.length === 0) return null;
+
+    return {
+      name: "My Music",
+      songDisplayNames: audioFiles.map(f => f.basename || f.name.replace(/\.[^/.]+$/, '')),
+      songVFSPaths: audioFiles.map(f => f.url || `/content/sample-music/${f.name}`),
+    };
+  }, [fileSystem, getFolderContents]);
 
   // Callback to toggle Windows XP frame visibility
   const handleFrameToggle = useCallback((isFrameHidden) => {
@@ -34,6 +60,8 @@ function WmpWrapper({ onUpdateHeader, dragRef, onMinimize, onMaximize, onClose }
           onXPMinimize: onMinimize,
           onXPMaximize: onMaximize,
           onXPClose: onClose,
+          // Pass My Music folder contents for default playlist
+          myMusicPlaylist: myMusicPlaylist,
         });
         if (cancelled) {
           if (typeof nextCleanup === 'function') nextCleanup();

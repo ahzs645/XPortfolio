@@ -107,10 +107,11 @@ registerApp({ _template: null, _singleInstance: true, _instanceIdentifier: "wmp"
   }, a && a["filePath"]) await this.addMediaByVFSPath(a["filePath"], true);
   else {
     Gi();
-    for (const i2 of L["songVFSPaths"]) {
+    const playlist = wm.getMyMusicPlaylist && wm.getMyMusicPlaylist() || L;
+    for (const i2 of playlist["songVFSPaths"]) {
       const c2 = await dm["open"](i2);
       if (c2 && c2["content"] instanceof Blob) {
-        const a2 = L["songDisplayNames"][L.songVFSPaths.indexOf(i2)] || dm["basename"](i2);
+        const a2 = playlist["songDisplayNames"][playlist.songVFSPaths.indexOf(i2)] || dm["basename"](i2);
         e["songDisplayNames"]["push"](a2), e.songVFSPaths["push"](i2), e.songBlobs["push"](c2["content"]), e["songCoverArtData"]["push"](null);
       }
     }

@@ -11,7 +11,7 @@ async function ensureJsMediaTagsLoaded() {
 // Cache the registered WMP app at module level so it persists across opens
 let cachedWmpApp = null;
 
-export async function startWmpStandalone({ desktopEl, onFrameToggle, dragRef, onXPMinimize, onXPMaximize, onXPClose }) {
+export async function startWmpStandalone({ desktopEl, onFrameToggle, dragRef, onXPMinimize, onXPMaximize, onXPClose, myMusicPlaylist }) {
   if (!desktopEl) throw new Error("Missing desktopEl");
 
   await ensureJsMediaTagsLoaded();
@@ -25,7 +25,7 @@ export async function startWmpStandalone({ desktopEl, onFrameToggle, dragRef, on
   };
 
   const dm = createDm();
-  const wm = createWm({ desktopEl, dm, onFrameToggle, dragRef, onXPMinimize, onXPMaximize, onXPClose });
+  const wm = createWm({ desktopEl, dm, onFrameToggle, dragRef, onXPMinimize, onXPMaximize, onXPClose, myMusicPlaylist });
   const shell = createShell();
   const dialogHandler = createDialogHandler();
 

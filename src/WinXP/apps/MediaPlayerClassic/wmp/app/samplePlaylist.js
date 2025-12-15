@@ -1,15 +1,14 @@
+// Sample playlist using files from My Music folder
 export const SAMPLE_PLAYLIST = {
-  name: "Sample Playlist",
+  name: "My Music",
   songDisplayNames: [
-    "Windows Welcome Music",
+    "Beethoven's Symphony No. 9 (Scherzo)",
     "David Byrne - Like Humans Do",
     "New Stories - Highway Blues",
-    "Beethoven's Symphony No. 9 (Scherzo)",
   ],
   songVFSPaths: [
-    "C:/WINDOWS/system32/oobe/images/title.wma",
-    "C:/Documents and Settings/All Users/Shared Music/Sample Music/David Byrne - Like Humans Do.mp3",
-    "C:/Documents and Settings/All Users/Shared Music/Sample Music/New Stories - Highway Blues.mp3",
-    "C:/Documents and Settings/All Users/Shared Music/Sample Music/Beethoven's Symphony No. 9 (Scherzo).mp3",
+    "/content/sample-music/Beethovens Symphony No. 9 (Scherzo).mp3",
+    "/content/sample-music/David Byrne - Like Humans Do.mp3",
+    "/content/sample-music/New Stories - Highway Blues.mp3",
   ],
 };
