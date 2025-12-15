@@ -77,7 +77,8 @@ function WmpWrapper({ onUpdateHeader, dragRef, onMinimize, onMaximize, onClose }
       cancelled = true;
       if (typeof cleanup === 'function') cleanup();
     };
-  }, [handleFrameToggle, dragRef, myMusicPlaylist, onMinimize, onMaximize, onClose]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handleFrameToggle]);
 
   return (
     <div className="wmp-standalone-root" style={{ width: '100%', height: '100%' }}>
