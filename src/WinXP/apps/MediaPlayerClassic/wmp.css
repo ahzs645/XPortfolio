@@ -1,235 +1,175 @@
-/* WMP Base Styles - These ensure proper sizing within the XPortfolio window system */
-
-.wmp {
-  display: block;
+/* WMP Standalone styles - matches quenq's App.css with XPortfolio overrides */
+.wmp-standalone-root {
+  height: 100%;
   width: 100%;
-  height: 100%;
-  position: relative;
-  font-family: Tahoma, sans-serif;
-  font-size: 11px;
-  user-select: none;
-  overflow: hidden;
-  /* Remove absolute positioning from theme - we're inside a React window */
-  left: unset !important;
-  top: unset !important;
 }
 
+.wmp-desktop {
+  height: 100%;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  background: #004e98;
+}
 
-.wmp .appcontents {
+/* WMP8/WMP9 look better without the "desktop blue" showing around the fixed-size player. */
+.wmp-desktop[data-wmp-ui='0'],
+.wmp-desktop[data-wmp-ui='1'] {
+  background: transparent;
+}
+
+/* WMP uses custom tags heavily; define baseline display/layout so it behaves consistently. */
+.wmp-desktop :where(
+    app,
+    appcontents,
+    appcontentholder,
+    appnavigation,
+    wmpmainframe,
+    wmpcolorifier,
+    wmpcontent,
+    playbackcontrols,
+    fnbutton,
+    buttonbody,
+    hideable
+  ) {
+  box-sizing: border-box;
   display: block;
-  width: 100% !important;
-  height: 100% !important;
+}
+
+.wmp-desktop app {
+  position: absolute;
+}
+
+.wmp-desktop appcontents {
   position: relative;
-  /* Override fixed dimensions from theme */
-  min-width: unset !important;
-  min-height: unset !important;
 }
 
-.wmp .appcontentholder {
-  position: relative;
-  height: 100%;
-  display: grid;
-  grid-template-rows: min-content auto;
-  overflow: hidden;
-  /* Preserve theme styling */
-  background: linear-gradient(to bottom, #afafc1, #e1e1ea);
-  box-shadow: inset 0 25px 0 #f2f2fdee, inset 2px 0 #81828fee, inset 0 -2px #81828faa, inset -2px 0 #848591;
+/* Minimal menu styling (quenq's WMP expects global XP styles for this). */
+.wmp-desktop {
+  --wmp-menu-bg: #ece9d8;
+  --wmp-menu-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
+  --wmp-highlight: #316ac5;
+  --wmp-highlight-text: #fff;
+  --wmp-font: Tahoma, "Segoe UI", system-ui, sans-serif;
+  --wmp-font-size: 13px;
 }
 
-/* Hide menu bar in frameless mode */
-.wmp.framehidden .appnavigation {
-  display: none;
-}
-
-.wmp.framehidden .appcontentholder {
-  grid-template-rows: auto;
-}
-
-/* Menu bar styling */
-.wmp .appnavigation {
-  z-index: 1;
-  position: relative;
-  background: linear-gradient(to bottom, #f6f6f6, #e8e8ea);
-  border-bottom: 1px solid #a0a0a0;
-}
-
-.wmp .appnavigation ul.appmenus {
-  display: flex;
-  list-style: none;
+.wmp-desktop appcontentholder appnavigation ul {
+  font-family: var(--wmp-font);
+  font-size: var(--wmp-font-size);
+  color: #000;
   margin: 0;
   padding: 0;
-}
-
-.wmp .appnavigation ul.appmenus>li {
-  padding: 2px 8px;
-  cursor: default;
-  position: relative;
-}
-
-.wmp .appnavigation ul.appmenus>li:hover {
-  background: #316ac5;
-  color: white;
-}
-
-.wmp .appnavigation ul.appmenus>li ul.submenu {
-  display: none;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  background: #fff;
-  border: 1px solid #808080;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-  min-width: 180px;
-  z-index: 100;
-  padding: 2px 0;
-}
-
-.wmp .appnavigation ul.appmenus>li:hover ul.submenu {
-  display: block;
-}
-
-.wmp .appnavigation ul.appmenus>li ul.submenu li {
-  padding: 4px 20px;
-  cursor: default;
-  color: #000;
-}
-
-.wmp .appnavigation ul.appmenus>li ul.submenu li:hover {
-  background: #316ac5;
-  color: white;
-}
-
-.wmp .appnavigation ul.appmenus>li ul.submenu li.divider {
-  height: 1px;
-  background: #c0c0c0;
-  margin: 2px 4px;
-  padding: 0;
-}
-
-.wmp .appnavigation ul.appmenus>li ul.submenu li.divider:hover {
-  background: #c0c0c0;
-}
-
-.wmp .appnavigation ul.appmenus>li ul.submenu li.selected {
-  font-weight: bold;
-}
-
-.wmp .appnavigation ul.appmenus>li ul.submenu li.selected::before {
-  content: "✓ ";
-}
-
-/* Canvas for visualizer - let theme CSS handle positioning via #playbackcontainer rules */
-.wmp #visualizer {
-  /* Theme CSS positions this: width:calc(100% - 8px); height:calc(100% - 65px); left:4px; bottom:20px; */
-  image-rendering: pixelated;
-}
-
-/* Ensure proper cursor for interactive elements */
-.wmp .fnbutton,
-.wmp .navitem,
-.wmp #navtoggle,
-.wmp #seekbar,
-.wmp #volbar,
-.wmp #playlistcontainer li,
-.wmp #rewind,
-.wmp #ffwd {
-  cursor: pointer;
-}
-
-/* Override visibility for our frameless implementation */
-/* Theme CSS sets app.wmp.framehidden to visibility:hidden but we're in a React window */
-/* Override visibility for our frameless implementation */
-/* Theme CSS sets app.wmp.framehidden to visibility:hidden but we're in a React window */
-.wmp.framehidden {
-  visibility: visible !important;
-}
-
-/* In frameless mode, hide the appcontentholder background and XP logo */
-.wmp.framehidden .appcontentholder {
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-.wmp.framehidden .appcontentholder:after {
-  display: none !important;
-}
-
-.wmp.framehidden .wmpmainframe {
-  visibility: visible !important;
-  /* Remove the drop-shadow filter in frameless mode as per theme */
-  filter: none !important;
-  /* Adjust positioning for frameless mode */
-  top: 0 !important;
-}
-
-/* WMP9 brand positioning */
-.wmp #wmp9brand {
-  display: none;
-}
-
-/* Playlist selector styling */
-.wmp #playlistselector {
-  background: transparent;
-  border: none;
-  color: inherit;
-  font-size: inherit;
-  font-family: inherit;
-}
-
-/* Fix for wmpmainframe taking full height */
-.wmp .wmpmainframe {
-  width: 100% !important;
-  height: calc(100% - 3px) !important;
-}
-
-/* Fix collapsed state width */
-.wmp.collapsed .wmpmainframe {
-  width: calc(100% + 83px) !important;
-}
-
-/* Ensure playbackcontrols is positioned properly */
-.wmp .wmpmainframe .playbackcontrols {
-  display: block;
-  position: absolute;
-}
-
-/* Fix seekbar and volume bar interactivity */
-.wmp .wmpmainframe .playbackcontrols #seekbar,
-.wmp .wmpmainframe .playbackcontrols #volbar {
-  position: absolute;
-}
-
-/* Make sure shapeshader elements display properly */
-/* Note: .wmpshapeholder uses position: unset from theme CSS - don't override */
-.wmp .shapeshader {
   display: inline-block;
+  list-style: none;
+  width: calc(100% - 2px);
+  padding-left: 2px;
+  border-bottom: 1px solid #d8d2bd;
+}
+
+.wmp-desktop appcontentholder appnavigation ul li {
+  display: inline;
+}
+
+.wmp-desktop appcontentholder appnavigation ul.appmenus {
+  padding-top: 4px;
+  padding-bottom: 1px;
+  width: calc(100% - 6px);
+  height: 15px;
+  margin-top: 2px;
+  line-height: 11px;
+}
+
+.wmp-desktop appcontentholder appnavigation ul.appmenus li {
+  padding: 4px 7px 2px;
+  position: relative;
+}
+
+.wmp-desktop appcontentholder appnavigation ul.appmenus li:hover {
+  background-color: var(--wmp-highlight);
+  color: var(--wmp-highlight-text);
+}
+
+.wmp-desktop appcontentholder appnavigation ul.appmenus .submenu {
+  display: none;
   position: absolute;
+  top: 20px;
+  left: 0;
+  background: var(--wmp-menu-bg);
+  border: 1px solid #a0a0a0;
+  flex-direction: column;
+  z-index: 999;
+  width: max-content;
+  padding: 2px;
+  box-shadow: var(--wmp-menu-shadow);
 }
 
-/* Ensure wmpcontent displays as block */
-.wmp .wmpmainframe .wmpcontent {
+.wmp-desktop appcontentholder appnavigation ul.appmenus li:hover > .submenu {
+  display: flex;
+}
+
+.wmp-desktop appcontentholder appnavigation ul.appmenus .submenu li {
   display: block;
+  padding: 3px 17px 3px;
+  white-space: nowrap;
 }
 
-/* Fix for wmpcolorifier containing all positioned children */
-.wmp .wmpmainframe .wmpcolorifier {
-  display: block;
+.wmp-desktop appcontentholder appnavigation ul.appmenus .submenu li.divider {
+  width: calc(100% - 2px);
+  height: 1px;
+  background: #a0a0a0;
+  padding: 0;
+  margin: 3px 1px 4px 1px;
+}
+
+.wmp-standalone-error {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  max-width: min(640px, calc(100vw - 24px));
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font: 12px/1.4 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  z-index: 999999;
+}
+
+/* XPortfolio overrides - WMP is embedded in a window, not standalone */
+/* Override the absolute center positioning that quenq uses for standalone mode */
+.wmp-desktop app.wmp {
+  left: 0 !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Ensure appcontents fills the container properly */
+.wmp-desktop app.wmp appcontents {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* WMP template expects a layout system (quenq OS provides this via global CSS). */
+.wmp-desktop app.wmp appcontentholder {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.wmp-desktop app.wmp appnavigation {
+  flex: 0 0 auto;
+}
+
+.wmp-desktop app.wmp wmpmainframe {
+  flex: 1 1 auto;
+  min-height: 0;
   position: relative;
 }
 
-/* Note: Theme CSS already handles position:absolute for wmpcolorifier children */
-/* We don't need to override this - removing the blanket * rule that was breaking buttons */
-
-/* Specific elements that need relative positioning */
-.wmp .wmpmainframe .wmpcolorifier #nav .navitem {
-  position: relative;
-}
-
-.wmp .wmpmainframe .wmpcontent #playlistcontainer ul li {
-  position: relative;
-}
-
-/* Ensure whitespace doesn't displace the icons in WMP9/10 */
-.wmp .wmpmainframe .playbackcontrols .fnbutton {
-  font-size: 0 !important;
+.wmp-desktop app.wmp wmpmainframe wmpcolorifier {
+  width: 100% !important;
+  height: 100% !important;
 }

@@ -1,0 +1,139 @@
+        <appcontentholder>
+            <appnavigation>
+                <ul class="appmenus">
+                    <li id="wmp-file-menu">File
+                        <ul class="submenu">
+                            <li data-action="open-media-files">Open Media File(s)...</li>
+                            <li class="divider"></li>
+                            <li data-action="clear-playlist">Clear Current Playlist</li>
+                            <li class="divider"></li>
+                            <li data-action="exit-wmp">Exit</li>
+                        </ul>
+                    </li>
+                    <li id="viewmenu" title="Change WMP Appearance">Skin</li>
+                    <li title="Not Implemented">Play</li>
+                    <li title="Not Implemented">Tools</li>
+                    <li id="helpmenu">Help</li>
+                </ul>
+            </appnavigation>
+            <wmpmainframe>
+                <wmpcolorifier>
+                <div class="shapeshader hideable" id="topleft">
+                    <div class="wmpshape"></div>
+                </div>
+                <div class="wmpshapeholder hideable" id="topleft">
+                    <div class="wmpshape"></div>
+                </div>
+                <div class="shapeshader" id="topright">
+                    <div class="wmpshape"></div>
+                </div>
+                <div class="wmpshapeholder" id="topright">
+                    <div class="wmpshape"></div>
+                    <select class="hasicons" id="playlistselector" title="Current Playlist">
+                        <option id="wmp-currentplaylist-option"><img src="/ui/wmp/wmskin.png">Current Playlist</option>
+                    </select>
+                    <div id="windowcontrols">
+                        <div id="minimize" title="Minimize">_</div><div id="maximize" title="Maximize">🗖</div><div id="close" title="Close">✕</div>
+                    </div>
+                </div>
+                <div class="shapeshader hideable" id="bottomleft">
+                    <div class="wmpshape"></div>
+                </div>
+                <div class="wmpshapeholder hideable" id="bottomleft">
+                    <div class="wmpshape"></div>
+                </div>
+                <div id="brand"><img src="/ui/wmp/xplogo_small.png"></div>
+                <div class="shapeshader" id="ctrlleft">
+                    <div class="wmpshape"></div>
+                </div>
+                <div class="wmpshapeholder" id="ctrlleft">
+                    <div class="wmpshape"></div>
+                </div>
+                <div class="shapeshader" id="ctrlmid">
+                    <div class="wmpshape"></div>
+                </div>
+                <div class="wmpshapeholder" id="ctrlmid">
+                    <div class="wmpshape"></div>
+                </div>
+                <div class="shapeshader" id="ctrlright">
+                    <div class="wmpshape"></div>
+                </div>
+                <div class="wmpshapeholder" id="ctrlright">
+                    <div class="wmpshape"></div>
+                </div>
+                <div id="navcollapsed"></div>
+                <div id="nav" class="hideable">
+                    <div id="nowplaying" class="navitem expands selected">Now Playing<div class="expander"></div></div>
+                    <div id="skins" class="navitem">Skin Chooser</div>
+                    <div id="guide" class="navitem">Media Guide</div>
+                    <div id="rip" class="navitem">Copy from CD</div>
+                    <div id="library" class="navitem">Media Library</div>
+                    <div id="radio" class="navitem">Radio Tuner</div>
+                    <div id="burn" class="navitem">Copy to CD or Device</div>
+                    <div id="premium" class="navitem expands">Premium Services<div class="expander"></div></div>
+
+                    <div id="brand"><img src="/ui/wmp/xplogo_small.png"></div>
+                </div>
+                <div id="navtoggle" title="Toggle Navigation Pane"><div id="arrow">></div></div>
+                <div id="topmetal">
+                    <div class="metaledge left"></div>
+                    <fnbutton id="toggleUIFrame" class="active" title="Show/Hide Menu Bar and Frame"></fnbutton>
+                    <div class="metaledge right"></div>
+                    <fnbutton id="shuffle" title="Shuffle (Not Implemented)"></fnbutton>
+                    <fnbutton id="equalizer" title="Equalizer (Not Implemented)"></fnbutton>
+                    <fnbutton id="playlist" class="active" title="Show/Hide Playlist"></fnbutton>
+                </div>
+                <div id="tinyblue"></div>
+                <div id="sidemetal">
+                    <div class="metaledge top"></div>
+                </div>
+                <div id="lowermetal">
+                    <div class="metaledge left"></div>
+                    <fnbutton id="colorswitch" title="Cycle Color Scheme"></fnbutton>
+                    <fnbutton id="skinmode" title="Switch to Skin Mode (Mini Player)"></fnbutton>
+                </div>
+                <div id="cornermetal">
+                    <div id="wmpresizer"></div>
+                </div>
+                <wmpcontent>
+                    <div id="playbackcontainer">
+                        <span id="artistname"></span>
+                        <span id="songname"></span>
+                        <canvas id="visualizer"></canvas>
+                        <video id="playbackHolder" src="" crossorigin="anonymous" style="display:none; width:100%; height:100%; object-fit:contain;"></video>
+                        <div id="viscontrols">
+                            <fnbutton id="visgroups" title="Cycle Visualization Group (Not Implemented)"><buttonbody></buttonbody></fnbutton>
+                            <fnbutton id="prevvis" title="Previous Visualization"><buttonbody></buttonbody></fnbutton>
+                            <fnbutton id="nextvis" title="Next Visualization"><buttonbody></buttonbody></fnbutton>
+                            <span id="visName">Bars and Waves: Bars</span>
+                            <fnbutton id="fullscreen" title="Toggle Fullscreen Visualization/Video"><buttonbody></buttonbody></fnbutton>
+                        </div>
+                    </div>
+                    <div id="playlistcontainer"><ul></ul></div>
+                    <div id="statusbar"><span id="info">Ready</span></div>
+                </wmpcontent>
+                <playbackcontrols>
+                    <div id="rewind" title="Rewind (Previous Track)"></div>
+                    <div id="seekbar">
+                        <div id="seekbg"></div>
+                        <div id="seekfill"></div>
+                        <div id="seekpointer"></div>
+                    </div>
+                    <div id="ffwd" title="Fast Forward (Next Track)"></div>
+                    <fnbutton id="playpause" title="Play/Pause"><buttonbody></buttonbody></fnbutton>
+                    <fnbutton id="stop" title="Stop"><buttonbody></buttonbody></fnbutton>
+                    <fnbutton id="prev" title="Previous Track"><buttonbody></buttonbody></fnbutton>
+                    <fnbutton id="next" title="Next Track"><buttonbody></buttonbody></fnbutton>
+                    <fnbutton id="mute" title="Mute/Unmute"><buttonbody></buttonbody></fnbutton>
+                    <div id="volbar">
+                        <div id="volbg"></div>
+                        <div id="volfill"></div>
+                        <div id="volpointer"></div>
+                    </div>
+                </playbackcontrols>
+                <div id="progress">00:00</div>
+                </wmpcolorifier>
+            </wmpmainframe>
+            <div id="wmp9brand"><img src="/ui/wmp/xplogo_small.png"></div>
+        </appcontentholder>
+    
