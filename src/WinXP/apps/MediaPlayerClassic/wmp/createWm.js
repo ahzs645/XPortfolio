@@ -49,6 +49,9 @@ export function createWm({ desktopEl, dm, onFrameToggle, dragRef, onXPMinimize, 
   // Store My Music playlist from file system
   const _myMusicPlaylist = myMusicPlaylist;
 
+  // Menu action handlers registry - WMP registers these, React MenuBar triggers them
+  const _menuActionHandlers = {};
+
   const getWindowEl = (id) => windows[id];
 
   const createNewWindow = (instanceIdentifier, fragment) => {
@@ -256,6 +259,24 @@ export function createWm({ desktopEl, dm, onFrameToggle, dragRef, onXPMinimize, 
   // Get My Music playlist from file system (for default playlist)
   const getMyMusicPlaylist = () => _myMusicPlaylist;
 
+  // Register a menu action handler (called by WMP during setup)
+  const registerMenuAction = (actionId, handler) => {
+    _menuActionHandlers[actionId] = handler;
+  };
+
+  // Trigger a menu action (called by React MenuBar)
+  const triggerMenuAction = (actionId) => {
+    const handler = _menuActionHandlers[actionId];
+    if (typeof handler === 'function') {
+      handler();
+      return true;
+    }
+    return false;
+  };
+
+  // Get all registered menu actions (for debugging)
+  const getMenuActions = () => Object.keys(_menuActionHandlers);
+
   return {
     _desktop: desktopEl,
     _windows: windows,
@@ -278,5 +299,8 @@ export function createWm({ desktopEl, dm, onFrameToggle, dragRef, onXPMinimize, 
     xpMaximize,
     xpClose,
     getMyMusicPlaylist,
+    registerMenuAction,
+    triggerMenuAction,
+    getMenuActions,
   };
 }

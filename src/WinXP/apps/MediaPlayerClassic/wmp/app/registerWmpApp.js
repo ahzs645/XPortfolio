@@ -461,6 +461,18 @@ registerApp({ _template: null, _singleInstance: true, _instanceIdentifier: "wmp"
     const i2 = G2;
     dialogHandler["spawnDialog"]({ icon: "info", title: "Windows Media Player Help", text: 'Use "File > Open Media File(s)..." to add songs from your virtual drives to the playlist. <br>Use Explorer to upload songs from your computer to your virtual drives first.', windowSize: [390, "auto"], buttons: [["OK", (c2) => window.wm["closeWindow"](c2["target"]["closest"]("app").id)]] });
   });
+
+  // Register menu actions for React MenuBar integration
+  if (wm && typeof wm.registerMenuAction === 'function') {
+    wm.registerMenuAction('openMediaFiles', li);
+    wm.registerMenuAction('clearPlaylist', Gi);
+    wm.registerMenuAction('changeSkin', Ai);
+    wm.registerMenuAction('exit', di);
+    wm.registerMenuAction('showHelp', () => {
+      dialogHandler["spawnDialog"]({ icon: "info", title: "Windows Media Player Help", text: 'Use "File > Open Media File(s)..." to add songs from your virtual drives to the playlist. <br>Use Explorer to upload songs from your computer to your virtual drives first.', windowSize: [390, "auto"], buttons: [["OK", (c2) => window.wm["closeWindow"](c2["target"]["closest"]("app").id)]] });
+    });
+  }
+
   const bi = s["querySelector"]("appcontents") || s;
   return new ResizeObserver(() => setTimeout(Li, 50))["observe"](bi), e["hWnd"];
 } });
