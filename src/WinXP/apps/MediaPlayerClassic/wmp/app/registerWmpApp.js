@@ -56,6 +56,10 @@ registerApp({ _template: null, _singleInstance: true, _instanceIdentifier: "wmp"
   s["querySelector"]("wmpmainframe");
   const y = s["querySelector"]("wmpcolorifier"), o = s["querySelector"]("wmpcontent"), x = s["querySelector"]("#navtoggle"), C = s["querySelector"]("#navcollapsed"), v = s.querySelector("#toggleUIFrame"), p = s["querySelector"]("#playlist"), f = s["querySelector"]("#wmpresizer"), I = s["querySelector"]("#topmetal"), u = s["querySelector"]("#minimize"), M = s.querySelector("#maximize"), A = s["querySelector"]("#close"), l = s["querySelector"]("#colorswitch"), d = s["querySelector"]("#skinmode"), b = s["querySelector"]("#playbackHolder"), P = s["querySelector"]("#playlistcontainer ul"), K = s.querySelector("#viewmenu"), j = s["querySelector"]("#helpmenu"), V = s["querySelector"]("#artistname"), H = s["querySelector"]("#songname"), J = s["querySelector"]("#statusbar #info"), U = s["querySelector"]("#progress"), W = s["querySelector"]("#visualizer"), S = s["querySelector"]("#visgroups"), X = s["querySelector"]("#prevvis"), Z = s["querySelector"]("#nextvis"), N = s["querySelector"]("#visName"), m = s["querySelector"]("#fullscreen"), q = s.querySelector("#playpause"), h = s["querySelector"]("#stop"), Y = s["querySelector"]("#prev"), O = s["querySelector"]("#next"), T = s.querySelector("#mute"), E = s["querySelector"]("#seekbar"), k = s["querySelector"]("#seekfill"), F = s["querySelector"]("#seekpointer"), R = s["querySelector"]("#volbar"), Q = s["querySelector"]("#volfill"), _ = s["querySelector"]("#volpointer"), $ = s["querySelector"]("appcontrols .closebtn"), ii = (s["querySelector"]("#playlistselector"), s["querySelector"]("#nav #skins"));
   s["style"] = "", wm["setIcon"](e.hWnd, g[e["currentUI"]]), wm.setCaption(e["hWnd"], "Windows Media Player"), wm.setSize(e["hWnd"], 640, 532), wm["focusWindow"](e["hWnd"]), ei(false);
+  // Attach drag ref to #topmetal for frameless window dragging
+  if (wm && typeof wm.attachDragRef === 'function') {
+    wm.attachDragRef(I);
+  }
   let ci = W["getContext"]("2d");
   if (function() {
     const i2 = G2;
@@ -252,6 +256,10 @@ registerApp({ _template: null, _singleInstance: true, _instanceIdentifier: "wmp"
   function ei(i2 = false) {
     const c2 = G2;
     i2 || (e.UIFrameHidden = !e["UIFrameHidden"]), e["UIFrameHidden"] ? (s["classList"].add("framehidden"), v["classList"]["remove"]("active")) : (s.classList["remove"]("framehidden"), v["classList"].add("active"));
+    // Toggle Windows XP frame - hide when in framehidden OR miniplayer mode
+    if (wm && typeof wm.toggleXPFrame === 'function') {
+      wm.toggleXPFrame(e.UIFrameHidden || e.miniPlayerEnabled);
+    }
   }
   function Di() {
     const i2 = G2;
@@ -386,6 +394,10 @@ registerApp({ _template: null, _singleInstance: true, _instanceIdentifier: "wmp"
   }), d["addEventListener"]("pointerup", function() {
     const i2 = G2;
     2 !== e["currentUI"] && (s["classList"].contains("maximized") && wm.toggleMaximizeWindow(e["hWnd"]), e["miniPlayerEnabled"] ? s["classList"].remove("miniplayer") : s["classList"].add("miniplayer"), e["miniPlayerEnabled"] = !e.miniPlayerEnabled, setTimeout(Li, 150));
+    // Toggle Windows XP frame - hide when in miniplayer OR framehidden mode
+    if (wm && typeof wm.toggleXPFrame === 'function') {
+      wm.toggleXPFrame(e.UIFrameHidden || e.miniPlayerEnabled);
+    }
   }), ii && ii["addEventListener"]("click", Ai), f["addEventListener"]("pointerdown", function(i2) {
     const c2 = G2;
     var a2 = s["querySelector"]("appcontents");

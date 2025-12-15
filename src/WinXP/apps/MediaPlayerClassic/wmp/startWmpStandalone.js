@@ -8,7 +8,7 @@ async function ensureJsMediaTagsLoaded() {
   // Skip loading to avoid 404 errors
 }
 
-export async function startWmpStandalone({ desktopEl }) {
+export async function startWmpStandalone({ desktopEl, onFrameToggle, dragRef }) {
   if (!desktopEl) throw new Error("Missing desktopEl");
 
   await ensureJsMediaTagsLoaded();
@@ -22,7 +22,7 @@ export async function startWmpStandalone({ desktopEl }) {
   };
 
   const dm = createDm();
-  const wm = createWm({ desktopEl, dm });
+  const wm = createWm({ desktopEl, dm, onFrameToggle, dragRef });
   const shell = createShell();
   const dialogHandler = createDialogHandler();
 

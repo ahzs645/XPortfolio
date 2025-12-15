@@ -28,7 +28,7 @@ function ensureRestoreButtonStyles() {
   document.head.appendChild(style);
 }
 
-export function createWm({ desktopEl, dm }) {
+export function createWm({ desktopEl, dm, onFrameToggle, dragRef }) {
   if (!desktopEl) throw new Error("Missing desktopEl");
   if (!dm) throw new Error("Missing dm");
 
@@ -37,6 +37,11 @@ export function createWm({ desktopEl, dm }) {
   const windows = {};
   let counter = 0;
   const restoreButtons = new Map();
+
+  // Store the frame toggle callback for XP frame visibility
+  const _onFrameToggle = onFrameToggle;
+  // Store the dragRef from React for frameless window dragging
+  const _dragRef = dragRef;
 
   const getWindowEl = (id) => windows[id];
 
@@ -199,9 +204,26 @@ export function createWm({ desktopEl, dm }) {
     });
   };
 
+  // Toggle XP frame visibility (called when WMP's internal frame mode changes)
+  const toggleXPFrame = (isFrameHidden) => {
+    // Set data attribute for CSS styling
+    desktopEl.dataset.xpFrame = isFrameHidden ? 'hidden' : 'visible';
+    if (typeof _onFrameToggle === 'function') {
+      _onFrameToggle(isFrameHidden);
+    }
+  };
+
+  // Attach the React dragRef to a DOM element for frameless window dragging
+  const attachDragRef = (element) => {
+    if (_dragRef && element) {
+      _dragRef.current = element;
+    }
+  };
+
   return {
     _desktop: desktopEl,
     _windows: windows,
+    _dragRef,
 
     createNewWindow,
     setSize,
@@ -214,5 +236,7 @@ export function createWm({ desktopEl, dm }) {
     minimizeWindow,
     closeWindow,
     openFileDialog,
+    toggleXPFrame,
+    attachDragRef,
   };
 }

@@ -195,3 +195,8 @@
 .wmp-desktop[data-wmp-ui='2'] app.wmp wmpmainframe #brand:after {
   white-space: nowrap;
 }
+
+/* When XP frame is visible, hide WMP's internal window controls to avoid duplication */
+.wmp-desktop[data-xp-frame='visible'] #windowcontrols {
+  display: none !important;
+}

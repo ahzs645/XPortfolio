@@ -1,10 +1,24 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { startWmpStandalone } from './wmp/startWmpStandalone';
 import './wmp.css';
 
-function WmpWrapper() {
+function WmpWrapper({ onUpdateHeader, dragRef }) {
   const desktopRef = useRef(null);
   const [error, setError] = useState(null);
+
+  // Callback to toggle Windows XP frame visibility
+  const handleFrameToggle = useCallback((isFrameHidden) => {
+    if (onUpdateHeader) {
+      onUpdateHeader({
+        icon: '/icons/xp/WindowsMediaPlayer.png',
+        title: 'Windows Media Player',
+        buttons: ['minimize', 'maximize', 'close'],
+        // When WMP's internal frame is hidden (compact mode), hide XP frame too
+        // When WMP's internal frame is shown (full mode), show XP frame
+        invisible: isFrameHidden,
+      });
+    }
+  }, [onUpdateHeader]);
 
   useEffect(() => {
     let cleanup = null;
@@ -12,7 +26,11 @@ function WmpWrapper() {
 
     (async () => {
       try {
-        const nextCleanup = await startWmpStandalone({ desktopEl: desktopRef.current });
+        const nextCleanup = await startWmpStandalone({
+          desktopEl: desktopRef.current,
+          onFrameToggle: handleFrameToggle,
+          dragRef: dragRef,
+        });
         if (cancelled) {
           if (typeof nextCleanup === 'function') nextCleanup();
           return;
@@ -27,7 +45,7 @@ function WmpWrapper() {
       cancelled = true;
       if (typeof cleanup === 'function') cleanup();
     };
-  }, []);
+  }, [handleFrameToggle]);
 
   return (
     <div className="wmp-standalone-root" style={{ width: '100%', height: '100%' }}>
