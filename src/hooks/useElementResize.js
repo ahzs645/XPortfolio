@@ -51,7 +51,8 @@ function useElementResize(ref, options) {
   useEffect(() => {
     const target = ref.current;
     if (!target) return;
-    const dragTarget = options.dragRef && options.dragRef.current;
+    // Read dragRef.current dynamically so it works with async-loaded components
+    const getDragTarget = () => options.dragRef && options.dragRef.current;
     const cover = document.createElement('div');
     cover.style.position = 'fixed';
     cover.style.top = 0;
@@ -355,6 +356,7 @@ function useElementResize(ref, options) {
       originMouseX = pageX;
       originMouseY = pageY;
       _boundary = { ...boundary };
+      const dragTarget = getDragTarget();
       if (dragTarget && (e.target === dragTarget || dragTarget.contains(e.target))) {
         // Don't start dragging if clicking on title bar controls (min/max/close buttons)
         if (e.target.closest('.title-bar-controls')) {
@@ -416,6 +418,7 @@ function useElementResize(ref, options) {
       // Check if this touch should be handled for drag/resize
       // Only prevent default if we're actually going to handle it
       const touchTarget = e.target;
+      const dragTarget = getDragTarget();
       const isDragTarget = dragTarget && (touchTarget === dragTarget || dragTarget.contains(touchTarget));
       const isResizeTarget = touchTarget === target && resizable && cursorPos;
 
