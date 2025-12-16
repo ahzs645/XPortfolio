@@ -426,7 +426,7 @@ const WORD_MENUS = [
 function MicrosoftWord({
   onClose,
   onMinimize,
-  onMaximize,
+  // onMaximize - available but not currently used
   onUpdateTitle,
   // File props passed when opening an existing file
   fileData,
@@ -550,26 +550,6 @@ function MicrosoftWord({
     });
   }, [openApp, getFileContent, dataUrlToArrayBuffer]);
 
-  // Handle save
-  const handleSave = useCallback(async () => {
-    if (!editorRef.current) return;
-
-    if (!currentFileId) {
-      await handleSaveAs();
-      return;
-    }
-
-    try {
-      const html = editorRef.current.getContent();
-      const blob = await html2docx(html);
-
-      await updateFile(currentFileId, blob);
-      setIsDirty(false);
-    } catch (error) {
-      console.error('Error saving file:', error);
-    }
-  }, [currentFileId, updateFile]);
-
   // Handle save as
   const handleSaveAs = useCallback(async () => {
     if (!editorRef.current) return;
@@ -599,6 +579,26 @@ function MicrosoftWord({
       console.error('Error saving file:', error);
     }
   }, [currentFileName, createFile]);
+
+  // Handle save
+  const handleSave = useCallback(async () => {
+    if (!editorRef.current) return;
+
+    if (!currentFileId) {
+      await handleSaveAs();
+      return;
+    }
+
+    try {
+      const html = editorRef.current.getContent();
+      const blob = await html2docx(html);
+
+      await updateFile(currentFileId, blob);
+      setIsDirty(false);
+    } catch (error) {
+      console.error('Error saving file:', error);
+    }
+  }, [currentFileId, updateFile, handleSaveAs]);
 
   // Execute TinyMCE command
   const execCommand = useCallback((cmd, ui = false, value = undefined) => {

@@ -344,7 +344,7 @@ function createEmptySheet(name = 'Sheet1', index = 0) {
 function MicrosoftExcel({
   onClose,
   onMinimize,
-  onMaximize,
+  // onMaximize - available but not currently used
   onUpdateTitle,
   fileData,
   fileName,
@@ -402,7 +402,7 @@ function MicrosoftExcel({
   }, [fileData]);
 
   // Handle sheet change
-  const handleSheetChange = useCallback((data) => {
+  const handleSheetChange = useCallback(() => {
     if (!isDirty) {
       setIsDirty(true);
     }
@@ -443,28 +443,6 @@ function MicrosoftExcel({
     });
   }, [openApp, getFileContent]);
 
-  // Handle save
-  const handleSave = useCallback(async () => {
-    if (!currentFileId) {
-      await handleSaveAs();
-      return;
-    }
-
-    try {
-      const currentSheets = workbookRef.current?.getAllSheets() || sheets;
-      const workbook = fortuneSheetToXlsx(currentSheets);
-      const xlsxData = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-      const blob = new Blob([xlsxData], {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      });
-
-      await updateFile(currentFileId, blob);
-      setIsDirty(false);
-    } catch (error) {
-      console.error('Error saving file:', error);
-    }
-  }, [currentFileId, sheets, updateFile]);
-
   // Handle save as
   const handleSaveAs = useCallback(async () => {
     try {
@@ -496,6 +474,28 @@ function MicrosoftExcel({
       console.error('Error saving file:', error);
     }
   }, [currentFileName, sheets, createFile]);
+
+  // Handle save
+  const handleSave = useCallback(async () => {
+    if (!currentFileId) {
+      await handleSaveAs();
+      return;
+    }
+
+    try {
+      const currentSheets = workbookRef.current?.getAllSheets() || sheets;
+      const workbook = fortuneSheetToXlsx(currentSheets);
+      const xlsxData = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([xlsxData], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+
+      await updateFile(currentFileId, blob);
+      setIsDirty(false);
+    } catch (error) {
+      console.error('Error saving file:', error);
+    }
+  }, [currentFileId, sheets, updateFile, handleSaveAs]);
 
   // Handle menu actions
   const handleMenuAction = useCallback((action) => {
