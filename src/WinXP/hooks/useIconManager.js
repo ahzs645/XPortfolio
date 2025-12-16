@@ -1,7 +1,14 @@
 import { useCallback, useState, useEffect, useRef } from 'react';
 import { UPDATE_ICON_POSITIONS, SET_ICONS } from '../constants/actions';
 import { SYSTEM_IDS, SYSTEM_DESKTOP_ICONS } from '../../contexts/FileSystemContext';
-import { convertToDesktopIcons, snapToGrid, snapToNearestAvailable, calculateGridPositions, ICON_GRID } from '../helpers/iconUtils';
+import {
+  convertToDesktopIcons,
+  ICON_GRID,
+  getPixelPositionFromIndex,
+  getGridIndexFromPosition,
+  findNearestAvailableIndex,
+  getMaxRows,
+} from '../helpers/iconUtils';
 
 export function useIconManager({
   dispatch,
@@ -16,27 +23,29 @@ export function useIconManager({
 }) {
   const [alignToGridEnabled, setAlignToGridEnabled] = useState(true);
   const [autoArrangeEnabled, setAutoArrangeEnabled] = useState(false);
-  const iconPositionsRef = useRef({});
+  const iconIndicesRef = useRef({});
+  const [, forceUpdate] = useState(0); // For triggering re-renders on resize
 
   // Update desktop icons from file system Desktop folder + system icons
   useEffect(() => {
     if (!fsLoading && fileSystem) {
       const desktopContents = getFolderContents(SYSTEM_IDS.DESKTOP);
-      const savedPositions = getDesktopIconPositions();
+      const savedIndices = getDesktopIconPositions(); // Now stores gridIndex
 
       // Convert file system items to icons
-      const fileIcons = convertToDesktopIcons(desktopContents, appSettings, savedPositions);
+      const fileIcons = convertToDesktopIcons(desktopContents, appSettings, {});
+
+      // Build occupied indices map
+      const occupiedIndices = {};
 
       // Add system icons (My Computer, Recycle Bin) - these are not in the file system
-      // Use grid constants for proper alignment
-      const { iconHeight, iconGapY, startX, startY } = ICON_GRID;
-      const cellHeight = iconHeight + iconGapY; // 100px per cell
-
       const systemIcons = Object.values(SYSTEM_DESKTOP_ICONS).map((sysIcon, index) => {
-        const savedPos = savedPositions[sysIcon.id];
-        // System icons go at the top of the desktop, aligned to grid
-        const defaultX = startX;
-        const defaultY = startY + index * cellHeight;
+        // System icons get indices 0, 1, 2, etc. by default
+        const savedIndex = savedIndices[sysIcon.id];
+        const gridIndex = savedIndex?.gridIndex ?? index;
+        occupiedIndices[sysIcon.id] = gridIndex;
+
+        const pos = getPixelPositionFromIndex(gridIndex);
 
         return {
           id: sysIcon.id,
@@ -46,121 +55,122 @@ export function useIconManager({
           fullName: sysIcon.name,
           component: appSettings[sysIcon.target]?.component,
           isFocus: false,
-          x: savedPos?.x ?? defaultX,
-          y: savedPos?.y ?? defaultY,
-          type: 'system', // Special type - no shortcut overlay
+          x: pos.x,
+          y: pos.y,
+          gridIndex,
+          type: 'system',
           target: sysIcon.target,
         };
       });
 
-      // Combine: system icons first, then file icons (offset their positions)
-      const allIcons = [...systemIcons, ...fileIcons.map((icon) => ({
-        ...icon,
-        // If no saved position, offset below system icons
-        x: savedPositions[icon.id]?.x ?? icon.x,
-        y: savedPositions[icon.id]?.y ?? (icon.y + systemIcons.length * cellHeight),
-      }))];
+      // Assign grid indices to file icons
+      const systemCount = systemIcons.length;
+      const fileIconsWithIndex = fileIcons.map((icon, index) => {
+        const savedIndex = savedIndices[icon.id];
+        let gridIndex;
 
+        if (savedIndex?.gridIndex !== undefined) {
+          gridIndex = savedIndex.gridIndex;
+        } else {
+          // Default: place after system icons
+          gridIndex = systemCount + index;
+        }
+
+        // Find available index if occupied
+        gridIndex = findNearestAvailableIndex(gridIndex, occupiedIndices, icon.id);
+        occupiedIndices[icon.id] = gridIndex;
+
+        const pos = getPixelPositionFromIndex(gridIndex);
+
+        return {
+          ...icon,
+          x: pos.x,
+          y: pos.y,
+          gridIndex,
+        };
+      });
+
+      const allIcons = [...systemIcons, ...fileIconsWithIndex];
       dispatch({ type: SET_ICONS, payload: allIcons });
     }
   }, [fsLoading, fileSystem, getFolderContents, getDesktopIconPositions, appSettings, dispatch]);
 
-  // Save icon positions when they change (per-user)
+  // Save icon grid indices when they change (per-user)
   useEffect(() => {
-    // Build positions map from current icons
-    const positions = {};
+    const indices = {};
     icons.forEach((icon) => {
-      if (icon.x !== undefined && icon.y !== undefined) {
-        positions[icon.id] = { x: icon.x, y: icon.y };
+      if (icon.gridIndex !== undefined) {
+        indices[icon.id] = { gridIndex: icon.gridIndex };
       }
     });
 
-    // Only save if positions actually changed
-    const positionsStr = JSON.stringify(positions);
-    if (positionsStr !== JSON.stringify(iconPositionsRef.current) && Object.keys(positions).length > 0) {
-      iconPositionsRef.current = positions;
-      setDesktopIconPositions(positions);
+    const indicesStr = JSON.stringify(indices);
+    if (indicesStr !== JSON.stringify(iconIndicesRef.current) && Object.keys(indices).length > 0) {
+      iconIndicesRef.current = indices;
+      setDesktopIconPositions(indices);
     }
   }, [icons, setDesktopIconPositions]);
 
-  // Handle window resize - reposition icons that are out of bounds
+  // Handle window resize - recalculate pixel positions from grid indices
   useEffect(() => {
     const handleResize = () => {
-      const { iconWidth, iconHeight, iconGapX, iconGapY, startX, startY } = ICON_GRID;
-      const cellWidth = iconWidth + iconGapX;
-      const cellHeight = iconHeight + iconGapY;
+      if (icons.length === 0) return;
 
-      // Calculate new bounds
-      const maxHeight = window.innerHeight - 60; // taskbar height
-      const maxWidth = window.innerWidth;
-      const maxY = maxHeight - iconHeight;
-      const maxX = maxWidth - iconWidth;
-
-      // Check if any icons are out of bounds
-      const outOfBoundsIcons = icons.filter(
-        (icon) => icon.x > maxX || icon.y > maxY
-      );
-
-      if (outOfBoundsIcons.length > 0) {
-        // Reposition out-of-bounds icons to nearest available grid position
-        const positions = {};
-        let workingIcons = [...icons];
-
-        outOfBoundsIcons.forEach((icon) => {
-          // Clamp to valid area first, then snap to nearest available
-          const clampedX = Math.min(icon.x, maxX);
-          const clampedY = Math.min(icon.y, maxY);
-          const snapped = snapToNearestAvailable(clampedX, clampedY, workingIcons, icon.id);
-          positions[icon.id] = snapped;
-
-          // Update working icons for next iteration
-          workingIcons = workingIcons.map((i) =>
-            i.id === icon.id ? { ...i, x: snapped.x, y: snapped.y } : i
-          );
-        });
-
-        if (Object.keys(positions).length > 0) {
-          dispatch({ type: UPDATE_ICON_POSITIONS, payload: positions });
+      // Recalculate pixel positions from grid indices
+      const updates = {};
+      icons.forEach((icon) => {
+        if (icon.gridIndex !== undefined) {
+          const pos = getPixelPositionFromIndex(icon.gridIndex);
+          if (pos.x !== icon.x || pos.y !== icon.y) {
+            updates[icon.id] = { x: pos.x, y: pos.y };
+          }
         }
+      });
+
+      if (Object.keys(updates).length > 0) {
+        dispatch({ type: UPDATE_ICON_POSITIONS, payload: updates });
       }
     };
 
     window.addEventListener('resize', handleResize);
-    // Also run once on mount to fix any initially out-of-bounds icons
-    handleResize();
-
     return () => window.removeEventListener('resize', handleResize);
   }, [icons, dispatch]);
 
-  // Update icon positions handler
+  // Update icon positions handler - converts pixel positions to grid indices
   const onUpdateIconPositions = useCallback((positions) => {
-    // If align to grid is enabled, snap all positions to the nearest available grid slot
-    if (alignToGridEnabled) {
-      const snappedPositions = {};
-      const idsBeingMoved = Object.keys(positions);
+    // Build current occupied indices map
+    const occupiedIndices = {};
+    icons.forEach((icon) => {
+      if (icon.gridIndex !== undefined) {
+        occupiedIndices[icon.id] = icon.gridIndex;
+      }
+    });
 
-      // Create a working copy of icons with updated positions for collision detection
-      let workingIcons = icons.map(icon => {
-        if (snappedPositions[icon.id]) {
-          return { ...icon, ...snappedPositions[icon.id] };
-        }
-        return icon;
-      });
+    const updates = {};
 
-      Object.entries(positions).forEach(([id, pos]) => {
-        // Find nearest available position, excluding all icons being moved
-        const snapped = snapToNearestAvailable(pos.x, pos.y, workingIcons, id);
-        snappedPositions[id] = snapped;
+    Object.entries(positions).forEach(([id, pos]) => {
+      // Convert pixel position to grid index
+      let targetIndex = getGridIndexFromPosition(pos.x, pos.y);
 
-        // Update working icons with the snapped position for next iteration
-        workingIcons = workingIcons.map(icon =>
-          icon.id === id ? { ...icon, x: snapped.x, y: snapped.y } : icon
-        );
-      });
-      dispatch({ type: UPDATE_ICON_POSITIONS, payload: snappedPositions });
-    } else {
-      dispatch({ type: UPDATE_ICON_POSITIONS, payload: positions });
-    }
+      if (alignToGridEnabled) {
+        // Find nearest available index
+        targetIndex = findNearestAvailableIndex(targetIndex, occupiedIndices, id);
+      }
+
+      // Update occupied indices for next iteration
+      occupiedIndices[id] = targetIndex;
+
+      // Calculate pixel position from grid index
+      const pixelPos = getPixelPositionFromIndex(targetIndex);
+
+      updates[id] = {
+        x: pixelPos.x,
+        y: pixelPos.y,
+        gridIndex: targetIndex,
+      };
+    });
+
+    dispatch({ type: UPDATE_ICON_POSITIONS, payload: updates });
   }, [alignToGridEnabled, icons, dispatch]);
 
   // Handle moving icons to a folder via drag-and-drop
@@ -177,30 +187,37 @@ export function useIconManager({
   // Arrange icons by name
   const handleArrangeByName = useCallback(() => {
     const sortedIcons = [...icons].sort((a, b) => {
-      // System icons first (My Computer, Recycle Bin)
       if (a.type === 'system' && b.type !== 'system') return -1;
       if (a.type !== 'system' && b.type === 'system') return 1;
-      // Then alphabetically by title
       return a.title.localeCompare(b.title, undefined, { sensitivity: 'base' });
     });
-    const positions = calculateGridPositions(sortedIcons);
-    dispatch({ type: UPDATE_ICON_POSITIONS, payload: positions });
+
+    const updates = {};
+    sortedIcons.forEach((icon, index) => {
+      const pos = getPixelPositionFromIndex(index);
+      updates[icon.id] = { x: pos.x, y: pos.y, gridIndex: index };
+    });
+
+    dispatch({ type: UPDATE_ICON_POSITIONS, payload: updates });
   }, [icons, dispatch]);
 
   // Arrange icons by size
   const handleArrangeBySize = useCallback(() => {
     const sortedIcons = [...icons].sort((a, b) => {
-      // System icons first
       if (a.type === 'system' && b.type !== 'system') return -1;
       if (a.type !== 'system' && b.type === 'system') return 1;
-      // Folders before files
       if (a.type === 'folder' && b.type !== 'folder') return -1;
       if (a.type !== 'folder' && b.type === 'folder') return 1;
-      // Then by size (larger first)
       return (b.size || 0) - (a.size || 0);
     });
-    const positions = calculateGridPositions(sortedIcons);
-    dispatch({ type: UPDATE_ICON_POSITIONS, payload: positions });
+
+    const updates = {};
+    sortedIcons.forEach((icon, index) => {
+      const pos = getPixelPositionFromIndex(index);
+      updates[icon.id] = { x: pos.x, y: pos.y, gridIndex: index };
+    });
+
+    dispatch({ type: UPDATE_ICON_POSITIONS, payload: updates });
   }, [icons, dispatch]);
 
   // Arrange icons by type
@@ -209,33 +226,42 @@ export function useIconManager({
       if (icon.type === 'system') return 0;
       if (icon.type === 'folder') return 1;
       if (icon.type === 'shortcut') return 2;
-      // For files, group by extension
       const ext = icon.title?.split('.').pop()?.toLowerCase() || '';
       return ext;
     };
+
     const sortedIcons = [...icons].sort((a, b) => {
       const typeA = getTypeOrder(a);
       const typeB = getTypeOrder(b);
       if (typeA < typeB) return -1;
       if (typeA > typeB) return 1;
-      // Same type, sort by name
       return a.title.localeCompare(b.title, undefined, { sensitivity: 'base' });
     });
-    const positions = calculateGridPositions(sortedIcons);
-    dispatch({ type: UPDATE_ICON_POSITIONS, payload: positions });
+
+    const updates = {};
+    sortedIcons.forEach((icon, index) => {
+      const pos = getPixelPositionFromIndex(index);
+      updates[icon.id] = { x: pos.x, y: pos.y, gridIndex: index };
+    });
+
+    dispatch({ type: UPDATE_ICON_POSITIONS, payload: updates });
   }, [icons, dispatch]);
 
   // Arrange icons by modified date
   const handleArrangeByModified = useCallback(() => {
     const sortedIcons = [...icons].sort((a, b) => {
-      // System icons first
       if (a.type === 'system' && b.type !== 'system') return -1;
       if (a.type !== 'system' && b.type === 'system') return 1;
-      // Then by modified date (newest first)
       return (b.dateModified || 0) - (a.dateModified || 0);
     });
-    const positions = calculateGridPositions(sortedIcons);
-    dispatch({ type: UPDATE_ICON_POSITIONS, payload: positions });
+
+    const updates = {};
+    sortedIcons.forEach((icon, index) => {
+      const pos = getPixelPositionFromIndex(index);
+      updates[icon.id] = { x: pos.x, y: pos.y, gridIndex: index };
+    });
+
+    dispatch({ type: UPDATE_ICON_POSITIONS, payload: updates });
   }, [icons, dispatch]);
 
   // Toggle auto arrange
@@ -243,54 +269,48 @@ export function useIconManager({
     const newAutoArrange = !autoArrangeEnabled;
     setAutoArrangeEnabled(newAutoArrange);
 
-    // If enabling auto arrange, arrange icons now
     if (newAutoArrange) {
-      const sortedIcons = [...icons].sort((a, b) => {
-        if (a.type === 'system' && b.type !== 'system') return -1;
-        if (a.type !== 'system' && b.type === 'system') return 1;
-        return a.title.localeCompare(b.title, undefined, { sensitivity: 'base' });
-      });
-      const positions = calculateGridPositions(sortedIcons);
-      dispatch({ type: UPDATE_ICON_POSITIONS, payload: positions });
+      handleArrangeByName();
     }
-  }, [autoArrangeEnabled, icons, dispatch]);
+  }, [autoArrangeEnabled, handleArrangeByName]);
 
   // Toggle align to grid
   const handleAlignToGrid = useCallback(() => {
     const newAlignToGrid = !alignToGridEnabled;
     setAlignToGridEnabled(newAlignToGrid);
 
-    // If enabling align to grid, snap all icons to nearest available positions
+    // If enabling, re-snap all icons to proper grid positions
     if (newAlignToGrid) {
-      const positions = {};
-      let workingIcons = [...icons];
+      const occupiedIndices = {};
+      const updates = {};
 
       icons.forEach((icon) => {
-        const snapped = snapToNearestAvailable(icon.x, icon.y, workingIcons, icon.id);
-        positions[icon.id] = snapped;
+        let gridIndex = icon.gridIndex ?? getGridIndexFromPosition(icon.x, icon.y);
+        gridIndex = findNearestAvailableIndex(gridIndex, occupiedIndices, icon.id);
+        occupiedIndices[icon.id] = gridIndex;
 
-        // Update working icons with snapped position for next iteration
-        workingIcons = workingIcons.map(i =>
-          i.id === icon.id ? { ...i, x: snapped.x, y: snapped.y } : i
-        );
+        const pos = getPixelPositionFromIndex(gridIndex);
+        updates[icon.id] = { x: pos.x, y: pos.y, gridIndex };
       });
-      dispatch({ type: UPDATE_ICON_POSITIONS, payload: positions });
+
+      dispatch({ type: UPDATE_ICON_POSITIONS, payload: updates });
     }
   }, [alignToGridEnabled, icons, dispatch]);
 
   // Refresh desktop icons
   const refreshIcons = useCallback(() => {
     const desktopContents = getFolderContents(SYSTEM_IDS.DESKTOP);
-    const savedPositions = getDesktopIconPositions();
-    const fileIcons = convertToDesktopIcons(desktopContents, appSettings, savedPositions);
+    const savedIndices = getDesktopIconPositions();
+    const fileIcons = convertToDesktopIcons(desktopContents, appSettings, {});
 
-    // Use grid constants for proper alignment
-    const { iconHeight, iconGapY, startX, startY } = ICON_GRID;
-    const cellHeight = iconHeight + iconGapY; // 100px per cell
+    const occupiedIndices = {};
 
-    // Add system icons
     const systemIcons = Object.values(SYSTEM_DESKTOP_ICONS).map((sysIcon, index) => {
-      const savedPos = savedPositions[sysIcon.id];
+      const savedIndex = savedIndices[sysIcon.id];
+      const gridIndex = savedIndex?.gridIndex ?? index;
+      occupiedIndices[sysIcon.id] = gridIndex;
+      const pos = getPixelPositionFromIndex(gridIndex);
+
       return {
         id: sysIcon.id,
         programId: sysIcon.id,
@@ -299,19 +319,31 @@ export function useIconManager({
         fullName: sysIcon.name,
         component: appSettings[sysIcon.target]?.component,
         isFocus: false,
-        x: savedPos?.x ?? startX,
-        y: savedPos?.y ?? (startY + index * cellHeight),
+        x: pos.x,
+        y: pos.y,
+        gridIndex,
         type: 'system',
         target: sysIcon.target,
       };
     });
 
-    const allIcons = [...systemIcons, ...fileIcons.map((icon) => ({
-      ...icon,
-      x: savedPositions[icon.id]?.x ?? icon.x,
-      y: savedPositions[icon.id]?.y ?? (icon.y + systemIcons.length * cellHeight),
-    }))];
+    const systemCount = systemIcons.length;
+    const fileIconsWithIndex = fileIcons.map((icon, index) => {
+      const savedIndex = savedIndices[icon.id];
+      let gridIndex = savedIndex?.gridIndex ?? (systemCount + index);
+      gridIndex = findNearestAvailableIndex(gridIndex, occupiedIndices, icon.id);
+      occupiedIndices[icon.id] = gridIndex;
+      const pos = getPixelPositionFromIndex(gridIndex);
 
+      return {
+        ...icon,
+        x: pos.x,
+        y: pos.y,
+        gridIndex,
+      };
+    });
+
+    const allIcons = [...systemIcons, ...fileIconsWithIndex];
     dispatch({ type: SET_ICONS, payload: allIcons });
   }, [getFolderContents, getDesktopIconPositions, appSettings, dispatch]);
 

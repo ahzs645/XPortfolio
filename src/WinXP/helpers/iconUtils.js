@@ -27,6 +27,69 @@ export const ICON_GRID = {
   startY: 10,
 };
 
+// Calculate how many rows fit in the current viewport
+export const getMaxRows = () => {
+  const { iconHeight, iconGapY, startY } = ICON_GRID;
+  const cellHeight = iconHeight + iconGapY;
+  const maxHeight = window.innerHeight - 60; // 60px for taskbar
+  return Math.max(1, Math.floor((maxHeight - startY) / cellHeight));
+};
+
+// Calculate pixel position from grid index
+export const getPixelPositionFromIndex = (gridIndex) => {
+  const { iconWidth, iconHeight, iconGapX, iconGapY, startX, startY } = ICON_GRID;
+  const cellWidth = iconWidth + iconGapX;
+  const cellHeight = iconHeight + iconGapY;
+  const maxRows = getMaxRows();
+
+  const column = Math.floor(gridIndex / maxRows);
+  const row = gridIndex % maxRows;
+
+  return {
+    x: startX + column * cellWidth,
+    y: startY + row * cellHeight,
+  };
+};
+
+// Calculate grid index from pixel position
+export const getGridIndexFromPosition = (x, y) => {
+  const { iconWidth, iconHeight, iconGapX, iconGapY, startX, startY } = ICON_GRID;
+  const cellWidth = iconWidth + iconGapX;
+  const cellHeight = iconHeight + iconGapY;
+  const maxRows = getMaxRows();
+
+  const column = Math.max(0, Math.round((x - startX) / cellWidth));
+  const row = Math.max(0, Math.min(maxRows - 1, Math.round((y - startY) / cellHeight)));
+
+  return column * maxRows + row;
+};
+
+// Find nearest available grid index
+export const findNearestAvailableIndex = (targetIndex, occupiedIndices, excludeId = null) => {
+  const occupied = new Set(
+    Object.entries(occupiedIndices)
+      .filter(([id]) => id !== excludeId)
+      .map(([, idx]) => idx)
+  );
+
+  // If target is available, use it
+  if (!occupied.has(targetIndex)) {
+    return targetIndex;
+  }
+
+  // Search outward for nearest available
+  for (let offset = 1; offset < 1000; offset++) {
+    if (!occupied.has(targetIndex + offset)) {
+      return targetIndex + offset;
+    }
+    if (targetIndex - offset >= 0 && !occupied.has(targetIndex - offset)) {
+      return targetIndex - offset;
+    }
+  }
+
+  return targetIndex; // Fallback
+};
+
 // Convert file system items to desktop icon format
 export const convertToDesktopIcons = (items, appSettings, savedPositions = {}) => {
   const { iconWidth, iconHeight, iconGapX, iconGapY, startX, startY } = ICON_GRID;
