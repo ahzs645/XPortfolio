@@ -48,6 +48,7 @@ const AdobeReader = lazy(() => import('./AdobeReader'));
 const ShortcutWizard = lazy(() => import('./ShortcutWizard'));
 const BrowseForFolder = lazy(() => import('./BrowseForFolder'));
 const ErrorDialog = lazy(() => import('./ErrorDialog'));
+const MessageBox = lazy(() => import('./MessageBox'));
 const OpenWith = lazy(() => import('./OpenWith'));
 const TaskManager = lazy(() => import('./TaskManager'));
 const OpenFileDialog = lazy(() => import('./OpenFileDialog'));
@@ -1531,6 +1532,26 @@ export const appSettings = {
     maximized: false,
     multiInstance: true,
   },
+  'Message Box': {
+    header: {
+      icon: '/icons/xp/Critical.png',
+      title: 'Windows',
+      buttons: ['close'],
+    },
+    component: MessageBox,
+    defaultSize: {
+      width: 420,
+      height: 'auto',
+    },
+    defaultOffset: {
+      x: 300,
+      y: 200,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
+  },
   'Open With': {
     header: {
       icon: '/icons/xp/Default.png',
@@ -1778,6 +1799,7 @@ export {
   AdobeReader,
   ShortcutWizard,
   BrowseForFolder,
+  MessageBox,
   OpenWith,
   TaskManager,
   OpenFileDialog,

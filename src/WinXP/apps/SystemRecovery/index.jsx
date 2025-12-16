@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { useFileSystem } from '../../../contexts/FileSystemContext';
 import { useUserAccounts } from '../../../contexts/UserAccountsContext';
 import { useUserSettings } from '../../../contexts/UserSettingsContext';
+import { useMessageBox } from '../../../contexts/MessageBoxContext';
 import * as idb from 'idb-keyval';
 import { withBaseUrl } from '../../../utils/baseUrl';
 
@@ -13,13 +14,17 @@ function SystemRecovery() {
   const { activeUserId, users } = useUserAccounts();
   const { resetSettings } = useUserSettings();
 
+  // Use the MessageBox context for XP-style dialogs
+  const { showMessageBox, confirm, alert } = useMessageBox();
+
   // Reset current user's data only
   const handleResetCurrentUser = useCallback(async () => {
     const currentUser = users.find(u => u.id === activeUserId);
     const userName = currentUser?.name || 'current user';
 
-    const confirmed = window.confirm(
-      `Are you sure you want to reset ${userName}'s profile?\n\nThis will clear:\n• Files and folders\n• Desktop settings\n• Icon positions\n\nOther user accounts will not be affected.`
+    const confirmed = await confirm(
+      `Are you sure you want to reset ${userName}'s profile?\n\nThis will clear:\n• Files and folders\n• Desktop settings\n• Icon positions\n\nOther user accounts will not be affected.`,
+      'System Recovery'
     );
 
     if (!confirmed) return;
@@ -49,24 +54,31 @@ function SystemRecovery() {
       console.error('Reset failed:', error);
       setIsLoading(false);
       setLoadingMessage('');
-      alert('An error occurred during reset. Please try again.');
+      await alert('An error occurred during reset. Please try again.', 'Error', 'error');
     }
-  }, [activeUserId, users, resetFileSystem, resetSettings]);
+  }, [activeUserId, users, resetFileSystem, resetSettings, confirm, alert]);
 
   // Reset entire computer (all users and data)
   const handleResetAll = useCallback(async () => {
-    const confirmed = window.confirm(
-      'Are you sure you want to COMPLETELY RESET the computer?\n\nThis will permanently delete:\n• ALL user accounts\n• ALL files and folders\n• ALL settings and preferences\n• ALL saved data\n\n⚠️ This action CANNOT be undone!'
+    const confirmed = await confirm(
+      'Are you sure you want to COMPLETELY RESET the computer?\n\nThis will permanently delete:\n• ALL user accounts\n• ALL files and folders\n• ALL settings and preferences\n• ALL saved data\n\nThis action CANNOT be undone!',
+      'System Recovery - Warning'
     );
 
     if (!confirmed) return;
 
     // Double confirmation for destructive action
-    const doubleConfirm = window.confirm(
-      '⚠️ FINAL WARNING ⚠️\n\nYou are about to erase EVERYTHING.\n\nAre you absolutely sure?'
-    );
+    const doubleConfirm = await showMessageBox({
+      title: 'Final Warning',
+      message: 'FINAL WARNING\n\nYou are about to erase EVERYTHING.\n\nAre you absolutely sure?',
+      icon: 'error',
+      buttons: [
+        { label: 'Yes, Reset Everything', value: 'yes' },
+        { label: 'Cancel', value: 'no', primary: true },
+      ],
+    });
 
-    if (!doubleConfirm) return;
+    if (doubleConfirm !== 'yes') return;
 
     setIsLoading(true);
     setLoadingMessage('Resetting entire computer...');
@@ -105,9 +117,9 @@ function SystemRecovery() {
       console.error('Reset failed:', error);
       setIsLoading(false);
       setLoadingMessage('');
-      alert('An error occurred during reset. Please try again.');
+      await alert('An error occurred during reset. Please try again.', 'Error', 'error');
     }
-  }, []);
+  }, [confirm, alert, showMessageBox]);
 
   const currentUser = users?.find(u => u.id === activeUserId);
 
@@ -150,7 +162,7 @@ function SystemRecovery() {
                 <OptionContent>
                   <OptionTitle>Reset Entire Computer</OptionTitle>
                   <OptionDescription>
-                    <strong>⚠️ Destructive:</strong> Completely wipes all user accounts, files, and settings. Returns the computer to its initial state.
+                    <strong>Destructive:</strong> Completely wipes all user accounts, files, and settings. Returns the computer to its initial state.
                   </OptionDescription>
                   <ResetButton onClick={handleResetAll} $warning>
                     Reset Everything
@@ -160,7 +172,7 @@ function SystemRecovery() {
             </OptionsSection>
 
             <WarningText>
-              ⚠️ Recovery actions cannot be undone!
+              Recovery actions cannot be undone!
             </WarningText>
           </>
         ) : (

@@ -11,6 +11,7 @@ import { useStartMenu } from '../contexts/StartMenuContext';
 import { useUserAccounts } from '../contexts/UserAccountsContext';
 import { AppProvider } from '../contexts/AppContext';
 import { RunningAppsProvider } from '../contexts/RunningAppsContext';
+import { MessageBoxProvider } from '../contexts/MessageBoxContext';
 import { ContextMenu } from './components/ContextMenu';
 import FileUploadDialog from './FileUploadDialog';
 import { useFileContextMenu, useBackgroundContextMenu } from './hooks/useFileContextMenu';
@@ -533,6 +534,7 @@ function WinXP() {
 
   return (
     <AppProvider appSettings={appSettings} dispatch={dispatch} addAppAction={ADD_APP}>
+      <MessageBoxProvider dispatch={dispatch} appSettings={appSettings} addAppAction={ADD_APP}>
       <RunningAppsProvider apps={state.apps} onEndTask={handleEndTask} onSwitchTo={handleSwitchToApp} showClippy={showClippy} onEndClippy={handleEndClippy}>
       <Container
         ref={ref}
@@ -642,6 +644,7 @@ function WinXP() {
         />
       </Container>
       </RunningAppsProvider>
+      </MessageBoxProvider>
     </AppProvider>
   );
 }
