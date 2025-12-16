@@ -250,6 +250,13 @@ export const START_MENU_CATALOG = {
     title: 'WordPad',
     description: 'Rich text editor',
   },
+  microsoftWord: {
+    type: 'program',
+    appKey: 'Microsoft Word',
+    icon: '/icons/xp/MSWord.png',
+    title: 'Microsoft Word',
+    description: 'Word processor',
+  },
   userAccounts: {
     type: 'program',
     appKey: 'User Accounts',
@@ -313,6 +320,13 @@ export const START_MENU_CATALOG = {
     title: 'Wizard101',
     description: 'Wizard101 Game Launcher',
   },
+  run: {
+    type: 'program',
+    appKey: 'Run',
+    icon: '/icons/luna/run.png',
+    title: 'Run...',
+    description: 'Open a program or file',
+  },
   'divider-main': {
     type: 'separator',
   },
@@ -338,6 +352,7 @@ export const PINNED_RIGHT = [
   'myComputer',
   'divider-main',
   'help',
+  'run',
 ];
 
 // Generate project folder items from external projects
@@ -370,7 +385,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Accessories',
     icon: '/icons/folder-icon.png',
-    items: ['calculator', 'notepad', 'wordpad', 'displayProperties', 'speechProperties', 'systemProperties', 'userAccounts', 'paint', 'cmd', 'imageViewer', 'installer', 'systemTools'],
+    items: ['calculator', 'notepad', 'wordpad', 'microsoftWord', 'displayProperties', 'speechProperties', 'systemProperties', 'userAccounts', 'paint', 'cmd', 'imageViewer', 'installer', 'systemTools'],
   },
   entertainment: {
     type: 'folder',

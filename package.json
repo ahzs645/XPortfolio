@@ -13,17 +13,23 @@
     "version:bump": "node scripts/generate-build-version.js --bump"
   },
   "dependencies": {
+    "@fortune-sheet/react": "^1.0.4",
+    "@tinymce/tinymce-react": "^6.3.0",
+    "docx": "^9.5.1",
     "dompurify": "^3.3.0",
     "idb-keyval": "^6.2.2",
     "js-yaml": "^4.1.1",
     "jszip": "^3.10.1",
+    "mammoth": "^1.11.0",
     "marked": "^17.0.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-pdf": "^10.2.0",
     "styled-components": "^6.1.19",
+    "tinymce": "^8.3.0",
     "uuid": "^13.0.0",
     "webamp": "^2.2.0",
+    "xlsx": "^0.18.5",
     "xp.css": "^0.2.6"
   },
   "devDependencies": {

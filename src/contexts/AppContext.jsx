@@ -22,6 +22,7 @@ const PROGRAM_NAME_TO_APP_KEY = {
   'Pinball': 'Pinball',
   'Solitaire': 'Solitaire',
   'WordPad': 'WordPad',
+  'Microsoft Word': 'Microsoft Word',
 };
 
 export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
@@ -228,6 +229,25 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
             },
             injectProps: {
               initialContent: textContent,
+              fileName: name,
+              fileId: fileItem.id,
+            },
+          },
+        });
+        return true;
+      }
+
+      case 'Microsoft Word': {
+        dispatch({
+          type: addAppAction,
+          payload: {
+            ...appSettings['Microsoft Word'],
+            header: {
+              ...appSettings['Microsoft Word'].header,
+              title: `${name} - Microsoft Word`,
+            },
+            injectProps: {
+              fileData: fileData,
               fileName: name,
               fileId: fileItem.id,
             },

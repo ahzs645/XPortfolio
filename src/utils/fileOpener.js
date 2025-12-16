@@ -240,6 +240,29 @@ export function openFileWithApp({
     }
   }
 
+  // For DOCX files (Microsoft Word)
+  const docxExtensions = ['.docx', '.doc'];
+  if (docxExtensions.includes(ext) || contentType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+    if (appSettings['Microsoft Word']) {
+      dispatch({
+        type: addAppAction,
+        payload: {
+          ...appSettings['Microsoft Word'],
+          header: {
+            ...appSettings['Microsoft Word'].header,
+            title: `${fileName} - Microsoft Word`,
+          },
+          injectProps: {
+            fileData: fileData,
+            fileName: fileName,
+            fileId: fileId,
+          },
+        },
+      });
+      return true;
+    }
+  }
+
   // For HTML files
   const htmlExtensions = ['.html', '.htm'];
   if (htmlExtensions.includes(ext)) {

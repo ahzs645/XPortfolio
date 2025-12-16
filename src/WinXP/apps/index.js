@@ -37,6 +37,7 @@ const SystemProperties = lazy(() => import('./SystemProperties'));
 const SystemRecovery = lazy(() => import('./SystemRecovery'));
 const UserAccounts = lazy(() => import('./UserAccounts'));
 const Wordpad = lazy(() => import('./Wordpad'));
+const MicrosoftWord = lazy(() => import('./MicrosoftWord'));
 const HelpAndSupport = lazy(() => import('./HelpAndSupport'));
 const FontViewer = lazy(() => import('./FontViewer'));
 const OutlookExpress = lazy(() => import('./OutlookExpress'));
@@ -57,6 +58,7 @@ const FlashPlayer = lazy(() => import('./FlashPlayer'));
 const WorldOfWarcraft = lazy(() => import('./WorldOfWarcraft'));
 const RuneScape = lazy(() => import('./RuneScape'));
 const Wizard101 = lazy(() => import('./Wizard101'));
+const Run = lazy(() => import('./Run'));
 // ControlPanel is now integrated into MyComputer as a navigable view
 
 // XP Icons paths
@@ -85,6 +87,7 @@ const XP_ICONS = {
   transferWizard: '/icons/xp/tray/migrate.png',
   flashPlayer: '/icons/flash/flash_player.png',
   worldOfWarcraft: '/icons/games/wow.webp',
+  microsoftWord: '/icons/xp/MSWord.png',
 };
 
 // App categories for organization
@@ -111,6 +114,7 @@ export const appCategoryMap = {
   'Notepad': APP_CATEGORIES.ACCESSORY,
   'Paint': APP_CATEGORIES.ACCESSORY,
   'WordPad': APP_CATEGORIES.ACCESSORY,
+  'Microsoft Word': APP_CATEGORIES.ACCESSORY,
   'Command Prompt': APP_CATEGORIES.ACCESSORY,
 
   // Games
@@ -159,6 +163,7 @@ export const appCategoryMap = {
   'Create Shortcut': APP_CATEGORIES.UTILITY,
   'Browse For Folder': APP_CATEGORIES.UTILITY,
   'Open With': APP_CATEGORIES.UTILITY,
+  'Run': APP_CATEGORIES.UTILITY,
 
   // Fun/Extra
   'QQ Penguin': APP_CATEGORIES.GAME,
@@ -1315,6 +1320,30 @@ export const appSettings = {
     maximized: false,
     multiInstance: true,
   },
+  'Microsoft Word': {
+    header: {
+      icon: XP_ICONS.microsoftWord,
+      title: 'Microsoft Word',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: MicrosoftWord,
+    defaultSize: {
+      width: 900,
+      height: 700,
+    },
+    minSize: {
+      width: 500,
+      height: 400,
+    },
+    defaultOffset: {
+      x: 100,
+      y: 50,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
+  },
   'Font Viewer': {
     header: {
       icon: XP_ICONS.fontViewer,
@@ -1656,6 +1685,26 @@ export const appSettings = {
     maximized: false,
     multiInstance: false,
   },
+  'Run': {
+    header: {
+      icon: '/icons/luna/run.png',
+      title: 'Run',
+      buttons: ['close'],
+    },
+    component: Run,
+    defaultSize: {
+      width: 400,
+      height: 'auto',
+    },
+    defaultOffset: {
+      x: 200,
+      y: 200,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
   // Control Panel is now integrated into MyComputer as a navigable view
   // Access via My Computer sidebar > Control Panel
 };
@@ -1711,4 +1760,5 @@ export {
   WorldOfWarcraft,
   RuneScape,
   Wizard101,
+  Run,
 };

@@ -29,6 +29,8 @@ export const fileIcons = {
   '.gif': '/icons/image-viewer.png',
   '.bmp': '/icons/paint.webp',
   '.pdf': '/icons/pdf/PDF.ico',
+  '.docx': '/icons/xp/MSWord.png',
+  '.doc': '/icons/xp/MSWord.png',
   '.html': '/icons/xp/InternetExplorer6.png',
   '.htm': '/icons/xp/InternetExplorer6.png',
   '.url': '/icons/xp/InternetExplorer6.png',

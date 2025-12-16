@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Microsoft Word</title>
+    <script src="tinymce/tinymce.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+      }
+
+      /* Windows XP Styling for TinyMCE */
+
+      /* Main container */
+      .tox.tox-tinymce {
+        border: none !important;
+        border-radius: 0 !important;
+      }
+
+      /* Menu bar - XP style with gradient */
+      .tox .tox-menubar {
+        background: linear-gradient(180deg, #fafbfd 0%, #ebf3fd 50%, #d9e8fb 100%) !important;
+        border-bottom: 1px solid #a0b3d6 !important;
+        padding: 1px 2px !important;
+      }
+
+      .tox .tox-mbtn {
+        background: transparent !important;
+        border-radius: 2px !important;
+        color: #000 !important;
+        font-family: 'Tahoma', sans-serif !important;
+        font-size: 11px !important;
+        padding: 2px 6px !important;
+      }
+
+      .tox .tox-mbtn:hover:not(:disabled),
+      .tox .tox-mbtn--active {
+        background: linear-gradient(180deg, #c1d2ee 0%, #adc2e0 100%) !important;
+        border: 1px solid #316ac5 !important;
+      }
+
+      /* Toolbar - XP style */
+      .tox .tox-toolbar-overlord,
+      .tox .tox-toolbar__primary {
+        background: linear-gradient(180deg, #fafbfd 0%, #ebf3fd 50%, #d9e8fb 100%) !important;
+        border-bottom: 1px solid #a0b3d6 !important;
+      }
+
+      .tox .tox-toolbar__group {
+        border-right: 1px solid #c5d4e9 !important;
+        padding: 2px 4px !important;
+      }
+
+      .tox .tox-toolbar__group:last-child {
+        border-right: none !important;
+      }
+
+      /* Toolbar buttons - XP 3D style */
+      .tox .tox-tbtn {
+        background: transparent !important;
+        border: 1px solid transparent !important;
+        border-radius: 2px !important;
+        margin: 1px !important;
+        width: 23px !important;
+        height: 22px !important;
+      }
+
+      .tox .tox-tbtn:hover {
+        background: linear-gradient(180deg, #fafbfd 0%, #e2ecfb 50%, #c1d3ec 100%) !important;
+        border: 1px solid #316ac5 !important;
+        box-shadow: inset 0 0 1px rgba(255,255,255,0.5) !important;
+      }
+
+      .tox .tox-tbtn:active,
+      .tox .tox-tbtn--enabled,
+      .tox .tox-tbtn--enabled:hover {
+        background: linear-gradient(180deg, #c1d3ec 0%, #a8c0de 50%, #98b5da 100%) !important;
+        border: 1px solid #316ac5 !important;
+        box-shadow: inset 1px 1px 2px rgba(0,0,0,0.2) !important;
+      }
+
+      .tox .tox-tbtn svg {
+        fill: #000 !important;
+      }
+
+      /* Split buttons */
+      .tox .tox-split-button {
+        border: 1px solid transparent !important;
+        border-radius: 2px !important;
+        margin: 1px !important;
+      }
+
+      .tox .tox-split-button:hover {
+        border: 1px solid #316ac5 !important;
+        box-shadow: none !important;
+      }
+
+      .tox .tox-split-button .tox-tbtn {
+        border: none !important;
+      }
+
+      /* Font/size dropdowns */
+      .tox .tox-tbtn--select {
+        width: auto !important;
+        padding: 0 4px !important;
+      }
+
+      /* Status bar - XP style */
+      .tox .tox-statusbar {
+        background: linear-gradient(180deg, #f5f8fc 0%, #dde8f6 100%) !important;
+        border-top: 1px solid #a0b3d6 !important;
+        padding: 2px 4px !important;
+        font-family: 'Tahoma', sans-serif !important;
+        font-size: 11px !important;
+      }
+
+      .tox .tox-statusbar__text-container {
+        color: #000 !important;
+      }
+
+      .tox .tox-statusbar__path-item {
+        color: #000 !important;
+      }
+
+      .tox .tox-statusbar__wordcount {
+        color: #000 !important;
+      }
+
+      /* Edit area border */
+      .tox .tox-edit-area {
+        border: none !important;
+      }
+
+      .tox .tox-edit-area__iframe {
+        background: #fff !important;
+      }
+
+      /* Dropdown menus - XP style */
+      .tox .tox-menu {
+        background: #fff !important;
+        border: 1px solid #666 !important;
+        border-radius: 0 !important;
+        box-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
+      }
+
+      .tox .tox-collection__item {
+        font-family: 'Tahoma', sans-serif !important;
+        font-size: 11px !important;
+        color: #000 !important;
+        padding: 4px 20px 4px 24px !important;
+      }
+
+      .tox .tox-collection__item--active,
+      .tox .tox-collection__item:hover {
+        background: #316ac5 !important;
+        color: #fff !important;
+      }
+
+      .tox .tox-collection__item--active .tox-collection__item-label,
+      .tox .tox-collection__item:hover .tox-collection__item-label {
+        color: #fff !important;
+      }
+
+      .tox .tox-collection__item-icon svg {
+        fill: currentColor !important;
+      }
+
+      /* Dialog styling - XP style */
+      .tox .tox-dialog {
+        border: 2px solid #0054e3 !important;
+        border-radius: 0 !important;
+        box-shadow: 4px 4px 8px rgba(0,0,0,0.4) !important;
+      }
+
+      .tox .tox-dialog__header {
+        background: linear-gradient(180deg, #0a246a 0%, #0d4bbd 10%, #0054e3 50%, #0054e3 90%, #0d4bbd 100%) !important;
+        padding: 4px 6px !important;
+        border-radius: 0 !important;
+      }
+
+      .tox .tox-dialog__title {
+        color: #fff !important;
+        font-family: 'Trebuchet MS', 'Tahoma', sans-serif !important;
+        font-size: 13px !important;
+        font-weight: bold !important;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5) !important;
+      }
+
+      .tox .tox-dialog__header .tox-button {
+        background: transparent !important;
+        border: none !important;
+        color: #fff !important;
+      }
+
+      .tox .tox-dialog__body {
+        background: #ece9d8 !important;
+        font-family: 'Tahoma', sans-serif !important;
+        font-size: 11px !important;
+      }
+
+      .tox .tox-dialog__body-content {
+        padding: 8px !important;
+      }
+
+      .tox .tox-dialog__footer {
+        background: #ece9d8 !important;
+        border-top: 1px solid #aaa !important;
+        padding: 8px !important;
+      }
+
+      /* Dialog buttons - XP style */
+      .tox .tox-button {
+        background: linear-gradient(180deg, #fff 0%, #ece9d8 50%, #d8d4c4 100%) !important;
+        border: 1px solid #7a7a7a !important;
+        border-radius: 3px !important;
+        box-shadow: 0 0 0 1px #fff inset !important;
+        color: #000 !important;
+        font-family: 'Tahoma', sans-serif !important;
+        font-size: 11px !important;
+        padding: 4px 12px !important;
+        min-width: 75px !important;
+      }
+
+      .tox .tox-button:hover:not(:disabled) {
+        background: linear-gradient(180deg, #fff 0%, #f5f3ee 50%, #e8e5da 100%) !important;
+        border-color: #316ac5 !important;
+      }
+
+      .tox .tox-button:active:not(:disabled) {
+        background: linear-gradient(180deg, #d8d4c4 0%, #ece9d8 100%) !important;
+        box-shadow: inset 1px 1px 2px rgba(0,0,0,0.2) !important;
+      }
+
+      .tox .tox-button--secondary {
+        background: linear-gradient(180deg, #fff 0%, #ece9d8 50%, #d8d4c4 100%) !important;
+        color: #000 !important;
+      }
+
+      .tox .tox-button--naked {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+      }
+
+      /* Input fields - XP style */
+      .tox .tox-textfield,
+      .tox .tox-textarea {
+        background: #fff !important;
+        border: 1px solid #7f9db9 !important;
+        border-radius: 0 !important;
+        font-family: 'Tahoma', sans-serif !important;
+        font-size: 11px !important;
+        padding: 3px 4px !important;
+      }
+
+      .tox .tox-textfield:focus,
+      .tox .tox-textarea:focus {
+        border-color: #316ac5 !important;
+        box-shadow: none !important;
+      }
+
+      /* Tabs - XP style */
+      .tox .tox-dialog__body-nav-item {
+        background: linear-gradient(180deg, #fff 0%, #ece9d8 100%) !important;
+        border: 1px solid #aaa !important;
+        border-bottom: none !important;
+        border-radius: 3px 3px 0 0 !important;
+        color: #000 !important;
+        font-family: 'Tahoma', sans-serif !important;
+        font-size: 11px !important;
+        padding: 4px 12px !important;
+        margin-right: 2px !important;
+      }
+
+      .tox .tox-dialog__body-nav-item--active {
+        background: #ece9d8 !important;
+        border-bottom: 1px solid #ece9d8 !important;
+        margin-bottom: -1px !important;
+      }
+
+      /* Labels */
+      .tox .tox-label {
+        color: #000 !important;
+        font-family: 'Tahoma', sans-serif !important;
+        font-size: 11px !important;
+      }
+
+      /* Color picker */
+      .tox .tox-swatches__picker-btn svg {
+        fill: #000 !important;
+      }
+
+      /* Slider (More button) arrow */
+      .tox .tox-toolbar__group .tox-tbtn[aria-label="More..."] {
+        width: 16px !important;
+      }
+    </style>
+  </head>
+  <body>
+    <textarea name="" id="tinymce-textarea" style="position: absolute; inset: 0"></textarea>
+
+    <script>
+      tinymce.init({
+        selector: '#tinymce-textarea',
+        license_key: 'gpl',
+        setup: function (editor) {
+          setupEditor(editor);
+        },
+        plugins:
+          'preview importcss searchreplace autolink autosave directionality code visualblocks visualchars fullscreen image link table charmap pagebreak nonbreaking anchor insertdatetime advlist lists wordcount help charmap quickbars emoticons',
+        menubar: false, // Hide native menubar - using React MenuBar instead
+        toolbar:
+          'undo redo | bold italic underline strikethrough | fontfamily fontsize blocks | alignleft aligncenter alignright alignjustify | outdent indent | numlist bullist | forecolor backcolor removeformat | pagebreak | charmap emoticons | fullscreen preview save | insertfile image media link anchor | ltr rtl',
+        toolbar_sticky: true,
+        autosave_ask_before_unload: false,
+        autosave_interval: '30s',
+        autosave_prefix: '{path}{query}-{id}-',
+        autosave_restore_when_empty: false,
+        autosave_retention: '2m',
+        image_advtab: false,
+        importcss_append: true,
+        file_picker_callback: async (callback, value, meta) => {
+          await file_picker_callback(callback, value, meta);
+        },
+        quickbars_selection_toolbar: 'bold italic | quicklink h2 h3 blockquote quicktable',
+        noneditable_class: 'mceNonEditable',
+        toolbar_mode: 'sliding',
+        contextmenu: 'link table',
+        contextmenu_never_use_native: true,
+        quickbars_insert_toolbar: '',
+        content_style:
+          'body { font-family:Helvetica,Arial,sans-serif; font-size:16px } table { border-spacing: 0; border-collapse: separate; border: 1px solid #000000;} th, td {border: 1px solid #000000;}',
+        // Remove promotional elements
+        branding: false,
+        promotion: false,
+        // Status bar settings
+        statusbar: true,
+        elementpath: true,
+        resize: false,
+      });
+    </script>
+
+    <script>
+      function waitForElm(selector) {
+        return new Promise((resolve) => {
+          if (document.querySelector(selector)) {
+            return resolve(document.querySelector(selector));
+          }
+
+          const observer = new MutationObserver((mutations) => {
+            if (document.querySelector(selector)) {
+              resolve(document.querySelector(selector));
+              observer.disconnect();
+            }
+          });
+
+          observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+          });
+        });
+      }
+
+      function set_content(html) {
+        console.log('set content');
+        tinymce.activeEditor.resetContent(html);
+      }
+
+      function get_content() {
+        return tinymce.activeEditor.getContent();
+      }
+
+      function outer_html() {
+        return document.querySelector('.tox-edit-area iframe').contentWindow.document.documentElement
+          .outerHTML;
+      }
+
+      function is_dirty() {
+        return tinymce.activeEditor.isDirty();
+      }
+
+      function set_dirty(bool) {
+        console.log('set dirty');
+        tinymce.activeEditor.setDirty(bool);
+      }
+
+      // Execute TinyMCE commands from React MenuBar
+      function exec_command(cmd, ui, value) {
+        if (tinymce.activeEditor) {
+          tinymce.activeEditor.execCommand(cmd, ui || false, value);
+        }
+      }
+
+      // Edit menu commands
+      function cmd_undo() { exec_command('Undo'); }
+      function cmd_redo() { exec_command('Redo'); }
+      function cmd_cut() { exec_command('Cut'); }
+      function cmd_copy() { exec_command('Copy'); }
+      function cmd_paste() { exec_command('mceInsertClipboardContent'); }
+      function cmd_selectAll() { exec_command('SelectAll'); }
+      function cmd_find() { exec_command('SearchReplace'); }
+
+      // View menu commands
+      function cmd_preview() { exec_command('mcePreview'); }
+      function cmd_fullscreen() { exec_command('mceFullScreen'); }
+      function cmd_visualBlocks() { exec_command('mceToggleVisualBlocks'); }
+      function cmd_visualChars() { exec_command('mceToggleVisualChars'); }
+      function cmd_code() { exec_command('mceCodeEditor'); }
+
+      // Insert menu commands
+      function cmd_insertImage() { exec_command('mceImage'); }
+      function cmd_insertLink() { exec_command('mceLink'); }
+      function cmd_insertTable() { exec_command('mceInsertTable'); }
+      function cmd_insertHorizontalRule() { exec_command('InsertHorizontalRule'); }
+      function cmd_insertPageBreak() { exec_command('mcePageBreak'); }
+      function cmd_insertCharMap() { exec_command('mceShowCharmap'); }
+      function cmd_insertEmoji() { exec_command('mceEmoticons'); }
+      function cmd_insertDateTime() { exec_command('mceInsertDate'); }
+      function cmd_insertAnchor() { exec_command('mceAnchor'); }
+
+      // Format menu commands
+      function cmd_bold() { exec_command('Bold'); }
+      function cmd_italic() { exec_command('Italic'); }
+      function cmd_underline() { exec_command('Underline'); }
+      function cmd_strikethrough() { exec_command('Strikethrough'); }
+      function cmd_subscript() { exec_command('Subscript'); }
+      function cmd_superscript() { exec_command('Superscript'); }
+      function cmd_removeFormat() { exec_command('RemoveFormat'); }
+      function cmd_alignLeft() { exec_command('JustifyLeft'); }
+      function cmd_alignCenter() { exec_command('JustifyCenter'); }
+      function cmd_alignRight() { exec_command('JustifyRight'); }
+      function cmd_alignJustify() { exec_command('JustifyFull'); }
+      function cmd_indent() { exec_command('Indent'); }
+      function cmd_outdent() { exec_command('Outdent'); }
+      function cmd_bulletList() { exec_command('InsertUnorderedList'); }
+      function cmd_numberList() { exec_command('InsertOrderedList'); }
+
+      // Tools menu commands
+      function cmd_wordCount() { exec_command('mceWordCount'); }
+
+      function show_drawer() {
+        waitForElm('.tox-tbtn[aria-label="More..."]').then((elm) => {
+          elm.click();
+        });
+      }
+
+      var initialized = false;
+      var on_dirty = () => {};
+      var open_file = () => {};
+      var save_file = () => {};
+      var save_file_as = () => {};
+      var new_document = () => {};
+      var focus_window = () => {};
+      var export_pdf = () => {};
+      var export_epub = () => {};
+      var export_html = () => {};
+      var export_txt = () => {};
+      var parent_key_event = (e) => {};
+
+      var file_picker_callback = () => {};
+
+      function setupEditor(editor) {
+        editor.on('init', async function (e) {
+          let editor_el = document.querySelector('.tox-tinymce[role="application"]');
+          editor_el.setAttribute('style', 'position:absolute;inset:0;');
+          show_drawer();
+          tinymce.activeEditor.execCommand('mceToggleVisualAid');
+          initialized = true;
+        });
+
+        editor.on('Dirty', () => {
+          console.log('Dirty');
+          on_dirty();
+        });
+
+        editor.on('OpenWindow', ({ dialog }) => {
+          let obj = dialog?.getData();
+          if (obj != null && obj.alt != null && obj.dimensions != null && obj.src != null) {
+            console.log('possibly image');
+            let dialog_elm = document.querySelector('div[role="dialog"]');
+            if (dialog_elm != null) {
+              let input_url = dialog_elm.querySelector('input[type="url"]');
+              input_url?.setAttribute('disabled', true);
+            }
+          }
+        });
+
+        editor.on('click', (e) => {
+          focus_window();
+        });
+
+        editor.on('keydown', (e) => {
+          if (e.ctrlKey || e.metaKey) {
+            parent_key_event(e);
+          }
+        });
+
+        editor.ui.registry.addMenuItem('open', {
+          text: 'Open',
+          icon: 'browse',
+          onAction: () => open_file(),
+        });
+
+        editor.ui.registry.addMenuItem('save', {
+          text: 'Save',
+          icon: 'save',
+          onAction: () => save_file(),
+        });
+
+        editor.ui.registry.addMenuItem('save_as', {
+          text: 'Save As',
+          icon: 'save',
+          onAction: () => save_file_as(),
+        });
+
+        editor.ui.registry.addMenuItem('new', {
+          text: 'New Document',
+          icon: 'new-document',
+          onAction: () => new_document(),
+        });
+
+        editor.ui.registry.addNestedMenuItem('export_as', {
+          text: 'Export As',
+          icon: 'export',
+          getSubmenuItems: () => {
+            return [
+              {
+                type: 'menuitem',
+                text: 'PDF Document (.pdf)',
+                onAction: export_pdf,
+              },
+              {
+                type: 'menuitem',
+                text: 'EPUB Publication (.epub)',
+                onAction: export_epub,
+              },
+              {
+                type: 'menuitem',
+                text: 'Web Page (.html)',
+                onAction: export_html,
+              },
+              {
+                type: 'menuitem',
+                text: 'Plain Text (.txt)',
+                onAction: export_txt,
+              },
+            ];
+          },
+        });
+      }
+
+      document.body.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+      });
+
+      document.body.addEventListener('click', () => {
+        focus_window();
+      });
+
+      document.body.addEventListener('keydown', (e) => {
+        if (e.ctrlKey || e.metaKey) {
+          parent_key_event(e);
+        }
+      });
+    </script>
+  </body>
+</html>
