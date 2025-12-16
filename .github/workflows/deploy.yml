@@ -14,12 +14,21 @@ concurrency:
   group: "pages"
   cancel-in-progress: false
 
+# ============================================================================
+# CV SOURCE CONFIGURATION
+# ============================================================================
+# By default, uses CV.yaml and CV.pdf from public/ folder.
+#
+# To fetch CV from an external repo, set these repository variables:
+#   CV_SOURCE_REPO  - e.g., "username/resumerr" (must be public)
+#   CV_SOURCE_REF   - branch/tag (default: "main")
+#   CV_SOURCE_PATH  - path to CV.yaml (default: "CV.yaml")
+#
+# PDF will be fetched from the latest release of CV_SOURCE_REPO.
+# ============================================================================
+
 jobs:
   deploy:
-    env:
-      CV_SOURCE_REPO: ${{ vars.CV_SOURCE_REPO || '' }}
-      CV_SOURCE_REF: ${{ vars.CV_SOURCE_REF || 'main' }}
-      CV_SOURCE_PATH: ${{ vars.CV_SOURCE_PATH || 'CV.yaml' }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -30,26 +39,41 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Checkout CV source
-        if: ${{ env.CV_SOURCE_REPO != '' }}
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.CV_SOURCE_REPO }}
-          ref: ${{ env.CV_SOURCE_REF }}
-          token: ${{ secrets.CV_SOURCE_PAT }}
-          path: cv-source
+      # ============================================================================
+      # OPTIONAL: FETCH CV FROM EXTERNAL REPO
+      # ============================================================================
 
-      - name: Sync CV.yaml
-        if: ${{ env.CV_SOURCE_REPO != '' }}
+      - name: Fetch CV.yaml from external repo
+        if: ${{ vars.CV_SOURCE_REPO != '' }}
         run: |
-          SRC="cv-source/${{ env.CV_SOURCE_PATH }}"
-          DEST="public/CV.yaml"
-          if [ ! -f "$SRC" ]; then
-            echo "CV source file not found at $SRC"
-            exit 1
+          echo "Fetching CV.yaml from ${{ vars.CV_SOURCE_REPO }}..."
+          CV_REF="${{ vars.CV_SOURCE_REF || 'main' }}"
+          CV_PATH="${{ vars.CV_SOURCE_PATH || 'CV.yaml' }}"
+
+          curl -fsSL "https://raw.githubusercontent.com/${{ vars.CV_SOURCE_REPO }}/${CV_REF}/${CV_PATH}" \
+            -o public/CV.yaml
+
+          echo "Downloaded CV.yaml from ${{ vars.CV_SOURCE_REPO }}"
+
+      - name: Fetch CV.pdf from external repo releases
+        if: ${{ vars.CV_SOURCE_REPO != '' }}
+        run: |
+          echo "Fetching latest PDF from ${{ vars.CV_SOURCE_REPO }} releases..."
+
+          # Get latest release assets
+          RELEASE_API="https://api.github.com/repos/${{ vars.CV_SOURCE_REPO }}/releases/latest"
+          PDF_URL=$(curl -fsSL "$RELEASE_API" | jq -r '.assets[] | select(.name | endswith(".pdf")) | .browser_download_url' | head -1)
+
+          if [ -n "$PDF_URL" ] && [ "$PDF_URL" != "null" ]; then
+            curl -fsSL "$PDF_URL" -o public/CV.pdf
+            echo "Downloaded CV.pdf from release"
+          else
+            echo "No PDF found in releases, keeping existing CV.pdf"
           fi
-          cp "$SRC" "$DEST"
-          echo "Copied $SRC -> $DEST"
+
+      # ============================================================================
+      # BUILD EXTERNAL APPS (Submodules)
+      # ============================================================================
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -59,29 +83,19 @@ jobs:
       - name: Enable Corepack (for pnpm)
         run: corepack enable
 
-      # ============================================================================
-      # BUILD EXTERNAL APPS (Submodules)
-      # ============================================================================
-
       - name: Build Spider Solitaire
         working-directory: external/spider-solitaire
         env:
-          CI: false  # Prevent treating warnings as errors
+          CI: false
         run: |
-          echo "📦 Installing spider-solitaire dependencies..."
           npm install
-          echo "🔨 Building spider-solitaire..."
           npm run build
-          echo "✅ Spider Solitaire built successfully"
 
       - name: Build JS Solitaire
         working-directory: external/js-solitaire
         run: |
-          echo "📦 Installing js-solitaire dependencies..."
           pnpm install
-          echo "🔨 Building js-solitaire..."
           pnpm run build
-          echo "✅ JS Solitaire built successfully"
 
       # ============================================================================
       # COPY BUILT APPS TO PUBLIC FOLDER
@@ -92,22 +106,17 @@ jobs:
           rm -rf public/games/spider-solitaire
           mkdir -p public/games/spider-solitaire
           cp -r external/spider-solitaire/build/* public/games/spider-solitaire/
-          echo "✅ Spider Solitaire copied to public/games/spider-solitaire"
 
       - name: Copy JS Solitaire build to public
         run: |
           rm -rf public/games/solitaire
           mkdir -p public/games/solitaire
           cp -r external/js-solitaire/dist/* public/games/solitaire/
-          echo "✅ JS Solitaire copied to public/games/solitaire"
 
       - name: Copy JSPaint to public
         run: |
-          # Remove symlink if exists and create actual copy for GitHub Pages
           rm -rf public/apps/jspaint
           mkdir -p public/apps/jspaint
-
-          # Copy necessary jspaint files (it's a static app, no build needed)
           cp -r external/jspaint/index.html public/apps/jspaint/
           cp -r external/jspaint/src public/apps/jspaint/
           cp -r external/jspaint/lib public/apps/jspaint/
@@ -118,7 +127,6 @@ jobs:
           cp -r external/jspaint/audio public/apps/jspaint/ 2>/dev/null || true
           cp external/jspaint/favicon.ico public/apps/jspaint/ 2>/dev/null || true
           cp external/jspaint/manifest.webmanifest public/apps/jspaint/ 2>/dev/null || true
-          echo "✅ JSPaint copied to public/apps/jspaint"
 
       # ============================================================================
       # BUILD MAIN APP
