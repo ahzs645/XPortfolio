@@ -10,6 +10,9 @@ const DRAG_THRESHOLD_DESKTOP = 4;
 const DRAG_THRESHOLD_MOBILE = 10;
 const DOUBLE_TAP_DELAY = 400; // ms for double-tap detection on touch
 const LONG_PRESS_DELAY = 500; // ms for long-press context menu on mobile
+const MAX_FILE_NAME_LENGTH = 255; // Maximum file name length
+const TRUNCATE_THRESHOLD = 12; // Truncate names longer than this
+const TRUNCATE_TO = 10; // Show this many characters when truncated
 
 function Icons({
   icons,
@@ -37,12 +40,21 @@ function Icons({
   const [dropTargetId, setDropTargetId] = useState(null); // Folder being hovered during drag
   const [touchState, setTouchState] = useState(null); // { id, startX, startY, startTime }
   const [hasDragStarted, setHasDragStarted] = useState(false); // Track if drag has exceeded threshold
+  const [expandedNameId, setExpandedNameId] = useState(null); // Track which icon has expanded name
   const lastTapRef = useRef(null); // For double-tap detection
   const longPressTimerRef = useRef(null); // For long-press context menu
   const iconRefs = useRef([]);
   const containerRef = useRef(null);
   const isMobile = isMobileDevice();
   const prevSelectedIdsRef = useRef([]);
+
+  // Helper to truncate file names for display
+  const getTruncatedName = useCallback((name, isExpanded) => {
+    if (isExpanded || !name || name.length <= TRUNCATE_THRESHOLD) {
+      return name;
+    }
+    return name.substring(0, TRUNCATE_TO) + '…';
+  }, []);
 
   // Tooltip support
   const { getPath } = useFileSystem();
@@ -253,6 +265,18 @@ function Icons({
     // Hide tooltip when starting to drag
     hideTooltip(true);
 
+    // Toggle expanded name when clicking on an icon with a long name
+    if (icon.title && icon.title.length > TRUNCATE_THRESHOLD) {
+      if (expandedNameId === icon.id) {
+        setExpandedNameId(null);
+      } else {
+        setExpandedNameId(icon.id);
+      }
+    } else {
+      // Collapse any other expanded icon name
+      setExpandedNameId(null);
+    }
+
     // Check if this icon is already part of a multi-selection
     const selectedIcons = icons.filter((i) => i.isFocus);
     const isPartOfSelection = selectedIcons.some((i) => i.id === icon.id);
@@ -278,7 +302,7 @@ function Icons({
       startY: e.clientY,
       iconStartPositions,
     });
-  }, [icons, onMouseDown, hideTooltip]);
+  }, [icons, onMouseDown, hideTooltip, expandedNameId]);
 
   const handleDoubleClick = useCallback((icon) => {
     // On mobile, double-click is handled by touch events to avoid duplicate firing
@@ -324,6 +348,17 @@ function Icons({
     // Record this tap for potential double-tap
     lastTapRef.current = { id: icon.id, time: now };
 
+    // Toggle expanded name when tapping on an icon with a long name
+    if (icon.title && icon.title.length > TRUNCATE_THRESHOLD) {
+      if (expandedNameId === icon.id) {
+        setExpandedNameId(null);
+      } else {
+        setExpandedNameId(icon.id);
+      }
+    } else {
+      setExpandedNameId(null);
+    }
+
     // Select the icon
     const selectedIcons = icons.filter((i) => i.isFocus);
     const isPartOfSelection = selectedIcons.some((i) => i.id === icon.id);
@@ -358,7 +393,7 @@ function Icons({
       startTime: now,
     });
     setHasDragStarted(false);
-  }, [icons, onMouseDown, onDoubleClick, onContextMenu, isMobile, clearLongPressTimer]);
+  }, [icons, onMouseDown, onDoubleClick, onContextMenu, isMobile, clearLongPressTimer, expandedNameId]);
 
   const handleTouchMove = useCallback((e, icon) => {
     if (!touchState || touchState.id !== icon.id) return;
@@ -572,7 +607,7 @@ function Icons({
                 <RenameInput
                   ref={renameInputRef}
                   value={renameValue}
-                  onChange={(e) => onRenameChange(e.target.value)}
+                  onChange={(e) => onRenameChange(e.target.value.slice(0, MAX_FILE_NAME_LENGTH))}
                   onBlur={onRenameSubmit}
                   onKeyDown={(e) => {
                     if (e.key === 'Escape') {
@@ -582,11 +617,16 @@ function Icons({
                   }}
                   onClick={(e) => e.stopPropagation()}
                   onMouseDown={(e) => e.stopPropagation()}
+                  maxLength={MAX_FILE_NAME_LENGTH}
                 />
               </RenameForm>
             ) : (
-              <IconText $isFocus={icon.isFocus && displayFocus}>
-                {icon.title}
+              <IconText
+                $isFocus={icon.isFocus && displayFocus}
+                $isExpanded={expandedNameId === icon.id}
+                title={icon.title} // Show full name on hover
+              >
+                {getTruncatedName(icon.title, expandedNameId === icon.id)}
               </IconText>
             )}
           </Icon>
@@ -669,6 +709,10 @@ const IconText = styled.span`
   background: ${({ $isFocus }) => ($isFocus ? '#0b61ff' : 'transparent')};
   padding: 1px 2px;
   line-height: 1.2;
+  cursor: pointer;
+  max-width: ${({ $isExpanded }) => ($isExpanded ? 'none' : '70px')};
+  overflow: ${({ $isExpanded }) => ($isExpanded ? 'visible' : 'hidden')};
+  white-space: ${({ $isExpanded }) => ($isExpanded ? 'normal' : 'nowrap')};
 `;
 
 const RenameForm = styled.form`

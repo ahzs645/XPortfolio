@@ -1,7 +1,7 @@
 import { useCallback, useState, useEffect, useRef } from 'react';
 import { UPDATE_ICON_POSITIONS, SET_ICONS } from '../constants/actions';
 import { SYSTEM_IDS, SYSTEM_DESKTOP_ICONS } from '../../contexts/FileSystemContext';
-import { convertToDesktopIcons, snapToGrid, calculateGridPositions } from '../helpers/iconUtils';
+import { convertToDesktopIcons, snapToGrid, snapToNearestAvailable, calculateGridPositions } from '../helpers/iconUtils';
 
 export function useIconManager({
   dispatch,
@@ -81,18 +81,34 @@ export function useIconManager({
 
   // Update icon positions handler
   const onUpdateIconPositions = useCallback((positions) => {
-    // If align to grid is enabled, snap all positions to the grid
+    // If align to grid is enabled, snap all positions to the nearest available grid slot
     if (alignToGridEnabled) {
       const snappedPositions = {};
+      const idsBeingMoved = Object.keys(positions);
+
+      // Create a working copy of icons with updated positions for collision detection
+      let workingIcons = icons.map(icon => {
+        if (snappedPositions[icon.id]) {
+          return { ...icon, ...snappedPositions[icon.id] };
+        }
+        return icon;
+      });
+
       Object.entries(positions).forEach(([id, pos]) => {
-        const snapped = snapToGrid(pos.x, pos.y);
+        // Find nearest available position, excluding all icons being moved
+        const snapped = snapToNearestAvailable(pos.x, pos.y, workingIcons, id);
         snappedPositions[id] = snapped;
+
+        // Update working icons with the snapped position for next iteration
+        workingIcons = workingIcons.map(icon =>
+          icon.id === id ? { ...icon, x: snapped.x, y: snapped.y } : icon
+        );
       });
       dispatch({ type: UPDATE_ICON_POSITIONS, payload: snappedPositions });
     } else {
       dispatch({ type: UPDATE_ICON_POSITIONS, payload: positions });
     }
-  }, [alignToGridEnabled, dispatch]);
+  }, [alignToGridEnabled, icons, dispatch]);
 
   // Handle moving icons to a folder via drag-and-drop
   const onMoveToFolder = useCallback((iconIds, targetFolderId) => {
@@ -191,12 +207,19 @@ export function useIconManager({
     const newAlignToGrid = !alignToGridEnabled;
     setAlignToGridEnabled(newAlignToGrid);
 
-    // If enabling align to grid, snap all icons now
+    // If enabling align to grid, snap all icons to nearest available positions
     if (newAlignToGrid) {
       const positions = {};
+      let workingIcons = [...icons];
+
       icons.forEach((icon) => {
-        const snapped = snapToGrid(icon.x, icon.y);
+        const snapped = snapToNearestAvailable(icon.x, icon.y, workingIcons, icon.id);
         positions[icon.id] = snapped;
+
+        // Update working icons with snapped position for next iteration
+        workingIcons = workingIcons.map(i =>
+          i.id === icon.id ? { ...i, x: snapped.x, y: snapped.y } : i
+        );
       });
       dispatch({ type: UPDATE_ICON_POSITIONS, payload: positions });
     }

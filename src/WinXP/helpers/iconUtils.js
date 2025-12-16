@@ -95,6 +95,93 @@ export const snapToGrid = (x, y) => {
   return { x: snappedX, y: snappedY };
 };
 
+// Get all grid positions currently occupied by icons
+const getOccupiedPositions = (icons, excludeIds = []) => {
+  const { iconWidth, iconHeight, iconGapX, iconGapY, startX, startY } = ICON_GRID;
+  const cellWidth = iconWidth + iconGapX;
+  const cellHeight = iconHeight + iconGapY;
+  const occupied = new Set();
+
+  icons.forEach((icon) => {
+    if (excludeIds.includes(icon.id)) return;
+    // Snap the icon position to grid to get its cell
+    const col = Math.round((icon.x - startX) / cellWidth);
+    const row = Math.round((icon.y - startY) / cellHeight);
+    occupied.add(`${col},${row}`);
+  });
+
+  return occupied;
+};
+
+// Find nearest available grid position
+export const snapToNearestAvailable = (x, y, icons, iconId) => {
+  const { iconWidth, iconHeight, iconGapX, iconGapY, startX, startY } = ICON_GRID;
+  const cellWidth = iconWidth + iconGapX;
+  const cellHeight = iconHeight + iconGapY;
+
+  // Get occupied positions excluding the current icon being moved
+  const occupied = getOccupiedPositions(icons, [iconId]);
+
+  // Calculate the target grid cell
+  const targetCol = Math.round((x - startX) / cellWidth);
+  const targetRow = Math.round((y - startY) / cellHeight);
+
+  // Calculate max columns and rows based on viewport
+  const maxHeight = window.innerHeight - 60;
+  const maxWidth = window.innerWidth;
+  const maxCols = Math.floor((maxWidth - startX) / cellWidth);
+  const maxRows = Math.floor((maxHeight - startY) / cellHeight);
+
+  // Check if target position is available
+  const targetKey = `${targetCol},${targetRow}`;
+  if (!occupied.has(targetKey) && targetCol >= 0 && targetRow >= 0) {
+    return {
+      x: Math.max(startX, targetCol * cellWidth + startX),
+      y: Math.max(startY, targetRow * cellHeight + startY),
+    };
+  }
+
+  // Search for nearest available position in expanding rings
+  for (let radius = 1; radius <= Math.max(maxCols, maxRows); radius++) {
+    let nearestDist = Infinity;
+    let nearestPos = null;
+
+    // Check all positions in the current ring
+    for (let dc = -radius; dc <= radius; dc++) {
+      for (let dr = -radius; dr <= radius; dr++) {
+        // Skip positions not on the ring edge
+        if (Math.abs(dc) !== radius && Math.abs(dr) !== radius) continue;
+
+        const col = targetCol + dc;
+        const row = targetRow + dr;
+
+        // Skip invalid positions
+        if (col < 0 || row < 0 || col >= maxCols || row >= maxRows) continue;
+
+        const key = `${col},${row}`;
+        if (!occupied.has(key)) {
+          // Calculate actual pixel distance
+          const posX = col * cellWidth + startX;
+          const posY = row * cellHeight + startY;
+          const dist = Math.sqrt(Math.pow(x - posX, 2) + Math.pow(y - posY, 2));
+
+          if (dist < nearestDist) {
+            nearestDist = dist;
+            nearestPos = { x: posX, y: posY };
+          }
+        }
+      }
+    }
+
+    if (nearestPos) {
+      return nearestPos;
+    }
+  }
+
+  // Fallback: return original snapped position if no available spot found
+  return snapToGrid(x, y);
+};
+
 // Calculate grid positions for a list of icons
 export const calculateGridPositions = (iconsList) => {
   const { iconWidth, iconHeight, iconGapX, iconGapY, startX, startY } = ICON_GRID;
