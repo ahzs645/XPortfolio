@@ -1,7 +1,7 @@
 import { useCallback, useState, useEffect, useRef } from 'react';
 import { UPDATE_ICON_POSITIONS, SET_ICONS } from '../constants/actions';
 import { SYSTEM_IDS, SYSTEM_DESKTOP_ICONS } from '../../contexts/FileSystemContext';
-import { convertToDesktopIcons, snapToGrid, snapToNearestAvailable, calculateGridPositions } from '../helpers/iconUtils';
+import { convertToDesktopIcons, snapToGrid, snapToNearestAvailable, calculateGridPositions, ICON_GRID } from '../helpers/iconUtils';
 
 export function useIconManager({
   dispatch,
@@ -28,11 +28,15 @@ export function useIconManager({
       const fileIcons = convertToDesktopIcons(desktopContents, appSettings, savedPositions);
 
       // Add system icons (My Computer, Recycle Bin) - these are not in the file system
+      // Use grid constants for proper alignment
+      const { iconHeight, iconGapY, startX, startY } = ICON_GRID;
+      const cellHeight = iconHeight + iconGapY; // 100px per cell
+
       const systemIcons = Object.values(SYSTEM_DESKTOP_ICONS).map((sysIcon, index) => {
         const savedPos = savedPositions[sysIcon.id];
-        // System icons go at the top of the desktop
-        const defaultX = 10;
-        const defaultY = 10 + index * 90;
+        // System icons go at the top of the desktop, aligned to grid
+        const defaultX = startX;
+        const defaultY = startY + index * cellHeight;
 
         return {
           id: sysIcon.id,
@@ -54,7 +58,7 @@ export function useIconManager({
         ...icon,
         // If no saved position, offset below system icons
         x: savedPositions[icon.id]?.x ?? icon.x,
-        y: savedPositions[icon.id]?.y ?? (icon.y + systemIcons.length * 90),
+        y: savedPositions[icon.id]?.y ?? (icon.y + systemIcons.length * cellHeight),
       }))];
 
       dispatch({ type: SET_ICONS, payload: allIcons });
@@ -231,6 +235,10 @@ export function useIconManager({
     const savedPositions = getDesktopIconPositions();
     const fileIcons = convertToDesktopIcons(desktopContents, appSettings, savedPositions);
 
+    // Use grid constants for proper alignment
+    const { iconHeight, iconGapY, startX, startY } = ICON_GRID;
+    const cellHeight = iconHeight + iconGapY; // 100px per cell
+
     // Add system icons
     const systemIcons = Object.values(SYSTEM_DESKTOP_ICONS).map((sysIcon, index) => {
       const savedPos = savedPositions[sysIcon.id];
@@ -242,8 +250,8 @@ export function useIconManager({
         fullName: sysIcon.name,
         component: appSettings[sysIcon.target]?.component,
         isFocus: false,
-        x: savedPos?.x ?? 10,
-        y: savedPos?.y ?? (10 + index * 90),
+        x: savedPos?.x ?? startX,
+        y: savedPos?.y ?? (startY + index * cellHeight),
         type: 'system',
         target: sysIcon.target,
       };
@@ -252,7 +260,7 @@ export function useIconManager({
     const allIcons = [...systemIcons, ...fileIcons.map((icon) => ({
       ...icon,
       x: savedPositions[icon.id]?.x ?? icon.x,
-      y: savedPositions[icon.id]?.y ?? (icon.y + systemIcons.length * 90),
+      y: savedPositions[icon.id]?.y ?? (icon.y + systemIcons.length * cellHeight),
     }))];
 
     dispatch({ type: SET_ICONS, payload: allIcons });
