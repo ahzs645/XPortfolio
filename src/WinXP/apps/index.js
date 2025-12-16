@@ -38,6 +38,7 @@ const SystemRecovery = lazy(() => import('./SystemRecovery'));
 const UserAccounts = lazy(() => import('./UserAccounts'));
 const Wordpad = lazy(() => import('./Wordpad'));
 const MicrosoftWord = lazy(() => import('./MicrosoftWord'));
+const MicrosoftExcel = lazy(() => import('./MicrosoftExcel'));
 const HelpAndSupport = lazy(() => import('./HelpAndSupport'));
 const FontViewer = lazy(() => import('./FontViewer'));
 const OutlookExpress = lazy(() => import('./OutlookExpress'));
@@ -88,6 +89,7 @@ const XP_ICONS = {
   flashPlayer: '/icons/flash/flash_player.png',
   worldOfWarcraft: '/icons/games/wow.webp',
   microsoftWord: '/icons/xp/MSWord.png',
+  microsoftExcel: '/icons/xp/MSExcel.gif',
 };
 
 // App categories for organization
@@ -115,6 +117,7 @@ export const appCategoryMap = {
   'Paint': APP_CATEGORIES.ACCESSORY,
   'WordPad': APP_CATEGORIES.ACCESSORY,
   'Microsoft Word': APP_CATEGORIES.ACCESSORY,
+  'Microsoft Excel': APP_CATEGORIES.ACCESSORY,
   'Command Prompt': APP_CATEGORIES.ACCESSORY,
 
   // Games
@@ -1338,6 +1341,30 @@ export const appSettings = {
     defaultOffset: {
       x: 100,
       y: 50,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
+  },
+  'Microsoft Excel': {
+    header: {
+      icon: XP_ICONS.microsoftExcel,
+      title: 'Microsoft Excel',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: MicrosoftExcel,
+    defaultSize: {
+      width: 1000,
+      height: 700,
+    },
+    minSize: {
+      width: 600,
+      height: 400,
+    },
+    defaultOffset: {
+      x: 80,
+      y: 40,
     },
     resizable: true,
     minimized: false,

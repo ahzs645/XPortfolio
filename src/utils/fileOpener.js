@@ -263,6 +263,29 @@ export function openFileWithApp({
     }
   }
 
+  // For XLSX files (Microsoft Excel)
+  const xlsxExtensions = ['.xlsx', '.xls'];
+  if (xlsxExtensions.includes(ext) || contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+    if (appSettings['Microsoft Excel']) {
+      dispatch({
+        type: addAppAction,
+        payload: {
+          ...appSettings['Microsoft Excel'],
+          header: {
+            ...appSettings['Microsoft Excel'].header,
+            title: `${fileName} - Microsoft Excel`,
+          },
+          injectProps: {
+            fileData: fileData,
+            fileName: fileName,
+            fileId: fileId,
+          },
+        },
+      });
+      return true;
+    }
+  }
+
   // For HTML files
   const htmlExtensions = ['.html', '.htm'];
   if (htmlExtensions.includes(ext)) {

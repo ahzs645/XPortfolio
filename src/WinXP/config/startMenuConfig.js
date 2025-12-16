@@ -257,6 +257,13 @@ export const START_MENU_CATALOG = {
     title: 'Microsoft Word',
     description: 'Word processor',
   },
+  microsoftExcel: {
+    type: 'program',
+    appKey: 'Microsoft Excel',
+    icon: '/icons/xp/MSExcel.gif',
+    title: 'Microsoft Excel',
+    description: 'Spreadsheet editor',
+  },
   userAccounts: {
     type: 'program',
     appKey: 'User Accounts',
@@ -385,7 +392,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Accessories',
     icon: '/icons/folder-icon.png',
-    items: ['calculator', 'notepad', 'wordpad', 'microsoftWord', 'displayProperties', 'speechProperties', 'systemProperties', 'userAccounts', 'paint', 'cmd', 'imageViewer', 'installer', 'systemTools'],
+    items: ['calculator', 'notepad', 'wordpad', 'microsoftWord', 'microsoftExcel', 'displayProperties', 'speechProperties', 'systemProperties', 'userAccounts', 'paint', 'cmd', 'imageViewer', 'installer', 'systemTools'],
   },
   entertainment: {
     type: 'folder',

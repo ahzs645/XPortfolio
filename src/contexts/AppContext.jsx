@@ -23,6 +23,7 @@ const PROGRAM_NAME_TO_APP_KEY = {
   'Solitaire': 'Solitaire',
   'WordPad': 'WordPad',
   'Microsoft Word': 'Microsoft Word',
+  'Microsoft Excel': 'Microsoft Excel',
 };
 
 export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
@@ -245,6 +246,25 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
             header: {
               ...appSettings['Microsoft Word'].header,
               title: `${name} - Microsoft Word`,
+            },
+            injectProps: {
+              fileData: fileData,
+              fileName: name,
+              fileId: fileItem.id,
+            },
+          },
+        });
+        return true;
+      }
+
+      case 'Microsoft Excel': {
+        dispatch({
+          type: addAppAction,
+          payload: {
+            ...appSettings['Microsoft Excel'],
+            header: {
+              ...appSettings['Microsoft Excel'].header,
+              title: `${name} - Microsoft Excel`,
             },
             injectProps: {
               fileData: fileData,
