@@ -597,7 +597,7 @@ function Icons({
             }}
           >
             <IconImageWrapper>
-              <IconImage src={icon.icon} alt={icon.title} draggable={false} $isCut={isCut} />
+              <IconImage src={icon.icon} alt={icon.title} draggable={false} $isCut={isCut} $isFocus={icon.isFocus && displayFocus} />
               {icon.type === 'shortcut' && (
                 <ShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" draggable={false} />
               )}
@@ -655,26 +655,18 @@ const Icon = styled.div`
   padding: 5px;
   cursor: pointer;
   pointer-events: auto;
-  border: ${({ $isFocus, $isDropTarget }) =>
+  border: ${({ $isDropTarget }) =>
     $isDropTarget
       ? '2px solid #0b61ff'
-      : $isFocus
-      ? '1px dotted #aaa'
       : '1px solid transparent'};
-  background: ${({ $isFocus, $isDropTarget }) =>
+  background: ${({ $isDropTarget }) =>
     $isDropTarget
       ? 'rgba(11, 97, 255, 0.4)'
-      : $isFocus
-      ? 'rgba(11, 97, 255, 0.3)'
       : 'transparent'};
   opacity: ${({ $isDragging, $isCut }) => ($isDragging ? 0.8 : $isCut ? 0.5 : 1)};
   z-index: ${({ $isDragging }) => ($isDragging ? 10002 : 1)};
   border-radius: ${({ $isDropTarget }) => ($isDropTarget ? '4px' : '0')};
   transition: ${({ $isDropTarget }) => ($isDropTarget ? 'background 0.15s, border 0.15s' : 'none')};
-
-  &:hover {
-    background: rgba(11, 97, 255, 0.15);
-  }
 `;
 
 const IconImageWrapper = styled.div`
@@ -689,6 +681,9 @@ const IconImage = styled.img`
   height: 32px;
   image-rendering: pixelated;
   opacity: ${({ $isCut }) => ($isCut ? 0.5 : 1)};
+  filter: ${({ $isFocus }) => $isFocus
+    ? 'brightness(50%) invert(10%) sepia(100%) saturate(300%) hue-rotate(180deg)'
+    : 'none'};
 `;
 
 const ShortcutOverlay = styled.img`
