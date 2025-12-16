@@ -83,6 +83,55 @@ export function useIconManager({
     }
   }, [icons, setDesktopIconPositions]);
 
+  // Handle window resize - reposition icons that are out of bounds
+  useEffect(() => {
+    const handleResize = () => {
+      const { iconWidth, iconHeight, iconGapX, iconGapY, startX, startY } = ICON_GRID;
+      const cellWidth = iconWidth + iconGapX;
+      const cellHeight = iconHeight + iconGapY;
+
+      // Calculate new bounds
+      const maxHeight = window.innerHeight - 60; // taskbar height
+      const maxWidth = window.innerWidth;
+      const maxY = maxHeight - iconHeight;
+      const maxX = maxWidth - iconWidth;
+
+      // Check if any icons are out of bounds
+      const outOfBoundsIcons = icons.filter(
+        (icon) => icon.x > maxX || icon.y > maxY
+      );
+
+      if (outOfBoundsIcons.length > 0) {
+        // Reposition out-of-bounds icons to nearest available grid position
+        const positions = {};
+        let workingIcons = [...icons];
+
+        outOfBoundsIcons.forEach((icon) => {
+          // Clamp to valid area first, then snap to nearest available
+          const clampedX = Math.min(icon.x, maxX);
+          const clampedY = Math.min(icon.y, maxY);
+          const snapped = snapToNearestAvailable(clampedX, clampedY, workingIcons, icon.id);
+          positions[icon.id] = snapped;
+
+          // Update working icons for next iteration
+          workingIcons = workingIcons.map((i) =>
+            i.id === icon.id ? { ...i, x: snapped.x, y: snapped.y } : i
+          );
+        });
+
+        if (Object.keys(positions).length > 0) {
+          dispatch({ type: UPDATE_ICON_POSITIONS, payload: positions });
+        }
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    // Also run once on mount to fix any initially out-of-bounds icons
+    handleResize();
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, [icons, dispatch]);
+
   // Update icon positions handler
   const onUpdateIconPositions = useCallback((positions) => {
     // If align to grid is enabled, snap all positions to the nearest available grid slot

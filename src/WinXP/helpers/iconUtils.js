@@ -19,10 +19,10 @@ const getItemIcon = (item) => {
 
 // Icon grid layout constants (used for arranging icons)
 export const ICON_GRID = {
-  iconWidth: 80,
-  iconHeight: 90,
-  iconGapX: 10,
-  iconGapY: 10,
+  iconWidth: 75,
+  iconHeight: 70,
+  iconGapX: 0,
+  iconGapY: 0,
   startX: 10,
   startY: 10,
 };
@@ -83,14 +83,22 @@ export const convertToDesktopIcons = (items, appSettings, savedPositions = {}) =
   });
 };
 
-// Snap a position to the grid
+// Snap a position to the grid (respecting taskbar boundary)
 export const snapToGrid = (x, y) => {
   const { iconWidth, iconHeight, iconGapX, iconGapY, startX, startY } = ICON_GRID;
   const cellWidth = iconWidth + iconGapX;
   const cellHeight = iconHeight + iconGapY;
 
+  // Calculate max Y position to stay above taskbar
+  const maxHeight = window.innerHeight - 60; // 60px for taskbar
+  const maxRows = Math.floor((maxHeight - startY) / cellHeight);
+  const maxY = startY + (maxRows - 1) * cellHeight;
+
   const snappedX = Math.max(startX, Math.round((x - startX) / cellWidth) * cellWidth + startX);
-  const snappedY = Math.max(startY, Math.round((y - startY) / cellHeight) * cellHeight + startY);
+  let snappedY = Math.max(startY, Math.round((y - startY) / cellHeight) * cellHeight + startY);
+
+  // Ensure Y doesn't go below taskbar
+  snappedY = Math.min(snappedY, maxY);
 
   return { x: snappedX, y: snappedY };
 };
@@ -132,9 +140,9 @@ export const snapToNearestAvailable = (x, y, icons, iconId) => {
   const maxCols = Math.floor((maxWidth - startX) / cellWidth);
   const maxRows = Math.floor((maxHeight - startY) / cellHeight);
 
-  // Check if target position is available
+  // Check if target position is available and within bounds
   const targetKey = `${targetCol},${targetRow}`;
-  if (!occupied.has(targetKey) && targetCol >= 0 && targetRow >= 0) {
+  if (!occupied.has(targetKey) && targetCol >= 0 && targetRow >= 0 && targetCol < maxCols && targetRow < maxRows) {
     return {
       x: Math.max(startX, targetCol * cellWidth + startX),
       y: Math.max(startY, targetRow * cellHeight + startY),
