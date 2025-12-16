@@ -1,7 +1,33 @@
-import React, { useRef, memo, useCallback } from 'react';
+import React, { useRef, memo, useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 import { useElementResize, useWindowSize } from '../../hooks';
+
+// Component that changes cursor to wait state while loading
+function LoadingFallback() {
+  useEffect(() => {
+    // Set the wait cursor on mount
+    const originalCursor = document.body.style.cursor;
+    document.body.style.cursor = 'url(/cursors/wait.cur), wait';
+
+    return () => {
+      // Restore cursor on unmount (when app finishes loading)
+      document.body.style.cursor = originalCursor;
+    };
+  }, []);
+
+  // Return null - no visible loading UI
+  return null;
+}
+
+// Wrapper that signals when the app component has loaded
+function LoadedWrapper({ children, onLoaded }) {
+  useEffect(() => {
+    onLoaded();
+  }, [onLoaded]);
+
+  return children;
+}
 
 function Windows({
   apps,
@@ -50,6 +76,9 @@ const Window = memo(function ({
 }) {
   // State for dynamic header updates from child components
   const [dynamicHeader, setDynamicHeader] = React.useState(null);
+  // Track if the lazy component has finished loading
+  const [isLoading, setIsLoading] = useState(true);
+  const handleLoaded = useCallback(() => setIsLoading(false), []);
   const currentHeader = dynamicHeader || header;
   const AppComponent = component;
   function _onMouseDown(e) {
@@ -131,6 +160,11 @@ const Window = memo(function ({
         ...(width && { width: `${width}px` }),
         ...(height && { height: `${height}px` }),
         zIndex,
+        // Hide window while loading - only show wait cursor
+        ...(isLoading && {
+          visibility: 'hidden',
+          pointerEvents: 'none',
+        }),
         ...(currentHeader.invisible && {
           background: 'transparent',
           boxShadow: 'none',
@@ -190,18 +224,20 @@ const Window = memo(function ({
         />
       )}
       <div className="window-body" style={currentHeader.invisible ? { margin: 0 } : undefined}>
-        <React.Suspense fallback={<div style={{ padding: 12 }}>Loading…</div>}>
-          <AppComponent
-            onClose={_onMouseUpClose}
-            onMinimize={_onMouseUpMinimize}
-            onMaximize={_onMouseUpMaximize}
-            onResize={onResize}
-            isFocus={isFocus}
-            isMaximized={maximized}
-            onUpdateHeader={setDynamicHeader}
-            dragRef={currentHeader.invisible ? dragRef : undefined}
-            {...injectProps}
-          />
+        <React.Suspense fallback={<LoadingFallback />}>
+          <LoadedWrapper onLoaded={handleLoaded}>
+            <AppComponent
+              onClose={_onMouseUpClose}
+              onMinimize={_onMouseUpMinimize}
+              onMaximize={_onMouseUpMaximize}
+              onResize={onResize}
+              isFocus={isFocus}
+              isMaximized={maximized}
+              onUpdateHeader={setDynamicHeader}
+              dragRef={currentHeader.invisible ? dragRef : undefined}
+              {...injectProps}
+            />
+          </LoadedWrapper>
         </React.Suspense>
       </div>
     </WindowContainer>
