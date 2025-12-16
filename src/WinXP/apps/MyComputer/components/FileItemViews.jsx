@@ -1,11 +1,28 @@
 import React from 'react';
 import styled from 'styled-components';
-import { XP_ICONS } from '../../../../contexts/FileSystemContext';
+import { XP_ICONS, fileIcons } from '../../../../contexts/FileSystemContext';
 import { getFileType, formatFileSize, formatDate, calculateFolderSize } from '../utils';
 import { withBaseUrl } from '../../../../utils/baseUrl';
 
 // Check if item is a shortcut
 const isShortcut = (item) => item.type === 'shortcut' || item.name?.endsWith('.lnk');
+
+// Get icon for item - dynamically compute from extension, falling back to stored icon
+const getItemIcon = (item) => {
+  // For folders and special items, use stored icon
+  if (item.type === 'folder' || item.type === 'drive') {
+    return item.icon || XP_ICONS.folder;
+  }
+
+  // For files, compute icon from extension
+  const ext = item.name?.toLowerCase().match(/\.[^.]+$/)?.[0];
+  if (ext && fileIcons[ext]) {
+    return fileIcons[ext];
+  }
+
+  // Fall back to stored icon or default
+  return item.icon || XP_ICONS.folder;
+};
 
 // Get display name (strip .lnk extension for shortcuts)
 const getDisplayName = (item) => {
@@ -64,7 +81,7 @@ export function IconItem({
       onMouseLeave={onMouseLeave}
     >
       <IconImageWrapper>
-        <IconImage src={withBaseUrl(item.icon || XP_ICONS.folder)} alt="" />
+        <IconImage src={withBaseUrl(getItemIcon(item))} alt="" />
         {isShortcut(item) && <ShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" />}
       </IconImageWrapper>
       {isRenaming ? (
@@ -133,7 +150,7 @@ export function ListItem({
       onMouseLeave={onMouseLeave}
     >
       <ListIconWrapper>
-        <ListIcon src={withBaseUrl(item.icon || XP_ICONS.folder)} alt="" />
+        <ListIcon src={withBaseUrl(getItemIcon(item))} alt="" />
         {isShortcut(item) && <SmallShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" />}
       </ListIconWrapper>
       {isRenaming ? (
@@ -208,7 +225,7 @@ export function DetailsRow({
     >
       <DetailsCell $width="40%">
         <DetailsIconWrapper>
-          <DetailsIcon src={withBaseUrl(item.icon || XP_ICONS.folder)} alt="" />
+          <DetailsIcon src={withBaseUrl(getItemIcon(item))} alt="" />
           {isShortcut(item) && <SmallShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" />}
         </DetailsIconWrapper>
         {isRenaming ? (
@@ -283,7 +300,7 @@ export function ThumbnailItem({
       onMouseLeave={onMouseLeave}
     >
       <ThumbnailImageWrapper $selected={selected}>
-        <ThumbnailImage src={withBaseUrl(item.icon || XP_ICONS.folder)} alt="" />
+        <ThumbnailImage src={withBaseUrl(getItemIcon(item))} alt="" />
         {isShortcut(item) && <ShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" />}
       </ThumbnailImageWrapper>
       {isRenaming ? (
@@ -352,7 +369,7 @@ export function TileItem({
       onMouseLeave={onMouseLeave}
     >
       <TileIconWrapper>
-        <TileIcon src={withBaseUrl(item.icon || XP_ICONS.folder)} alt="" />
+        <TileIcon src={withBaseUrl(getItemIcon(item))} alt="" />
         {isShortcut(item) && <TileShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" />}
       </TileIconWrapper>
       <TileInfo>

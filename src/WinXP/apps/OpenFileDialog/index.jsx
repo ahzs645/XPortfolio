@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
-import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../../../contexts/FileSystemContext';
+import { useFileSystem, SYSTEM_IDS, XP_ICONS, fileIcons as centralFileIcons } from '../../../contexts/FileSystemContext';
 import { withBaseUrl } from '../../../utils/baseUrl';
 
 // Container
@@ -245,6 +245,14 @@ function getFileIcon(item) {
   }
 
   const name = item.name?.toLowerCase() || '';
+
+  // First, check centralized file icons mapping by extension
+  const ext = name.match(/\.[^.]+$/)?.[0];
+  if (ext && centralFileIcons[ext]) {
+    return centralFileIcons[ext];
+  }
+
+  // Fallback to legacy checks
   if (name.endsWith('.pdf')) return FILE_ICONS.pdf;
   if (/\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(name)) return item.icon || FILE_ICONS.image;
   if (name.endsWith('.txt')) return FILE_ICONS.text;

@@ -1,4 +1,21 @@
-import { XP_ICONS } from '../../contexts/FileSystemContext';
+import { XP_ICONS, fileIcons } from '../../contexts/FileSystemContext';
+
+// Get icon for a file item - dynamically compute from extension
+const getItemIcon = (item) => {
+  // For folders, drives, and special items, use stored icon
+  if (item.type === 'folder' || item.type === 'drive' || item.type === 'shortcut') {
+    return item.icon || XP_ICONS.folder;
+  }
+
+  // For files, compute icon from extension
+  const ext = item.name?.toLowerCase().match(/\.[^.]+$/)?.[0];
+  if (ext && fileIcons[ext]) {
+    return fileIcons[ext];
+  }
+
+  // Fall back to stored icon or default file icon
+  return item.icon || XP_ICONS.file;
+};
 
 // Icon grid layout constants (used for arranging icons)
 export const ICON_GRID = {
@@ -47,7 +64,7 @@ export const convertToDesktopIcons = (items, appSettings, savedPositions = {}) =
     return {
       id: item.id,
       programId: item.id,
-      icon: item.icon || XP_ICONS.file,
+      icon: getItemIcon(item),
       title: displayTitle,
       fullName: item.name, // Keep the full name with .lnk for properties
       component: component,
