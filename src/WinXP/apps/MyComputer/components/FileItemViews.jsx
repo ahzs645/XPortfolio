@@ -709,7 +709,7 @@ const ThumbnailImageWrapper = styled.div`
   align-items: center;
   justify-content: center;
   border: 2px solid ${({ $selected }) => $selected ? '#316AC5' : '#e0dfe3'};
-  background: ${({ $selected }) => $selected ? 'rgba(49, 106, 197, 0.1)' : '#fff'};
+  background: transparent;
   margin-bottom: 4px;
 `;
 
