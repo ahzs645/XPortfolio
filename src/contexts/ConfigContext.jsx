@@ -37,6 +37,7 @@ function getDefaultConfig() {
     // Identity
     NAME_DISPLAY_MODE: 'first',
     CUSTOM_NAME: 'User',
+    USERNAME: null,
     OS_SUFFIX: 'XP',
 
     // Login screen
@@ -228,6 +229,15 @@ export function ConfigProvider({ children }) {
   const getOSName = () => {
     return `${getDisplayName()} ${config?.OS_SUFFIX || 'XP'}`;
   };
+
+  // Get username (separate from OS display name)
+  // If USERNAME is set in config, use it; otherwise fall back to display name
+  const getUsername = useCallback(() => {
+    if (config?.USERNAME) {
+      return config.USERNAME;
+    }
+    return getDisplayName();
+  }, [config, getDisplayName]);
 
   // Get profession for display
   const getProfession = () => {
@@ -622,6 +632,7 @@ export function ConfigProvider({ children }) {
     error,
     // Identity
     getDisplayName,
+    getUsername,
     getOSName,
     getFullName,
     getProfession,

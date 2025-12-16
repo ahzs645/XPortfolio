@@ -14,7 +14,7 @@ function BootScreen({ bootState, onComplete }) {
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState(null);
 
-  const { isLoading: configLoading, getDisplayName, getProfession, getUserLoginIcon, getDynamicXPSvgUrl } = useConfig();
+  const { isLoading: configLoading, getUsername, getProfession, getUserLoginIcon, getDynamicXPSvgUrl } = useConfig();
   const {
     users,
     isLoading: usersLoading,
@@ -26,7 +26,7 @@ function BootScreen({ bootState, onComplete }) {
 
   // Get user info - use selected user from accounts or fall back to config
   const selectedUser = users.find(u => u.id === selectedUserId);
-  const userName = selectedUser?.name || getDisplayName();
+  const userName = selectedUser?.name || getUsername();
   const userTitle = selectedUser ? (selectedUser.accountType === 'admin' ? 'Computer Administrator' : 'Limited Account') : getProfession();
   const userIcon = selectedUser?.picture || getUserLoginIcon();
 

@@ -45,7 +45,7 @@ function FooterMenu({ className, onClick, onLaunchInstalledApp }) {
   const [activeFolder, setActiveFolder] = useState(null);
   const [showRecentlyUsed, setShowRecentlyUsed] = useState(false);
   const [showInstalledApps, setShowInstalledApps] = useState(false);
-  const { getDisplayName, getStartMenuIcon } = useConfig();
+  const { getUsername, getStartMenuIcon } = useConfig();
   const { getInstalledAppsList } = useInstalledApps();
   const { getCurrentUser, isLoggedIn } = useUserAccounts();
   const { menuItems: dynamicMenuItems } = useStartMenu();
@@ -55,7 +55,7 @@ function FooterMenu({ className, onClick, onLaunchInstalledApp }) {
 
   // Use user's profile picture if logged in, otherwise fall back to config
   const userPicture = isLoggedIn && currentUser?.picture ? currentUser.picture : getStartMenuIcon();
-  const userName = isLoggedIn && currentUser?.name ? currentUser.name : getDisplayName();
+  const userName = isLoggedIn && currentUser?.name ? currentUser.name : getUsername();
 
   function handleItemClick(item) {
     if (item.type === 'folder') {
