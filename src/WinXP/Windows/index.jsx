@@ -235,6 +235,7 @@ const Window = memo(function ({
               isMaximized={maximized}
               onUpdateHeader={setDynamicHeader}
               dragRef={currentHeader.invisible ? dragRef : undefined}
+              windowPosition={{ x: offset.x, y: offset.y }}
               {...injectProps}
             />
           </LoadedWrapper>

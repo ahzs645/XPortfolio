@@ -14,6 +14,12 @@ export function MessageBoxProvider({ children, dispatch, appSettings, addAppActi
   // Store pending promises by message box ID
   const pendingPromises = useRef({});
 
+  // Track the last dialog position for sequential dialogs (using ref to persist across renders)
+  const lastDialogState = useRef({
+    position: null,
+    timestamp: 0,
+  });
+
   /**
    * Show a confirmation dialog and return a promise
    * @param {Object} options
@@ -21,6 +27,7 @@ export function MessageBoxProvider({ children, dispatch, appSettings, addAppActi
    * @param {string} options.message - Dialog message
    * @param {string} options.icon - Icon type: 'warning', 'error', 'info', 'question'
    * @param {Array} options.buttons - Button configurations [{label, value, primary}]
+   * @param {Object} options.position - Optional {x, y} position override
    * @returns {Promise} Resolves with the button value that was clicked
    */
   const showMessageBox = useCallback(({
@@ -28,6 +35,7 @@ export function MessageBoxProvider({ children, dispatch, appSettings, addAppActi
     message = '',
     icon = 'warning',
     buttons = [{ label: 'OK', value: 'ok', primary: true }],
+    position = null,
   }) => {
     return new Promise((resolve) => {
       const messageBoxId = `msgbox-${++messageBoxIdCounter}`;
@@ -40,10 +48,34 @@ export function MessageBoxProvider({ children, dispatch, appSettings, addAppActi
         return;
       }
 
+      // Calculate centered position based on screen size
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+      const dialogWidth = messageBoxSetting.defaultSize?.width || 420;
+      const dialogHeight = 180; // Approximate height for message boxes
+
+      const centeredPosition = {
+        x: Math.max(50, Math.floor((screenWidth - dialogWidth) / 2)),
+        y: Math.max(50, Math.floor((screenHeight - dialogHeight) / 2) - 50), // Slightly above center
+      };
+
+      // Use provided position, or last position if recent (within 2 seconds), or centered
+      const now = Date.now();
+      const { position: lastPosition, timestamp: lastTimestamp } = lastDialogState.current;
+      const useLastPosition = !position && lastPosition && (now - lastTimestamp < 2000);
+      const dialogPosition = position || (useLastPosition ? lastPosition : centeredPosition);
+
+      // Update the last position and timestamp
+      lastDialogState.current = {
+        position: dialogPosition,
+        timestamp: now,
+      };
+
       dispatch({
         type: addAppAction,
         payload: {
           ...messageBoxSetting,
+          defaultOffset: dialogPosition,
           header: {
             ...messageBoxSetting.header,
             title,
@@ -53,7 +85,14 @@ export function MessageBoxProvider({ children, dispatch, appSettings, addAppActi
             message,
             icon,
             buttons,
-            onResult: (value) => {
+            onResult: (value, finalPosition) => {
+              // Update position and timestamp when dialog closes
+              // This allows subsequent dialogs to appear where the user left this one
+              if (finalPosition) {
+                lastDialogState.current.position = finalPosition;
+              }
+              lastDialogState.current.timestamp = Date.now();
+
               const resolver = pendingPromises.current[messageBoxId];
               if (resolver) {
                 resolver(value);

@@ -22,6 +22,7 @@ function MessageBox({
   onResult,
   onClose,
   onUpdateHeader,
+  windowPosition, // Current window position from Window component
 }) {
   const { playError, playExclamation, playDing } = useSystemSounds();
   const soundPlayedRef = useRef(false);
@@ -66,12 +67,13 @@ function MessageBox({
   }, [title, icon, onUpdateHeader]);
 
   const handleButtonClick = (value) => {
-    onResult?.(value);
+    // Pass back the button value and current window position
+    onResult?.(value, windowPosition);
     onClose?.();
   };
 
   const handleClose = () => {
-    onResult?.('cancel');
+    onResult?.('cancel', windowPosition);
     onClose?.();
   };
 
