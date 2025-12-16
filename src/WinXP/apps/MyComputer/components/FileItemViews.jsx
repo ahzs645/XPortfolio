@@ -81,7 +81,7 @@ export function IconItem({
       onMouseLeave={onMouseLeave}
     >
       <IconImageWrapper>
-        <IconImage src={withBaseUrl(getItemIcon(item))} alt="" />
+        <IconImage src={withBaseUrl(getItemIcon(item))} alt="" $selected={selected} />
         {isShortcut(item) && <ShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" />}
       </IconImageWrapper>
       {isRenaming ? (
@@ -95,7 +95,7 @@ export function IconItem({
           />
         </RenameForm>
       ) : (
-        <IconName>{getDisplayName(item)}</IconName>
+        <IconName $selected={selected}>{getDisplayName(item)}</IconName>
       )}
     </IconItemContainer>
   );
@@ -150,7 +150,7 @@ export function ListItem({
       onMouseLeave={onMouseLeave}
     >
       <ListIconWrapper>
-        <ListIcon src={withBaseUrl(getItemIcon(item))} alt="" />
+        <ListIcon src={withBaseUrl(getItemIcon(item))} alt="" $selected={selected} />
         {isShortcut(item) && <SmallShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" />}
       </ListIconWrapper>
       {isRenaming ? (
@@ -225,7 +225,7 @@ export function DetailsRow({
     >
       <DetailsCell $width="40%">
         <DetailsIconWrapper>
-          <DetailsIcon src={withBaseUrl(getItemIcon(item))} alt="" />
+          <DetailsIcon src={withBaseUrl(getItemIcon(item))} alt="" $selected={selected} />
           {isShortcut(item) && <SmallShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" />}
         </DetailsIconWrapper>
         {isRenaming ? (
@@ -369,7 +369,7 @@ export function TileItem({
       onMouseLeave={onMouseLeave}
     >
       <TileIconWrapper>
-        <TileIcon src={withBaseUrl(getItemIcon(item))} alt="" />
+        <TileIcon src={withBaseUrl(getItemIcon(item))} alt="" $selected={selected} />
         {isShortcut(item) && <TileShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" />}
       </TileIconWrapper>
       <TileInfo>
@@ -385,7 +385,7 @@ export function TileItem({
           </RenameForm>
         ) : (
           <>
-            <TileName>{getDisplayName(item)}</TileName>
+            <TileName $selected={selected}>{getDisplayName(item)}</TileName>
             <TileType>{getFileType(item)}</TileType>
             {item.type !== 'folder' && <TileSize>{formatFileSize(item.size)}</TileSize>}
           </>
@@ -457,30 +457,11 @@ const IconItemContainer = styled.div`
   align-items: center;
   cursor: pointer;
   border: ${({ $isDropTarget }) => $isDropTarget ? '2px solid #0b61ff' : '1px solid transparent'};
-  border-radius: ${({ $isDropTarget }) => $isDropTarget ? '4px' : '2px'};
-  background: ${({ $selected, $isDropTarget }) =>
-    $isDropTarget
-      ? 'rgba(11, 97, 255, 0.4)'
-      : $selected
-      ? 'rgba(11, 97, 255, 0.2)'
-      : 'transparent'};
-  border-color: ${({ $selected, $isDropTarget }) =>
-    $isDropTarget
-      ? '#0b61ff'
-      : $selected
-      ? 'rgba(11, 97, 255, 0.5)'
-      : 'transparent'};
+  border-radius: ${({ $isDropTarget }) => $isDropTarget ? '4px' : '0'};
+  background: ${({ $isDropTarget }) =>
+    $isDropTarget ? 'rgba(11, 97, 255, 0.4)' : 'transparent'};
   opacity: ${({ $isCut, $isDragging }) => ($isDragging ? 0.5 : $isCut ? 0.5 : 1)};
   transition: ${({ $isDropTarget }) => ($isDropTarget ? 'background 0.15s, border 0.15s' : 'none')};
-
-  &:hover {
-    background: ${({ $selected, $isDropTarget }) =>
-      $isDropTarget
-        ? 'rgba(11, 97, 255, 0.5)'
-        : $selected
-        ? 'rgba(11, 97, 255, 0.3)'
-        : 'rgba(11, 97, 255, 0.1)'};
-  }
 `;
 
 const IconImageWrapper = styled.div`
@@ -493,6 +474,9 @@ const IconImageWrapper = styled.div`
 const IconImage = styled.img`
   width: 32px;
   height: 32px;
+  filter: ${({ $selected }) => $selected
+    ? 'brightness(50%) invert(10%) sepia(100%) saturate(300%) hue-rotate(180deg)'
+    : 'none'};
 `;
 
 const ShortcutOverlay = styled.img`
@@ -511,6 +495,9 @@ const IconName = styled.span`
   line-height: 1.2;
   max-height: 2.4em;
   overflow: hidden;
+  padding: 1px 2px;
+  background: ${({ $selected }) => $selected ? '#316ac5' : 'transparent'};
+  color: ${({ $selected }) => $selected ? '#fff' : '#000'};
 `;
 
 // List View Styles
@@ -541,6 +528,9 @@ const ListIconWrapper = styled.div`
 const ListIcon = styled.img`
   width: 16px;
   height: 16px;
+  filter: ${({ $selected }) => $selected
+    ? 'brightness(50%) invert(10%) sepia(100%) saturate(300%) hue-rotate(180deg)'
+    : 'none'};
 `;
 
 const SmallShortcutOverlay = styled.img`
@@ -625,6 +615,9 @@ const DetailsIconWrapper = styled.div`
 const DetailsIcon = styled.img`
   width: 16px;
   height: 16px;
+  filter: ${({ $selected }) => $selected
+    ? 'brightness(50%) invert(10%) sepia(100%) saturate(300%) hue-rotate(180deg)'
+    : 'none'};
 `;
 
 // Tiles View Styles
@@ -635,17 +628,11 @@ const TileItemContainer = styled.div`
   padding: 6px 8px;
   width: 200px;
   cursor: pointer;
-  border: 1px solid transparent;
-  border-radius: 2px;
-  background: ${({ $selected, $isDropTarget }) =>
-    $isDropTarget ? 'rgba(11, 97, 255, 0.4)' : $selected ? 'rgba(11, 97, 255, 0.2)' : 'transparent'};
-  border-color: ${({ $selected, $isDropTarget }) =>
-    $isDropTarget ? '#0b61ff' : $selected ? 'rgba(11, 97, 255, 0.5)' : 'transparent'};
+  border: ${({ $isDropTarget }) => $isDropTarget ? '2px solid #0b61ff' : '1px solid transparent'};
+  border-radius: ${({ $isDropTarget }) => $isDropTarget ? '4px' : '0'};
+  background: ${({ $isDropTarget }) =>
+    $isDropTarget ? 'rgba(11, 97, 255, 0.4)' : 'transparent'};
   opacity: ${({ $isCut, $isDragging }) => ($isDragging ? 0.5 : $isCut ? 0.5 : 1)};
-  &:hover {
-    background: ${({ $selected, $isDropTarget }) =>
-      $isDropTarget ? 'rgba(11, 97, 255, 0.5)' : $selected ? 'rgba(11, 97, 255, 0.3)' : 'rgba(11, 97, 255, 0.1)'};
-  }
 `;
 
 const TileIconWrapper = styled.div`
@@ -658,6 +645,9 @@ const TileIconWrapper = styled.div`
 const TileIcon = styled.img`
   width: 48px;
   height: 48px;
+  filter: ${({ $selected }) => $selected
+    ? 'brightness(50%) invert(10%) sepia(100%) saturate(300%) hue-rotate(180deg)'
+    : 'none'};
 `;
 
 const TileShortcutOverlay = styled.img`
@@ -682,6 +672,9 @@ const TileName = styled.span`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  padding: 1px 2px;
+  background: ${({ $selected }) => $selected ? '#316ac5' : 'transparent'};
+  color: ${({ $selected }) => $selected ? '#fff' : '#000'};
 `;
 
 const TileType = styled.span`
