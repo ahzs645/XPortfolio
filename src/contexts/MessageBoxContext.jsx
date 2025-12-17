@@ -26,6 +26,7 @@ export function MessageBoxProvider({ children, dispatch, appSettings, addAppActi
    * @param {string} options.title - Dialog title
    * @param {string} options.message - Dialog message
    * @param {string} options.icon - Icon type: 'warning', 'error', 'info', 'question'
+   * @param {string} options.iconSrc - Custom icon source path (overrides icon type)
    * @param {Array} options.buttons - Button configurations [{label, value, primary}]
    * @param {Object} options.position - Optional {x, y} position override
    * @returns {Promise} Resolves with the button value that was clicked
@@ -34,6 +35,7 @@ export function MessageBoxProvider({ children, dispatch, appSettings, addAppActi
     title = 'Windows',
     message = '',
     icon = 'warning',
+    iconSrc = null,
     buttons = [{ label: 'OK', value: 'ok', primary: true }],
     position = null,
   }) => {
@@ -84,6 +86,7 @@ export function MessageBoxProvider({ children, dispatch, appSettings, addAppActi
             title,
             message,
             icon,
+            iconSrc,
             buttons,
             onResult: (value, finalPosition) => {
               // Update position and timestamp when dialog closes

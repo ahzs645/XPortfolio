@@ -18,6 +18,7 @@ function MessageBox({
   title = 'Windows',
   message = '',
   icon = 'warning',
+  iconSrc: customIconSrc = null, // Custom icon source path (overrides icon type)
   buttons = [{ label: 'OK', value: 'ok', primary: true }],
   onResult,
   onClose,
@@ -84,7 +85,8 @@ function MessageBox({
     info: '/icons/luna/dialog_info.png',
     question: '/icons/luna/dialog_warning.png', // Use warning icon for question
   };
-  const iconSrc = iconSrcMap[icon] || iconSrcMap.warning;
+  // Use custom icon if provided, otherwise fall back to icon type mapping
+  const iconSrc = customIconSrc || iconSrcMap[icon] || iconSrcMap.warning;
 
   return (
     <DialogContainer>
