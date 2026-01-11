@@ -63,6 +63,7 @@ const Wizard101 = lazy(() => import('./Wizard101'));
 const Run = lazy(() => import('./Run'));
 const LegoIsland = lazy(() => import('./LegoIsland'));
 const Diablo = lazy(() => import('./Diablo'));
+const StarCraft = lazy(() => import('./StarCraft'));
 // ControlPanel is now integrated into MyComputer as a navigable view
 
 // XP Icons paths
@@ -180,6 +181,7 @@ export const appCategoryMap = {
   'Wizard101': APP_CATEGORIES.GAME,
   'LEGO Island': APP_CATEGORIES.GAME,
   'Diablo': APP_CATEGORIES.GAME,
+  'StarCraft': APP_CATEGORIES.GAME,
 };
 
 // Helper to get app category
@@ -414,6 +416,11 @@ export const desktopIconCatalog = {
     title: 'Diablo',
     component: Diablo,
   },
+  starcraft: {
+    icon: '/icons/games/starcraft.png',
+    title: 'StarCraft',
+    component: StarCraft,
+  },
 };
 
 // Load saved icon positions from localStorage
@@ -482,6 +489,7 @@ const CATALOG_TO_APP_KEY = {
   wizard101: 'Wizard101',
   legoIsland: 'LEGO Island',
   diablo: 'Diablo',
+  starcraft: 'StarCraft',
 };
 
 // Generate desktop icon state from program list
@@ -1783,6 +1791,26 @@ export const appSettings = {
     defaultOffset: {
       x: 120,
       y: 60,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'StarCraft': {
+    header: {
+      icon: '/icons/games/starcraft.png',
+      title: 'StarCraft',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: StarCraft,
+    defaultSize: {
+      width: 800,
+      height: 600,
+    },
+    defaultOffset: {
+      x: 140,
+      y: 70,
     },
     resizable: true,
     minimized: false,
