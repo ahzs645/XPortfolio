@@ -61,6 +61,7 @@ const WorldOfWarcraft = lazy(() => import('./WorldOfWarcraft'));
 const RuneScape = lazy(() => import('./RuneScape'));
 const Wizard101 = lazy(() => import('./Wizard101'));
 const Run = lazy(() => import('./Run'));
+const LegoIsland = lazy(() => import('./LegoIsland'));
 // ControlPanel is now integrated into MyComputer as a navigable view
 
 // XP Icons paths
@@ -176,6 +177,7 @@ export const appCategoryMap = {
   'World of Warcraft': APP_CATEGORIES.GAME,
   'RuneScape Classic': APP_CATEGORIES.GAME,
   'Wizard101': APP_CATEGORIES.GAME,
+  'LEGO Island': APP_CATEGORIES.GAME,
 };
 
 // Helper to get app category
@@ -400,6 +402,11 @@ export const desktopIconCatalog = {
     title: 'Wizard101',
     component: Wizard101,
   },
+  legoIsland: {
+    icon: '/icons/games/lego-island.webp',
+    title: 'LEGO Island',
+    component: LegoIsland,
+  },
 };
 
 // Load saved icon positions from localStorage
@@ -466,6 +473,7 @@ const CATALOG_TO_APP_KEY = {
   worldOfWarcraft: 'World of Warcraft',
   runescape: 'RuneScape Classic',
   wizard101: 'Wizard101',
+  legoIsland: 'LEGO Island',
 };
 
 // Generate desktop icon state from program list
@@ -1729,6 +1737,26 @@ export const appSettings = {
       y: 30,
     },
     resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'LEGO Island': {
+    header: {
+      icon: '/icons/games/lego-island.webp',
+      title: 'LEGO Island',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: LegoIsland,
+    defaultSize: {
+      width: 800,
+      height: 600,
+    },
+    defaultOffset: {
+      x: 100,
+      y: 50,
+    },
+    resizable: true,
     minimized: false,
     maximized: false,
     multiInstance: false,

@@ -1,16 +1,33 @@
-# React + Vite
+# XPortfolio-1
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+YAML-driven portfolio builder (React + Vite) with multiple selectable portfolio themes.
 
-Currently, two official plugins are available:
+## Quickstart
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```sh
+pnpm dev
+```
 
-## React Compiler
+## Resume data (YAML)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Resume/CV: `public/CV.yaml`
+- App config: `public/config.env`
 
-## Expanding the ESLint configuration
+`CV.yaml` is parsed at runtime via `js-yaml` in `src/contexts/ConfigContext.jsx`.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Theme selection
+
+Themes are selected via URL params:
+
+- Theme catalog: `/?catalog=1`
+- Windows XP portfolio: `/?theme=xp` (default)
+- Minimal theme example: `/?theme=ansub-minimal`
+
+## Add a new theme
+
+1. Create a React component under `src/portfolioThemes/themes/<YourTheme>/`.
+2. Register it in `src/portfolioThemes/portfolioThemes.js`.
+
+## Note on reuse
+
+If you’re adapting a design you didn’t create, make sure you have permission and replace branding/content with your own.
