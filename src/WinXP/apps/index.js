@@ -62,6 +62,7 @@ const RuneScape = lazy(() => import('./RuneScape'));
 const Wizard101 = lazy(() => import('./Wizard101'));
 const Run = lazy(() => import('./Run'));
 const LegoIsland = lazy(() => import('./LegoIsland'));
+const Diablo = lazy(() => import('./Diablo'));
 // ControlPanel is now integrated into MyComputer as a navigable view
 
 // XP Icons paths
@@ -178,6 +179,7 @@ export const appCategoryMap = {
   'RuneScape Classic': APP_CATEGORIES.GAME,
   'Wizard101': APP_CATEGORIES.GAME,
   'LEGO Island': APP_CATEGORIES.GAME,
+  'Diablo': APP_CATEGORIES.GAME,
 };
 
 // Helper to get app category
@@ -407,6 +409,11 @@ export const desktopIconCatalog = {
     title: 'LEGO Island',
     component: LegoIsland,
   },
+  diablo: {
+    icon: '/icons/games/diablo.png',
+    title: 'Diablo',
+    component: Diablo,
+  },
 };
 
 // Load saved icon positions from localStorage
@@ -474,6 +481,7 @@ const CATALOG_TO_APP_KEY = {
   runescape: 'RuneScape Classic',
   wizard101: 'Wizard101',
   legoIsland: 'LEGO Island',
+  diablo: 'Diablo',
 };
 
 // Generate desktop icon state from program list
@@ -1755,6 +1763,26 @@ export const appSettings = {
     defaultOffset: {
       x: 100,
       y: 50,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'Diablo': {
+    header: {
+      icon: '/icons/games/diablo.png',
+      title: 'Diablo',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: Diablo,
+    defaultSize: {
+      width: 800,
+      height: 600,
+    },
+    defaultOffset: {
+      x: 120,
+      y: 60,
     },
     resizable: true,
     minimized: false,
