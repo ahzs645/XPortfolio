@@ -327,6 +327,27 @@ export const START_MENU_CATALOG = {
     title: 'Wizard101',
     description: 'Wizard101 Game Launcher',
   },
+  legoIsland: {
+    type: 'program',
+    appKey: 'LEGO Island',
+    icon: '/icons/games/lego-island.webp',
+    title: 'LEGO Island',
+    description: 'Classic LEGO adventure game',
+  },
+  diablo: {
+    type: 'program',
+    appKey: 'Diablo',
+    icon: '/icons/games/diablo.png',
+    title: 'Diablo',
+    description: 'Blizzard action RPG',
+  },
+  starcraft: {
+    type: 'program',
+    appKey: 'StarCraft',
+    icon: '/icons/games/starcraft.png',
+    title: 'StarCraft',
+    description: 'Blizzard real-time strategy',
+  },
   run: {
     type: 'program',
     appKey: 'Run',
@@ -380,7 +401,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Games',
     icon: '/icons/folder-icon.png',
-    items: ['minesweeper', 'solitaire', 'spiderSolitaire', 'pinball', 'runescape', 'worldOfWarcraft', 'wizard101', 'qqGames'],
+    items: ['minesweeper', 'solitaire', 'spiderSolitaire', 'pinball', 'runescape', 'worldOfWarcraft', 'wizard101', 'legoIsland', 'diablo', 'starcraft', 'qqGames'],
   },
   systemTools: {
     type: 'folder',
