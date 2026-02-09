@@ -73,11 +73,6 @@ function MessageBox({
     onClose?.();
   };
 
-  const handleClose = () => {
-    onResult?.('cancel', windowPosition);
-    onClose?.();
-  };
-
   // Use Luna icons for the dialog content (scales well)
   const iconSrcMap = {
     warning: '/icons/luna/dialog_warning.png',

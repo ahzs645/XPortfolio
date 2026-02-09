@@ -7,7 +7,6 @@ import {
   getPixelPositionFromIndex,
   getGridIndexFromPosition,
   findNearestAvailableIndex,
-  getMaxRows,
 } from '../helpers/iconUtils';
 
 export function useIconManager({
@@ -24,7 +23,7 @@ export function useIconManager({
   const [alignToGridEnabled, setAlignToGridEnabled] = useState(true);
   const [autoArrangeEnabled, setAutoArrangeEnabled] = useState(false);
   const iconIndicesRef = useRef({});
-  const [, forceUpdate] = useState(0); // For triggering re-renders on resize
+  const [, _ForceUpdate] = useState(0); // For triggering re-renders on resize
 
   // Update desktop icons from file system Desktop folder + system icons
   useEffect(() => {

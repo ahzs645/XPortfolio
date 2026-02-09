@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { withBaseUrl } from '../../../utils/baseUrl';
+
 
 function LegoIsland() {
   const [isLoading, setIsLoading] = useState(true);
