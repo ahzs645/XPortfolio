@@ -25,6 +25,7 @@ function LegoIsland() {
         frameBorder="0"
         allowFullScreen
         allow="autoplay; gamepad"
+        credentialless="true"
         onLoad={() => setIsLoading(false)}
       />
     </Container>
