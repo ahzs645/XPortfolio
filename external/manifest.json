@@ -1,0 +1,44 @@
+{
+  "projects": [
+    {
+      "name": "spider-solitaire",
+      "path": "external/spider-solitaire",
+      "packageManager": "npm",
+      "buildCommand": "npm run build",
+      "buildOutput": "build",
+      "deployTarget": "public/games/spider-solitaire",
+      "type": "game",
+      "envOverrides": { "CI": "false" }
+    },
+    {
+      "name": "js-solitaire",
+      "path": "external/js-solitaire",
+      "packageManager": "pnpm",
+      "buildCommand": "pnpm run build",
+      "buildOutput": "dist",
+      "deployTarget": "public/games/solitaire",
+      "type": "game"
+    },
+    {
+      "name": "jspaint",
+      "path": "external/jspaint",
+      "packageManager": "none",
+      "buildCommand": null,
+      "buildOutput": null,
+      "deployTarget": "public/apps/jspaint",
+      "type": "app",
+      "copyFiles": [
+        "index.html",
+        "src",
+        "lib",
+        "images",
+        "styles",
+        "localization",
+        "help",
+        "audio",
+        "favicon.ico",
+        "manifest.webmanifest"
+      ]
+    }
+  ]
+}

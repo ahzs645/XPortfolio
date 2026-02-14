@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import styled from 'styled-components';
+import DOMPurify from 'dompurify';
 import { withBaseUrl } from '../../../utils/baseUrl';
 
 const HELP_ICON = withBaseUrl('/icons/help.png');
@@ -427,7 +428,7 @@ function HelpAndSupport({ initialTopic }) {
 
   const renderTopicContent = () => (
     <TopicContent>
-      <ArticleContent dangerouslySetInnerHTML={{ __html: topic.content }} />
+      <ArticleContent dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(topic.content) }} />
       {topic.relatedLinks && topic.relatedLinks.length > 0 && (
         <RelatedLinks>
           <h3>Related Topics</h3>
