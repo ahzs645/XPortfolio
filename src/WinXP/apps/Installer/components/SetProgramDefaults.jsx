@@ -173,6 +173,7 @@ function SetProgramDefaults({ installedApps }) {
   const [showSaved, setShowSaved] = useState(false);
 
   // Load saved defaults from localStorage
+  /* eslint-disable react-hooks/set-state-in-effect -- load persisted settings from localStorage */
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -185,6 +186,7 @@ function SetProgramDefaults({ installedApps }) {
       console.error('Failed to load program defaults:', e);
     }
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Save defaults to localStorage
   const saveDefaults = () => {

@@ -104,6 +104,7 @@ function CharacterSelectView({ previewCharacter, setPreviewCharacter }) {
   const [shouldPlayGreeting, setShouldPlayGreeting] = useState(true);
 
   // Load animation data and sounds for current character preview
+  /* eslint-disable react-hooks/set-state-in-effect -- reset and fetch on character change */
   useEffect(() => {
     setAnimationData(null);
     setSoundsData(null);
@@ -119,10 +120,12 @@ function CharacterSelectView({ previewCharacter, setPreviewCharacter }) {
       .then(data => setSoundsData(data))
       .catch(() => {});
   }, [character.dataUrl, character.soundsUrl]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const { spritePosition, overlayPositions, frameSize, play, hasAnimation } = useClippyAnimation(animationData, soundsData);
 
   // Play greeting animation when character loads, then idle
+  /* eslint-disable react-hooks/set-state-in-effect -- one-shot greeting trigger */
   useEffect(() => {
     if (animationData && shouldPlayGreeting) {
       setShouldPlayGreeting(false);
@@ -141,6 +144,7 @@ function CharacterSelectView({ previewCharacter, setPreviewCharacter }) {
       }
     }
   }, [animationData, shouldPlayGreeting, hasAnimation, play]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handlePrev = () => {
     const newIndex = currentIndex <= 0 ? CHARACTERS.length - 1 : currentIndex - 1;

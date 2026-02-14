@@ -28,6 +28,7 @@ const RoverAnimation = forwardRef(({ character, onExitComplete, onShowComplete, 
   const needsShowAnimation = useRef(true);
 
   // Load animation data and sounds for the character
+  /* eslint-disable react-hooks/set-state-in-effect -- reset and load animation on character change */
   useEffect(() => {
     if (!character) return;
 
@@ -53,6 +54,7 @@ const RoverAnimation = forwardRef(({ character, onExitComplete, onShowComplete, 
       .then(data => setSoundsData(data))
       .catch(() => {}); // Sounds are optional
   }, [character]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const {
     spritePosition,
@@ -85,6 +87,7 @@ const RoverAnimation = forwardRef(({ character, onExitComplete, onShowComplete, 
   }, [play]);
 
   // Play Show animation when data is loaded
+  /* eslint-disable react-hooks/set-state-in-effect -- animation state machine transition */
   useEffect(() => {
     if (animationData && phase === 'show' && needsShowAnimation.current) {
       needsShowAnimation.current = false; // Only play once per character load
@@ -100,6 +103,7 @@ const RoverAnimation = forwardRef(({ character, onExitComplete, onShowComplete, 
       }
     }
   }, [animationData, phase, hasAnimation, play, handleAnimationComplete]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Play Idle animation after Show completes
   useEffect(() => {

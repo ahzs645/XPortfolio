@@ -86,12 +86,14 @@ export default function UpdateToast() {
   }, [triggerMockUpdate, computeAnchor]);
 
   // Ensure tray icon is present whenever we have update info
+  /* eslint-disable react-hooks/set-state-in-effect -- show toast on update detection */
   useEffect(() => {
     if (!updateInfo) return;
     window.dispatchEvent(new CustomEvent('xp:update-available', { detail: updateInfo }));
     computeAnchor();
     setIsVisible(true);
   }, [updateInfo, computeAnchor]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Play balloon sound when showing
   useEffect(() => {

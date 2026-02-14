@@ -140,6 +140,7 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
   }, [pdfUrl, displayName, onUpdateTitle]);
 
   // Load PDF from data or path
+  /* eslint-disable react-hooks/set-state-in-effect -- data loading from prop */
   useEffect(() => {
     if (pdfData) {
       setIsLoading(true);
@@ -154,6 +155,7 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
       setPdfUrl(pdfPath);
     }
   }, [pdfData, pdfPath]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleFileOpen = useCallback(() => {
     openApp('Open File', {

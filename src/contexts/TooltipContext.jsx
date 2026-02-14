@@ -27,6 +27,7 @@ function TooltipRenderer() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [measured, setMeasured] = useState(false);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- DOM measurement after layout */
   useLayoutEffect(() => {
     if (!tooltip.visible || !tooltip.text || !tooltipRef.current) {
       setMeasured(false);
@@ -60,6 +61,7 @@ function TooltipRenderer() {
     setPosition({ x, y });
     setMeasured(true);
   }, [tooltip.visible, tooltip.text, tooltip.x, tooltip.y]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!tooltip.visible || !tooltip.text) {
     return null;

@@ -60,6 +60,7 @@ function FlashPlayer({
   }, []);
 
   // Handle file data passed to component
+  /* eslint-disable react-hooks/set-state-in-effect -- blob URL creation from prop data */
   useEffect(() => {
     if (fileData && fileName) {
       const blob = new Blob([fileData], { type: 'application/x-shockwave-flash' });
@@ -72,6 +73,7 @@ function FlashPlayer({
       };
     }
   }, [fileData, fileName]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Initialize Ruffle player when ready
   useEffect(() => {

@@ -213,6 +213,7 @@ function InternetExplorer({ onClose, onMinimize, onMaximize, isFocus, initialUrl
 
   const goHome = () => navigateToUrl(HOME_PAGE);
 
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization -- reads history+historyIndex from closure to slice/push; refactoring to functional updates would split coordinated state
   const navigateToUrl = useCallback((url) => {
     let finalUrl = url.trim();
     if (!finalUrl) return;

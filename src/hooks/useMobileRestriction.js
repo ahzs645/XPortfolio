@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import {
   isMobileDevice,
   initializeDeviceDetection,
@@ -12,13 +12,10 @@ import {
  */
 export function useMobileRestriction() {
   const [popupData, setPopupData] = useState(null);
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Initialize device detection on mount
-  useEffect(() => {
+  const [isMobile] = useState(() => {
     initializeDeviceDetection();
-    setIsMobile(isMobileDevice());
-  }, []);
+    return isMobileDevice();
+  });
 
   /**
    * Check if an app can be launched on mobile

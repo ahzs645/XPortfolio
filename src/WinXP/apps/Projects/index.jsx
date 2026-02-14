@@ -132,9 +132,11 @@ function Projects({ onClose, onMinimize, onMaximize }) {
     }
   }, [isProjectMarkdownEnabled, shouldShowProjectsWithoutMarkdown]);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- async data fetch on mount */
   useEffect(() => {
     loadProjects();
   }, [loadProjects]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleProjectClick = (project) => {
     if (project.url) {

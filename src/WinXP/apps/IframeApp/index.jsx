@@ -136,6 +136,7 @@ function IframeApp({
   }, [appId, markAppRun]);
 
   // Animate progress bar while loading
+  /* eslint-disable react-hooks/set-state-in-effect -- progress bar sync */
   useEffect(() => {
     if (!isLoading) {
       setLoadProgress(100);
@@ -154,6 +155,7 @@ function IframeApp({
 
     return () => clearInterval(interval);
   }, [isLoading]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Handle messages from the iframe
   const handleMessage = useCallback((event) => {

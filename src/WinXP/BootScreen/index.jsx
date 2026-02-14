@@ -31,12 +31,15 @@ function BootScreen({ bootState, onComplete }) {
   const userIcon = selectedUser?.picture || getUserLoginIcon();
 
   // Auto-select user if only one exists
+  /* eslint-disable react-hooks/set-state-in-effect -- one-time auto-select */
   useEffect(() => {
     if (!usersLoading && users.length === 1 && !selectedUserId) {
       setSelectedUserId(users[0].id);
     }
   }, [users, usersLoading, selectedUserId]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
+  /* eslint-disable react-hooks/set-state-in-effect -- boot sequence state transitions */
   useEffect(() => {
     // If coming from log off, skip boot animation and show login directly
     if (bootState === BOOT_STATE.LOGIN) {
@@ -53,6 +56,7 @@ function BootScreen({ bootState, onComplete }) {
       return () => clearTimeout(bootTimer);
     }
   }, [bootState, isLoading]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleUserClick = async (userId) => {
     const user = users.find(u => u.id === userId);

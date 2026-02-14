@@ -543,9 +543,11 @@ Type 'help' to see available commands.
     return handlers;
   }, [context.name, context.skills, context.socialLinks, openApp, runCd, runCopy, runDel, runDir, runEdit, runMkdir, runMove, runRename, runRmdir, runStart, runTouch, runTree, runType]);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- reset on prop change */
   useEffect(() => {
     setHistory([{ type: 'output', text: initialMessage }]);
   }, [initialMessage]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (containerRef.current) {
