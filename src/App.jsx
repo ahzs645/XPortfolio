@@ -10,6 +10,7 @@ import { StartMenuProvider } from './contexts/StartMenuContext';
 import { ScreensaverProvider } from './contexts/ScreensaverContext';
 import { TooltipProvider } from './contexts/TooltipContext';
 import { UpdateToast } from './components/UpdateToast';
+import ErrorBoundary from './components/ErrorBoundary';
 import { initializeDeviceDetection } from './utils/deviceDetection';
 
 const GlobalStyle = createGlobalStyle`
@@ -57,7 +58,9 @@ function App() {
                 <ScreensaverProvider>
                   <TooltipProvider>
                     <GlobalStyle />
-                    <WinXP />
+                    <ErrorBoundary name="Desktop">
+                      <WinXP />
+                    </ErrorBoundary>
                     <UpdateToast />
                   </TooltipProvider>
                 </ScreensaverProvider>

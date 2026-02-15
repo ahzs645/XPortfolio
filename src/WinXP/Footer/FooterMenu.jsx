@@ -311,6 +311,7 @@ function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemC
   const [submenuOffset, setSubmenuOffset] = useState(0);
   const [activeSubfolder, setActiveSubfolder] = useState(null);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- reset on close + DOM measurement */
   useLayoutEffect(() => {
     if (!isOpen) {
       setSubmenuOffset(0);
@@ -347,6 +348,7 @@ function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemC
       window.removeEventListener('resize', repositionSubmenu);
     };
   }, [isOpen, folderItems.length]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleSubfolderHover = (subfolder) => {
     setActiveSubfolder(subfolder?.key || null);
@@ -418,6 +420,7 @@ function NestedFolderItem({ folder, isOpen, folderItems, onHover, onLeave, onIte
   const submenuRef = useRef(null);
   const [submenuOffset, setSubmenuOffset] = useState(0);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- reset on close + DOM measurement */
   useLayoutEffect(() => {
     if (!isOpen) {
       setSubmenuOffset(0);
@@ -452,6 +455,7 @@ function NestedFolderItem({ folder, isOpen, folderItems, onHover, onLeave, onIte
       window.removeEventListener('resize', repositionSubmenu);
     };
   }, [isOpen, folderItems.length]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   return (
     <div

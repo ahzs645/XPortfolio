@@ -13,6 +13,7 @@ function TypewriterText({ text, onComplete, speed = WORD_SPEAK_TIME }) {
   const wordsRef = useRef([]);
   const indexRef = useRef(0);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- typewriter reset on text change */
   useEffect(() => {
     // Reset when text changes
     setDisplayedText('');
@@ -48,6 +49,7 @@ function TypewriterText({ text, onComplete, speed = WORD_SPEAK_TIME }) {
       }
     };
   }, [text, speed, onComplete]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Skip to end on click
   const handleClick = () => {

@@ -10,6 +10,7 @@ function FolderTree({ roots = [], fileSystem, currentFolder, onNavigate }) {
   const [expandedIds, setExpandedIds] = useState(() => new Set(['my-computer-root']));
 
   // Expand ancestors of the current folder so it stays visible
+  /* eslint-disable react-hooks/set-state-in-effect -- expand tree to show current folder */
   useEffect(() => {
     setExpandedIds(prev => {
       const next = new Set(prev);
@@ -22,6 +23,7 @@ function FolderTree({ roots = [], fileSystem, currentFolder, onNavigate }) {
       return next;
     });
   }, [currentFolder, fileSystem]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const rootLookup = useMemo(() => {
     const map = new Map();

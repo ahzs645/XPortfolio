@@ -22,6 +22,7 @@ function FontViewer({ fontData, fontName, fontPath }) {
   }, []);
 
   // Load the font
+  /* eslint-disable react-hooks/set-state-in-effect -- async font loading */
   useEffect(() => {
     if (!fontData) {
       setError('No font data provided');
@@ -63,6 +64,7 @@ function FontViewer({ fontData, fontName, fontPath }) {
 
     loadFont();
   }, [fontData, fontName, fontPath, getFormatFromName]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   return (
     <Container>

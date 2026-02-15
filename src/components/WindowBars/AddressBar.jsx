@@ -48,6 +48,7 @@ function AddressBar({
   const wasLoadingRef = useRef(false);
 
   // Handle loading state with animated progress
+  /* eslint-disable react-hooks/set-state-in-effect -- progress bar animation sync */
   useEffect(() => {
     if (loading) {
       wasLoadingRef.current = true;
@@ -85,8 +86,10 @@ function AddressBar({
       return () => clearTimeout(timeout);
     }
   }, [loading]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Handle controlled progress
+  /* eslint-disable react-hooks/set-state-in-effect -- sync progress from controlled prop */
   useEffect(() => {
     if (typeof controlledProgress === 'number') {
       setProgress(controlledProgress);
@@ -99,6 +102,7 @@ function AddressBar({
       }
     }
   }, [controlledProgress]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Focus input when entering edit mode
   useEffect(() => {

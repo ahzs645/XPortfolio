@@ -249,6 +249,7 @@ function FileChooser({
   }, [isDragging]);
 
   // Reset state when dialog opens
+  /* eslint-disable react-hooks/set-state-in-effect -- reset form state when dialog opens */
   useEffect(() => {
     if (isOpen) {
       setCurrentFolder(SYSTEM_IDS.DESKTOP);
@@ -258,6 +259,7 @@ function FileChooser({
       setPosition({ x: null, y: null }); // Reset to centered
     }
   }, [isOpen]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!isOpen) return null;
 

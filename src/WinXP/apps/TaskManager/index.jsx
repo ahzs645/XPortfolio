@@ -36,7 +36,7 @@ function TaskManager() {
   const [selectedAppId, setSelectedAppId] = useState(null);
   const [selectedProcess, setSelectedProcess] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [processCount, setProcessCount] = useState(1);
+  // processCount is derived below from allProcesses.length
   const [showAllProcesses, setShowAllProcesses] = useState(true);
 
   // Performance tab state
@@ -186,9 +186,7 @@ function TaskManager() {
     ...processes,
   ];
 
-  useEffect(() => {
-    setProcessCount(allProcesses.length);
-  }, [allProcesses.length]);
+  const processCount = allProcesses.length;
 
   function getProcessName(title) {
     // Convert window title to a fake process name

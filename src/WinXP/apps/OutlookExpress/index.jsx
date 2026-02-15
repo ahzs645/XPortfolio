@@ -381,6 +381,7 @@ function OutlookExpress({ onClose, onMinimize, onMaximize, emlData, emlFileName 
   const fileInputRef = useRef(null);
 
   // Parse EML data when provided via props
+  /* eslint-disable react-hooks/set-state-in-effect -- import email from prop data */
   useEffect(() => {
     if (emlData) {
       try {
@@ -405,6 +406,7 @@ function OutlookExpress({ onClose, onMinimize, onMaximize, emlData, emlFileName 
       }
     }
   }, [emlData, emlFileName]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Handle file input for Open menu
   const handleFileOpen = useCallback((event) => {

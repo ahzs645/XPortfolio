@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useInstalledApps } from '../../../contexts/InstalledAppsContext';
 import { useApp } from '../../../contexts/AppContext';
 import { withBaseUrl } from '../../../utils/baseUrl';
@@ -209,13 +209,8 @@ function Installer({ onClose }) {
   const { openApp } = useApp();
 
   const [activeView, setActiveView] = useState(VIEWS.CHANGE_REMOVE);
-  const [disabledApps, setDisabledApps] = useState([]);
+  const [disabledApps, setDisabledApps] = useState(() => getDisabledApps());
   const installedApps = getInstalledAppsList();
-
-  // Load disabled apps from localStorage
-  useEffect(() => {
-    setDisabledApps(getDisabledApps());
-  }, []);
 
   // Save disabled apps to localStorage
   const saveDisabledApps = useCallback((apps) => {

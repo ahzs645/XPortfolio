@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import DOMPurify from 'dompurify';
 import { useConfig } from '../../../contexts/ConfigContext';
 import { ProgramLayout, TaskPanel } from '../../../components';
 import { withBaseUrl } from '../../../utils/baseUrl';
@@ -150,7 +151,7 @@ function About({ onClose, onMinimize, onMaximize }) {
         <ScrollContent>
           <Main>
             <WelcomeText>About Me</WelcomeText>
-            <SectionText dangerouslySetInnerHTML={{ __html: aboutContent.html }} />
+            <SectionText dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(aboutContent.html) }} />
           </Main>
         </ScrollContent>
       </Container>

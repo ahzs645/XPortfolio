@@ -19,6 +19,7 @@ export function ContextMenu({
   const [adjustedPosition, setAdjustedPosition] = useState(position);
 
   // Adjust position to keep menu within viewport
+  /* eslint-disable react-hooks/set-state-in-effect -- DOM measurement after render */
   useEffect(() => {
     if (!menuRef.current || !position) return;
 
@@ -46,6 +47,7 @@ export function ContextMenu({
       setAdjustedPosition(position);
     }
   }, [position]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!position || !items?.length) return null;
 

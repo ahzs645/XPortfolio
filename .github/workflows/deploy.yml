@@ -83,50 +83,8 @@ jobs:
       - name: Enable Corepack (for pnpm)
         run: corepack enable
 
-      - name: Build Spider Solitaire
-        working-directory: external/spider-solitaire
-        env:
-          CI: false
-        run: |
-          npm install
-          npm run build
-
-      - name: Build JS Solitaire
-        working-directory: external/js-solitaire
-        run: |
-          pnpm install
-          pnpm run build
-
-      # ============================================================================
-      # COPY BUILT APPS TO PUBLIC FOLDER
-      # ============================================================================
-
-      - name: Copy Spider Solitaire build to public
-        run: |
-          rm -rf public/games/spider-solitaire
-          mkdir -p public/games/spider-solitaire
-          cp -r external/spider-solitaire/build/* public/games/spider-solitaire/
-
-      - name: Copy JS Solitaire build to public
-        run: |
-          rm -rf public/games/solitaire
-          mkdir -p public/games/solitaire
-          cp -r external/js-solitaire/dist/* public/games/solitaire/
-
-      - name: Copy JSPaint to public
-        run: |
-          rm -rf public/apps/jspaint
-          mkdir -p public/apps/jspaint
-          cp -r external/jspaint/index.html public/apps/jspaint/
-          cp -r external/jspaint/src public/apps/jspaint/
-          cp -r external/jspaint/lib public/apps/jspaint/
-          cp -r external/jspaint/images public/apps/jspaint/
-          cp -r external/jspaint/styles public/apps/jspaint/
-          cp -r external/jspaint/localization public/apps/jspaint/
-          cp -r external/jspaint/help public/apps/jspaint/ 2>/dev/null || true
-          cp -r external/jspaint/audio public/apps/jspaint/ 2>/dev/null || true
-          cp external/jspaint/favicon.ico public/apps/jspaint/ 2>/dev/null || true
-          cp external/jspaint/manifest.webmanifest public/apps/jspaint/ 2>/dev/null || true
+      - name: Build and deploy external apps
+        run: node scripts/build-externals.js
 
       # ============================================================================
       # BUILD MAIN APP
