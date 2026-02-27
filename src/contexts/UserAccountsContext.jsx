@@ -76,7 +76,7 @@ function createDefaultUser(name = 'User', picture = '/icons/users/chess.png') {
 }
 
 export function UserAccountsProvider({ children }) {
-  const { getDisplayName, getUserLoginIcon, isLoading: configLoading } = useConfig();
+  const { getUsername, getUserLoginIcon, isLoading: configLoading } = useConfig();
   const [users, setUsers] = useState([]);
   const [activeUserId, setActiveUserId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -150,7 +150,7 @@ export function UserAccountsProvider({ children }) {
       } else {
         // Create default user on first run using config values
         const defaultUser = createDefaultUser(
-          getDisplayName(),
+          getUsername(),
           getUserLoginIcon()
         );
         parsedUsers = [defaultUser];
@@ -181,12 +181,12 @@ export function UserAccountsProvider({ children }) {
       }
     } catch (err) {
       console.error('Failed to load user accounts:', err);
-      const defaultUser = createDefaultUser(getDisplayName(), getUserLoginIcon());
+      const defaultUser = createDefaultUser(getUsername(), getUserLoginIcon());
       setUsers([defaultUser]);
     } finally {
       setIsLoading(false);
     }
-  }, [configLoading, getDisplayName, getUserLoginIcon, isSessionValid, saveSession, clearSession]);
+  }, [configLoading, getUsername, getUserLoginIcon, isSessionValid, saveSession, clearSession]);
 
   // Persist users to localStorage
   useEffect(() => {

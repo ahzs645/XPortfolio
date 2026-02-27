@@ -10,7 +10,7 @@ const TABS = [
 ];
 
 function TaskbarProperties({ onClose, onMinimize }) {
-  const { getDisplayName } = useConfig();
+  const { getUsername } = useConfig();
   const [activeTab, setActiveTab] = useState('taskbar');
   const [lockTaskbar, setLockTaskbar] = useState(true);
   const [autoHide, setAutoHide] = useState(false);
@@ -130,7 +130,7 @@ function TaskbarProperties({ onClose, onMinimize }) {
                   <StartMenuPreviewMenu>
                     <StartMenuHeader>
                       <UserAvatar />
-                      <UserName>{getDisplayName()}</UserName>
+                      <UserName>{getUsername()}</UserName>
                     </StartMenuHeader>
                     <StartMenuBody>
                       <StartMenuLeft>
