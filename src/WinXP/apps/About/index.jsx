@@ -67,14 +67,14 @@ function About({ onClose, onMinimize, onMaximize }) {
     getSoftware,
     getAboutContent,
     isFeatureEnabled,
-    getDisplayName,
+    getUsername,
   } = useConfig();
 
   const socialLinks = getSocialLinks();
   const skills = getSkills();
   const software = getSoftware();
   const aboutContent = getAboutContent();
-  const displayName = getDisplayName();
+  const displayName = getUsername();
 
   const showSocial = isFeatureEnabled('SHOW_SOCIAL_IN_ABOUT');
   const showSkills = isFeatureEnabled('SHOW_SKILLS_IN_ABOUT');

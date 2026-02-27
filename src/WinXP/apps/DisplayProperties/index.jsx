@@ -23,7 +23,7 @@ const BASE_WALLPAPERS = [
   { id: 'tulips', name: 'Tulips', path: '/wallpapers/Tulips.jpg' },
   { id: 'wind', name: 'Wind', path: '/wallpapers/Wind.jpg' },
   // Custom wallpaper - name will be set dynamically using getOSName()
-  { id: 'custom', name: null, path: '/Ahmadxp.png' },
+  { id: 'custom', name: null, path: '/Windowsxp.png' },
 ];
 
 const TABS = [

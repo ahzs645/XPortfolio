@@ -22,7 +22,7 @@ const FileSystemContext = createContext(null);
 const getFileSystemKey = (userId) => userId ? `fileSystem-${userId}` : 'fileSystem';
 
 export function FileSystemProvider({ children }) {
-  const { getDesktopPrograms, cvData, getDisplayName, isLoading: configLoading } = useConfig();
+  const { getDesktopPrograms, cvData, getUsername, isLoading: configLoading } = useConfig();
   const { activeUserId, isLoading: userLoading } = useUserAccounts();
   const [fileSystem, setFileSystem] = useState(null);
   const [clipboard, setClipboard] = useState([]);
@@ -46,8 +46,8 @@ export function FileSystemProvider({ children }) {
   // Get user name for folder structure
   const userName = useMemo(() => {
     if (configLoading) return 'User';
-    return getDisplayName() || 'User';
-  }, [configLoading, getDisplayName]);
+    return getUsername() || 'User';
+  }, [configLoading, getUsername]);
 
   // Load file system from IndexedDB when user changes
   useEffect(() => {
