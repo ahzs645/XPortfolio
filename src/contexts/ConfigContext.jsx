@@ -621,8 +621,12 @@ export function ConfigProvider({ children }) {
   };
 
   // Get the dynamic XP SVG URL (with replaced name)
+  // Returns null while the dynamic SVG is still being generated to prevent
+  // flashing the raw SVG (which contains a hardcoded name) before the
+  // customized version is ready.
   const getDynamicXPSvgUrl = () => {
-    return withBaseUrl(dynamicXPSvgUrl || '/xp.svg');
+    if (!dynamicXPSvgUrl) return null;
+    return withBaseUrl(dynamicXPSvgUrl);
   };
 
   const value = {

@@ -22,7 +22,8 @@ function BootScreen({ bootState, onComplete }) {
   } = useUserAccounts();
   const { playLogin, prewarmBalloon } = useSystemSounds();
 
-  const isLoading = configLoading || usersLoading;
+  const dynamicSvgUrl = getDynamicXPSvgUrl();
+  const isLoading = configLoading || usersLoading || !dynamicSvgUrl;
 
   // Get user info - use selected user from accounts or fall back to config
   const selectedUser = users.find(u => u.id === selectedUserId);
@@ -133,7 +134,7 @@ function BootScreen({ bootState, onComplete }) {
         <LoginScreenInner>
           <LoginContainer $fadeOut={showWelcome}>
             <LoginLeft $fadeOut={showWelcome}>
-              <XPLogo src={getDynamicXPSvgUrl()} alt="Windows XP" />
+              <XPLogo src={dynamicSvgUrl} alt="Windows XP" />
               <LoginInstruction>
                 {showMultiUser ? (
                   <>
@@ -288,7 +289,7 @@ function BootScreen({ bootState, onComplete }) {
   return (
     <BootContainer>
       <BootContent>
-        <BootLogo src={getDynamicXPSvgUrl()} alt="Windows XP" />
+        <BootLogo src={dynamicSvgUrl} alt="Windows XP" />
         <LoadingBoxes>
           <LoadingBox />
           <LoadingBox />
