@@ -684,6 +684,7 @@ const Container = styled.div`
   *:not(input):not(textarea) {
     user-select: none;
   }
+  -webkit-touch-callout: none;
 `;
 
 export default WinXP;
