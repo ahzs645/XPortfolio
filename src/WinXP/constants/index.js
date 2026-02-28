@@ -14,6 +14,7 @@ export const POWER_STATE = {
 
 // Boot sequence states
 export const BOOT_STATE = {
+  OFF: 'OFF',
   BOOTING: 'BOOTING',
   LOGIN: 'LOGIN',
   WELCOME: 'WELCOME',

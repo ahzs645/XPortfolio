@@ -456,8 +456,8 @@ function WinXP() {
 
   function onModalRestart() {
     dispatch({ type: CANCEL_POWER_OFF });
-    // Close all apps and go back to boot screen
     dispatch({ type: CLOSE_ALL_APPS });
+    logoutUser();
     dispatch({ type: SET_BOOT_STATE, payload: BOOT_STATE.BOOTING });
   }
 
@@ -469,14 +469,17 @@ function WinXP() {
   }
 
   function onModalShutDown() {
-    // Shut down with updates (if any)
     dispatch({ type: CANCEL_POWER_OFF });
-    // In a real scenario, this would install updates first
+    dispatch({ type: CLOSE_ALL_APPS });
+    logoutUser();
+    dispatch({ type: SET_BOOT_STATE, payload: BOOT_STATE.OFF });
   }
 
   function onModalShutDownWithoutUpdates() {
-    // Shut down without installing updates
     dispatch({ type: CANCEL_POWER_OFF });
+    dispatch({ type: CLOSE_ALL_APPS });
+    logoutUser();
+    dispatch({ type: SET_BOOT_STATE, payload: BOOT_STATE.OFF });
   }
 
   function onModalClose() {
@@ -519,6 +522,13 @@ function WinXP() {
 
   // Show boot screen during boot sequence
   if (state.bootState !== BOOT_STATE.DESKTOP) {
+    if (state.bootState === BOOT_STATE.OFF) {
+      return (
+        <OffScreen
+          onClick={() => dispatch({ type: SET_BOOT_STATE, payload: BOOT_STATE.BOOTING })}
+        />
+      );
+    }
     if (sessionRestored || userAccountsLoading) {
       return (
         <div style={{
@@ -685,6 +695,14 @@ const Container = styled.div`
     user-select: none;
   }
   -webkit-touch-callout: none;
+`;
+
+const OffScreen = styled.div`
+  position: fixed;
+  inset: 0;
+  background: #000;
+  cursor: pointer;
+  z-index: 99999;
 `;
 
 export default WinXP;
