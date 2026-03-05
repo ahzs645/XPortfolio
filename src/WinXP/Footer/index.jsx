@@ -624,7 +624,7 @@ const TrayIcon = styled.img`
   .mobile-device & {
     width: 20px;
     height: 20px;
-    margin: 0 6px;
+    margin: 0 2px;
     padding: 2px;
   }
 `;
