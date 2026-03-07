@@ -2,6 +2,7 @@ import React, { useRef, memo, useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 import { useElementResize, useWindowSize } from '../../hooks';
+import ErrorBoundary from '../../components/ErrorBoundary';
 
 // Component that changes cursor to wait state while loading
 function LoadingFallback() {
@@ -224,22 +225,24 @@ const Window = memo(function ({
         />
       )}
       <div className="window-body" style={currentHeader.invisible ? { margin: 0 } : undefined}>
-        <React.Suspense fallback={<LoadingFallback />}>
-          <LoadedWrapper onLoaded={handleLoaded}>
-            <AppComponent
-              onClose={_onMouseUpClose}
-              onMinimize={_onMouseUpMinimize}
-              onMaximize={_onMouseUpMaximize}
-              onResize={onResize}
-              isFocus={isFocus}
-              isMaximized={maximized}
-              onUpdateHeader={setDynamicHeader}
-              dragRef={currentHeader.invisible ? dragRef : undefined}
-              windowPosition={{ x: offset.x, y: offset.y }}
-              {...injectProps}
-            />
-          </LoadedWrapper>
-        </React.Suspense>
+        <ErrorBoundary name={currentHeader.title}>
+          <React.Suspense fallback={<LoadingFallback />}>
+            <LoadedWrapper onLoaded={handleLoaded}>
+              <AppComponent
+                onClose={_onMouseUpClose}
+                onMinimize={_onMouseUpMinimize}
+                onMaximize={_onMouseUpMaximize}
+                onResize={onResize}
+                isFocus={isFocus}
+                isMaximized={maximized}
+                onUpdateHeader={setDynamicHeader}
+                dragRef={currentHeader.invisible ? dragRef : undefined}
+                windowPosition={{ x: offset.x, y: offset.y }}
+                {...injectProps}
+              />
+            </LoadedWrapper>
+          </React.Suspense>
+        </ErrorBoundary>
       </div>
     </WindowContainer>
   );
