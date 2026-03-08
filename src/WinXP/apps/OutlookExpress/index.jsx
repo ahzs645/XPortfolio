@@ -722,7 +722,7 @@ function OutlookExpress({ onClose, onMinimize, onMaximize, emlData, emlFileName 
                   </EmailContentWrapper>
                 ) : selectedEmail.content ? (
                   <PreviewContent
-                    dangerouslySetInnerHTML={{ __html: selectedEmail.content }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedEmail.content) }}
                   />
                 ) : null}
               </>

@@ -115,16 +115,24 @@ if (typeof window !== 'undefined') {
     updateAllVolumes();
   });
 
-  // Also observe DOM for audio/video elements added dynamically
+  // Also observe DOM for audio/video elements added/removed dynamically
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       mutation.addedNodes.forEach((node) => {
         if (node.nodeName === 'AUDIO' || node.nodeName === 'VIDEO') {
           trackAudio(node);
         }
-        // Check children too (e.g., iframes content)
         if (node.querySelectorAll) {
           node.querySelectorAll('audio, video').forEach(trackAudio);
+        }
+      });
+      // Clean up removed audio/video elements to prevent Set from growing unbounded
+      mutation.removedNodes.forEach((node) => {
+        if (node.nodeName === 'AUDIO' || node.nodeName === 'VIDEO') {
+          audioElements.delete(node);
+        }
+        if (node.querySelectorAll) {
+          node.querySelectorAll('audio, video').forEach((el) => audioElements.delete(el));
         }
       });
     });
@@ -238,9 +246,7 @@ if (typeof window !== 'undefined') {
     mutations.forEach((mutation) => {
       mutation.addedNodes.forEach((node) => {
         if (node.nodeName === 'IFRAME') {
-          // Wait for iframe to load
           node.addEventListener('load', () => patchIframe(node), { once: true });
-          // Also try immediately in case already loaded
           patchIframe(node);
         }
         if (node.querySelectorAll) {
@@ -248,6 +254,14 @@ if (typeof window !== 'undefined') {
             iframe.addEventListener('load', () => patchIframe(iframe), { once: true });
             patchIframe(iframe);
           });
+        }
+      });
+      // Clean up audio elements from removed iframes
+      mutation.removedNodes.forEach((node) => {
+        if (node.nodeName === 'IFRAME') {
+          try {
+            node.contentDocument?.querySelectorAll('audio, video').forEach((el) => audioElements.delete(el));
+          } catch { /* cross-origin */ }
         }
       });
     });

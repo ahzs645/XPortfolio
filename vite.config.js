@@ -14,7 +14,7 @@ function getBuildVersion() {
 }
 
 // https://vite.dev/config/
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
   const repository = process.env.GITHUB_REPOSITORY || ''
   const repoName = repository.includes('/') ? repository.split('/')[1] : ''
 
@@ -32,6 +32,9 @@ export default defineConfig(() => {
     plugins: [react(), svgr()],
     define: {
       __BUILD_VERSION__: JSON.stringify(buildVersion),
+    },
+    esbuild: {
+      drop: mode === 'production' ? ['console', 'debugger'] : [],
     },
     build: {
       rollupOptions: {
