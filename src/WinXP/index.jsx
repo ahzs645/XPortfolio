@@ -520,6 +520,42 @@ function WinXP() {
     }
   }, []);
 
+  // Global keyboard shortcuts (Win+R for Run, Win+E for Explorer, Win+D for Show Desktop)
+  useEffect(() => {
+    if (state.bootState !== BOOT_STATE.DESKTOP) return;
+
+    function handleKeyDown(e) {
+      // Win+R → Run Dialog
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'r') {
+        // Don't intercept if user is typing in an input/textarea
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+        e.preventDefault();
+        const runSetting = appSettings['Run'];
+        if (runSetting) {
+          dispatch({ type: ADD_APP, payload: applyMobileSettings(runSetting, 'Run') });
+        }
+      }
+      // Win+E → My Computer (Explorer)
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'e') {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+        e.preventDefault();
+        const explorerSetting = appSettings['My Computer'];
+        if (explorerSetting) {
+          dispatch({ type: ADD_APP, payload: applyMobileSettings(explorerSetting, 'My Computer') });
+        }
+      }
+      // Win+D → Show Desktop (minimize all)
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd') {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+        e.preventDefault();
+        dispatch({ type: 'MINIMIZE_ALL_APPS' });
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [state.bootState, dispatch, applyMobileSettings]);
+
   // Show boot screen during boot sequence
   if (state.bootState !== BOOT_STATE.DESKTOP) {
     if (state.bootState === BOOT_STATE.OFF) {

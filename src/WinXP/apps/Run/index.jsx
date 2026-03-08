@@ -1,6 +1,31 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import { useApp } from '../../../contexts/AppContext';
+
+const HISTORY_KEY = 'xp-run-history';
+const MAX_HISTORY = 10;
+
+// Load command history from localStorage
+function loadHistory() {
+  try {
+    const saved = localStorage.getItem(HISTORY_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+}
+
+// Save command to history (most recent first, deduped)
+function saveToHistory(cmd) {
+  try {
+    const history = loadHistory().filter(h => h.toLowerCase() !== cmd.toLowerCase());
+    history.unshift(cmd);
+    if (history.length > MAX_HISTORY) history.length = MAX_HISTORY;
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  } catch {
+    // Ignore storage errors
+  }
+}
 
 // Map common run commands to app names
 const COMMAND_MAP = {
@@ -83,7 +108,11 @@ const COMMAND_MAP = {
 
 function Run({ onClose }) {
   const [command, setCommand] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [history] = useState(loadHistory);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef(null);
+  const dropdownRef = useRef(null);
   const { openApp } = useApp();
 
   // Focus input on mount
@@ -91,12 +120,29 @@ function Run({ onClose }) {
     inputRef.current?.focus();
   }, []);
 
-  const handleRun = () => {
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    if (!showDropdown) return;
+    function handleClick(e) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target) &&
+          inputRef.current && !inputRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showDropdown]);
+
+  const handleRun = useCallback(() => {
     if (!command.trim()) {
       return;
     }
 
-    const normalizedCommand = command.trim().toLowerCase();
+    const trimmedCommand = command.trim();
+    const normalizedCommand = trimmedCommand.toLowerCase();
+
+    // Save to history before executing
+    saveToHistory(trimmedCommand);
 
     // Check command map first
     const appName = COMMAND_MAP[normalizedCommand];
@@ -107,7 +153,6 @@ function Run({ onClose }) {
     }
 
     // Try to match app names directly (case-insensitive)
-    // This allows users to type "Calculator" or "Notepad" directly
     const directMatch = Object.keys(COMMAND_MAP).find(
       key => COMMAND_MAP[key].toLowerCase() === normalizedCommand
     );
@@ -122,34 +167,77 @@ function Run({ onClose }) {
         normalizedCommand.startsWith('https://') ||
         normalizedCommand.startsWith('www.')) {
       const url = normalizedCommand.startsWith('www.')
-        ? `https://${command.trim()}`
-        : command.trim();
+        ? `https://${trimmedCommand}`
+        : trimmedCommand;
       openApp('Internet Explorer', { initialUrl: url });
       onClose?.();
       return;
     }
 
     // Show error dialog for unrecognized commands
-    // Format the command name - add .exe if not already present
-    const displayCommand = command.trim().includes('.') ? command.trim() : `${command.trim()}.exe`;
+    const displayCommand = trimmedCommand.includes('.') ? trimmedCommand : `${trimmedCommand}.exe`;
     openApp('Error Dialog', {
       title: displayCommand,
       message: `${displayCommand} is not a valid Win32 application or could not be found.`,
       icon: 'error',
     });
-  };
+  }, [command, openApp, onClose]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
+      setShowDropdown(false);
       handleRun();
     } else if (e.key === 'Escape') {
-      onClose?.();
+      if (showDropdown) {
+        setShowDropdown(false);
+      } else {
+        onClose?.();
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (!showDropdown && history.length > 0) {
+        setShowDropdown(true);
+        setSelectedIndex(0);
+      } else if (showDropdown) {
+        setSelectedIndex(prev => Math.min(prev + 1, history.length - 1));
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (showDropdown) {
+        const newIndex = selectedIndex - 1;
+        if (newIndex < 0) {
+          setShowDropdown(false);
+          setSelectedIndex(-1);
+        } else {
+          setSelectedIndex(newIndex);
+        }
+      }
     }
   };
 
+  // Update input when navigating history with arrow keys
+  useEffect(() => {
+    if (selectedIndex >= 0 && selectedIndex < history.length) {
+      setCommand(history[selectedIndex]);
+    }
+  }, [selectedIndex, history]);
+
+  const handleHistorySelect = (item) => {
+    setCommand(item);
+    setShowDropdown(false);
+    setSelectedIndex(-1);
+    inputRef.current?.focus();
+  };
+
   const handleBrowse = () => {
-    // For now, just open My Computer as a file browser
     openApp('My Computer');
+  };
+
+  const toggleDropdown = () => {
+    if (history.length > 0) {
+      setShowDropdown(!showDropdown);
+      setSelectedIndex(-1);
+    }
   };
 
   return (
@@ -165,16 +253,40 @@ function Run({ onClose }) {
           </Description>
           <InputRow>
             <Label>Open:</Label>
-            <Input
-              ref={inputRef}
-              type="text"
-              value={command}
-              onChange={(e) => setCommand(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder=""
-              autoComplete="off"
-              spellCheck="false"
-            />
+            <ComboBoxWrapper>
+              <Input
+                ref={inputRef}
+                type="text"
+                value={command}
+                onChange={(e) => { setCommand(e.target.value); setShowDropdown(false); }}
+                onKeyDown={handleKeyDown}
+                placeholder=""
+                autoComplete="off"
+                spellCheck="false"
+              />
+              <DropdownButton
+                onClick={toggleDropdown}
+                tabIndex={-1}
+                aria-label="Show command history"
+                $hasHistory={history.length > 0}
+              >
+                <DropdownArrow />
+              </DropdownButton>
+              {showDropdown && history.length > 0 && (
+                <DropdownList ref={dropdownRef}>
+                  {history.map((item, index) => (
+                    <DropdownItem
+                      key={index}
+                      $selected={index === selectedIndex}
+                      onMouseDown={() => handleHistorySelect(item)}
+                      onMouseEnter={() => setSelectedIndex(index)}
+                    >
+                      {item}
+                    </DropdownItem>
+                  ))}
+                </DropdownList>
+              )}
+            </ComboBoxWrapper>
           </InputRow>
         </TextContent>
       </ContentArea>
@@ -241,16 +353,83 @@ const Label = styled.label`
   white-space: nowrap;
 `;
 
+const ComboBoxWrapper = styled.div`
+  flex: 1;
+  position: relative;
+  display: flex;
+`;
+
 const Input = styled.input`
   flex: 1;
   padding: 3px 4px;
   border: 1px solid #7f9db9;
+  border-right: none;
   font-size: 11px;
   font-family: 'Tahoma', sans-serif;
+  min-width: 0;
 
   &:focus {
     outline: none;
     border-color: #316ac5;
+  }
+`;
+
+const DropdownButton = styled.button`
+  width: 17px;
+  height: 100%;
+  border: 1px solid #7f9db9;
+  background: linear-gradient(180deg, #fff 0%, #ecebe5 86%, #d8d0c4 100%);
+  cursor: ${props => props.$hasHistory ? 'pointer' : 'default'};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex-shrink: 0;
+
+  &:hover {
+    ${props => props.$hasHistory && `
+      background: linear-gradient(180deg, #fff0cf 0%, #fdd889 50%, #fbc761 100%);
+    `}
+  }
+
+  &:active {
+    ${props => props.$hasHistory && `
+      background: linear-gradient(180deg, #e5e5de 0%, #e3e3db 8%, #cdcac3 100%);
+    `}
+  }
+`;
+
+const DropdownArrow = styled.span`
+  width: 0;
+  height: 0;
+  border-left: 3px solid transparent;
+  border-right: 3px solid transparent;
+  border-top: 4px solid #000;
+`;
+
+const DropdownList = styled.div`
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #7f9db9;
+  max-height: 150px;
+  overflow-y: auto;
+  z-index: 1000;
+`;
+
+const DropdownItem = styled.div`
+  padding: 2px 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-family: 'Tahoma', sans-serif;
+  background: ${props => props.$selected ? '#316ac5' : '#fff'};
+  color: ${props => props.$selected ? '#fff' : '#000'};
+
+  &:hover {
+    background: #316ac5;
+    color: #fff;
   }
 `;
 

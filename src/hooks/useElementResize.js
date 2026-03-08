@@ -1,5 +1,48 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { isMobileDevice } from '../utils/deviceDetection';
+
+// Throttle function to limit how often a callback fires during drag/resize
+function throttle(fn, ms) {
+  let lastTime = 0;
+  let rafId = null;
+  function throttled(...args) {
+    const now = performance.now();
+    if (now - lastTime >= ms) {
+      lastTime = now;
+      fn(...args);
+    } else if (!rafId) {
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        lastTime = performance.now();
+        fn(...args);
+      });
+    }
+  }
+  throttled.cancel = () => {
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+  };
+  return throttled;
+}
+
+// Disable pointer events on all iframes during drag/resize to prevent them from capturing mouse events
+function disableIframePointerEvents() {
+  const iframes = document.querySelectorAll('iframe');
+  iframes.forEach(iframe => {
+    iframe.dataset.prevPointerEvents = iframe.style.pointerEvents;
+    iframe.style.pointerEvents = 'none';
+  });
+}
+
+function restoreIframePointerEvents() {
+  const iframes = document.querySelectorAll('iframe');
+  iframes.forEach(iframe => {
+    iframe.style.pointerEvents = iframe.dataset.prevPointerEvents || '';
+    delete iframe.dataset.prevPointerEvents;
+  });
+}
 
 // Calculate mobile-friendly initial position and size
 function getMobileConstrainedValues(defaultOffset, defaultSize) {
@@ -66,7 +109,11 @@ function useElementResize(ref, options) {
     let originMouseY;
     let shouldCover = false;
 
-    function onDragging(e) {
+    // Throttled move handlers (50ms cap to reduce excessive repaints)
+    const THROTTLE_MS = 50;
+    const throttledHandlers = [];
+
+    function _onDragging(e) {
       if (shouldCover && !document.body.contains(cover)) {
         document.body.appendChild(cover);
       }
@@ -75,10 +122,14 @@ function useElementResize(ref, options) {
       const y = pageY - originMouseY + previousOffset.y;
       setOffset({ x, y });
     }
+    const onDragging = throttle(_onDragging, THROTTLE_MS);
+    throttledHandlers.push(onDragging);
 
     function onDragEnd(e) {
+      onDragging.cancel();
       cover.remove();
       shouldCover = false;
+      restoreIframePointerEvents();
       const { pageX, pageY } = getComputedPagePosition(e, _boundary);
       previousOffset.x += pageX - originMouseX;
       previousOffset.y += pageY - originMouseY;
@@ -90,6 +141,7 @@ function useElementResize(ref, options) {
     }
 
     function onDragStart() {
+      disableIframePointerEvents();
       window.addEventListener('mousemove', onDragging);
       window.addEventListener('mouseup', onDragEnd);
       window.addEventListener('touchmove', onDragging, { passive: false });
@@ -97,14 +149,18 @@ function useElementResize(ref, options) {
       window.addEventListener('touchcancel', onDragEnd);
     }
 
-    function onDraggingTop(e) {
+    function _onDraggingTop(e) {
       const { pageY } = getComputedPagePosition(e, _boundary);
       const { x } = previousOffset;
       const y = pageY - originMouseY + previousOffset.y;
       setOffset({ x, y });
     }
+    const onDraggingTop = throttle(_onDraggingTop, THROTTLE_MS);
+    throttledHandlers.push(onDraggingTop);
 
     function onDragEndTop(e) {
+      onDraggingTop.cancel();
+      restoreIframePointerEvents();
       const { pageY } = getComputedPagePosition(e, _boundary);
       previousOffset.y += pageY - originMouseY;
       window.removeEventListener('mousemove', onDraggingTop);
@@ -115,6 +171,7 @@ function useElementResize(ref, options) {
     }
 
     function onDragStartTop() {
+      disableIframePointerEvents();
       window.addEventListener('mousemove', onDraggingTop);
       window.addEventListener('mouseup', onDragEndTop);
       window.addEventListener('touchmove', onDraggingTop, { passive: false });
@@ -122,14 +179,18 @@ function useElementResize(ref, options) {
       window.addEventListener('touchcancel', onDragEndTop);
     }
 
-    function onDraggingLeft(e) {
+    function _onDraggingLeft(e) {
       const { pageX } = getComputedPagePosition(e, _boundary);
       const x = pageX - originMouseX + previousOffset.x;
       const { y } = previousOffset;
       setOffset({ x, y });
     }
+    const onDraggingLeft = throttle(_onDraggingLeft, THROTTLE_MS);
+    throttledHandlers.push(onDraggingLeft);
 
     function onDragEndLeft(e) {
+      onDraggingLeft.cancel();
+      restoreIframePointerEvents();
       const { pageX } = getComputedPagePosition(e, _boundary);
       previousOffset.x += pageX - originMouseX;
       window.removeEventListener('mousemove', onDraggingLeft);
@@ -140,6 +201,7 @@ function useElementResize(ref, options) {
     }
 
     function onDragStartLeft() {
+      disableIframePointerEvents();
       window.addEventListener('mousemove', onDraggingLeft);
       window.addEventListener('mouseup', onDragEndLeft);
       window.addEventListener('touchmove', onDraggingLeft, { passive: false });
@@ -147,14 +209,18 @@ function useElementResize(ref, options) {
       window.addEventListener('touchcancel', onDragEndLeft);
     }
 
-    function onResizingRight(e) {
+    function _onResizingRight(e) {
       const { pageX } = getComputedPagePosition(e, _boundary);
       const width = pageX - originMouseX + previousSize.width;
       const { height } = previousSize;
       setSize({ width, height });
     }
+    const onResizingRight = throttle(_onResizingRight, THROTTLE_MS);
+    throttledHandlers.push(onResizingRight);
 
     function onResizeEndRight(e) {
+      onResizingRight.cancel();
+      restoreIframePointerEvents();
       const { pageX } = getComputedPagePosition(e, _boundary);
       previousSize.width += pageX - originMouseX;
       window.removeEventListener('mousemove', onResizingRight);
@@ -165,6 +231,7 @@ function useElementResize(ref, options) {
     }
 
     function onResizeStartRight() {
+      disableIframePointerEvents();
       window.addEventListener('mousemove', onResizingRight);
       window.addEventListener('mouseup', onResizeEndRight);
       window.addEventListener('touchmove', onResizingRight, { passive: false });
@@ -172,14 +239,18 @@ function useElementResize(ref, options) {
       window.addEventListener('touchcancel', onResizeEndRight);
     }
 
-    function onResizingBottom(e) {
+    function _onResizingBottom(e) {
       const { pageY } = getComputedPagePosition(e, _boundary);
       const { width } = previousSize;
       const height = pageY - originMouseY + previousSize.height;
       setSize({ width, height });
     }
+    const onResizingBottom = throttle(_onResizingBottom, THROTTLE_MS);
+    throttledHandlers.push(onResizingBottom);
 
     function onResizeEndBottom(e) {
+      onResizingBottom.cancel();
+      restoreIframePointerEvents();
       const { pageY } = getComputedPagePosition(e, _boundary);
       previousSize.height += pageY - originMouseY;
       window.removeEventListener('mousemove', onResizingBottom);
@@ -190,6 +261,7 @@ function useElementResize(ref, options) {
     }
 
     function onResizeStartBottom() {
+      disableIframePointerEvents();
       window.addEventListener('mousemove', onResizingBottom);
       window.addEventListener('mouseup', onResizeEndBottom);
       window.addEventListener('touchmove', onResizingBottom, { passive: false });
@@ -197,14 +269,18 @@ function useElementResize(ref, options) {
       window.addEventListener('touchcancel', onResizeEndBottom);
     }
 
-    function onResizingLeft(e) {
+    function _onResizingLeft(e) {
       const { pageX } = getComputedPagePosition(e, _boundary);
       const width = -pageX + originMouseX + previousSize.width;
       const { height } = previousSize;
       setSize({ width, height });
     }
+    const onResizingLeft = throttle(_onResizingLeft, THROTTLE_MS);
+    throttledHandlers.push(onResizingLeft);
 
     function onResizeEndLeft(e) {
+      onResizingLeft.cancel();
+      restoreIframePointerEvents();
       const { pageX } = getComputedPagePosition(e, _boundary);
       previousSize.width += -pageX + originMouseX;
       window.removeEventListener('mousemove', onResizingLeft);
@@ -215,6 +291,7 @@ function useElementResize(ref, options) {
     }
 
     function onResizeStartLeft() {
+      disableIframePointerEvents();
       window.addEventListener('mousemove', onResizingLeft);
       window.addEventListener('mouseup', onResizeEndLeft);
       window.addEventListener('touchmove', onResizingLeft, { passive: false });
@@ -222,14 +299,18 @@ function useElementResize(ref, options) {
       window.addEventListener('touchcancel', onResizeEndLeft);
     }
 
-    function onResizingTop(e) {
+    function _onResizingTop(e) {
       const { pageY } = getComputedPagePosition(e, _boundary);
       const height = -pageY + originMouseY + previousSize.height;
       const { width } = previousSize;
       setSize({ width, height });
     }
+    const onResizingTop = throttle(_onResizingTop, THROTTLE_MS);
+    throttledHandlers.push(onResizingTop);
 
     function onResizeEndTop(e) {
+      onResizingTop.cancel();
+      restoreIframePointerEvents();
       const { pageY } = getComputedPagePosition(e, _boundary);
       previousSize.height += -pageY + originMouseY;
       window.removeEventListener('mousemove', onResizingTop);
@@ -240,6 +321,7 @@ function useElementResize(ref, options) {
     }
 
     function onResizeStartTop() {
+      disableIframePointerEvents();
       window.addEventListener('mousemove', onResizingTop);
       window.addEventListener('mouseup', onResizeEndTop);
       window.addEventListener('touchmove', onResizingTop, { passive: false });
@@ -247,14 +329,18 @@ function useElementResize(ref, options) {
       window.addEventListener('touchcancel', onResizeEndTop);
     }
 
-    function onResizingTopLeft(e) {
+    function _onResizingTopLeft(e) {
       const { pageX, pageY } = getComputedPagePosition(e, _boundary);
       const width = -pageX + originMouseX + previousSize.width;
       const height = -pageY + originMouseY + previousSize.height;
       setSize({ width, height });
     }
+    const onResizingTopLeft = throttle(_onResizingTopLeft, THROTTLE_MS);
+    throttledHandlers.push(onResizingTopLeft);
 
     function onResizeEndTopLeft(e) {
+      onResizingTopLeft.cancel();
+      restoreIframePointerEvents();
       const { pageX, pageY } = getComputedPagePosition(e, _boundary);
       previousSize.width += -pageX + originMouseX;
       previousSize.height += -pageY + originMouseY;
@@ -266,6 +352,7 @@ function useElementResize(ref, options) {
     }
 
     function onResizeStartTopLeft() {
+      disableIframePointerEvents();
       window.addEventListener('mousemove', onResizingTopLeft);
       window.addEventListener('mouseup', onResizeEndTopLeft);
       window.addEventListener('touchmove', onResizingTopLeft, { passive: false });
@@ -273,14 +360,18 @@ function useElementResize(ref, options) {
       window.addEventListener('touchcancel', onResizeEndTopLeft);
     }
 
-    function onResizingTopRight(e) {
+    function _onResizingTopRight(e) {
       const { pageX, pageY } = getComputedPagePosition(e, _boundary);
       const width = pageX - originMouseX + previousSize.width;
       const height = -pageY + originMouseY + previousSize.height;
       setSize({ width, height });
     }
+    const onResizingTopRight = throttle(_onResizingTopRight, THROTTLE_MS);
+    throttledHandlers.push(onResizingTopRight);
 
     function onResizeEndTopRight(e) {
+      onResizingTopRight.cancel();
+      restoreIframePointerEvents();
       const { pageX, pageY } = getComputedPagePosition(e, _boundary);
       previousSize.width += pageX - originMouseX;
       previousSize.height += -pageY + originMouseY;
@@ -292,6 +383,7 @@ function useElementResize(ref, options) {
     }
 
     function onResizeStartTopRight() {
+      disableIframePointerEvents();
       window.addEventListener('mousemove', onResizingTopRight);
       window.addEventListener('mouseup', onResizeEndTopRight);
       window.addEventListener('touchmove', onResizingTopRight, { passive: false });
@@ -299,14 +391,18 @@ function useElementResize(ref, options) {
       window.addEventListener('touchcancel', onResizeEndTopRight);
     }
 
-    function onResizingBottomLeft(e) {
+    function _onResizingBottomLeft(e) {
       const { pageX, pageY } = getComputedPagePosition(e, _boundary);
       const width = -pageX + originMouseX + previousSize.width;
       const height = pageY - originMouseY + previousSize.height;
       setSize({ width, height });
     }
+    const onResizingBottomLeft = throttle(_onResizingBottomLeft, THROTTLE_MS);
+    throttledHandlers.push(onResizingBottomLeft);
 
     function onResizeEndBottomLeft(e) {
+      onResizingBottomLeft.cancel();
+      restoreIframePointerEvents();
       const { pageX, pageY } = getComputedPagePosition(e, _boundary);
       previousSize.width += -pageX + originMouseX;
       previousSize.height += pageY - originMouseY;
@@ -318,6 +414,7 @@ function useElementResize(ref, options) {
     }
 
     function onResizeStartBottomLeft() {
+      disableIframePointerEvents();
       window.addEventListener('mousemove', onResizingBottomLeft);
       window.addEventListener('mouseup', onResizeEndBottomLeft);
       window.addEventListener('touchmove', onResizingBottomLeft, { passive: false });
@@ -325,14 +422,18 @@ function useElementResize(ref, options) {
       window.addEventListener('touchcancel', onResizeEndBottomLeft);
     }
 
-    function onResizingBottomRight(e) {
+    function _onResizingBottomRight(e) {
       const { pageX, pageY } = getComputedPagePosition(e, _boundary);
       const width = pageX - originMouseX + previousSize.width;
       const height = pageY - originMouseY + previousSize.height;
       setSize({ width, height });
     }
+    const onResizingBottomRight = throttle(_onResizingBottomRight, THROTTLE_MS);
+    throttledHandlers.push(onResizingBottomRight);
 
     function onResizeEndBottomRight(e) {
+      onResizingBottomRight.cancel();
+      restoreIframePointerEvents();
       const { pageX, pageY } = getComputedPagePosition(e, _boundary);
       previousSize.width += pageX - originMouseX;
       previousSize.height += pageY - originMouseY;
@@ -344,6 +445,7 @@ function useElementResize(ref, options) {
     }
 
     function onResizeStartBottomRight() {
+      disableIframePointerEvents();
       window.addEventListener('mousemove', onResizingBottomRight);
       window.addEventListener('mouseup', onResizeEndBottomRight);
       window.addEventListener('touchmove', onResizingBottomRight, { passive: false });
@@ -435,6 +537,9 @@ function useElementResize(ref, options) {
     target.addEventListener('mousedown', onMouseDown);
     target.addEventListener('touchstart', onTouchStart, { passive: false });
     return () => {
+      // Cancel any pending throttled updates
+      throttledHandlers.forEach(h => h.cancel());
+      restoreIframePointerEvents();
       target.removeEventListener('mousedown', onMouseDown);
       target.removeEventListener('touchstart', onTouchStart);
       // Mouse events
