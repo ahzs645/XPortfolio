@@ -21,11 +21,12 @@ export const DESKTOP_SHORTCUT_CATALOG = {
   winamp: { id: 'shortcut-winamp', name: 'Winamp.lnk', icon: '/icons/winamp.png', target: 'Winamp', size: SHORTCUT_SIZE },
   displayProperties: { id: 'shortcut-display', name: 'Display Properties.lnk', icon: XP_ICONS.displayProperties, target: 'Display Properties', size: SHORTCUT_SIZE },
   adobeReader: { id: 'shortcut-adobe-reader', name: 'Adobe Reader.lnk', icon: '/icons/pdf/acroaum_grp107_lang1033.ico', target: 'Adobe Reader', size: SHORTCUT_SIZE },
+  blueScreenOfDeath: { id: 'shortcut-bsod', name: 'Blue Screen of Death.lnk', icon: '/icons/luna/dialog_error.png', target: 'Blue Screen of Death', size: SHORTCUT_SIZE },
 };
 
 // Default desktop programs if not specified in config (excludes system icons like My Computer and Recycle Bin)
 // Note: 'projects' removed - now using Projects briefcase folder instead
-export const DEFAULT_DESKTOP_PROGRAMS = ['about', 'resume', 'contact', 'calculator', 'minesweeper'];
+export const DEFAULT_DESKTOP_PROGRAMS = ['about', 'resume', 'contact', 'calculator', 'minesweeper', 'blueScreenOfDeath'];
 
 // Build desktop shortcuts array from program IDs
 export const buildDesktopShortcuts = (programIds) => {

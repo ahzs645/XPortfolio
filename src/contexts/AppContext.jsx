@@ -379,13 +379,18 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
   }, [getFileContent, appSettings, dispatch, addAppAction, openWithProgram]);
 
   // Open an app by name
-  const openApp = useCallback((appName, injectProps = {}) => {
+  const openApp = useCallback((appName, injectProps = {}, appOverrides = {}) => {
     const appSetting = appSettings[appName];
     if (appSetting) {
       dispatch({
         type: addAppAction,
         payload: {
           ...appSetting,
+          ...appOverrides,
+          header: {
+            ...appSetting.header,
+            ...appOverrides.header,
+          },
           injectProps: { ...appSetting.injectProps, ...injectProps },
         },
       });

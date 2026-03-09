@@ -56,6 +56,7 @@ const MediaPlayerClassic = lazy(() => import('./MediaPlayerClassic'));
 const BackupWizard = lazy(() => import('./BackupWizard'));
 const TransferWizard = lazy(() => import('./TransferWizard'));
 const MSNMessenger = lazy(() => import('./MSNMessenger'));
+const MSNMessengerConversation = lazy(() => import('./MSNMessenger/ConversationApp'));
 const FlashPlayer = lazy(() => import('./FlashPlayer'));
 const WorldOfWarcraft = lazy(() => import('./WorldOfWarcraft'));
 const RuneScape = lazy(() => import('./RuneScape'));
@@ -64,6 +65,7 @@ const Run = lazy(() => import('./Run'));
 const LegoIsland = lazy(() => import('./LegoIsland'));
 const Diablo = lazy(() => import('./Diablo'));
 const StarCraft = lazy(() => import('./StarCraft'));
+const BlueScreenOfDeath = lazy(() => import('./BlueScreenOfDeath'));
 // ControlPanel is now integrated into MyComputer as a navigable view
 
 // XP Icons paths
@@ -171,6 +173,7 @@ export const appCategoryMap = {
   'Browse For Folder': APP_CATEGORIES.UTILITY,
   'Open With': APP_CATEGORIES.UTILITY,
   'Run': APP_CATEGORIES.UTILITY,
+  'Blue Screen of Death': APP_CATEGORIES.GAME,
 
   // Fun/Extra
   'QQ Penguin': APP_CATEGORIES.GAME,
@@ -421,6 +424,11 @@ export const desktopIconCatalog = {
     title: 'StarCraft',
     component: StarCraft,
   },
+  blueScreenOfDeath: {
+    icon: '/icons/luna/dialog_error.png',
+    title: 'Blue Screen of Death',
+    component: BlueScreenOfDeath,
+  },
 };
 
 // Load saved icon positions from localStorage
@@ -490,6 +498,7 @@ const CATALOG_TO_APP_KEY = {
   legoIsland: 'LEGO Island',
   diablo: 'Diablo',
   starcraft: 'StarCraft',
+  blueScreenOfDeath: 'Blue Screen of Death',
 };
 
 // Generate desktop icon state from program list
@@ -530,7 +539,7 @@ export function generateIconState(programIds = ['about', 'resume', 'projects', '
 }
 
 // Default desktop icons (fallback)
-export const defaultIconState = generateIconState(['myComputer', 'recycleBin', 'internetExplorer', 'about', 'resume', 'projects', 'contact', 'calculator', 'minesweeper']);
+export const defaultIconState = generateIconState(['myComputer', 'recycleBin', 'internetExplorer', 'about', 'resume', 'projects', 'contact', 'calculator', 'minesweeper', 'blueScreenOfDeath']);
 
 // App settings for launching from menu and icons
 export const appSettings = {
@@ -1233,11 +1242,16 @@ export const appSettings = {
       icon: '/icons/xp/messenger.png',
       title: 'MSN Messenger',
       buttons: ['minimize', 'maximize', 'close'],
+      invisible: true,
     },
     component: MSNMessenger,
     defaultSize: {
-      width: 550,
-      height: 500,
+      width: 280,
+      height: 540,
+    },
+    minSize: {
+      width: 280,
+      height: 540,
     },
     defaultOffset: {
       x: 100,
@@ -1247,6 +1261,31 @@ export const appSettings = {
     minimized: false,
     maximized: false,
     multiInstance: false,
+  },
+  'MSN Messenger Conversation': {
+    header: {
+      icon: '/icons/xp/messenger.png',
+      title: 'MSN Messenger Conversation',
+      buttons: ['minimize', 'maximize', 'close'],
+      invisible: true,
+    },
+    component: MSNMessengerConversation,
+    defaultSize: {
+      width: 560,
+      height: 540,
+    },
+    minSize: {
+      width: 560,
+      height: 540,
+    },
+    defaultOffset: {
+      x: 140,
+      y: 80,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
   },
   'Speech Properties': {
     header: {
@@ -1817,6 +1856,27 @@ export const appSettings = {
     maximized: false,
     multiInstance: false,
   },
+  'Blue Screen of Death': {
+    header: {
+      icon: '/icons/luna/dialog_error.png',
+      title: 'Blue Screen of Death',
+      invisible: true,
+      noFooterWindow: true,
+    },
+    component: BlueScreenOfDeath,
+    defaultSize: {
+      width: 0,
+      height: 0,
+    },
+    defaultOffset: {
+      x: 0,
+      y: 0,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
   'Run': {
     header: {
       icon: '/icons/luna/run.png',
@@ -1871,6 +1931,7 @@ export {
   IframeApp,
   Messenger,
   MSNMessenger,
+  MSNMessengerConversation,
   SpeechProperties,
   SystemProperties,
   UserAccounts,

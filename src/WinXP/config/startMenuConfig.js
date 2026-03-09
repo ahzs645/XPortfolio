@@ -355,6 +355,13 @@ export const START_MENU_CATALOG = {
     title: 'Run...',
     description: 'Open a program or file',
   },
+  blueScreenOfDeath: {
+    type: 'program',
+    appKey: 'Blue Screen of Death',
+    icon: '/icons/luna/dialog_error.png',
+    title: 'Blue Screen of Death',
+    description: 'Trigger a fake crash and reboot',
+  },
   'divider-main': {
     type: 'separator',
   },
@@ -413,7 +420,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Accessories',
     icon: '/icons/folder-icon.png',
-    items: ['calculator', 'notepad', 'wordpad', 'microsoftWord', 'microsoftExcel', 'displayProperties', 'speechProperties', 'systemProperties', 'userAccounts', 'paint', 'cmd', 'imageViewer', 'installer', 'systemTools'],
+    items: ['calculator', 'notepad', 'wordpad', 'microsoftWord', 'microsoftExcel', 'displayProperties', 'speechProperties', 'systemProperties', 'userAccounts', 'paint', 'cmd', 'imageViewer', 'installer', 'blueScreenOfDeath', 'systemTools'],
   },
   entertainment: {
     type: 'folder',

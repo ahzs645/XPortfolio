@@ -1,0 +1,170 @@
+/* ===== MSN Messenger Window Frame ===== */
+.xp-window {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  border-radius: 6px 6px 0 0;
+  border: 1px solid #8495ca;
+  background: #f8f8f8;
+  box-sizing: border-box;
+}
+
+/* ===== Title Bar ===== */
+.xp-window .appheader {
+  height: 24px;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  margin: 2px 1px 0 1px;
+  font-family: "Trebuchet MS", sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: .1px;
+  color: #153290;
+  text-shadow: none;
+  line-height: 24px;
+  background: linear-gradient(to bottom, #c0d0f0, #fff);
+  box-shadow: 0 -1px #ced8ef;
+  border-radius: 5px 5px 0 0;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.xp-window .appheader img.app-icon {
+  width: 50px;
+  height: 21px;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.xp-window .appheader .title-text {
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: -8px;
+}
+
+/* ===== Caption Buttons (MSN classic style) ===== */
+.xp-window .appcontrols {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  display: flex;
+  z-index: 1;
+}
+
+.xp-window .captionbutton {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 0;
+  padding: 0;
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: none;
+  box-shadow: none;
+  position: relative;
+  margin: 1px 1px 1px 0;
+}
+
+.xp-window .captionbutton::after {
+  display: none;
+}
+
+.xp-window .captionbutton:hover {
+  border-color: #aebadf #4f6ba0 #4f6ba0 #aebadf;
+  background: #f2f5fb;
+  box-shadow: none;
+}
+
+.xp-window .captionbutton:hover::after {
+  display: none;
+}
+
+.xp-window .captionbutton:active {
+  border-color: #4f6ba0 #aebadf #aebadf #4f6ba0;
+  background: #f2f5fb;
+  box-shadow: none;
+}
+
+.xp-window .captionbutton:active .btn-icon {
+  opacity: 1;
+}
+
+/* Button Icons */
+.xp-window .captionbutton .btn-icon {
+  width: 10px;
+  height: 10px;
+  display: block;
+  background-size: contain;
+  image-rendering: pixelated;
+  margin: 0;
+  filter: invert(38%) sepia(12%) saturate(2411%) hue-rotate(182deg) brightness(87%) contrast(83%) drop-shadow(0 1px #446097) drop-shadow(1px 0 #446097);
+  opacity: 1;
+}
+
+.xp-window .captionbutton.min .btn-icon {
+  background-image: url("__MSN_CLASSIC_ROOT__minimize_classic.png");
+}
+
+.xp-window .captionbutton.max .btn-icon {
+  background-image: url("__MSN_CLASSIC_ROOT__maximize_classic.png");
+  margin-left: 0;
+  margin-top: 1px;
+}
+
+.xp-window .captionbutton.res .btn-icon {
+  background-image: url("__MSN_CLASSIC_ROOT__restore_classic.png");
+}
+
+/* Close Button - same style, no red */
+.xp-window .captionbutton.closebtn {
+  background: none;
+  box-shadow: none;
+  border: 1px solid transparent;
+}
+
+.xp-window .captionbutton.closebtn::after {
+  display: none;
+}
+
+.xp-window .captionbutton.closebtn:hover {
+  border-color: #aebadf #4f6ba0 #4f6ba0 #aebadf;
+  background: #f2f5fb;
+  box-shadow: none;
+}
+
+.xp-window .captionbutton.closebtn:hover::after {
+  display: none;
+}
+
+.xp-window .captionbutton.closebtn:active {
+  border-color: #4f6ba0 #aebadf #aebadf #4f6ba0;
+  background: #f2f5fb;
+  box-shadow: none;
+}
+
+.xp-window .captionbutton.closebtn:active .btn-icon {
+  opacity: 1;
+}
+
+.xp-window .captionbutton.closebtn .btn-icon {
+  background-image: url("__MSN_CLASSIC_ROOT__close_classic.png");
+  transform: scale(1.1);
+}
+
+/* ===== Window Content Area ===== */
+.xp-window .window-body {
+  background-color: #fbfcfd;
+  overflow: hidden;
+  flex-grow: 1;
+  height: 0;
+  min-height: 0;
+  box-shadow: none;
+  margin: 0 1px 1px;
+  border-width: 0 1px 1px;
+  border-style: solid;
+  border-image-source: linear-gradient(rgb(255, 255, 255), rgb(139, 155, 204));
+  border-image-slice: 1;
+}

@@ -308,6 +308,13 @@ function WinXP() {
     setCrtEnabled((prev) => !prev);
   }, []);
 
+  const performRestart = useCallback(() => {
+    dispatch({ type: CANCEL_POWER_OFF });
+    dispatch({ type: CLOSE_ALL_APPS });
+    logoutUser();
+    dispatch({ type: SET_BOOT_STATE, payload: BOOT_STATE.BOOTING });
+  }, [dispatch, logoutUser]);
+
   const onFocusApp = useCallback((id) => {
     dispatch({ type: FOCUS_APP, payload: id });
   }, [dispatch]);
@@ -455,10 +462,7 @@ function WinXP() {
   });
 
   function onModalRestart() {
-    dispatch({ type: CANCEL_POWER_OFF });
-    dispatch({ type: CLOSE_ALL_APPS });
-    logoutUser();
-    dispatch({ type: SET_BOOT_STATE, payload: BOOT_STATE.BOOTING });
+    performRestart();
   }
 
   function onModalLogOff() {
@@ -519,6 +523,15 @@ function WinXP() {
       console.error('Failed to clear Clippy mobile preference:', e);
     }
   }, []);
+
+  useEffect(() => {
+    function handleRestartRequest() {
+      performRestart();
+    }
+
+    window.addEventListener('xp:restart-request', handleRestartRequest);
+    return () => window.removeEventListener('xp:restart-request', handleRestartRequest);
+  }, [performRestart]);
 
   // Global keyboard shortcuts (Win+R for Run, Win+E for Explorer, Win+D for Show Desktop)
   useEffect(() => {

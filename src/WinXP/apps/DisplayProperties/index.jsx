@@ -1306,6 +1306,9 @@ const AppearancePreview = styled.div`
 `;
 
 const AppearancePreviewRoot = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex: 1;
   width: 100%;
   min-height: 250px;
@@ -1316,16 +1319,19 @@ const AppearancePreviewRoot = styled.div`
 
   .appearance-preview__desktop {
     position: relative;
-    width: 100%;
-    height: 250px;
+    width: 411px;
+    height: 219px;
+    max-width: 100%;
     overflow: hidden;
     background: ${({ $classic }) => ($classic ? '#d4d0c8' : '#004e98')};
     border: 1px solid #aca899;
+    flex-shrink: 0;
   }
 
   .appearance-preview__window,
   .appearance-preview__dialog {
     position: absolute;
+    filter: drop-shadow(2px 3px 6px rgba(0, 0, 0, 0.18));
   }
 
   .appearance-preview__window.window,
@@ -1333,34 +1339,29 @@ const AppearancePreviewRoot = styled.div`
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    border: 1px solid ${({ $classic, $palette }) => ($classic ? '#808080' : $palette.frame)};
-    box-shadow:
-      ${({ $classic, $palette }) => (
-        $classic
-          ? 'inset 1px 1px 0 #ffffff, inset -1px -1px 0 #808080'
-          : `inset 1px 1px 0 ${$palette.frameInner}, inset -1px -1px 0 ${$palette.frame}`
-      )};
-    background: ${({ $palette }) => $palette.surface};
   }
 
   .appearance-preview__window--inactive {
-    top: 8px;
-    left: 8px;
-    width: 332px;
+    top: 10px;
+    left: 10px;
+    width: 371px;
+    height: 175px;
     z-index: 1;
   }
 
   .appearance-preview__window--active {
-    top: 42px;
-    left: 18px;
-    width: 338px;
+    top: 33px;
+    left: 14px;
+    width: 389px;
+    height: 157px;
     z-index: 2;
   }
 
   .appearance-preview__dialog {
-    top: 72px;
-    left: 118px;
-    width: 156px;
+    top: 133px;
+    left: 22px;
+    width: 239px;
+    height: 80px;
     z-index: 3;
   }
 
@@ -1389,14 +1390,12 @@ const AppearancePreviewRoot = styled.div`
   }
 
   .appearance-preview__body--inactive {
-    width: auto;
-    height: 116px;
+    flex: 1;
     margin: 0 3px 3px;
   }
 
   .appearance-preview__body--active {
-    width: auto;
-    height: 78px;
+    flex: 1;
     padding: 0;
     overflow: hidden;
     margin: 0 3px 3px;
@@ -1404,8 +1403,7 @@ const AppearancePreviewRoot = styled.div`
   }
 
   .appearance-preview__body--dialog {
-    width: auto;
-    height: 74px;
+    flex: 1;
     padding: 12px;
     margin: 0 3px 3px;
   }
