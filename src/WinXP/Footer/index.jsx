@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import styled from 'styled-components';
 import Balloon from '../../components/Balloon';
@@ -21,6 +21,7 @@ import {
 const QUICK_LAUNCH_ENABLED_KEY = 'xp-quick-launch-enabled';
 const VOLUME_KEY = 'xp-volume';
 const MUTED_KEY = 'xp-muted';
+const MAX_VISIBLE_TASKBAR_WINDOWS = 2;
 
 const getTime = () => {
   const date = new Date();
@@ -73,6 +74,8 @@ function Footer({
     }
   });
   const [showVolumePopup, setShowVolumePopup] = useState(false);
+  const [showWindowOverflow, setShowWindowOverflow] = useState(false);
+  const [windowOverflowPosition, setWindowOverflowPosition] = useState(null);
   const [volume, setVolume] = useState(() => {
     try {
       const saved = localStorage.getItem(VOLUME_KEY);
@@ -96,6 +99,18 @@ function Footer({
   const balloonTimeoutRef = useRef(null);
   const volumeIconRef = useRef(null);
   const volumePopupRef = useRef(null);
+  const windowOverflowRef = useRef(null);
+  const windowOverflowButtonRef = useRef(null);
+
+  const taskbarApps = useMemo(
+    () => apps.filter((app) => !app.header.noFooterWindow),
+    [apps]
+  );
+  const visibleTaskbarApps = taskbarApps.slice(0, MAX_VISIBLE_TASKBAR_WINDOWS);
+  const overflowTaskbarApps = taskbarApps.slice(MAX_VISIBLE_TASKBAR_WINDOWS);
+  const hasWindowOverflow = overflowTaskbarApps.length > 0;
+  const hasFocusedOverflowWindow = overflowTaskbarApps.some((app) => app.id === focusedAppId);
+  const isWindowOverflowOpen = showWindowOverflow && hasWindowOverflow;
 
   // Persist Quick Launch enabled state
   useEffect(() => {
@@ -134,6 +149,30 @@ function Footer({
     setShowVolumePopup(prev => !prev);
   }, []);
 
+  const updateWindowOverflowPosition = useCallback(() => {
+    const button = windowOverflowButtonRef.current;
+    if (!button) {
+      setWindowOverflowPosition(null);
+      return;
+    }
+
+    const rect = button.getBoundingClientRect();
+    setWindowOverflowPosition({
+      left: rect.right,
+      bottom: window.innerHeight - rect.top + 2,
+    });
+  }, []);
+
+  const handleWindowOverflowToggle = useCallback((e) => {
+    e.stopPropagation();
+    setShowWindowOverflow((prev) => {
+      if (!prev) {
+        updateWindowOverflowPosition();
+      }
+      return !prev;
+    });
+  }, [updateWindowOverflowPosition]);
+
   const handleVolumeChange = useCallback((e) => {
     setVolume(parseInt(e.target.value, 10));
   }, []);
@@ -159,6 +198,7 @@ function Footer({
 
   function toggleMenu(e) {
     e.stopPropagation();
+    setShowWindowOverflow(false);
     setMenuOn((on) => {
       // Play start sound when opening menu (not closing)
       if (!on && windowSoundsEnabled) {
@@ -169,7 +209,7 @@ function Footer({
   }
 
   function _onMouseDown(e) {
-    if (e.target.closest('.footer__window')) return;
+    if (e.target.closest('.footer__window') || e.target.closest('.footer__window-overflow')) return;
     onMouseDown();
   }
 
@@ -375,6 +415,30 @@ function Footer({
     };
   }, [showVolumePopup]);
 
+  useEffect(() => {
+    if (!isWindowOverflowOpen) return;
+
+    const handleClickOutside = (e) => {
+      const buttonEl = windowOverflowButtonRef.current;
+      const menuEl = windowOverflowRef.current;
+      if (buttonEl && buttonEl.contains(e.target)) return;
+      if (menuEl && menuEl.contains(e.target)) return;
+      setShowWindowOverflow(false);
+    };
+
+    const handleViewportChange = () => updateWindowOverflowPosition();
+
+    window.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('resize', handleViewportChange);
+    window.addEventListener('scroll', handleViewportChange, true);
+
+    return () => {
+      window.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('resize', handleViewportChange);
+      window.removeEventListener('scroll', handleViewportChange, true);
+    };
+  }, [isWindowOverflowOpen, updateWindowOverflowPosition]);
+
   // Cleanup timeout
   useEffect(() => {
     return () => {
@@ -411,7 +475,12 @@ function Footer({
 
   const handleTaskbarContextMenu = useCallback((e) => {
     // Only show context menu if clicking on the taskbar background, not on buttons
-    if (e.target.closest('.footer__window') || e.target.closest('.footer__time') || e.target.closest('img')) {
+    if (
+      e.target.closest('.footer__window')
+      || e.target.closest('.footer__window-overflow')
+      || e.target.closest('.footer__time')
+      || e.target.closest('img')
+    ) {
       return;
     }
     e.preventDefault();
@@ -436,22 +505,56 @@ function Footer({
           draggable={false}
         />
         <QuickLaunch
-          enabled={quickLaunchEnabled && !isMobileDevice()}
+          enabled={quickLaunchEnabled && !isMobile && !isMobileDevice()}
           onClickMenuItem={_onClickMenuItem}
           onMinimizeAll={onMinimizeAll}
         />
-        {[...apps].map(
-          (app) =>
-            !app.header.noFooterWindow && (
-              <FooterWindow
-                key={app.id}
-                id={app.id}
-                icon={app.header.icon}
-                title={app.header.title}
-                onMouseDown={onMouseDownApp}
-                isFocus={focusedAppId === app.id}
-              />
-            )
+        {visibleTaskbarApps.map((app) => (
+          <FooterWindow
+            key={app.id}
+            id={app.id}
+            icon={app.header.icon}
+            title={app.header.title}
+            onMouseDown={onMouseDownApp}
+            isFocus={focusedAppId === app.id}
+          />
+        ))}
+        {hasWindowOverflow && (
+          <WindowOverflowAnchor ref={windowOverflowButtonRef}>
+            <WindowOverflowButton
+              type="button"
+              className={`footer__window-overflow ${hasFocusedOverflowWindow ? 'focus' : 'cover'}`}
+              onClick={handleWindowOverflowToggle}
+              title={`${overflowTaskbarApps.length} more open window${overflowTaskbarApps.length === 1 ? '' : 's'}`}
+            >
+              <span aria-hidden="true">▲</span>
+            </WindowOverflowButton>
+            {isWindowOverflowOpen && windowOverflowPosition && createPortal(
+              <WindowOverflowMenu
+                ref={windowOverflowRef}
+                style={{
+                  left: windowOverflowPosition.left,
+                  bottom: windowOverflowPosition.bottom,
+                }}
+              >
+                {overflowTaskbarApps.map((app) => (
+                  <WindowOverflowItem
+                    key={app.id}
+                    type="button"
+                    className={focusedAppId === app.id ? 'focus' : ''}
+                    onClick={() => {
+                      onMouseDownApp(app.id);
+                      setShowWindowOverflow(false);
+                    }}
+                  >
+                    <img className="footer__icon" src={app.header.icon} alt={app.header.title} />
+                    <span>{app.header.title}</span>
+                  </WindowOverflowItem>
+                ))}
+              </WindowOverflowMenu>,
+              document.body
+            )}
+          </WindowOverflowAnchor>
         )}
       </div>
 
@@ -696,6 +799,112 @@ const VolumePopup = styled.div`
   }
 `;
 
+const WindowOverflowAnchor = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+`;
+
+const WindowOverflowButton = styled.button`
+  width: 30px;
+  min-width: 30px;
+  color: #fff;
+  border-radius: 2px;
+  margin-top: 2px;
+  margin-left: 3px;
+  padding: 0;
+  height: 22px;
+  font-size: 10px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+
+  &.cover {
+    background: ${XP_TASK_BUTTON_COVER_BACKGROUND};
+    box-shadow: ${XP_TASK_BUTTON_COVER_BOX_SHADOW};
+  }
+
+  &.cover:hover {
+    background: linear-gradient(
+      to bottom,
+      #5ca8ff 0%,
+      #53a1fa 10%,
+      #4a9af5 30%,
+      #4293f0 60%,
+      #3c8dec 100%
+    );
+  }
+
+  &.focus {
+    background: ${XP_TASK_BUTTON_FOCUS_BACKGROUND};
+    box-shadow: ${XP_TASK_BUTTON_FOCUS_BOX_SHADOW};
+  }
+
+  &.focus:hover {
+    background: linear-gradient(
+      to bottom,
+      #1f4fb2 0%,
+      #1c4cad 15%,
+      #1948a7 40%,
+      #1644a1 70%,
+      #14419c 100%
+    );
+  }
+
+  &:active {
+    background: #0c358a;
+  }
+`;
+
+const WindowOverflowMenu = styled.div`
+  position: fixed;
+  z-index: 10002;
+  display: flex;
+  flex-direction: column;
+  min-width: 190px;
+  max-width: 260px;
+  padding: 2px;
+  background: #ece9d8;
+  border: 1px solid #0a246a;
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.45);
+  transform: translateX(-100%);
+`;
+
+const WindowOverflowItem = styled.button`
+  height: 26px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0 8px;
+  border: none;
+  background: transparent;
+  color: #000;
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  img {
+    flex-shrink: 0;
+  }
+
+  &:hover,
+  &.focus {
+    background: linear-gradient(to bottom, #316ac5, #2459b3);
+    color: #fff;
+  }
+`;
+
 const Container = styled.footer`
   height: 30px;
   background: ${XP_TASKBAR_BACKGROUND};
@@ -734,7 +943,8 @@ const Container = styled.footer`
   }
 
   .footer__window {
-    flex: 1;
+    flex: 0 1 150px;
+    min-width: 110px;
     max-width: 150px;
     color: #fff;
     border-radius: 2px;

@@ -43,6 +43,10 @@ const OPEN_NUM = {
 };
 
 function pad3(n) {
+  if (n < 0) {
+    return `-${String(Math.abs(n) % 100).padStart(2, '0')}`;
+  }
+
   n = Math.min(999, n | 0);
   return String(n).padStart(3, '0');
 }
@@ -87,8 +91,12 @@ function Minesweeper({ onClose, onResize }) {
   const [flags, setFlags] = useState(0);
   const [face, setFace] = useState(FACE.SMILE);
   const [flagMode, setFlagMode] = useState(false);
+  const [marksEnabled, setMarksEnabled] = useState(true);
+  const [interaction, setInteraction] = useState({ index: -1, mode: '' });
+  const [pressedCells, setPressedCells] = useState([]);
   const timerRef = useRef(null);
   const boardRef = useRef(null);
+  const mouseUpHandlerRef = useRef(() => {});
 
   const { rows, cols, mines } = Config[difficulty];
 
@@ -111,11 +119,13 @@ function Minesweeper({ onClose, onResize }) {
         { label: `${difficulty === 'Intermediate' ? '✓ ' : '   '}Intermediate`, action: 'difficulty:Intermediate' },
         { label: `${difficulty === 'Expert' ? '✓ ' : '   '}Expert`, action: 'difficulty:Expert' },
         { separator: true },
+        { label: `${marksEnabled ? '✓ ' : '   '}Marks (?)`, action: 'toggleMarks' },
+        { separator: true },
         { label: 'Exit', action: 'exitProgram' },
       ],
     },
     { id: 'help', label: 'Help', disabled: true },
-  ], [difficulty]);
+  ], [difficulty, marksEnabled]);
 
   const resetGame = useCallback((diff = difficulty) => {
     const { rows, cols } = Config[diff];
@@ -124,6 +134,8 @@ function Minesweeper({ onClose, onResize }) {
     setSeconds(0);
     setFlags(0);
     setFace(FACE.SMILE);
+    setInteraction({ index: -1, mode: '' });
+    setPressedCells([]);
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
@@ -172,13 +184,13 @@ function Minesweeper({ onClose, onResize }) {
       const idx = toReveal.pop();
       const cell = newGrid[idx];
 
-      if (cell.state !== 'cover') continue;
+      if (cell.state !== 'cover' && cell.state !== 'unknown') continue;
 
       newGrid[idx] = { ...cell, state: 'open' };
 
       if (cell.mines === 0) {
         for (const n of getNeighbors(idx, rows, cols)) {
-          if (newGrid[n].state === 'cover') {
+          if (newGrid[n].state === 'cover' || newGrid[n].state === 'unknown') {
             toReveal.push(n);
           }
         }
@@ -213,7 +225,26 @@ function Minesweeper({ onClose, onResize }) {
     setGrid(newGrid);
   };
 
-  const handleCellClick = (i) => {
+  const finishWin = (currentGrid) => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    setStatus('won');
+    setFace(FACE.WIN);
+    setFlags(mines);
+    setGrid(
+      currentGrid.map((c) => {
+        if (c.state === 'cover' || c.state === 'unknown') {
+          return { ...c, state: 'flag' };
+        }
+        return c;
+      })
+    );
+  };
+
+  const openCell = (i) => {
     if (status === 'dead' || status === 'won') return;
 
     let currentGrid = [...grid];
@@ -235,21 +266,41 @@ function Minesweeper({ onClose, onResize }) {
     setGrid(newGrid);
 
     if (checkWin(newGrid)) {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
+      finishWin(newGrid);
+    }
+  };
+
+  const chordOpen = (i) => {
+    if (status === 'dead' || status === 'won') return;
+
+    const cell = grid[i];
+    if (cell.state !== 'open' || cell.mines <= 0) return;
+
+    const neighbors = getNeighbors(i, rows, cols);
+    const flaggedCount = neighbors.filter((n) => grid[n].state === 'flag').length;
+    if (flaggedCount !== cell.mines) return;
+
+    let currentGrid = [...grid];
+
+    for (const neighbor of neighbors) {
+      const neighborCell = currentGrid[neighbor];
+
+      if (neighborCell.state === 'flag' || neighborCell.state === 'open') {
+        continue;
       }
-      setStatus('won');
-      setFace(FACE.WIN);
-      // Auto-flag remaining cells
-      setGrid(
-        newGrid.map((c) => {
-          if (c.state === 'cover' || c.state === 'unknown') {
-            return { ...c, state: 'flag' };
-          }
-          return c;
-        })
-      );
+
+      if (neighborCell.mines < 0) {
+        gameOver(neighbor, currentGrid);
+        return;
+      }
+
+      currentGrid = reveal(neighbor, currentGrid);
+    }
+
+    setGrid(currentGrid);
+
+    if (checkWin(currentGrid)) {
+      finishWin(currentGrid);
     }
   };
 
@@ -265,7 +316,7 @@ function Minesweeper({ onClose, onResize }) {
       newGrid[i] = { ...cell, state: 'flag' };
       setFlags((f) => f + 1);
     } else if (cell.state === 'flag') {
-      newGrid[i] = { ...cell, state: 'unknown' };
+      newGrid[i] = { ...cell, state: marksEnabled ? 'unknown' : 'cover' };
       setFlags((f) => f - 1);
     } else if (cell.state === 'unknown') {
       newGrid[i] = { ...cell, state: 'cover' };
@@ -274,21 +325,76 @@ function Minesweeper({ onClose, onResize }) {
     setGrid(newGrid);
   };
 
-  const handleContextMenu = (e, i) => {
+  const handleContextMenu = (e) => {
     e.preventDefault();
-    cycleFlag(i);
   };
 
-  const handleMouseDown = () => {
-    if (status === 'new' || status === 'started') {
-      setFace(FACE.OHH);
-    }
+  const setFacePressed = (pressed) => {
+    if (status !== 'new' && status !== 'started') return;
+    setFace(pressed ? FACE.OHH : FACE.SMILE);
   };
 
-  const handleMouseUp = () => {
-    if (status === 'new' || status === 'started') {
-      setFace(FACE.SMILE);
+  const getPressedCells = (index, mode, currentGrid = grid) => {
+    if (index < 0) return [];
+
+    if (mode === 'single') {
+      const cell = currentGrid[index];
+      return cell && (cell.state === 'cover' || cell.state === 'unknown') ? [index] : [];
     }
+
+    if (mode === 'chord') {
+      const cell = currentGrid[index];
+      if (!cell || cell.state !== 'open' || cell.mines <= 0) return [];
+      return getNeighbors(index, rows, cols).filter((neighbor) => {
+        const neighborCell = currentGrid[neighbor];
+        return neighborCell.state === 'cover' || neighborCell.state === 'unknown';
+      });
+    }
+
+    return [];
+  };
+
+  const clearInteraction = () => {
+    setInteraction({ index: -1, mode: '' });
+    setPressedCells([]);
+    setFacePressed(false);
+  };
+
+  const handleCellMouseDown = (e, i) => {
+    if (status === 'dead' || status === 'won') return;
+
+    const mode = (
+      e.button === 1 ||
+      e.buttons === 3 ||
+      e.ctrlKey ||
+      e.altKey ||
+      e.shiftKey ||
+      e.metaKey
+    ) ? 'chord' : e.button === 0 ? 'single' : '';
+
+    if (!mode) {
+      if (e.button === 2) {
+        cycleFlag(i);
+      }
+      return;
+    }
+
+    e.preventDefault();
+    setInteraction({ index: i, mode });
+    setPressedCells(getPressedCells(i, mode));
+    setFacePressed(true);
+  };
+
+  const handleCellMouseEnter = (i) => {
+    if (!interaction.mode) return;
+
+    if (interaction.mode === 'single') {
+      setInteraction((prev) => ({ ...prev, index: i }));
+      setPressedCells(getPressedCells(i, interaction.mode));
+      return;
+    }
+
+    setPressedCells(getPressedCells(interaction.index, interaction.mode));
   };
 
   const handleFaceClick = () => {
@@ -297,34 +403,56 @@ function Minesweeper({ onClose, onResize }) {
 
   const changeDifficulty = (diff) => {
     setDifficulty(diff);
-    const { rows, cols } = Config[diff];
-    setGrid(createEmptyGrid(rows, cols));
-    setStatus('new');
-    setSeconds(0);
-    setFlags(0);
-    setFace(FACE.SMILE);
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
+    resetGame(diff);
   };
 
-  const handleMenuAction = useCallback((action) => {
+  const handleMenuAction = (action) => {
     if (action === 'new') {
       resetGame();
     } else if (action.startsWith('difficulty:')) {
       const diff = action.split(':')[1];
       changeDifficulty(diff);
+    } else if (action === 'toggleMarks') {
+      setMarksEnabled((enabled) => !enabled);
+    } else if (action === 'exitProgram') {
+      onClose?.();
     }
-  }, [resetGame]);
+  };
 
   const handleTouchStart = (i) => {
     if (flagMode) {
       cycleFlag(i);
     } else {
-      handleCellClick(i);
+      openCell(i);
     }
   };
+
+  mouseUpHandlerRef.current = () => {
+    if (interaction.index === -1) {
+      setFacePressed(false);
+      return;
+    }
+
+    if (interaction.mode === 'single') {
+      openCell(interaction.index);
+    } else if (interaction.mode === 'chord') {
+      chordOpen(interaction.index);
+    }
+
+    clearInteraction();
+  };
+
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      mouseUpHandlerRef.current();
+    };
+
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+
+    return () => {
+      window.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, []);
 
   const renderDigits = (n) => {
     const s = pad3(n);
@@ -366,7 +494,7 @@ function Minesweeper({ onClose, onResize }) {
       </MenuBarWrapper>
       <MineContent>
         <Scorebar>
-          <Digits>{renderDigits(Math.max(0, mines - flags))}</Digits>
+          <Digits>{renderDigits(mines - flags)}</Digits>
           <FaceButton
             onMouseDown={() => setFace(FACE.OHH)}
             onMouseUp={() => {
@@ -381,16 +509,16 @@ function Minesweeper({ onClose, onResize }) {
         <Board
           ref={boardRef}
           $cols={cols}
-          onMouseDown={handleMouseDown}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
+          onContextMenu={(e) => e.preventDefault()}
         >
           {grid.map((cell, i) => (
             <Cell
               key={i}
-              className={getCellClassName(cell)}
-              onClick={() => handleCellClick(i)}
-              onContextMenu={(e) => handleContextMenu(e, i)}
+              className={`${getCellClassName(cell)}${pressedCells.includes(i) ? ' pressed' : ''}`}
+              onDoubleClick={() => chordOpen(i)}
+              onMouseDown={(e) => handleCellMouseDown(e, i)}
+              onMouseEnter={() => handleCellMouseEnter(i)}
+              onContextMenu={handleContextMenu}
               onTouchStart={() => handleTouchStart(i)}
             >
               {cell.state === 'open' && cell.mines > 0 && (
@@ -547,6 +675,17 @@ const Cell = styled.div`
   &.open::before {
     border-left: 1px solid #808080;
     border-top: 1px solid #808080;
+  }
+
+  &.pressed {
+    background: #bdbdbd;
+  }
+
+  &.pressed::before {
+    border-left: 1px solid #808080;
+    border-top: 1px solid #808080;
+    border-right: 0;
+    border-bottom: 0;
   }
 
   img {
