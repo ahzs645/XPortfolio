@@ -9,6 +9,14 @@ import { isMobileDevice } from '../../utils/deviceDetection';
 import { withBaseUrl } from '../../utils/baseUrl';
 import useSystemSounds from '../../hooks/useSystemSounds';
 import { useUserSettings } from '../../contexts/UserSettingsContext';
+import {
+  XP_TASKBAR_BACKGROUND,
+  XP_TASK_BUTTON_COVER_BACKGROUND,
+  XP_TASK_BUTTON_COVER_BOX_SHADOW,
+  XP_TASK_BUTTON_FOCUS_BACKGROUND,
+  XP_TASK_BUTTON_FOCUS_BOX_SHADOW,
+  XP_TRAY_BACKGROUND,
+} from '../styles/shellTheme';
 
 const QUICK_LAUNCH_ENABLED_KEY = 'xp-quick-launch-enabled';
 const VOLUME_KEY = 'xp-volume';
@@ -690,25 +698,7 @@ const VolumePopup = styled.div`
 
 const Container = styled.footer`
   height: 30px;
-  background: linear-gradient(
-    to bottom,
-    #1f2f86 0,
-    #3165c4 3%,
-    #3682e5 6%,
-    #4490e6 10%,
-    #3883e5 12%,
-    #2b71e0 15%,
-    #2663da 18%,
-    #235bd6 20%,
-    #2258d5 23%,
-    #2157d6 38%,
-    #245ddb 54%,
-    #2562df 86%,
-    #245fdc 89%,
-    #2158d4 92%,
-    #1d4ec0 95%,
-    #1941a5 98%
-  );
+  background: ${XP_TASKBAR_BACKGROUND};
   position: absolute;
   bottom: 0;
   right: 0;
@@ -727,21 +717,7 @@ const Container = styled.footer`
   .footer__items.right {
     background-color: #0b77e9;
     flex-shrink: 0;
-    background: linear-gradient(
-      to bottom,
-      #0c59b9 1%,
-      #139ee9 6%,
-      #18b5f2 10%,
-      #139beb 14%,
-      #1290e8 19%,
-      #0d8dea 63%,
-      #0d9ff1 81%,
-      #0f9eed 88%,
-      #119be9 91%,
-      #1392e2 94%,
-      #137ed7 97%,
-      #095bc9 100%
-    );
+    background: ${XP_TRAY_BACKGROUND};
     border-left: 1px solid #1042af;
     box-shadow: inset 1px 0 1px #18bbff;
     padding: 0 10px;
@@ -789,20 +765,8 @@ const Container = styled.footer`
 
   /* Inactive/unfocused window - raised button appearance */
   .footer__window.cover {
-    background: linear-gradient(
-      to bottom,
-      #4e9ef8 0%,
-      #4295f3 5%,
-      #3d8fee 10%,
-      #3888e8 20%,
-      #3482e3 40%,
-      #3180e1 60%,
-      #2e7dde 80%,
-      #2a79da 100%
-    );
-    box-shadow:
-      inset 1px 1px 1px rgba(255, 255, 255, 0.4),
-      inset -1px -1px 1px rgba(0, 0, 0, 0.2);
+    background: ${XP_TASK_BUTTON_COVER_BACKGROUND};
+    box-shadow: ${XP_TASK_BUTTON_COVER_BOX_SHADOW};
   }
 
   .footer__window.cover:before {
@@ -835,20 +799,8 @@ const Container = styled.footer`
 
   /* Active/focused window - pressed/sunken appearance */
   .footer__window.focus {
-    background: linear-gradient(
-      to bottom,
-      #1a4aad 0%,
-      #1847a8 5%,
-      #1644a3 15%,
-      #14419e 30%,
-      #123e99 50%,
-      #103b94 70%,
-      #0e388f 85%,
-      #0c358a 100%
-    );
-    box-shadow:
-      inset 1px 1px 2px rgba(0, 0, 0, 0.5),
-      inset -1px -1px 1px rgba(255, 255, 255, 0.1);
+    background: ${XP_TASK_BUTTON_FOCUS_BACKGROUND};
+    box-shadow: ${XP_TASK_BUTTON_FOCUS_BOX_SHADOW};
   }
 
   .footer__window.focus:before {

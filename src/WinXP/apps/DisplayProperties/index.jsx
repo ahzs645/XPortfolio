@@ -35,10 +35,10 @@ const TABS = [
 ];
 
 const THEMES = [
-  { id: 'xp', name: 'Windows XP', preview: '/gui/display/reference/preview.png' },
-  { id: 'silver', name: 'Windows XP (Silver)', preview: '/gui/display/reference/appearance.png' },
-  { id: 'olive', name: 'Windows XP (Olive)', preview: '/gui/display/reference/appearance.png' },
-  { id: 'classic', name: 'Windows Classic', preview: '/gui/display/reference/appearance.png' },
+  { id: 'xp', name: 'Windows XP' },
+  { id: 'silver', name: 'Windows XP (Silver)' },
+  { id: 'olive', name: 'Windows XP (Olive)' },
+  { id: 'classic', name: 'Windows Classic' },
 ];
 
 const COLOR_SCHEMES = [
@@ -58,6 +58,208 @@ const FONT_SIZES = [
   { id: 'large', label: 'Large Fonts' },
   { id: 'extra', label: 'Extra Large Fonts' },
 ];
+
+const THEME_PRESETS = {
+  xp: { windowStyle: 'xp', colorScheme: 'blue' },
+  silver: { windowStyle: 'xp', colorScheme: 'silver' },
+  olive: { windowStyle: 'xp', colorScheme: 'olive' },
+  classic: { windowStyle: 'classic', colorScheme: 'classic' },
+};
+
+const PREVIEW_THEMES = {
+  blue: {
+    titleStart: '#0a246a',
+    titleEnd: '#4d8ae8',
+    titleText: '#ffffff',
+    frame: '#245edb',
+    frameInner: '#9dbdff',
+    surface: '#ece9d8',
+    panel: '#f6f4ea',
+    buttonTop: '#ffffff',
+    buttonBottom: '#d9d1c5',
+    buttonBorder: '#003c74',
+    accent: '#2b7cff',
+    taskbarStart: '#235edc',
+    taskbarEnd: '#3a89ff',
+    startStart: '#44b348',
+    startEnd: '#2d7d2f',
+    desktopTint: 'rgba(12, 57, 133, 0.15)',
+  },
+  silver: {
+    titleStart: '#7b859d',
+    titleEnd: '#bec6d8',
+    titleText: '#ffffff',
+    frame: '#7f8ea8',
+    frameInner: '#d9deea',
+    surface: '#ebe9f4',
+    panel: '#f7f7fb',
+    buttonTop: '#ffffff',
+    buttonBottom: '#dcd9e8',
+    buttonBorder: '#5a6477',
+    accent: '#6e7d95',
+    taskbarStart: '#6e788d',
+    taskbarEnd: '#9ca6bc',
+    startStart: '#5b8757',
+    startEnd: '#416a3f',
+    desktopTint: 'rgba(70, 77, 93, 0.18)',
+  },
+  olive: {
+    titleStart: '#7b7f36',
+    titleEnd: '#c8c97d',
+    titleText: '#ffffff',
+    frame: '#8a8e47',
+    frameInner: '#d8db9d',
+    surface: '#efeed7',
+    panel: '#f8f7e9',
+    buttonTop: '#ffffff',
+    buttonBottom: '#dbd7b8',
+    buttonBorder: '#5c6521',
+    accent: '#7b8f24',
+    taskbarStart: '#6c7a1a',
+    taskbarEnd: '#94a63b',
+    startStart: '#5ba445',
+    startEnd: '#397029',
+    desktopTint: 'rgba(94, 104, 26, 0.18)',
+  },
+  classic: {
+    titleStart: '#0a246a',
+    titleEnd: '#0a246a',
+    titleText: '#ffffff',
+    frame: '#808080',
+    frameInner: '#dfdfdf',
+    surface: '#c0c0c0',
+    panel: '#d4d0c8',
+    buttonTop: '#ffffff',
+    buttonBottom: '#d4d0c8',
+    buttonBorder: '#404040',
+    accent: '#0a246a',
+    taskbarStart: '#c0c0c0',
+    taskbarEnd: '#c0c0c0',
+    startStart: '#d4d0c8',
+    startEnd: '#b6b2aa',
+    desktopTint: 'rgba(0, 0, 0, 0.08)',
+  },
+};
+
+const PREVIEW_FONT_SCALES = {
+  normal: 1,
+  large: 1.08,
+  extra: 1.16,
+};
+
+function getPreviewPalette(windowStyle, colorScheme) {
+  return PREVIEW_THEMES[
+    windowStyle === 'classic' || colorScheme === 'classic' ? 'classic' : colorScheme
+  ] || PREVIEW_THEMES.blue;
+}
+
+function NativePreviewScene({
+  windowStyle,
+  colorScheme,
+  fontSize,
+  wallpaperPath,
+}) {
+  const palette = getPreviewPalette(windowStyle, colorScheme);
+  const isClassic = windowStyle === 'classic' || colorScheme === 'classic';
+  const fontScale = PREVIEW_FONT_SCALES[fontSize] || 1;
+  const wallpaperUrl = wallpaperPath ? withBaseUrl(wallpaperPath) : null;
+
+  return (
+    <NativePreviewRoot
+      $scale={fontScale}
+      $classic={isClassic}
+      $palette={palette}
+      $wallpaper={wallpaperUrl}
+    >
+      <div className="display-preview__desktop">
+        <div className={`display-preview__window ${isClassic ? 'window preview-classic-window' : 'window dialogbox'}`}>
+          <div className="title-bar">
+            <div className="window-inactive-mask" />
+            <div className="title-bar-text">Active Window</div>
+            <div className="title-bar-controls">
+              <button aria-label="Minimize" type="button" />
+              <button aria-label="Maximize" type="button" />
+              <button aria-label="Close" type="button" />
+            </div>
+          </div>
+
+          <div className="window-body">
+            <div className="display-preview__scroll-body">
+              <div className="display-preview__text">Window Text</div>
+              <div className="display-preview__scroll-spacer" />
+            </div>
+          </div>
+        </div>
+
+        <img
+          alt=""
+          className="display-preview__recycler"
+          src={withBaseUrl('/icons/xp/RecycleBinfull.png')}
+        />
+      </div>
+    </NativePreviewRoot>
+  );
+}
+
+function AppearancePreviewScene({
+  windowStyle,
+  colorScheme,
+  fontSize,
+}) {
+  const palette = getPreviewPalette(windowStyle, colorScheme);
+  const isClassic = windowStyle === 'classic' || colorScheme === 'classic';
+  const fontScale = PREVIEW_FONT_SCALES[fontSize] || 1;
+
+  return (
+    <AppearancePreviewRoot $classic={isClassic} $palette={palette} $scale={fontScale}>
+      <div className="appearance-preview__desktop">
+        <div className="appearance-preview__window appearance-preview__window--inactive window inactive">
+          <div className="title-bar">
+            <div className="window-inactive-mask" />
+            <div className="title-bar-text">Inactive Window</div>
+            <div className="title-bar-controls">
+              <button type="button" aria-label="Minimize" />
+              <button type="button" aria-label="Maximize" />
+              <button type="button" aria-label="Close" />
+            </div>
+          </div>
+          <div className="window-body appearance-preview__body appearance-preview__body--inactive" />
+        </div>
+
+        <div className="appearance-preview__window appearance-preview__window--active window">
+          <div className="title-bar">
+            <div className="window-inactive-mask" />
+            <div className="title-bar-text">Active Window</div>
+            <div className="title-bar-controls">
+              <button type="button" aria-label="Minimize" />
+              <button type="button" aria-label="Maximize" />
+              <button type="button" aria-label="Close" />
+            </div>
+          </div>
+          <div className="window-body appearance-preview__body appearance-preview__body--active">
+            <div className="appearance-preview__scroll-body">
+              <div className="appearance-preview__text">Window Text</div>
+              <div className="appearance-preview__scroll-spacer" />
+            </div>
+          </div>
+        </div>
+
+        <div className="appearance-preview__dialog window">
+          <div className="title-bar">
+            <div className="window-inactive-mask" />
+            <div className="title-bar-text">Message Box</div>
+            <div className="title-bar-controls">
+              <button type="button" aria-label="Close" />
+            </div>
+          </div>
+          <div className="window-body appearance-preview__body appearance-preview__body--dialog">
+            <div className="appearance-preview__dialog-button">OK</div>
+          </div>
+        </div>
+      </div>
+    </AppearancePreviewRoot>
+  );
+}
 
 const RESOLUTIONS = ['640 x 480', '800 x 600', '1024 x 768', '1152 x 864', '1280 x 1024'];
 
@@ -147,7 +349,6 @@ function DisplayProperties({ onClose, onMinimize }) {
   const [fontSize, setFontSize] = useState('normal');
   const [resolutionIndex, setResolutionIndex] = useState(2);
   const [colorQuality, setColorQuality] = useState('32');
-
   const applySelection = () => {
     const wallpaperPath = selected || '';
     setWallpaperPath(wallpaperPath, { isMobile: false });
@@ -174,6 +375,13 @@ function DisplayProperties({ onClose, onMinimize }) {
       setSelected(file.data);
     }
     setShowBrowse(false);
+  };
+
+  const handleThemeChange = (value) => {
+    const preset = THEME_PRESETS[value] || THEME_PRESETS.xp;
+    setTheme(value);
+    setWindowStyle(preset.windowStyle);
+    setColorScheme(preset.colorScheme);
   };
 
   return (
@@ -266,28 +474,33 @@ function DisplayProperties({ onClose, onMinimize }) {
             >
               {tab.id === 'themes' && (
                 <ThemesPane>
-                  <ThemeControls>
-                    <SmallText>A theme is a background plus a set of sounds, icons, and other elements to help you personalize your computer.</SmallText>
-                    <Label>Theme:</Label>
-                    <Row style={{ alignItems: 'stretch', gap: '6px' }}>
-                      <SideSelect
-                        value={theme}
-                        onChange={(e) => setTheme(e.target.value)}
-                        style={{ flex: 1 }}
-                      >
-                        {THEMES.map(item => (
-                          <option key={item.id} value={item.id}>{item.name}</option>
-                        ))}
-                      </SideSelect>
-                      <ThemeActions style={{ margin: 0 }}>
-                        <SideButton type="button" disabled $disabled>Save As...</SideButton>
-                        <SideButton type="button" disabled $disabled>Delete</SideButton>
-                      </ThemeActions>
-                    </Row>
-                  </ThemeControls>
-                  <SmallText style={{ marginTop: 6 }}>Sample:</SmallText>
+                  <ThemeDescription>
+                    A theme is a background plus a set of sounds, icons, and other elements to help you personalize your computer with one click.
+                  </ThemeDescription>
+                  <ThemeFieldLabel>Theme:</ThemeFieldLabel>
+                  <ThemeSelectorRow>
+                    <SideSelect
+                      value={theme}
+                      onChange={(e) => handleThemeChange(e.target.value)}
+                      style={{ flex: 1 }}
+                    >
+                      {THEMES.map(item => (
+                        <option key={item.id} value={item.id}>{item.name}</option>
+                      ))}
+                      <option value="more-online" disabled>More themes online...</option>
+                      <option value="browse-theme" disabled>Browse...</option>
+                    </SideSelect>
+                    <SideButton type="button" disabled $disabled>Save As...</SideButton>
+                    <SideButton type="button" disabled $disabled>Delete...</SideButton>
+                  </ThemeSelectorRow>
+                  <ThemeFieldLabel>Sample:</ThemeFieldLabel>
                   <ThemePreview>
-                    <img src={withBaseUrl(THEMES.find(t => t.id === theme)?.preview)} alt={`${theme} preview`} />
+                    <NativePreviewScene
+                      windowStyle={THEME_PRESETS[theme]?.windowStyle || 'xp'}
+                      colorScheme={THEME_PRESETS[theme]?.colorScheme || 'blue'}
+                      fontSize={fontSize}
+                      wallpaperPath={selected}
+                    />
                   </ThemePreview>
                 </ThemesPane>
               )}
@@ -373,7 +586,11 @@ function DisplayProperties({ onClose, onMinimize }) {
               {tab.id === 'appearance' && (
                 <AppearancePane>
                   <AppearancePreview>
-                    <img src={withBaseUrl('/gui/display/reference/appearance.png')} alt="Appearance preview" />
+                    <AppearancePreviewScene
+                      windowStyle={windowStyle}
+                      colorScheme={colorScheme}
+                      fontSize={fontSize}
+                    />
                   </AppearancePreview>
                   <AppearanceControlsRow>
                     <AppearanceSelects>
@@ -458,6 +675,7 @@ function DisplayProperties({ onClose, onMinimize }) {
         <Actions>
           <ActionButton onClick={applySelection}>OK</ActionButton>
           <ActionButton onClick={onClose}>Cancel</ActionButton>
+          <ActionButton disabled>Apply</ActionButton>
         </Actions>
 
               </WindowSurface>
@@ -942,54 +1160,132 @@ const CheckboxRow = styled.label`
 const ThemesPane = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   height: 100%;
   align-items: stretch;
 `;
 
-const ThemePreview = styled.div`
-  border: 2px solid;
-  border-color: #716f64 #f1efe2 #f1efe2 #716f64;
-  background: linear-gradient(180deg, #ffffff 0%, #f6f6f2 100%);
-  box-shadow: inset 1px 1px 0 #ffffff, inset -1px -1px 0 #d6d3c7;
-  padding: 8px;
-  min-height: 190px;
-  display: flex;
+const ThemeDescription = styled.p`
+  margin: 0 0 2px 0;
+  font-size: 12px;
+  color: #333;
+  line-height: 1.25;
+`;
+
+const ThemeFieldLabel = styled.span`
+  font-size: 12px;
+  color: #000;
+`;
+
+const ThemeSelectorRow = styled.div`
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 6px;
   align-items: center;
+`;
+
+const ThemePreview = styled.div`
+  border: 1px solid #7f9db9;
+  background: #d4d0c8;
+  box-shadow: inset 1px 1px 0 #ffffff;
+  min-height: 254px;
+  display: flex;
+  align-items: stretch;
   justify-content: center;
-  border-radius: 3px;
   max-width: 100%;
   width: 100%;
   align-self: center;
   font-family: "MS Sans Serif", "Tahoma", sans-serif;
-
-  img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    border-radius: 3px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  }
 `;
 
-const ThemeControls = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-height: 0;
+const NativePreviewRoot = styled.div`
+  flex: 1;
   width: 100%;
-`;
+  min-height: 232px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #7f7f7f;
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,0.8), inset -1px -1px 0 rgba(0,0,0,0.25);
+  background: ${({ $classic }) => ($classic ? '#808080' : '#585768')};
+  font-size: ${({ $scale }) => `${11 * $scale}px`};
 
-const SmallText = styled.p`
-  margin: 0;
-  font-size: 12px;
-  color: #333;
-`;
+  .display-preview__desktop {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 232px;
+    background-color: ${({ $classic }) => ($classic ? '#3a6ea5' : '#004e98')};
+    background-image: ${({ $wallpaper }) => ($wallpaper ? `url(${$wallpaper})` : 'none')};
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
 
-const ThemeActions = styled.div`
-  display: flex;
-  gap: 8px;
-  margin-top: 2px;
+  .display-preview__window {
+    position: absolute;
+    top: 32px;
+    left: 30px;
+    width: 220px;
+    filter: drop-shadow(2px 3px 8px rgba(0, 0, 0, 0.2));
+  }
+
+  .display-preview__window.window {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .display-preview__window.preview-classic-window {
+    border-radius: 0;
+  }
+
+  .display-preview__window .title-bar {
+    height: 28px;
+    min-height: 28px;
+    padding: 0 3px;
+  }
+
+  .display-preview__window .title-bar-controls button {
+    min-width: 21px;
+    width: 21px;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  .display-preview__window .window-body {
+    height: 96px;
+    margin: 0 3px 3px;
+    padding: 0;
+    background: #ffffff;
+    overflow: hidden;
+  }
+
+  .display-preview__scroll-body {
+    height: 100%;
+    padding: 4px 6px;
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
+    background: #ffffff;
+    color: #000;
+    line-height: 1.2;
+  }
+
+  .display-preview__text {
+    margin-bottom: 0;
+  }
+
+  .display-preview__scroll-spacer {
+    height: 200px;
+  }
+
+  .display-preview__recycler {
+    position: absolute;
+    right: 20px;
+    bottom: 8px;
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+  }
 `;
 
 const AppearancePane = styled.div`
@@ -1000,11 +1296,155 @@ const AppearancePane = styled.div`
 `;
 
 const AppearancePreview = styled.div`
-  img {
+  border: 2px solid;
+  border-color: #716f64 #f1efe2 #f1efe2 #716f64;
+  background: #d4d0c8;
+  box-sizing: border-box;
+  overflow: hidden;
+  min-height: 254px;
+  display: flex;
+`;
+
+const AppearancePreviewRoot = styled.div`
+  flex: 1;
+  width: 100%;
+  min-height: 250px;
+  background: #ece9d8;
+  border: 1px solid #7f9db9;
+  box-shadow: inset 1px 1px 0 #ffffff;
+  font-size: ${({ $scale }) => `${11 * $scale}px`};
+
+  .appearance-preview__desktop {
+    position: relative;
     width: 100%;
-    border: 2px solid;
-    border-color: #716f64 #f1efe2 #f1efe2 #716f64;
-    box-sizing: border-box;
+    height: 250px;
+    overflow: hidden;
+    background: ${({ $classic }) => ($classic ? '#d4d0c8' : '#004e98')};
+    border: 1px solid #aca899;
+  }
+
+  .appearance-preview__window,
+  .appearance-preview__dialog {
+    position: absolute;
+  }
+
+  .appearance-preview__window.window,
+  .appearance-preview__dialog.window {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid ${({ $classic, $palette }) => ($classic ? '#808080' : $palette.frame)};
+    box-shadow:
+      ${({ $classic, $palette }) => (
+        $classic
+          ? 'inset 1px 1px 0 #ffffff, inset -1px -1px 0 #808080'
+          : `inset 1px 1px 0 ${$palette.frameInner}, inset -1px -1px 0 ${$palette.frame}`
+      )};
+    background: ${({ $palette }) => $palette.surface};
+  }
+
+  .appearance-preview__window--inactive {
+    top: 8px;
+    left: 8px;
+    width: 332px;
+    z-index: 1;
+  }
+
+  .appearance-preview__window--active {
+    top: 42px;
+    left: 18px;
+    width: 338px;
+    z-index: 2;
+  }
+
+  .appearance-preview__dialog {
+    top: 72px;
+    left: 118px;
+    width: 156px;
+    z-index: 3;
+  }
+
+  .appearance-preview__window .title-bar,
+  .appearance-preview__dialog .title-bar {
+    height: 28px;
+    min-height: 28px;
+    padding: 0 3px;
+    border-radius: 0;
+  }
+
+  .appearance-preview__window.inactive .title-bar {
+    opacity: ${({ $classic }) => ($classic ? 1 : 0.72)};
+  }
+
+  .appearance-preview__window .title-bar-controls button,
+  .appearance-preview__dialog .title-bar-controls button {
+    min-width: 21px;
+    width: 21px;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  .appearance-preview__body {
+    background: ${({ $palette }) => $palette.surface};
+  }
+
+  .appearance-preview__body--inactive {
+    width: auto;
+    height: 116px;
+    margin: 0 3px 3px;
+  }
+
+  .appearance-preview__body--active {
+    width: auto;
+    height: 78px;
+    padding: 0;
+    overflow: hidden;
+    margin: 0 3px 3px;
+    background: #ffffff;
+  }
+
+  .appearance-preview__body--dialog {
+    width: auto;
+    height: 74px;
+    padding: 12px;
+    margin: 0 3px 3px;
+  }
+
+  .appearance-preview__text {
+    color: #000;
+    margin-bottom: 6px;
+  }
+
+  .appearance-preview__scroll-body {
+    height: 100%;
+    padding: 4px 6px;
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
+    background: #ffffff;
+    color: #000;
+    line-height: 1.2;
+  }
+
+  .appearance-preview__scroll-spacer {
+    height: 200px;
+  }
+
+  .appearance-preview__dialog-button {
+    width: 76px;
+    height: 26px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #111;
+    border: 1px solid ${({ $classic, $palette }) => ($classic ? '#404040' : $palette.buttonBorder)};
+    border-radius: ${({ $classic }) => ($classic ? '0' : '3px')};
+    background: ${({ $classic, $palette }) => (
+      $classic
+        ? 'linear-gradient(180deg, #ffffff, #d4d0c8)'
+        : `linear-gradient(180deg, ${$palette.buttonTop}, ${$palette.buttonBottom})`
+    )};
+    box-shadow: inset 1px 1px 0 rgba(255,255,255,0.7);
   }
 `;
 
