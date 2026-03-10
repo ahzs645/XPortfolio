@@ -358,7 +358,7 @@ export const START_MENU_CATALOG = {
   registryEditor: {
     type: 'program',
     appKey: 'Registry Editor',
-    icon: '/icons/luna/settings.png',
+    icon: '/icons/luna/regedit.ico',
     title: 'Registry Editor',
     description: 'Edit the Windows registry',
   },
