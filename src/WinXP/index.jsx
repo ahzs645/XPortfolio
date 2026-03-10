@@ -9,6 +9,7 @@ import { useFileSystem, SYSTEM_IDS } from '../contexts/FileSystemContext';
 import { useInstalledApps } from '../contexts/InstalledAppsContext';
 import { useStartMenu } from '../contexts/StartMenuContext';
 import { useUserAccounts } from '../contexts/UserAccountsContext';
+import { useRegistry } from '../contexts/RegistryContext';
 import { AppProvider } from '../contexts/AppContext';
 import { RunningAppsProvider } from '../contexts/RunningAppsContext';
 import { MessageBoxProvider } from '../contexts/MessageBoxContext';
@@ -55,6 +56,7 @@ import CRTEffect from './CRTEffect';
 
 function WinXP() {
   const { state, dispatch, getFocusedAppId, getActiveAppIdForTaskbar } = useDesktopReducer();
+  const { getValue } = useRegistry();
   const [crtEnabled, setCrtEnabled] = useState(true);
   const [showClippy, setShowClippy] = useState(true);
   const [clippyHiddenOnMobile, setClippyHiddenOnMobile] = useState(() => {
@@ -568,6 +570,49 @@ function WinXP() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [state.bootState, dispatch, applyMobileSettings]);
+
+  // CrashOnCtrlScroll: Ctrl + ScrollLock + ScrollLock triggers BSOD
+  // Mimics real Windows XP behavior when CrashOnCtrlScroll registry value is set to 1
+  useEffect(() => {
+    if (state.bootState !== BOOT_STATE.DESKTOP) return;
+
+    let scrollLockCount = 0;
+    let scrollLockTimer = null;
+
+    function handleKeyDown(e) {
+      // Check if CrashOnCtrlScroll is enabled in the registry
+      const crashValue = getValue(
+        'HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\i8042prt\\Parameters',
+        'CrashOnCtrlScroll'
+      );
+      if (!crashValue || crashValue.data !== 1) return;
+
+      // ScrollLock key while Ctrl is held
+      if (e.key === 'ScrollLock' && e.ctrlKey) {
+        scrollLockCount++;
+
+        if (scrollLockTimer) clearTimeout(scrollLockTimer);
+        // Reset count if second press doesn't come within 2 seconds
+        scrollLockTimer = setTimeout(() => { scrollLockCount = 0; }, 2000);
+
+        if (scrollLockCount >= 2) {
+          scrollLockCount = 0;
+          if (scrollLockTimer) clearTimeout(scrollLockTimer);
+          // Trigger BSOD
+          const bsodSetting = appSettings['Blue Screen of Death'];
+          if (bsodSetting) {
+            dispatch({ type: ADD_APP, payload: bsodSetting });
+          }
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      if (scrollLockTimer) clearTimeout(scrollLockTimer);
+    };
+  }, [state.bootState, dispatch, getValue]);
 
   // Show boot screen during boot sequence
   if (state.bootState !== BOOT_STATE.DESKTOP) {

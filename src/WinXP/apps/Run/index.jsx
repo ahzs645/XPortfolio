@@ -78,6 +78,8 @@ const COMMAND_MAP = {
   'timedate.cpl': 'Date and Time Properties',
   'nusrmgr.cpl': 'User Accounts',
   'appwiz.cpl': 'Add or Remove Programs',
+  'regedit': 'Registry Editor',
+  'regedit.exe': 'Registry Editor',
   'msconfig': 'System Recovery',
   'msconfig.exe': 'System Recovery',
   'mstsc': 'MSN Messenger',

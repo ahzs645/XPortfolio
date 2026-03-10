@@ -9,6 +9,7 @@ import { InstalledAppsProvider } from './contexts/InstalledAppsContext';
 import { StartMenuProvider } from './contexts/StartMenuContext';
 import { ScreensaverProvider } from './contexts/ScreensaverContext';
 import { TooltipProvider } from './contexts/TooltipContext';
+import { RegistryProvider } from './contexts/RegistryContext';
 import { UpdateToast } from './components/UpdateToast';
 import ErrorBoundary from './components/ErrorBoundary';
 import { initializeDeviceDetection } from './utils/deviceDetection';
@@ -57,11 +58,13 @@ function App() {
               <StartMenuProvider>
                 <ScreensaverProvider>
                   <TooltipProvider>
-                    <GlobalStyle />
-                    <ErrorBoundary name="Desktop">
-                      <WinXP />
-                    </ErrorBoundary>
-                    <UpdateToast />
+                    <RegistryProvider>
+                      <GlobalStyle />
+                      <ErrorBoundary name="Desktop">
+                        <WinXP />
+                      </ErrorBoundary>
+                      <UpdateToast />
+                    </RegistryProvider>
                   </TooltipProvider>
                 </ScreensaverProvider>
               </StartMenuProvider>

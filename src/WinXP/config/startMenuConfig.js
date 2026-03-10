@@ -355,6 +355,13 @@ export const START_MENU_CATALOG = {
     title: 'Run...',
     description: 'Open a program or file',
   },
+  registryEditor: {
+    type: 'program',
+    appKey: 'Registry Editor',
+    icon: '/icons/luna/settings.png',
+    title: 'Registry Editor',
+    description: 'Edit the Windows registry',
+  },
   blueScreenOfDeath: {
     type: 'program',
     appKey: 'Blue Screen of Death',
@@ -420,7 +427,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Accessories',
     icon: '/icons/folder-icon.png',
-    items: ['calculator', 'notepad', 'wordpad', 'microsoftWord', 'microsoftExcel', 'displayProperties', 'speechProperties', 'systemProperties', 'userAccounts', 'paint', 'cmd', 'imageViewer', 'installer', 'blueScreenOfDeath', 'systemTools'],
+    items: ['calculator', 'notepad', 'wordpad', 'microsoftWord', 'microsoftExcel', 'displayProperties', 'speechProperties', 'systemProperties', 'userAccounts', 'paint', 'cmd', 'imageViewer', 'installer', 'registryEditor', 'blueScreenOfDeath', 'systemTools'],
   },
   entertainment: {
     type: 'folder',
