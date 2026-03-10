@@ -66,6 +66,7 @@ const LegoIsland = lazy(() => import('./LegoIsland'));
 const Diablo = lazy(() => import('./Diablo'));
 const StarCraft = lazy(() => import('./StarCraft'));
 const BlueScreenOfDeath = lazy(() => import('./BlueScreenOfDeath'));
+const RegistryEditor = lazy(() => import('./RegistryEditor'));
 // ControlPanel is now integrated into MyComputer as a navigable view
 
 // XP Icons paths
@@ -174,6 +175,7 @@ export const appCategoryMap = {
   'Open With': APP_CATEGORIES.UTILITY,
   'Run': APP_CATEGORIES.UTILITY,
   'Blue Screen of Death': APP_CATEGORIES.GAME,
+  'Registry Editor': APP_CATEGORIES.SYSTEM,
 
   // Fun/Extra
   'QQ Penguin': APP_CATEGORIES.GAME,
@@ -429,6 +431,11 @@ export const desktopIconCatalog = {
     title: 'Blue Screen of Death',
     component: BlueScreenOfDeath,
   },
+  registryEditor: {
+    icon: '/icons/luna/settings.png',
+    title: 'Registry Editor',
+    component: RegistryEditor,
+  },
 };
 
 // Load saved icon positions from localStorage
@@ -499,6 +506,7 @@ const CATALOG_TO_APP_KEY = {
   diablo: 'Diablo',
   starcraft: 'StarCraft',
   blueScreenOfDeath: 'Blue Screen of Death',
+  registryEditor: 'Registry Editor',
 };
 
 // Generate desktop icon state from program list
@@ -1850,6 +1858,26 @@ export const appSettings = {
     defaultOffset: {
       x: 140,
       y: 70,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'Registry Editor': {
+    header: {
+      icon: '/icons/luna/settings.png',
+      title: 'Registry Editor',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: RegistryEditor,
+    defaultSize: {
+      width: 750,
+      height: 500,
+    },
+    defaultOffset: {
+      x: 100,
+      y: 50,
     },
     resizable: true,
     minimized: false,
