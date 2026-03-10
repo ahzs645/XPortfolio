@@ -432,7 +432,7 @@ export const desktopIconCatalog = {
     component: BlueScreenOfDeath,
   },
   registryEditor: {
-    icon: '/icons/luna/settings.png',
+    icon: '/icons/luna/regedit.ico',
     title: 'Registry Editor',
     component: RegistryEditor,
   },
@@ -1866,7 +1866,7 @@ export const appSettings = {
   },
   'Registry Editor': {
     header: {
-      icon: '/icons/luna/settings.png',
+      icon: '/icons/luna/regedit.ico',
       title: 'Registry Editor',
       buttons: ['minimize', 'maximize', 'close'],
     },

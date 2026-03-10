@@ -25,10 +25,8 @@ function RegistryEditor({ onClose, onMinimize }) {
     getValues,
     setValue,
     deleteValue,
-    renameValue,
     createKey,
     deleteKey,
-    renameKey,
   } = useRegistry();
 
   const [selectedPath, setSelectedPath] = useState('');
@@ -36,15 +34,9 @@ function RegistryEditor({ onClose, onMinimize }) {
   const [editingValue, setEditingValue] = useState(null);
   const [newValueDialog, setNewValueDialog] = useState(null);
   const [newKeyDialog, setNewKeyDialog] = useState(null);
-  const [renamingValue, setRenamingValue] = useState(null);
+  const [, setRenamingValue] = useState(null);
   const [contextMenu, setContextMenu] = useState(null);
-  const [addressBar, setAddressBar] = useState('');
   const containerRef = useRef(null);
-
-  // Update address bar when path changes
-  useEffect(() => {
-    setAddressBar(selectedPath);
-  }, [selectedPath]);
 
   const toggleExpand = useCallback((path) => {
     setExpandedKeys(prev => {
@@ -71,23 +63,6 @@ function RegistryEditor({ onClose, onMinimize }) {
     }
   }, [handleSelectKey, expandedKeys, toggleExpand]);
 
-  const handleAddressNavigate = useCallback(() => {
-    if (addressBar.trim()) {
-      setSelectedPath(addressBar.trim());
-      // Expand all parent paths
-      const parts = addressBar.trim().split('\\');
-      setExpandedKeys(prev => {
-        const next = new Set(prev);
-        let path = '';
-        for (const part of parts) {
-          path = path ? `${path}\\${part}` : part;
-          next.add(path);
-        }
-        return next;
-      });
-    }
-  }, [addressBar]);
-
   // Close context menu on click outside
   useEffect(() => {
     if (!contextMenu) return;
@@ -98,7 +73,6 @@ function RegistryEditor({ onClose, onMinimize }) {
 
   // Values for currently selected key
   const currentValues = selectedPath ? getValues(selectedPath) : {};
-  const currentSubKeys = selectedPath ? getSubKeys(selectedPath) : getRootKeys();
 
   // Handle creating a new value
   const handleNewValue = useCallback((type) => {
@@ -157,7 +131,7 @@ function RegistryEditor({ onClose, onMinimize }) {
   }, [newKeyDialog, selectedPath, createKey]);
 
   // Handle deleting a key
-  const handleDeleteKey = useCallback((keyName) => {
+  const handleDeleteKey = useCallback(() => {
     if (!selectedPath) return;
     const parentParts = selectedPath.split('\\');
     const name = parentParts.pop();
