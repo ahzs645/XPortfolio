@@ -13,10 +13,10 @@ const TYPE_ICONS = {
   REG_BINARY: '01',
 };
 
-// Root hive icons
-const HIVE_ICON = '\u{1F4BB}';
-const FOLDER_ICON_OPEN = '\u{1F4C2}';
-const FOLDER_ICON_CLOSED = '\u{1F4C1}';
+// Icon paths
+const COMPUTER_ICON = '/icons/luna/computer_explorer.png';
+const FOLDER_ICON_OPEN = '/icons/luna/directory_open.png';
+const FOLDER_ICON_CLOSED = '/icons/luna/directory_closed.png';
 
 function RegistryEditor({ onClose, onMinimize }) {
   const {
@@ -143,16 +143,16 @@ function RegistryEditor({ onClose, onMinimize }) {
   }, [selectedPath, deleteKey]);
 
   // Render tree recursively
-  const renderTreeNode = (name, path, depth = 0) => {
+  const renderTreeNode = (name, path, depth = 0, isLast = false) => {
     const isExpanded = expandedKeys.has(path);
     const isSelected = selectedPath === path;
     const subKeys = getSubKeys(path);
     const hasChildren = subKeys.length > 0;
+    const iconSrc = depth === 0 ? COMPUTER_ICON : (isExpanded ? FOLDER_ICON_OPEN : FOLDER_ICON_CLOSED);
 
     return (
-      <div key={path}>
-        <TreeItem
-          $depth={depth}
+      <TreeLi key={path} $isLast={isLast}>
+        <TreeItemRow
           $selected={isSelected}
           onClick={() => handleTreeNodeClick(path)}
           onContextMenu={(e) => {
@@ -162,20 +162,29 @@ function RegistryEditor({ onClose, onMinimize }) {
             setContextMenu({ x: e.clientX, y: e.clientY, type: 'tree', path });
           }}
         >
-          <ExpandToggle
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleExpand(path);
-            }}
-            $visible={hasChildren}
-          >
-            {hasChildren ? (isExpanded ? '\u25BC' : '\u25B6') : ''}
-          </ExpandToggle>
-          <TreeIcon>{depth === 0 ? HIVE_ICON : (isExpanded ? FOLDER_ICON_OPEN : FOLDER_ICON_CLOSED)}</TreeIcon>
-          <TreeLabel>{name}</TreeLabel>
-        </TreeItem>
-        {isExpanded && subKeys.map(sub => renderTreeNode(sub, `${path}\\${sub}`, depth + 1))}
-      </div>
+          {hasChildren ? (
+            <ExpandBox
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleExpand(path);
+              }}
+            >
+              {isExpanded ? '\u2212' : '+'}
+            </ExpandBox>
+          ) : (
+            <ExpandBoxPlaceholder />
+          )}
+          <TreeImg src={iconSrc} alt="" draggable={false} />
+          <TreeLabel $selected={isSelected}>{name}</TreeLabel>
+        </TreeItemRow>
+        {isExpanded && hasChildren && (
+          <TreeUl>
+            {subKeys.map((sub, i) =>
+              renderTreeNode(sub, `${path}\\${sub}`, depth + 1, i === subKeys.length - 1)
+            )}
+          </TreeUl>
+        )}
+      </TreeLi>
     );
   };
 
@@ -191,35 +200,65 @@ function RegistryEditor({ onClose, onMinimize }) {
     return val.data !== undefined && val.data !== '' ? String(val.data) : '(value not set)';
   };
 
+  const handleMenuAction = useCallback((action) => {
+    switch (action) {
+      case 'newKey': handleNewKey(); break;
+      case 'newStringValue': handleNewValue('REG_SZ'); break;
+      case 'newDwordValue': handleNewValue('REG_DWORD'); break;
+      case 'newBinaryValue': handleNewValue('REG_BINARY'); break;
+      case 'deleteKey': handleDeleteKey(); break;
+      default: break;
+    }
+  }, [handleNewKey, handleNewValue, handleDeleteKey]);
+
   const menus = [
     {
-      name: 'File',
+      id: 'file',
+      label: 'File',
       items: [
-        { name: 'Exit', action: onClose },
+        { label: 'Import...', disabled: true },
+        { label: 'Export...', disabled: true },
+        { separator: true },
+        { label: 'Exit', action: 'exitProgram' },
       ],
     },
     {
-      name: 'Edit',
+      id: 'edit',
+      label: 'Edit',
       items: [
-        { name: 'New Key', action: handleNewKey, disabled: !selectedPath },
-        { type: 'separator' },
-        { name: 'New String Value', action: () => handleNewValue('REG_SZ'), disabled: !selectedPath },
-        { name: 'New DWORD Value', action: () => handleNewValue('REG_DWORD'), disabled: !selectedPath },
-        { name: 'New Binary Value', action: () => handleNewValue('REG_BINARY'), disabled: !selectedPath },
-        { type: 'separator' },
-        { name: 'Delete Key', action: handleDeleteKey, disabled: !selectedPath || !selectedPath.includes('\\') },
+        { label: 'New Key', action: 'newKey', disabled: !selectedPath },
+        { separator: true },
+        { label: 'New String Value', action: 'newStringValue', disabled: !selectedPath },
+        { label: 'New DWORD Value', action: 'newDwordValue', disabled: !selectedPath },
+        { label: 'New Binary Value', action: 'newBinaryValue', disabled: !selectedPath },
+        { separator: true },
+        { label: 'Delete Key', action: 'deleteKey', disabled: !selectedPath || !selectedPath.includes('\\') },
       ],
     },
     {
-      name: 'View',
+      id: 'view',
+      label: 'View',
       items: [
-        { name: 'Refresh', action: () => {} },
+        { label: 'Status Bar', disabled: true },
+        { separator: true },
+        { label: 'Refresh', disabled: true },
       ],
     },
     {
-      name: 'Help',
+      id: 'favorites',
+      label: 'Favorites',
       items: [
-        { name: 'About Registry Editor', action: () => {} },
+        { label: 'Add to Favorites...', disabled: true },
+        { label: 'Remove Favorite...', disabled: true },
+      ],
+    },
+    {
+      id: 'help',
+      label: 'Help',
+      items: [
+        { label: 'Help Topics', disabled: true },
+        { separator: true },
+        { label: 'About Registry Editor', disabled: true },
       ],
     },
   ];
@@ -227,6 +266,7 @@ function RegistryEditor({ onClose, onMinimize }) {
   return (
     <ProgramLayout
       menus={menus}
+      onMenuAction={handleMenuAction}
       windowActions={{ onClose, onMinimize }}
       showMenuBar={true}
       showToolbar={false}
@@ -237,12 +277,30 @@ function RegistryEditor({ onClose, onMinimize }) {
       <Container ref={containerRef}>
         {/* Tree Pane */}
         <TreePane>
-          <TreeHeader>
-            <TreeIcon>{HIVE_ICON}</TreeIcon>
-            <TreeLabel style={{ fontWeight: 'bold' }}>My Computer</TreeLabel>
-          </TreeHeader>
           <TreeScroll>
-            {getRootKeys().map(rootKey => renderTreeNode(rootKey, rootKey, 0))}
+            <TreeViewRoot>
+              <TreeLi $isLast={true}>
+                <TreeItemRow
+                  $selected={selectedPath === ''}
+                  onClick={() => { setSelectedPath(''); setContextMenu(null); }}
+                >
+                  <ExpandBox
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                  >
+                    {'\u2212'}
+                  </ExpandBox>
+                  <TreeImg src={COMPUTER_ICON} alt="" draggable={false} />
+                  <TreeLabel $selected={selectedPath === ''} style={{ fontWeight: 'bold' }}>My Computer</TreeLabel>
+                </TreeItemRow>
+                <TreeUl>
+                  {getRootKeys().map((rootKey, i, arr) =>
+                    renderTreeNode(rootKey, rootKey, 0, i === arr.length - 1)
+                  )}
+                </TreeUl>
+              </TreeLi>
+            </TreeViewRoot>
           </TreeScroll>
         </TreePane>
 
@@ -447,55 +505,111 @@ const TreePane = styled.div`
   background: #fff;
 `;
 
-const TreeHeader = styled.div`
-  display: flex;
-  align-items: center;
-  padding: 4px 6px;
-  background: #f5f5f5;
-  border-bottom: 1px solid #ddd;
-  gap: 4px;
-`;
-
 const TreeScroll = styled.div`
   flex: 1;
   overflow: auto;
-  padding: 2px 0;
+  padding: 4px 0 4px 4px;
 `;
 
-const TreeItem = styled.div`
+const TreeViewRoot = styled.ul`
+  margin: 0;
+  padding: 0;
+  list-style: none;
+`;
+
+const TreeUl = styled.ul`
+  margin: 0;
+  padding: 0 0 0 16px;
+  list-style: none;
+  border-left: 1px dotted #808080;
+  margin-left: 7px;
+`;
+
+const TreeLi = styled.li`
+  position: relative;
+  padding: 0;
+  margin: 0;
+
+  /* Horizontal dotted connector line */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 9px;
+    left: -9px;
+    width: 9px;
+    border-top: 1px dotted #808080;
+  }
+
+  /* Hide the connector on root-level items */
+  ${TreeViewRoot} > & {
+    &::before {
+      display: none;
+    }
+  }
+
+  /* For last child, mask the parent's vertical line below this node */
+  ${props => props.$isLast ? `
+    &::after {
+      content: '';
+      position: absolute;
+      top: 9px;
+      left: -10px;
+      bottom: 0;
+      width: 2px;
+      background: #fff;
+    }
+  ` : ''}
+`;
+
+const TreeItemRow = styled.div`
   display: flex;
   align-items: center;
-  padding: 1px 4px 1px ${props => 4 + props.$depth * 16}px;
+  padding: 1px 2px;
   cursor: pointer;
   white-space: nowrap;
-  background: ${props => props.$selected ? '#316ac5' : 'transparent'};
-  color: ${props => props.$selected ? '#fff' : '#000'};
   gap: 2px;
-
-  &:hover {
-    background: ${props => props.$selected ? '#316ac5' : '#e8e8e8'};
-  }
-`;
-
-const ExpandToggle = styled.span`
-  width: 16px;
-  min-width: 16px;
-  text-align: center;
-  font-size: 8px;
-  cursor: pointer;
-  visibility: ${props => props.$visible ? 'visible' : 'hidden'};
   user-select: none;
 `;
 
-const TreeIcon = styled.span`
-  font-size: 14px;
+const ExpandBox = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 9px;
+  height: 9px;
+  min-width: 9px;
+  border: 1px solid #808080;
+  background: #fff;
+  font-size: 9px;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  color: #000;
+  margin-right: 2px;
+`;
+
+const ExpandBoxPlaceholder = styled.span`
+  width: 9px;
+  min-width: 9px;
+  height: 9px;
+  margin-right: 2px;
+`;
+
+const TreeImg = styled.img`
+  width: 16px;
+  height: 16px;
   margin-right: 2px;
   user-select: none;
+  image-rendering: pixelated;
 `;
 
 const TreeLabel = styled.span`
   font-size: 11px;
   user-select: none;
+  padding: 0 2px;
+  background: ${props => props.$selected ? '#316ac5' : 'transparent'};
+  color: ${props => props.$selected ? '#fff' : '#000'};
+  outline: ${props => props.$selected ? '1px dotted #000' : 'none'};
 `;
 
 const Divider = styled.div`

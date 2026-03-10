@@ -252,7 +252,7 @@ function Run({ onClose }) {
           <InputRow>
             <Label>Open:</Label>
             <ComboBoxWrapper>
-              <Input
+              <ComboInput
                 ref={inputRef}
                 type="text"
                 value={selectedCommand}
@@ -262,18 +262,15 @@ function Run({ onClose }) {
                   setSelectedIndex(-1);
                 }}
                 onKeyDown={handleKeyDown}
-                placeholder=""
                 autoComplete="off"
                 spellCheck="false"
               />
-              <DropdownButton
+              <ComboArrowButton
                 onClick={toggleDropdown}
                 tabIndex={-1}
                 aria-label="Show command history"
-                $hasHistory={history.length > 0}
-              >
-                <DropdownArrow />
-              </DropdownButton>
+                type="button"
+              />
               {showDropdown && history.length > 0 && (
                 <DropdownList ref={dropdownRef}>
                   {history.map((item, index) => (
@@ -359,54 +356,66 @@ const ComboBoxWrapper = styled.div`
   flex: 1;
   position: relative;
   display: flex;
+  height: 21px;
 `;
 
-const Input = styled.input`
+const ComboInput = styled.input`
   flex: 1;
-  padding: 3px 4px;
-  border: 1px solid #7f9db9;
-  border-right: none;
+  padding: 2px 4px;
+  border: none;
+  border-top: 1px solid #848484;
+  border-left: 1px solid #848484;
+  border-bottom: 1px solid #fff;
   font-size: 11px;
-  font-family: 'Tahoma', sans-serif;
+  font-family: 'Tahoma', 'MS Sans Serif', sans-serif;
   min-width: 0;
+  height: 100%;
+  box-sizing: border-box;
+  background: #fff;
+  box-shadow: inset 1px 1px 0 #c7c7c7;
+  z-index: 1;
 
   &:focus {
     outline: none;
-    border-color: #316ac5;
   }
 `;
 
-const DropdownButton = styled.button`
+const ComboArrowButton = styled.button`
   width: 17px;
   height: 100%;
-  border: 1px solid #7f9db9;
-  background: linear-gradient(180deg, #fff 0%, #ecebe5 86%, #d8d0c4 100%);
-  cursor: ${props => props.$hasHistory ? 'pointer' : 'default'};
+  border: none;
+  border-top: 1px solid #fff;
+  border-left: 1px solid #fff;
+  border-right: 1px solid #848484;
+  border-bottom: 1px solid #848484;
+  background: linear-gradient(180deg, #ece9d8 0%, #ece9d8 100%);
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
   flex-shrink: 0;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
 
-  &:hover {
-    ${props => props.$hasHistory && `
-      background: linear-gradient(180deg, #fff0cf 0%, #fdd889 50%, #fbc761 100%);
-    `}
+  &::after {
+    content: '';
+    display: block;
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 4px solid #000;
   }
 
   &:active {
-    ${props => props.$hasHistory && `
-      background: linear-gradient(180deg, #e5e5de 0%, #e3e3db 8%, #cdcac3 100%);
-    `}
+    border-top: 1px solid #848484;
+    border-left: 1px solid #848484;
+    border-right: 1px solid #fff;
+    border-bottom: 1px solid #fff;
+    background: #d6d2c2;
   }
-`;
-
-const DropdownArrow = styled.span`
-  width: 0;
-  height: 0;
-  border-left: 3px solid transparent;
-  border-right: 3px solid transparent;
-  border-top: 4px solid #000;
 `;
 
 const DropdownList = styled.div`
@@ -415,17 +424,18 @@ const DropdownList = styled.div`
   left: 0;
   right: 0;
   background: #fff;
-  border: 1px solid #7f9db9;
+  border: 1px solid #848484;
   max-height: 150px;
   overflow-y: auto;
   z-index: 1000;
+  box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.25);
 `;
 
 const DropdownItem = styled.div`
   padding: 2px 4px;
-  cursor: pointer;
+  cursor: default;
   font-size: 11px;
-  font-family: 'Tahoma', sans-serif;
+  font-family: 'Tahoma', 'MS Sans Serif', sans-serif;
   background: ${props => props.$selected ? '#316ac5' : '#fff'};
   color: ${props => props.$selected ? '#fff' : '#000'};
 
