@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { isMobileDevice } from '../utils/deviceDetection';
 
 // Throttle function to limit how often a callback fires during drag/resize

@@ -114,6 +114,9 @@ function Run({ onClose }) {
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
   const { openApp } = useApp();
+  const selectedCommand = selectedIndex >= 0 && selectedIndex < history.length
+    ? history[selectedIndex]
+    : command;
 
   // Focus input on mount
   useEffect(() => {
@@ -134,11 +137,11 @@ function Run({ onClose }) {
   }, [showDropdown]);
 
   const handleRun = useCallback(() => {
-    if (!command.trim()) {
+    if (!selectedCommand.trim()) {
       return;
     }
 
-    const trimmedCommand = command.trim();
+    const trimmedCommand = selectedCommand.trim();
     const normalizedCommand = trimmedCommand.toLowerCase();
 
     // Save to history before executing
@@ -181,7 +184,7 @@ function Run({ onClose }) {
       message: `${displayCommand} is not a valid Win32 application or could not be found.`,
       icon: 'error',
     });
-  }, [command, openApp, onClose]);
+  }, [openApp, onClose, selectedCommand]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
@@ -214,13 +217,6 @@ function Run({ onClose }) {
       }
     }
   };
-
-  // Update input when navigating history with arrow keys
-  useEffect(() => {
-    if (selectedIndex >= 0 && selectedIndex < history.length) {
-      setCommand(history[selectedIndex]);
-    }
-  }, [selectedIndex, history]);
 
   const handleHistorySelect = (item) => {
     setCommand(item);
@@ -257,8 +253,12 @@ function Run({ onClose }) {
               <Input
                 ref={inputRef}
                 type="text"
-                value={command}
-                onChange={(e) => { setCommand(e.target.value); setShowDropdown(false); }}
+                value={selectedCommand}
+                onChange={(e) => {
+                  setCommand(e.target.value);
+                  setShowDropdown(false);
+                  setSelectedIndex(-1);
+                }}
                 onKeyDown={handleKeyDown}
                 placeholder=""
                 autoComplete="off"
