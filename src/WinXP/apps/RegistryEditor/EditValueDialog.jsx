@@ -23,12 +23,6 @@ function EditValueDialog({ onClose, name, type, data, selectedPath, onSave }) {
     onClose?.();
   }, [currentData, type, name, selectedPath, onSave, onClose]);
 
-  const dialogTitle = type === 'REG_DWORD'
-    ? 'Edit DWORD Value'
-    : type === 'REG_BINARY'
-      ? 'Edit Binary Value'
-      : 'Edit String';
-
   return (
     <Container>
       <Field>
