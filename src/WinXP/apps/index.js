@@ -67,6 +67,9 @@ const Diablo = lazy(() => import('./Diablo'));
 const StarCraft = lazy(() => import('./StarCraft'));
 const BlueScreenOfDeath = lazy(() => import('./BlueScreenOfDeath'));
 const RegistryEditor = lazy(() => import('./RegistryEditor'));
+const RegistryEditValueDialog = lazy(() => import('./RegistryEditor/EditValueDialog'));
+const RegistryNewValueDialog = lazy(() => import('./RegistryEditor/NewValueDialog'));
+const RegistryNewKeyDialog = lazy(() => import('./RegistryEditor/NewKeyDialog'));
 // ControlPanel is now integrated into MyComputer as a navigable view
 
 // XP Icons paths
@@ -1883,6 +1886,66 @@ export const appSettings = {
     minimized: false,
     maximized: false,
     multiInstance: false,
+  },
+  'Registry Editor - Edit Value': {
+    header: {
+      icon: '/icons/luna/regedit.ico',
+      title: 'Edit String',
+      buttons: ['close'],
+    },
+    component: RegistryEditValueDialog,
+    defaultSize: {
+      width: 380,
+      height: 220,
+    },
+    defaultOffset: {
+      x: 250,
+      y: 180,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
+  },
+  'Registry Editor - New Value': {
+    header: {
+      icon: '/icons/luna/regedit.ico',
+      title: 'New Value',
+      buttons: ['close'],
+    },
+    component: RegistryNewValueDialog,
+    defaultSize: {
+      width: 380,
+      height: 220,
+    },
+    defaultOffset: {
+      x: 270,
+      y: 200,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
+  },
+  'Registry Editor - New Key': {
+    header: {
+      icon: '/icons/luna/regedit.ico',
+      title: 'New Key',
+      buttons: ['close'],
+    },
+    component: RegistryNewKeyDialog,
+    defaultSize: {
+      width: 380,
+      height: 170,
+    },
+    defaultOffset: {
+      x: 270,
+      y: 200,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
   },
   'Blue Screen of Death': {
     header: {

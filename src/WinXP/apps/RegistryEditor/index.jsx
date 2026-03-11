@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { ProgramLayout } from '../../../components';
 import { useRegistry } from '../../../contexts/RegistryContext';
+import { useApp } from '../../../contexts/AppContext';
 
 const REG_TYPES = ['REG_SZ', 'REG_DWORD', 'REG_BINARY', 'REG_MULTI_SZ', 'REG_EXPAND_SZ'];
 
@@ -29,13 +30,13 @@ function RegistryEditor({ onClose, onMinimize }) {
     deleteKey,
   } = useRegistry();
 
+  const { openApp } = useApp();
+
   const [selectedPath, setSelectedPath] = useState('');
   const [expandedKeys, setExpandedKeys] = useState(new Set(['HKEY_LOCAL_MACHINE', 'HKEY_CURRENT_USER']));
-  const [editingValue, setEditingValue] = useState(null);
-  const [newValueDialog, setNewValueDialog] = useState(null);
-  const [newKeyDialog, setNewKeyDialog] = useState(null);
   const [, setRenamingValue] = useState(null);
   const [contextMenu, setContextMenu] = useState(null);
+  const [subMenuOpen, setSubMenuOpen] = useState(false);
   const containerRef = useRef(null);
 
   const toggleExpand = useCallback((path) => {
@@ -66,7 +67,7 @@ function RegistryEditor({ onClose, onMinimize }) {
   // Close context menu on click outside
   useEffect(() => {
     if (!contextMenu) return;
-    const handler = () => setContextMenu(null);
+    const handler = () => { setContextMenu(null); setSubMenuOpen(false); };
     window.addEventListener('click', handler);
     return () => window.removeEventListener('click', handler);
   }, [contextMenu]);
@@ -74,41 +75,59 @@ function RegistryEditor({ onClose, onMinimize }) {
   // Values for currently selected key
   const currentValues = selectedPath ? getValues(selectedPath) : {};
 
-  // Handle creating a new value
+  // Handle creating a new value (opens as separate window)
   const handleNewValue = useCallback((type) => {
-    setNewValueDialog({ type, name: 'New Value #1', data: type === 'REG_DWORD' ? 0 : '' });
     setContextMenu(null);
-  }, []);
+    openApp(
+      'Registry Editor - New Value',
+      {
+        type,
+        selectedPath,
+        onSave: (path, name, valType, data) => {
+          setValue(path, name, valType, data);
+        },
+      },
+      {
+        header: {
+          title: `New ${type} Value`,
+        },
+        defaultOffset: {
+          x: 270 + Math.round(Math.random() * 40),
+          y: 200 + Math.round(Math.random() * 40),
+        },
+      },
+    );
+  }, [openApp, selectedPath, setValue]);
 
-  const confirmNewValue = useCallback(() => {
-    if (!newValueDialog || !selectedPath || !newValueDialog.name.trim()) return;
-    let data = newValueDialog.data;
-    if (newValueDialog.type === 'REG_DWORD') {
-      data = parseInt(data, 10) || 0;
-    }
-    setValue(selectedPath, newValueDialog.name.trim(), newValueDialog.type, data);
-    setNewValueDialog(null);
-  }, [newValueDialog, selectedPath, setValue]);
-
-  // Handle editing a value
+  // Handle editing a value (opens as separate window)
   const handleEditValue = useCallback((name, val) => {
-    setEditingValue({
-      name,
-      type: val.type,
-      data: val.type === 'REG_DWORD' ? String(val.data) : val.data,
-      originalName: name,
-    });
-  }, []);
-
-  const confirmEditValue = useCallback(() => {
-    if (!editingValue || !selectedPath) return;
-    let data = editingValue.data;
-    if (editingValue.type === 'REG_DWORD') {
-      data = parseInt(data, 10) || 0;
-    }
-    setValue(selectedPath, editingValue.originalName, editingValue.type, data);
-    setEditingValue(null);
-  }, [editingValue, selectedPath, setValue]);
+    const dialogTitle = val.type === 'REG_DWORD'
+      ? 'Edit DWORD Value'
+      : val.type === 'REG_BINARY'
+        ? 'Edit Binary Value'
+        : 'Edit String';
+    openApp(
+      'Registry Editor - Edit Value',
+      {
+        name,
+        type: val.type,
+        data: val.type === 'REG_DWORD' ? val.data : val.data,
+        selectedPath,
+        onSave: (path, valName, valType, data) => {
+          setValue(path, valName, valType, data);
+        },
+      },
+      {
+        header: {
+          title: dialogTitle,
+        },
+        defaultOffset: {
+          x: 250 + Math.round(Math.random() * 40),
+          y: 180 + Math.round(Math.random() * 40),
+        },
+      },
+    );
+  }, [openApp, selectedPath, setValue]);
 
   // Handle deleting a value
   const handleDeleteValue = useCallback((name) => {
@@ -116,19 +135,26 @@ function RegistryEditor({ onClose, onMinimize }) {
     deleteValue(selectedPath, name);
   }, [selectedPath, deleteValue]);
 
-  // Handle creating a new key
+  // Handle creating a new key (opens as separate window)
   const handleNewKey = useCallback(() => {
-    setNewKeyDialog({ name: 'New Key #1' });
     setContextMenu(null);
-  }, []);
-
-  const confirmNewKey = useCallback(() => {
-    if (!newKeyDialog || !selectedPath || !newKeyDialog.name.trim()) return;
-    createKey(selectedPath, newKeyDialog.name.trim());
-    setNewKeyDialog(null);
-    // Expand the parent so the new key is visible
-    setExpandedKeys(prev => new Set([...prev, selectedPath]));
-  }, [newKeyDialog, selectedPath, createKey]);
+    openApp(
+      'Registry Editor - New Key',
+      {
+        selectedPath,
+        onSave: (path, name) => {
+          createKey(path, name);
+          setExpandedKeys(prev => new Set([...prev, path]));
+        },
+      },
+      {
+        defaultOffset: {
+          x: 270 + Math.round(Math.random() * 40),
+          y: 200 + Math.round(Math.random() * 40),
+        },
+      },
+    );
+  }, [openApp, selectedPath, createKey]);
 
   // Handle deleting a key
   const handleDeleteKey = useCallback(() => {
@@ -308,7 +334,16 @@ function RegistryEditor({ onClose, onMinimize }) {
         <Divider />
 
         {/* Value Pane */}
-        <ValuePane>
+        <ValuePane
+          onContextMenu={(e) => {
+            // Only trigger if right-clicking on empty space (not on a value row)
+            if (e.target.closest('tr') && e.target.closest('tbody')) return;
+            e.preventDefault();
+            if (selectedPath) {
+              setContextMenu({ x: e.clientX, y: e.clientY, type: 'pane' });
+            }
+          }}
+        >
           <ValueTable>
             <thead>
               <tr>
@@ -351,11 +386,24 @@ function RegistryEditor({ onClose, onMinimize }) {
           <CtxMenu style={{ left: contextMenu.x, top: contextMenu.y }}>
             {contextMenu.type === 'tree' && (
               <>
-                <CtxItem onClick={handleNewKey}>New &gt; Key</CtxItem>
-                <CtxSep />
-                <CtxItem onClick={() => { handleNewValue('REG_SZ'); }}>New &gt; String Value</CtxItem>
-                <CtxItem onClick={() => { handleNewValue('REG_DWORD'); }}>New &gt; DWORD Value</CtxItem>
-                <CtxItem onClick={() => { handleNewValue('REG_BINARY'); }}>New &gt; Binary Value</CtxItem>
+                <CtxSubmenuItem
+                  onMouseEnter={() => setSubMenuOpen(true)}
+                  onMouseLeave={() => setSubMenuOpen(false)}
+                >
+                  <span>New</span>
+                  <CtxArrow>{'\u25B6'}</CtxArrow>
+                  {subMenuOpen && (
+                    <CtxSubMenu>
+                      <CtxItem onClick={handleNewKey}>Key</CtxItem>
+                      <CtxSep />
+                      <CtxItem onClick={() => handleNewValue('REG_SZ')}>String Value</CtxItem>
+                      <CtxItem onClick={() => handleNewValue('REG_BINARY')}>Binary Value</CtxItem>
+                      <CtxItem onClick={() => handleNewValue('REG_DWORD')}>DWORD Value</CtxItem>
+                      <CtxItem onClick={() => handleNewValue('REG_MULTI_SZ')}>Multi-String Value</CtxItem>
+                      <CtxItem onClick={() => handleNewValue('REG_EXPAND_SZ')}>Expandable String Value</CtxItem>
+                    </CtxSubMenu>
+                  )}
+                </CtxSubmenuItem>
                 {selectedPath && selectedPath.includes('\\') && (
                   <>
                     <CtxSep />
@@ -367,118 +415,57 @@ function RegistryEditor({ onClose, onMinimize }) {
             {contextMenu.type === 'value' && (
               <>
                 <CtxItem onClick={() => { handleEditValue(contextMenu.name, contextMenu.val); setContextMenu(null); }}>Modify...</CtxItem>
+                <CtxSep />
                 {contextMenu.name !== '(Default)' && (
                   <>
-                    <CtxSep />
                     <CtxItem onClick={() => { handleDeleteValue(contextMenu.name); setContextMenu(null); }}>Delete</CtxItem>
                     <CtxItem onClick={() => { setRenamingValue(contextMenu.name); setContextMenu(null); }}>Rename</CtxItem>
+                    <CtxSep />
                   </>
                 )}
+                <CtxSubmenuItem
+                  onMouseEnter={() => setSubMenuOpen(true)}
+                  onMouseLeave={() => setSubMenuOpen(false)}
+                >
+                  <span>New</span>
+                  <CtxArrow>{'\u25B6'}</CtxArrow>
+                  {subMenuOpen && (
+                    <CtxSubMenu>
+                      <CtxItem onClick={handleNewKey}>Key</CtxItem>
+                      <CtxSep />
+                      <CtxItem onClick={() => handleNewValue('REG_SZ')}>String Value</CtxItem>
+                      <CtxItem onClick={() => handleNewValue('REG_BINARY')}>Binary Value</CtxItem>
+                      <CtxItem onClick={() => handleNewValue('REG_DWORD')}>DWORD Value</CtxItem>
+                      <CtxItem onClick={() => handleNewValue('REG_MULTI_SZ')}>Multi-String Value</CtxItem>
+                      <CtxItem onClick={() => handleNewValue('REG_EXPAND_SZ')}>Expandable String Value</CtxItem>
+                    </CtxSubMenu>
+                  )}
+                </CtxSubmenuItem>
               </>
+            )}
+            {contextMenu.type === 'pane' && (
+              <CtxSubmenuItem
+                onMouseEnter={() => setSubMenuOpen(true)}
+                onMouseLeave={() => setSubMenuOpen(false)}
+              >
+                <span>New</span>
+                <CtxArrow>{'\u25B6'}</CtxArrow>
+                {subMenuOpen && (
+                  <CtxSubMenu>
+                    <CtxItem onClick={handleNewKey}>Key</CtxItem>
+                    <CtxSep />
+                    <CtxItem onClick={() => handleNewValue('REG_SZ')}>String Value</CtxItem>
+                    <CtxItem onClick={() => handleNewValue('REG_BINARY')}>Binary Value</CtxItem>
+                    <CtxItem onClick={() => handleNewValue('REG_DWORD')}>DWORD Value</CtxItem>
+                    <CtxItem onClick={() => handleNewValue('REG_MULTI_SZ')}>Multi-String Value</CtxItem>
+                    <CtxItem onClick={() => handleNewValue('REG_EXPAND_SZ')}>Expandable String Value</CtxItem>
+                  </CtxSubMenu>
+                )}
+              </CtxSubmenuItem>
             )}
           </CtxMenu>
         )}
 
-        {/* Edit Value Dialog */}
-        {editingValue && (
-          <DialogOverlay onClick={() => setEditingValue(null)}>
-            <Dialog onClick={e => e.stopPropagation()}>
-              <DialogTitle>
-                Edit {editingValue.type === 'REG_DWORD' ? 'DWORD' : 'String'} Value
-              </DialogTitle>
-              <DialogField>
-                <DialogLabel>Value name:</DialogLabel>
-                <DialogInput value={editingValue.originalName} disabled />
-              </DialogField>
-              <DialogField>
-                <DialogLabel>
-                  {editingValue.type === 'REG_DWORD' ? 'Value data (decimal):' : 'Value data:'}
-                </DialogLabel>
-                <DialogInput
-                  value={editingValue.data}
-                  onChange={(e) => setEditingValue(prev => ({ ...prev, data: e.target.value }))}
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') confirmEditValue();
-                    if (e.key === 'Escape') setEditingValue(null);
-                  }}
-                />
-              </DialogField>
-              {editingValue.type === 'REG_DWORD' && (
-                <DialogField>
-                  <DialogLabel style={{ fontSize: '10px', color: '#666' }}>
-                    Hex: 0x{(parseInt(editingValue.data, 10) || 0).toString(16).padStart(8, '0')}
-                  </DialogLabel>
-                </DialogField>
-              )}
-              <DialogButtons>
-                <DialogBtn onClick={confirmEditValue}>OK</DialogBtn>
-                <DialogBtn onClick={() => setEditingValue(null)}>Cancel</DialogBtn>
-              </DialogButtons>
-            </Dialog>
-          </DialogOverlay>
-        )}
-
-        {/* New Value Dialog */}
-        {newValueDialog && (
-          <DialogOverlay onClick={() => setNewValueDialog(null)}>
-            <Dialog onClick={e => e.stopPropagation()}>
-              <DialogTitle>New {newValueDialog.type} Value</DialogTitle>
-              <DialogField>
-                <DialogLabel>Value name:</DialogLabel>
-                <DialogInput
-                  value={newValueDialog.name}
-                  onChange={(e) => setNewValueDialog(prev => ({ ...prev, name: e.target.value }))}
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') confirmNewValue();
-                    if (e.key === 'Escape') setNewValueDialog(null);
-                  }}
-                />
-              </DialogField>
-              <DialogField>
-                <DialogLabel>Value data:</DialogLabel>
-                <DialogInput
-                  value={newValueDialog.data}
-                  onChange={(e) => setNewValueDialog(prev => ({ ...prev, data: e.target.value }))}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') confirmNewValue();
-                    if (e.key === 'Escape') setNewValueDialog(null);
-                  }}
-                />
-              </DialogField>
-              <DialogButtons>
-                <DialogBtn onClick={confirmNewValue}>OK</DialogBtn>
-                <DialogBtn onClick={() => setNewValueDialog(null)}>Cancel</DialogBtn>
-              </DialogButtons>
-            </Dialog>
-          </DialogOverlay>
-        )}
-
-        {/* New Key Dialog */}
-        {newKeyDialog && (
-          <DialogOverlay onClick={() => setNewKeyDialog(null)}>
-            <Dialog onClick={e => e.stopPropagation()}>
-              <DialogTitle>New Key</DialogTitle>
-              <DialogField>
-                <DialogLabel>Key name:</DialogLabel>
-                <DialogInput
-                  value={newKeyDialog.name}
-                  onChange={(e) => setNewKeyDialog(prev => ({ ...prev, name: e.target.value }))}
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') confirmNewKey();
-                    if (e.key === 'Escape') setNewKeyDialog(null);
-                  }}
-                />
-              </DialogField>
-              <DialogButtons>
-                <DialogBtn onClick={confirmNewKey}>OK</DialogBtn>
-                <DialogBtn onClick={() => setNewKeyDialog(null)}>Cancel</DialogBtn>
-              </DialogButtons>
-            </Dialog>
-          </DialogOverlay>
-        )}
       </Container>
     </ProgramLayout>
   );
@@ -698,90 +685,42 @@ const CtxItem = styled.div`
   }
 `;
 
+const CtxSubmenuItem = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 11px;
+  &:hover {
+    background: #316ac5;
+    color: #fff;
+  }
+`;
+
+const CtxArrow = styled.span`
+  font-size: 8px;
+  margin-left: 16px;
+`;
+
+const CtxSubMenu = styled.div`
+  position: absolute;
+  left: 100%;
+  top: -2px;
+  background: #f5f5f5;
+  border: 1px solid #888;
+  box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+  padding: 2px 0;
+  min-width: 180px;
+  z-index: 10001;
+`;
+
 const CtxSep = styled.div`
   height: 1px;
   background: #ccc;
   margin: 2px 4px;
 `;
 
-// Dialog
-const DialogOverlay = styled.div`
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10001;
-`;
-
-const Dialog = styled.div`
-  background: #ece9d8;
-  border: 2px outset #ece9d8;
-  padding: 12px 16px;
-  min-width: 320px;
-  box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
-`;
-
-const DialogTitle = styled.div`
-  font-weight: bold;
-  font-size: 12px;
-  margin-bottom: 12px;
-  color: #003399;
-`;
-
-const DialogField = styled.div`
-  margin-bottom: 8px;
-`;
-
-const DialogLabel = styled.div`
-  margin-bottom: 3px;
-  font-size: 11px;
-`;
-
-const DialogInput = styled.input`
-  width: 100%;
-  padding: 3px 4px;
-  font-size: 11px;
-  font-family: 'Tahoma', sans-serif;
-  border: 1px solid #7f9db9;
-  box-sizing: border-box;
-
-  &:focus {
-    outline: none;
-    border-color: #316ac5;
-  }
-
-  &:disabled {
-    background: #f0f0f0;
-    color: #888;
-  }
-`;
-
-const DialogButtons = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  gap: 6px;
-  margin-top: 12px;
-`;
-
-const DialogBtn = styled.button`
-  min-width: 72px;
-  padding: 4px 12px;
-  font-size: 11px;
-  font-family: 'Tahoma', sans-serif;
-  background: linear-gradient(180deg, #fff 0%, #ecebe5 86%, #d8d0c4 100%);
-  border: 1px solid #003c74;
-  border-radius: 3px;
-  cursor: pointer;
-
-  &:hover {
-    background: linear-gradient(180deg, #fff0cf 0%, #fdd889 50%, #fbc761 100%);
-  }
-
-  &:active {
-    background: linear-gradient(180deg, #e5e5de 0%, #e3e3db 8%, #cdcac3 100%);
-  }
-`;
 
 export default RegistryEditor;
