@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import styled from 'styled-components';
 import { withBaseUrl } from '../../../utils/baseUrl';
 
@@ -15,7 +15,7 @@ function CommandAndConquer() {
       <GameFrame
         src={withBaseUrl('/games/command-and-conquer/index.html')}
         title="Command & Conquer"
-        frameBorder="0"
+        style={{ border: 'none' }}
         allowFullScreen
         allow="autoplay"
         onLoad={() => setIsLoading(false)}
