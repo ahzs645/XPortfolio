@@ -1,15 +1,11 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-
+import { withBaseUrl } from '../../../utils/baseUrl';
 
 function LegoIsland() {
   const [isLoading, setIsLoading] = useState(true);
 
-  // Option 1: Use local files (after extracting from Docker container)
-  // const gameSrc = withBaseUrl('/games/legoIsland/index.html');
-
-  // Option 2: Use the hosted demo (simpler, but relies on external service)
-  const gameSrc = 'https://isle.pizza';
+  const gameSrc = withBaseUrl('/games/legoIsland/index.html');
 
   return (
     <Container>
@@ -22,10 +18,9 @@ function LegoIsland() {
       <GameFrame
         src={gameSrc}
         title="LEGO Island"
-        frameBorder="0"
+        style={{ border: 'none' }}
         allowFullScreen
         allow="autoplay; gamepad"
-        credentialless="true"
         onLoad={() => setIsLoading(false)}
       />
     </Container>

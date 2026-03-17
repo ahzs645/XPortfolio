@@ -40,6 +40,16 @@
       ]
     },
     {
+      "name": "isle-portable",
+      "path": "external/isle-portable",
+      "packageManager": "none",
+      "buildCommand": null,
+      "buildOutput": null,
+      "deployTarget": "public/games/legoIsland",
+      "type": "game",
+      "note": "Pre-built WASM artifacts (isle.html, isle.js, isle.wasm) are committed directly to public/games/legoIsland/ since building from source requires Emscripten/CMake"
+    },
+    {
       "name": "jspaint",
       "path": "external/jspaint",
       "packageManager": "none",
