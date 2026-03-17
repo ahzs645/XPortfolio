@@ -66,6 +66,7 @@ const LegoIsland = lazy(() => import('./LegoIsland'));
 const Diablo = lazy(() => import('./Diablo'));
 const StarCraft = lazy(() => import('./StarCraft'));
 const BlueScreenOfDeath = lazy(() => import('./BlueScreenOfDeath'));
+const CommandAndConquer = lazy(() => import('./CommandAndConquer'));
 const RegistryEditor = lazy(() => import('./RegistryEditor'));
 const RegistryEditValueDialog = lazy(() => import('./RegistryEditor/EditValueDialog'));
 const RegistryNewValueDialog = lazy(() => import('./RegistryEditor/NewValueDialog'));
@@ -190,6 +191,7 @@ export const appCategoryMap = {
   'LEGO Island': APP_CATEGORIES.GAME,
   'Diablo': APP_CATEGORIES.GAME,
   'StarCraft': APP_CATEGORIES.GAME,
+  'Command & Conquer': APP_CATEGORIES.GAME,
 };
 
 // Helper to get app category
@@ -429,6 +431,11 @@ export const desktopIconCatalog = {
     title: 'StarCraft',
     component: StarCraft,
   },
+  commandAndConquer: {
+    icon: '/icons/games/command-and-conquer.ico',
+    title: 'Command & Conquer',
+    component: CommandAndConquer,
+  },
   blueScreenOfDeath: {
     icon: '/icons/luna/dialog_error.png',
     title: 'Blue Screen of Death',
@@ -508,6 +515,7 @@ const CATALOG_TO_APP_KEY = {
   legoIsland: 'LEGO Island',
   diablo: 'Diablo',
   starcraft: 'StarCraft',
+  commandAndConquer: 'Command & Conquer',
   blueScreenOfDeath: 'Blue Screen of Death',
   registryEditor: 'Registry Editor',
 };
@@ -1861,6 +1869,26 @@ export const appSettings = {
     defaultOffset: {
       x: 140,
       y: 70,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'Command & Conquer': {
+    header: {
+      icon: '/icons/games/command-and-conquer.ico',
+      title: 'Command & Conquer',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: CommandAndConquer,
+    defaultSize: {
+      width: 800,
+      height: 600,
+    },
+    defaultOffset: {
+      x: 100,
+      y: 50,
     },
     resizable: true,
     minimized: false,

@@ -348,6 +348,13 @@ export const START_MENU_CATALOG = {
     title: 'StarCraft',
     description: 'Blizzard real-time strategy',
   },
+  commandAndConquer: {
+    type: 'program',
+    appKey: 'Command & Conquer',
+    icon: '/icons/games/command-and-conquer.ico',
+    title: 'Command & Conquer',
+    description: 'Classic real-time strategy',
+  },
   run: {
     type: 'program',
     appKey: 'Run',
@@ -415,7 +422,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Games',
     icon: '/icons/folder-icon.png',
-    items: ['minesweeper', 'solitaire', 'spiderSolitaire', 'pinball', 'runescape', 'worldOfWarcraft', 'wizard101', 'legoIsland', 'diablo', 'starcraft', 'qqGames'],
+    items: ['minesweeper', 'solitaire', 'spiderSolitaire', 'pinball', 'runescape', 'worldOfWarcraft', 'wizard101', 'legoIsland', 'diablo', 'starcraft', 'commandAndConquer', 'qqGames'],
   },
   systemTools: {
     type: 'folder',

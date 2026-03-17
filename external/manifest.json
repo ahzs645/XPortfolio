@@ -20,6 +20,26 @@
       "type": "game"
     },
     {
+      "name": "emupedia-game-command-and-conquer1",
+      "path": "external/emupedia-game-command-and-conquer1",
+      "packageManager": "none",
+      "buildCommand": null,
+      "buildOutput": null,
+      "deployTarget": "public/games/command-and-conquer",
+      "type": "game",
+      "copyFiles": [
+        "index.html",
+        "js",
+        "css",
+        "images",
+        "audio",
+        "maps",
+        "templates",
+        "videos",
+        "favicon.ico"
+      ]
+    },
+    {
       "name": "jspaint",
       "path": "external/jspaint",
       "packageManager": "none",
