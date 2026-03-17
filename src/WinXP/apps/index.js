@@ -1879,18 +1879,18 @@ export const appSettings = {
     header: {
       icon: '/icons/games/command-and-conquer.ico',
       title: 'Command & Conquer',
-      buttons: ['minimize', 'maximize', 'close'],
+      buttons: ['minimize', 'close'],
     },
     component: CommandAndConquer,
     defaultSize: {
-      width: 800,
-      height: 600,
+      width: 646,
+      height: 566,
     },
     defaultOffset: {
       x: 100,
-      y: 50,
+      y: 20,
     },
-    resizable: true,
+    resizable: false,
     minimized: false,
     maximized: false,
     multiInstance: false,

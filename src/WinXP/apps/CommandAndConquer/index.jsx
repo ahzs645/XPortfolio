@@ -29,7 +29,6 @@ function CommandAndConquer() {
       <GameFrame
         src={withBaseUrl('/games/command-and-conquer/index.html')}
         title="Command & Conquer"
-        scrolling="no"
         allowFullScreen
         allow="autoplay"
         onLoad={handleLoad}
@@ -70,10 +69,12 @@ const LoadingText = styled.div`
 `;
 
 const GameFrame = styled.iframe`
-  width: 100%;
-  height: 100%;
+  width: 640px;
+  height: 535px;
   border: none;
+  overflow: hidden;
   touch-action: none;
+  display: block;
 `;
 
 export default CommandAndConquer;
