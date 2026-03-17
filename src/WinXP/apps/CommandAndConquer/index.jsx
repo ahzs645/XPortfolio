@@ -1,9 +1,23 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import styled from 'styled-components';
 import { withBaseUrl } from '../../../utils/baseUrl';
 
 function CommandAndConquer() {
   const [isLoading, setIsLoading] = useState(true);
+
+  const handleLoad = useCallback((e) => {
+    setIsLoading(false);
+    // Lower the game volume — defaults are max (1.0)
+    try {
+      const win = e.target.contentWindow;
+      if (win && win.sounds) {
+        win.sounds.setMusicVoume(0.3);
+        win.sounds.setAudioVoume(0.3);
+      }
+    } catch {
+      // cross-origin or not ready yet — ignore
+    }
+  }, []);
 
   return (
     <Container>
@@ -15,10 +29,10 @@ function CommandAndConquer() {
       <GameFrame
         src={withBaseUrl('/games/command-and-conquer/index.html')}
         title="Command & Conquer"
-        style={{ border: 'none' }}
+        scrolling="no"
         allowFullScreen
         allow="autoplay"
-        onLoad={() => setIsLoading(false)}
+        onLoad={handleLoad}
       />
     </Container>
   );
