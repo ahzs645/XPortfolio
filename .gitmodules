@@ -7,3 +7,6 @@
 [submodule "external/jspaint"]
 	path = external/jspaint
 	url = https://github.com/ahzs645/jspaint.git
+[submodule "external/emupedia-game-command-and-conquer1"]
+	path = external/emupedia-game-command-and-conquer1
+	url = https://github.com/ahzs645/emupedia-game-command-and-conquer1.git
