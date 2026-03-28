@@ -110,6 +110,13 @@ export const START_MENU_CATALOG = {
     title: '3D Pinball',
     description: null,
   },
+  esheep: {
+    type: 'program',
+    appKey: 'eSheep',
+    icon: '/icons/esheep.png',
+    title: 'eSheep',
+    description: null,
+  },
   paint: {
     type: 'program',
     appKey: 'Paint',
@@ -355,6 +362,13 @@ export const START_MENU_CATALOG = {
     title: 'Command & Conquer',
     description: 'Classic real-time strategy',
   },
+  redAlert2: {
+    type: 'program',
+    appKey: 'Red Alert 2',
+    icon: '/icons/games/red-alert2.png',
+    title: 'C&C: Red Alert 2',
+    description: 'HTML5 port - Work in progress',
+  },
   run: {
     type: 'program',
     appKey: 'Run',
@@ -422,7 +436,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Games',
     icon: '/icons/folder-icon.png',
-    items: ['minesweeper', 'solitaire', 'spiderSolitaire', 'pinball', 'runescape', 'worldOfWarcraft', 'wizard101', 'legoIsland', 'diablo', 'starcraft', 'commandAndConquer', 'qqGames'],
+    items: ['minesweeper', 'solitaire', 'spiderSolitaire', 'pinball', 'esheep', 'runescape', 'worldOfWarcraft', 'wizard101', 'legoIsland', 'diablo', 'starcraft', 'commandAndConquer', 'redAlert2', 'qqGames'],
   },
   systemTools: {
     type: 'folder',

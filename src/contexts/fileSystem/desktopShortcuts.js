@@ -22,6 +22,7 @@ export const DESKTOP_SHORTCUT_CATALOG = {
   displayProperties: { id: 'shortcut-display', name: 'Display Properties.lnk', icon: XP_ICONS.displayProperties, target: 'Display Properties', size: SHORTCUT_SIZE },
   adobeReader: { id: 'shortcut-adobe-reader', name: 'Adobe Reader.lnk', icon: '/icons/pdf/acroaum_grp107_lang1033.ico', target: 'Adobe Reader', size: SHORTCUT_SIZE },
   blueScreenOfDeath: { id: 'shortcut-bsod', name: 'Blue Screen of Death.lnk', icon: '/icons/luna/dialog_error.png', target: 'Blue Screen of Death', size: SHORTCUT_SIZE },
+  esheep: { id: 'shortcut-esheep', name: 'eSheep.lnk', icon: '/icons/esheep.png', target: 'eSheep', size: SHORTCUT_SIZE },
 };
 
 // Default desktop programs if not specified in config (excludes system icons like My Computer and Recycle Bin)

@@ -67,6 +67,8 @@ const Diablo = lazy(() => import('./Diablo'));
 const StarCraft = lazy(() => import('./StarCraft'));
 const BlueScreenOfDeath = lazy(() => import('./BlueScreenOfDeath'));
 const CommandAndConquer = lazy(() => import('./CommandAndConquer'));
+const ESheep = lazy(() => import('./ESheep'));
+const RedAlert2 = lazy(() => import('./RedAlert2'));
 const RegistryEditor = lazy(() => import('./RegistryEditor'));
 const RegistryEditValueDialog = lazy(() => import('./RegistryEditor/EditValueDialog'));
 const RegistryNewValueDialog = lazy(() => import('./RegistryEditor/NewValueDialog'));
@@ -136,6 +138,7 @@ export const appCategoryMap = {
   'Solitaire': APP_CATEGORIES.GAME,
   'Spider Solitaire': APP_CATEGORIES.GAME,
   'Pinball': APP_CATEGORIES.GAME,
+  'eSheep': APP_CATEGORIES.GAME,
 
   // Media
   'Windows Media Player': APP_CATEGORIES.MEDIA,
@@ -192,6 +195,7 @@ export const appCategoryMap = {
   'Diablo': APP_CATEGORIES.GAME,
   'StarCraft': APP_CATEGORIES.GAME,
   'Command & Conquer': APP_CATEGORIES.GAME,
+  'Red Alert 2': APP_CATEGORIES.GAME,
 };
 
 // Helper to get app category
@@ -436,6 +440,11 @@ export const desktopIconCatalog = {
     title: 'Command & Conquer',
     component: CommandAndConquer,
   },
+  redAlert2: {
+    icon: '/icons/games/red-alert2.png',
+    title: 'C&C: Red Alert 2',
+    component: RedAlert2,
+  },
   blueScreenOfDeath: {
     icon: '/icons/luna/dialog_error.png',
     title: 'Blue Screen of Death',
@@ -516,7 +525,9 @@ const CATALOG_TO_APP_KEY = {
   diablo: 'Diablo',
   starcraft: 'StarCraft',
   commandAndConquer: 'Command & Conquer',
+  redAlert2: 'Red Alert 2',
   blueScreenOfDeath: 'Blue Screen of Death',
+  esheep: 'eSheep',
   registryEditor: 'Registry Editor',
 };
 
@@ -1895,6 +1906,26 @@ export const appSettings = {
     maximized: false,
     multiInstance: false,
   },
+  'Red Alert 2': {
+    header: {
+      icon: '/icons/games/red-alert2.png',
+      title: 'Command & Conquer: Red Alert 2',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: RedAlert2,
+    defaultSize: {
+      width: 900,
+      height: 550,
+    },
+    defaultOffset: {
+      x: 80,
+      y: 20,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
   'Registry Editor': {
     header: {
       icon: '/icons/luna/regedit.ico',
@@ -1995,6 +2026,27 @@ export const appSettings = {
     minimized: false,
     maximized: false,
     multiInstance: false,
+  },
+  'eSheep': {
+    header: {
+      icon: '/icons/esheep.png',
+      title: 'eSheep',
+      invisible: true,
+      noFooterWindow: true,
+    },
+    component: ESheep,
+    defaultSize: {
+      width: 0,
+      height: 0,
+    },
+    defaultOffset: {
+      x: 0,
+      y: 0,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
   },
   'Run': {
     header: {

@@ -1,0 +1,399 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animations xmlns:xsd="https://esheep.petrucci.ch/ https://raw.githubusercontent.com/Adrianotiger/desktopPet/master/Resources/animations.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="https://esheep.petrucci.ch/">
+  <header>
+    <author>michelle!</author>
+    <title>Pikachu</title>
+    <petname>Pikachu</petname>
+    <version>0.1</version>
+    <info>Pikachu that wanders around your screen. Resources found on https://eeveeexpo.com/resources</info>
+    <application>1</application>
+    <icon><![CDATA[AAABAAEAMDAQAAAAAADoBwAAFgAAACgAAAAwAAAAYAAAAAEABAAAAAAAAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAACAAAAAgIAAgAAAAIAAgACAgAAAgICAAMDAwAAAAP8AAP8AAAD//wD/AAAA/wD/AP//AAD///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADMzAAAAAzMwAAAAAAAAAAAAAAAAAAAAALu7MAAAO7uwAAAAAAAAAAAAAAAAAAAAEXt3MzMzN3txEAAAAAAAAAAAAAAAAAAAMzMzMzMzMzMzMAAAAAAAAAAAAAAAAAAAMzMzMzMzMzMzMAAAAAAAAAAAAAAAAAAAMzMzMzMzMzMzMAAAAAAAAAAAAAAAAAAAMzMzMzMzMzMzMAAAAAAAAAAAAAAAAAAAu7szMzMzMzu7sAAAAAAAAAAAAAAAAAAAu7szMzMzMzu7sAAAAAAAAAAAAAAAAAA3u3MzMzMzMzN7tzAAAAAAAAAAAAAAAAA3uzMzMzMzMzM7tzAAAAAAAAAAAAADMwAzADMzMzMzMzMwAzAAAAAAAAAAAAADMwAzADMzMzMzMzMwAzAAAAAAAAAAAAADMzMTMzO7u3N7u7MzMxAAAAAAAAAAAAADMzMBMzO7u3N7u7MzMQAAAAAAAAAAAAADMwF3MzMQO7u7MBMzN3AAAAAAAAAAAAADMwC7MzMAO7u7MAMzO7AAAAAAAAAAAAABMAC7u7t3i7u7h3u7u7AAAAAAAAAAAAAAAAC7u7v/i7u7j/u7u7AAAAAAAAAAAAAAAAC7u7uIi7u7iIu7u7AAAAAAAAAAAAAAAAC7u7u7u7u7u7u7u7AAAAAAAAAAAAAAAAB3u7u7u7u7u7u7t3AAAAAAAAAAAAAAAAADu7u7u7u7u7u7swAAAAAAAAAAAAAAAAAAu7u7u7u7u7u7sAAAAAAAAAAAAAAAAAAAM7u7u7u7u7uzMAAAAAAAAAAAAAAAAAAAd7u7u7u7u7u3cAAAAAAAAAAAAAAAAAA3u7szu7u7szu7tzAAAAAAAAAAAAAAAAA3u7szu7u7szu7tzAAAAAAAAAAAAAAAAC7u7sAEzMzEAu7u7AAAAAAAAAAAAAAAAC7u7sAEzMzEAu7u7AAAAAAAAAAAAAAAAAzuwAAAAAAAAALszAAAAAAAAAAAAAAAAADuwAAAAAAAAALswAAAAAAAAAAAAAAAAAAMwAAAAAAAAADMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////////AAD///////8AAP///////wAA///H8f//AAD//8fx//8AAP/+AAA//wAA//4AAD//AAD/+AAAD/8AAP/4AAAP/wAA//gAAA//AAD/+AAAD/8AAP/4AAAP/wAA//gAAA//AAD/gAAAA/8AAP+AAAAD/wAA/gAAAAP/AAD+AAAAA/8AAP4AAAAP/wAA/gAAAA//AAD+AAAAD/8AAP4AAAAD/wAA/gAAAAP/AAD+AAAAA/8AAP/gAAAD/wAA/+AAAAP/AAD/+AAAD/8AAP/4AAAP/wAA//gAAA//AAD/+AAAD/8AAP/4AAAP/wAA/+AAAAP/AAD/4AAAA/8AAP/gAAAD/wAA/+AAAAP/AAD/4B/8A/8AAP+AH/wA/wAA/4B//wD/AAD/gH//AP8AAP+D///g/wAA/4P//+D/AAD///////8AAP///////wAA////////AAD///////8AAP///////wAA////////AAD///////8AAP///////wAA]]></icon>
+  </header>
+  <image>
+    <tilesx>4</tilesx>
+    <tilesy>4</tilesy>
+    <png><![CDATA[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]]></png>
+    <transparency>Cyan</transparency>
+  </image>
+  <spawns>
+    <spawn id="1" probability="20">
+      <x>screenW-imageW</x>
+      <y>areaH-imageH</y>
+      <next probability="0">1</next>
+    </spawn>
+  </spawns>
+  <animations>
+    <animation id="1">
+      <name>idle</name>
+      <start>
+        <x>0</x>
+        <y>0</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>200</interval>
+      </start>
+      <end>
+        <x>0</x>
+        <y>0</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>200</interval>
+      </end>
+      <sequence repeatfrom="0" repeat="random/20+2">
+        <frame>0</frame>
+        <next probability="10" only="none">1</next>
+        <next probability="10" only="none">2</next>
+        <next probability="10" only="none">3</next>
+        <next probability="10" only="none">4</next>
+        <next probability="10" only="none">5</next>
+        <next probability="10" only="none">8</next>
+        <next probability="10" only="none">9</next>
+        <next probability="10" only="none">10</next>
+        <next probability="10" only="none">11</next>
+        <action>none</action>
+      </sequence>
+    </animation>
+    <animation id="2">
+      <name>walk down</name>
+      <start>
+        <x>0</x>
+        <y>6</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>200</interval>
+      </start>
+      <end>
+        <x>random/20-5</x>
+        <y>6</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>200</interval>
+      </end>
+      <sequence repeatfrom="0" repeat="5+random/10">
+        <frame>0</frame>
+        <frame>1</frame>
+        <frame>2</frame>
+        <frame>3</frame>
+        <next probability="50" only="none">2</next>
+        <next probability="50" only="none">1</next>
+        <next probability="10" only="none">10</next>
+        <next probability="10" only="none">11</next>
+        <action>flip</action>
+      </sequence>
+      <border>
+        <next probability="10" only="none">1</next>
+      </border>
+    </animation>
+    <animation id="3">
+      <name>Walk Up</name>
+      <start>
+        <x>0</x>
+        <y>-6</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>200</interval>
+      </start>
+      <end>
+        <x>random/20-5</x>
+        <y>-6</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>200</interval>
+      </end>
+      <sequence repeatfrom="0" repeat="5+random/10">
+        <frame>12</frame>
+        <frame>13</frame>
+        <frame>14</frame>
+        <frame>15</frame>
+        <next probability="50" only="none">3</next>
+        <next probability="50" only="none">1</next>
+        <next probability="10" only="none">8</next>
+        <next probability="10" only="none">9</next>
+        <action>none</action>
+      </sequence>
+      <border>
+        <next probability="10" only="none">1</next>
+      </border>
+    </animation>
+    <animation id="4">
+      <name>Walk Left</name>
+      <start>
+        <x>-6</x>
+        <y>0</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>200</interval>
+      </start>
+      <end>
+        <x>-6</x>
+        <y>random/20-5</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>200</interval>
+      </end>
+      <sequence repeatfrom="0" repeat="5+random/10">
+        <frame>4</frame>
+        <frame>5</frame>
+        <frame>6</frame>
+        <frame>7</frame>
+        <next probability="50" only="none">4</next>
+        <next probability="50" only="none">1</next>
+        <next probability="10" only="none">8</next>
+        <next probability="10" only="none">10</next>
+        <action>none</action>
+      </sequence>
+      <border>
+        <next probability="10" only="none">1</next>
+      </border>
+    </animation>
+    <animation id="5">
+      <name>Walk Right</name>
+      <start>
+        <x>6</x>
+        <y>0</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>200</interval>
+      </start>
+      <end>
+        <x>6</x>
+        <y>random/20-5</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>200</interval>
+      </end>
+      <sequence repeatfrom="0" repeat="5+random/10">
+        <frame>8</frame>
+        <frame>9</frame>
+        <frame>10</frame>
+        <frame>11</frame>
+        <next probability="50" only="none">1</next>
+        <next probability="50" only="none">5</next>
+        <next probability="10" only="none">9</next>
+        <next probability="10" only="none">11</next>
+        <action>none</action>
+      </sequence>
+      <border>
+        <next probability="10" only="none">1</next>
+      </border>
+    </animation>
+    <animation id="6">
+      <name>drag</name>
+      <start>
+        <x>0</x>
+        <y>0</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>200</interval>
+      </start>
+      <end>
+        <x>0</x>
+        <y>0</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>200</interval>
+      </end>
+      <sequence repeatfrom="0" repeat="0">
+        <frame>2</frame>
+        <frame>3</frame>
+        <next probability="10" only="none">1</next>
+        <action>none</action>
+      </sequence>
+    </animation>
+    <animation id="7">
+      <name>fall</name>
+      <start>
+        <x>0</x>
+        <y>8</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>100</interval>
+      </start>
+      <end>
+        <x>0</x>
+        <y>8</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>100</interval>
+      </end>
+      <sequence repeatfrom="0" repeat="20">
+        <frame>13</frame>
+        <frame>12</frame>
+        <next probability="10" only="none">7</next>
+        <action>none</action>
+      </sequence>
+      <border>
+        <next probability="10" only="none">1</next>
+      </border>
+    </animation>
+    <animation id="8">
+      <name>Walk Up Left</name>
+      <start>
+        <x>-8</x>
+        <y>-6</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>150</interval>
+      </start>
+      <end>
+        <x>-8</x>
+        <y>-6</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>150</interval>
+      </end>
+      <sequence repeatfrom="0" repeat="5+random/10">
+        <frame>4</frame>
+        <frame>5</frame>
+        <frame>6</frame>
+        <frame>7</frame>
+        <next probability="50" only="none">8</next>
+        <next probability="50" only="none">1</next>
+        <next probability="10" only="none">3</next>
+        <next probability="10" only="none">4</next>
+        <action>none</action>
+      </sequence>
+      <border>
+        <next probability="10" only="none">1</next>
+      </border>
+    </animation>
+    <animation id="9">
+      <name>Walk Up Right</name>
+      <start>
+        <x>8</x>
+        <y>-6</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>150</interval>
+      </start>
+      <end>
+        <x>8</x>
+        <y>-6</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>150</interval>
+      </end>
+      <sequence repeatfrom="0" repeat="5+random/10">
+        <frame>8</frame>
+        <frame>9</frame>
+        <frame>10</frame>
+        <frame>11</frame>
+        <next probability="50" only="none">9</next>
+        <next probability="50" only="none">1</next>
+        <next probability="10" only="none">3</next>
+        <next probability="10" only="none">5</next>
+        <action>none</action>
+      </sequence>
+      <border>
+        <next probability="10" only="none">1</next>
+      </border>
+    </animation>
+    <animation id="10">
+      <name>Walk Down Left</name>
+      <start>
+        <x>-8</x>
+        <y>6</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>200</interval>
+      </start>
+      <end>
+        <x>-8</x>
+        <y>6</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>200</interval>
+      </end>
+      <sequence repeatfrom="0" repeat="5+random/10">
+        <frame>4</frame>
+        <frame>5</frame>
+        <frame>6</frame>
+        <frame>7</frame>
+        <next probability="50" only="none">10</next>
+        <next probability="50" only="none">1</next>
+        <next probability="10" only="none">4</next>
+        <next probability="10" only="none">2</next>
+        <action>none</action>
+      </sequence>
+      <border>
+        <next probability="10" only="none">1</next>
+      </border>
+    </animation>
+    <animation id="11">
+      <name>Walk Down Right</name>
+      <start>
+        <x>8</x>
+        <y>6</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>150</interval>
+      </start>
+      <end>
+        <x>8</x>
+        <y>6</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>150</interval>
+      </end>
+      <sequence repeatfrom="0" repeat="5+random/10">
+        <frame>0</frame>
+        <frame>1</frame>
+        <frame>2</frame>
+        <frame>3</frame>
+        <next probability="50" only="none">11</next>
+        <next probability="50" only="none">1</next>
+        <next probability="10" only="none">2</next>
+        <next probability="10" only="none">5</next>
+        <action>none</action>
+      </sequence>
+      <border>
+        <next probability="10" only="none">1</next>
+      </border>
+    </animation>
+    <animation id="12">
+      <name>kill</name>
+      <start>
+        <x>0</x>
+        <y>0</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>300</interval>
+      </start>
+      <end>
+        <x>0</x>
+        <y>0</y>
+        <offsety>0</offsety>
+        <opacity>0</opacity>
+        <interval>300</interval>
+      </end>
+      <sequence repeatfrom="0" repeat="1">
+        <frame>6</frame>
+        <frame>7</frame>
+        <action>none</action>
+      </sequence>
+    </animation>
+    <animation id="13">
+      <name>sync</name>
+      <start>
+        <x>0</x>
+        <y>0</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>100</interval>
+      </start>
+      <end>
+        <x>0</x>
+        <y>0</y>
+        <offsety>0</offsety>
+        <opacity>1</opacity>
+        <interval>100</interval>
+      </end>
+      <sequence repeatfrom="0" repeat="0">
+        <frame>6</frame>
+        <next probability="10" only="none">1</next>
+        <action>none</action>
+      </sequence>
+    </animation>
+  </animations>
+  <childs />
+</animations>
