@@ -471,7 +471,7 @@ export const ALL_PROGRAMS_ORDER = [
   'internetExplorer',
   'outlookExpress',
   'adobeReader',
-  'messenger',
+  // 'messenger', // disabled - kept in repo but hidden from OS
   'msnMessenger',
   'about',
   'resume',
