@@ -76,7 +76,7 @@ function ESheep({ onClose }) {
       cancelled = true;
       // Don't remove the sheep on unmount — let it keep roaming!
     };
-  }, []);
+  }, [onClose]);
 
   return null;
 }
