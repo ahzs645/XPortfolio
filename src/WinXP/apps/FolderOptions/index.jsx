@@ -85,7 +85,6 @@ function saveSettings(settings) {
 function FolderOptions({ onClose }) {
   const [activeTab, setActiveTab] = useState('general');
   const [settings, setSettings] = useState(loadSettings);
-  const [savedSettings, setSavedSettings] = useState(loadSettings);
   const [isDirty, setIsDirty] = useState(false);
 
   const updateSetting = useCallback((key, value) => {
@@ -95,7 +94,6 @@ function FolderOptions({ onClose }) {
 
   const handleApply = useCallback(() => {
     saveSettings(settings);
-    setSavedSettings({ ...settings });
     setIsDirty(false);
   }, [settings]);
 
