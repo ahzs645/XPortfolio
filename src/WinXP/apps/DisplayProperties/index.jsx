@@ -59,6 +59,15 @@ const FONT_SIZES = [
   { id: 'extra', label: 'Extra Large Fonts' },
 ];
 
+const RESOLUTIONS = [
+  '640 x 480',
+  '800 x 600',
+  '1024 x 768',
+  '1152 x 864',
+  '1280 x 1024',
+  '1600 x 1200',
+];
+
 const THEME_PRESETS = {
   xp: { windowStyle: 'xp', colorScheme: 'blue' },
   silver: { windowStyle: 'xp', colorScheme: 'silver' },
@@ -261,8 +270,6 @@ function AppearancePreviewScene({
   );
 }
 
-const RESOLUTIONS = ['640 x 480', '800 x 600', '1024 x 768', '1152 x 864', '1280 x 1024'];
-
 const SCREENSAVERS = [
   {
     id: 'pipes',
@@ -320,7 +327,7 @@ const SCREENSAVERS = [
 
 function DisplayProperties({ onClose, onMinimize }) {
   // Use per-user settings for wallpaper
-  const { getWallpaperPath, setWallpaperPath } = useUserSettings();
+  const { getWallpaperPath, setWallpaperPath, colorDepth: savedColorDepth, setColorDepth } = useUserSettings();
   const {
     screensaverName,
     setScreensaverName,
@@ -347,14 +354,15 @@ function DisplayProperties({ onClose, onMinimize }) {
   const [colorScheme, setColorScheme] = useState('blue');
   const [windowStyle, setWindowStyle] = useState('xp');
   const [fontSize, setFontSize] = useState('normal');
-  const [resolutionIndex, setResolutionIndex] = useState(2);
-  const [colorQuality, setColorQuality] = useState('32');
+  const [resolutionIndex, setResolutionIndex] = useState(4);
+  const [colorQuality, setColorQuality] = useState(savedColorDepth);
   const applySelection = () => {
     const wallpaperPath = selected || '';
     setWallpaperPath(wallpaperPath, { isMobile: false });
     if (applyToMobile) {
       setWallpaperPath(wallpaperPath, { isMobile: true });
     }
+    setColorDepth(colorQuality);
     onClose?.();
   };
 
@@ -632,19 +640,23 @@ function DisplayProperties({ onClose, onMinimize }) {
                   <SettingsMonitor>
                     <SettingsMonitorImg src={withBaseUrl('/gui/display/reference/resolutionsetting.png')} alt="Resolution" />
                   </SettingsMonitor>
-                  <SettingsDisplayInfo>Display:<br />Default Monitor on Standard VGA Graphics Adapter</SettingsDisplayInfo>
+                  <SettingsDisplayInfo>Display:<br />Generic PnP Monitor on NVIDIA GeForce4 Ti 4600</SettingsDisplayInfo>
                   <SettingsGroup>
                     <Fieldset>
-                      <Legend>Screen zoom</Legend>
+                      <Legend>Screen resolution</Legend>
+                      <SliderLabels>
+                        <span>Less</span>
+                        <span>More</span>
+                      </SliderLabels>
                       <ZoomSlider
                         type="range"
-                        min="50"
-                        max="150"
-                        step="10"
-                        value={resolutionIndex * 25 + 50}
-                        onChange={(e) => setResolutionIndex(Math.round((Number(e.target.value) - 50) / 25))}
+                        min="0"
+                        max="5"
+                        step="1"
+                        value={resolutionIndex}
+                        onChange={(e) => setResolutionIndex(Number(e.target.value))}
                       />
-                      <ZoomLabel>{resolutionIndex * 25 + 50}%</ZoomLabel>
+                      <ZoomLabel>{RESOLUTIONS[resolutionIndex]}</ZoomLabel>
                     </Fieldset>
                     <Fieldset>
                       <Legend>Color quality</Legend>
@@ -1517,9 +1529,16 @@ const SettingsGroup = styled.div`
   }
 `;
 
+const SliderLabels = styled.div`
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  padding: 0 2px;
+`;
+
 const ZoomSlider = styled.input`
   width: 100%;
-  padding: 12px 0;
+  padding: 4px 0;
   margin: 0;
 `;
 
@@ -1529,12 +1548,18 @@ const ZoomLabel = styled.div`
 `;
 
 const ColorStrip = styled.div`
-  height: 16px;
-  margin-top: 8px;
-  background: linear-gradient(to right,
-    #000000, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ffffff
+  height: 13px;
+  margin-top: 5px;
+  background: repeating-linear-gradient(
+    90deg,
+    #ff00bf 0px 1px, #ff0080 1px 3px, red 3px 5px, #ff6c00 5px 7px,
+    #ffac00 7px 10px, #ffd200 10px 12px, #ff0 12px 14px, #d9ff00 14px 16px,
+    #80ff00 16px 18px, #00ff00 18px 20px, #00ff80 20px 22px, #00ffd9 22px 24px,
+    #00ffff 24px 26px, #00d9ff 26px 28px, #0080ff 28px 30px, #0000ff 30px 32px,
+    #8000ff 32px 34px, #bf00ff 34px 36px, #ff00ff 36px 38px, #ff00bf 38px 51px
   );
-  border: 1px solid #7f9db9;
+  border: 1px solid;
+  border-color: #808080 #fff #fff #808080;
 `;
 
 const SettingsButtonRow = styled.div`

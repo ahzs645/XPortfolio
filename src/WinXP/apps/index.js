@@ -73,6 +73,7 @@ const RegistryEditor = lazy(() => import('./RegistryEditor'));
 const RegistryEditValueDialog = lazy(() => import('./RegistryEditor/EditValueDialog'));
 const RegistryNewValueDialog = lazy(() => import('./RegistryEditor/NewValueDialog'));
 const RegistryNewKeyDialog = lazy(() => import('./RegistryEditor/NewKeyDialog'));
+const FolderOptions = lazy(() => import('./FolderOptions'));
 // ControlPanel is now integrated into MyComputer as a navigable view
 
 // XP Icons paths
@@ -163,6 +164,7 @@ export const appCategoryMap = {
   'System Properties': APP_CATEGORIES.SYSTEM,
   'Speech Properties': APP_CATEGORIES.SYSTEM,
   'Taskbar Properties': APP_CATEGORIES.SYSTEM,
+  'Folder Options': APP_CATEGORIES.SYSTEM,
   'Task Manager': APP_CATEGORIES.SYSTEM,
   'User Accounts': APP_CATEGORIES.SYSTEM,
   'Add or Remove Programs': APP_CATEGORIES.SYSTEM,
@@ -735,6 +737,26 @@ export const appSettings = {
     defaultOffset: {
       x: 200,
       y: 100,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'Folder Options': {
+    header: {
+      icon: '/icons/xp/FolderClosed.png',
+      title: 'Folder Options',
+      buttons: ['close'],
+    },
+    component: FolderOptions,
+    defaultSize: {
+      width: 380,
+      height: 443,
+    },
+    defaultOffset: {
+      x: 250,
+      y: 120,
     },
     resizable: false,
     minimized: false,
@@ -2126,4 +2148,5 @@ export {
   RuneScape,
   Wizard101,
   Run,
+  FolderOptions,
 };

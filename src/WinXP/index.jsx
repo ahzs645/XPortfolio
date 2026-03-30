@@ -74,7 +74,7 @@ function WinXP() {
   const focusedAppId = getFocusedAppId();
   const { playLogoff, playBalloon, playMinimize, playRestore } = useSystemSounds();
   const { isFileDropUploadEnabled, isFileDropOverlayEnabled } = useConfig();
-  const { getWallpaperPath, getDesktopIconPositions, setDesktopIconPositions, windowSoundsEnabled } = useUserSettings();
+  const { getWallpaperPath, getDesktopIconPositions, setDesktopIconPositions, windowSoundsEnabled, colorDepth } = useUserSettings();
   const {
     createFile,
     createItem,
@@ -651,6 +651,7 @@ function WinXP() {
         onDrop={handleDrop}
         $powerState={state.powerState}
         $crtEnabled={crtEnabled}
+        $colorDepth={colorDepth}
         $wallpaper={wallpaperPath}
       >
         {isDraggingFiles && isFileDropOverlayEnabled() && <DesktopDropOverlay />}
@@ -771,6 +772,20 @@ const animation = {
   [POWER_STATE.LOG_OFF]: powerOffAnimation,
 };
 
+const getColorDepthFilter = (depth) => {
+  switch (depth) {
+    case '2col': return ' grayscale(1) contrast(1.5)';
+    case '8col': return ' saturate(0.15) contrast(2.5)';
+    case '8+col': return ' saturate(0.25) contrast(2)';
+    case '16col': return ' saturate(0.35) contrast(1.6)';
+    case '16+col': return ' saturate(0.45) contrast(1.4)';
+    case '256col': return ' saturate(0.65) contrast(1.15)';
+    case '256+col': return ' saturate(0.75) contrast(1.1)';
+    case '16bit': return ' saturate(0.9)';
+    default: return '';
+  }
+};
+
 const Container = styled.div`
   font-family: Tahoma, 'Noto Sans', sans-serif;
   height: 100%;
@@ -779,10 +794,12 @@ const Container = styled.div`
   background: url('${({ $wallpaper }) => $wallpaper || '/bliss.jpg'}') no-repeat center center fixed;
   background-size: cover;
   animation: ${({ $powerState }) => animation[$powerState]} 5s forwards;
-  filter: ${({ $crtEnabled }) =>
-    $crtEnabled
+  filter: ${({ $crtEnabled, $colorDepth }) => {
+    const crt = $crtEnabled
       ? 'brightness(1.06) contrast(1.08) saturate(1.12)'
-      : 'brightness(1.01) contrast(1.015) saturate(1.02)'};
+      : 'brightness(1.01) contrast(1.015) saturate(1.02)';
+    return crt + getColorDepthFilter($colorDepth);
+  }};
   transition: filter 0.3s ease;
 
   *:not(input):not(textarea) {

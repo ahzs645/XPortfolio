@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useCallback, useMemo, useState } from 'react';
 import { useUserAccounts } from './UserAccountsContext';
 import { useConfig } from './ConfigContext';
 
@@ -163,6 +163,38 @@ export function UserSettingsProvider({ children }) {
     updateCurrentUserSettings({ windowSoundsEnabled: enabled });
   }, [isLoggedIn, updateCurrentUserSettings]);
 
+  // Local state for color depth (ensures reactivity for non-logged-in users)
+  const [localColorDepth, setLocalColorDepth] = useState(() => {
+    try {
+      return localStorage.getItem('colorDepth') || '32';
+    } catch {
+      return '32';
+    }
+  });
+
+  // Set color depth - saves to user profile or localStorage
+  const setColorDepth = useCallback((depth) => {
+    if (!isLoggedIn) {
+      try {
+        localStorage.setItem('colorDepth', depth);
+      } catch (err) {
+        console.warn('Failed to save color depth setting', err);
+      }
+      setLocalColorDepth(depth);
+      return;
+    }
+    updateCurrentUserSettings({ colorDepth: depth });
+    setLocalColorDepth(depth);
+  }, [isLoggedIn, updateCurrentUserSettings]);
+
+  // Color depth: prefer user settings when logged in, fall back to local state
+  const colorDepth = useMemo(() => {
+    if (isLoggedIn && currentUser && userSettings?.colorDepth) {
+      return userSettings.colorDepth;
+    }
+    return localColorDepth;
+  }, [isLoggedIn, currentUser, userSettings, localColorDepth]);
+
   // Memoized value for direct access
   const windowSoundsEnabled = useMemo(() => {
     return getWindowSoundsEnabled();
@@ -189,6 +221,10 @@ export function UserSettingsProvider({ children }) {
     windowSoundsEnabled,
     getWindowSoundsEnabled,
     setWindowSoundsEnabled,
+
+    // Display settings
+    colorDepth,
+    setColorDepth,
 
     // User info
     isLoggedIn,

@@ -549,9 +549,10 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
       case 'sortBySize': setSortBy('size'); break;
       case 'sortByType': setSortBy('type'); break;
       case 'sortByModified': setSortBy('modified'); break;
+      case 'folderOptions': openApp('Folder Options'); break;
       default: console.log('Menu action:', action);
     }
-  }, [handleCreateFolder, handleDelete, handleCopy, handleCut, handlePaste, handleRename, selectAll, onClose]);
+  }, [handleCreateFolder, handleDelete, handleCopy, handleCut, handlePaste, handleRename, selectAll, onClose, openApp]);
 
   // Close context menu when clicking outside
   useEffect(() => {
@@ -669,6 +670,16 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
         },
         { separator: true },
         { label: 'Refresh', action: 'refresh' },
+      ],
+    },
+    {
+      id: 'tools',
+      label: 'Tools',
+      items: [
+        { label: 'Map Network Drive...', action: 'mapNetworkDrive', disabled: true },
+        { label: 'Disconnect Network Drive...', action: 'disconnectNetworkDrive', disabled: true },
+        { separator: true },
+        { label: 'Folder Options...', action: 'folderOptions' },
       ],
     },
     { id: 'help', label: 'Help', disabled: true },
