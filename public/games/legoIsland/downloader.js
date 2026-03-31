@@ -1,5 +1,7 @@
 self.onmessage = async (event) => {
     const { action, missingFiles, language } = event.data;
+    const isHtmlFallback = (response) =>
+        (response.headers.get('content-type') || '').includes('text/html');
 
     if (action === 'install') {
         const cacheName = `game-assets-${language}`;
@@ -9,7 +11,9 @@ self.onmessage = async (event) => {
             const fileMetadataPromises = missingFiles.map(fileUrl =>
                 fetch(fileUrl, { method: 'HEAD', headers: { 'Accept-Language': language } })
                     .then(response => {
-                        if (!response.ok) throw new Error(`Failed to HEAD ${fileUrl}`);
+                        if (!response.ok || isHtmlFallback(response)) {
+                            throw new Error(`Missing game asset: ${fileUrl}`);
+                        }
                         return { url: fileUrl, size: Number(response.headers.get('content-length')) || 0 };
                     })
             );
@@ -24,7 +28,7 @@ self.onmessage = async (event) => {
                 const request = new Request(file.url, { headers: { 'Accept-Language': language } });
                 const response = await fetch(request);
 
-                if (!response.ok || !response.body) {
+                if (!response.ok || !response.body || isHtmlFallback(response)) {
                     throw new Error(`Failed to fetch ${file.url}`);
                 }
 

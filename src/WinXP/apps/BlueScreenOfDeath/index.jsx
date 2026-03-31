@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import styled from 'styled-components';
 import useSystemSounds from '../../../hooks/useSystemSounds';
+import { getXpPortalRoot } from '../../../utils/portalRoot';
 
 const BSOD_SCREEN_MS = 4000;
 
@@ -71,7 +72,7 @@ function BlueScreenOfDeath() {
         </div>
       </BlueScreenContent>
     </Overlay>,
-    document.body
+    getXpPortalRoot()
   );
 }
 

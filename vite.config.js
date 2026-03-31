@@ -26,12 +26,22 @@ export default defineConfig(({ mode }) => {
     (isGitHubActions && repoName && !isUserOrOrgPagesRepo ? `/${repoName}/` : '/')
 
   const buildVersion = getBuildVersion()
+  const crossOriginIsolationHeaders = {
+    'Cross-Origin-Opener-Policy': 'same-origin',
+    'Cross-Origin-Embedder-Policy': 'require-corp',
+  }
 
   return {
     base,
     plugins: [react(), svgr()],
     define: {
       __BUILD_VERSION__: JSON.stringify(buildVersion),
+    },
+    server: {
+      headers: crossOriginIsolationHeaders,
+    },
+    preview: {
+      headers: crossOriginIsolationHeaders,
     },
     esbuild: {
       drop: mode === 'production' ? ['console', 'debugger'] : [],

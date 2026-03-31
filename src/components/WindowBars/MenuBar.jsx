@@ -2,6 +2,10 @@ import React, { useState, useRef, useEffect, useCallback, useLayoutEffect } from
 import { createPortal } from 'react-dom';
 import styled from 'styled-components';
 import { withBaseUrl } from '../../utils/baseUrl';
+import { useUserSettings } from '../../contexts/UserSettingsContext';
+import { getColorDepthFilter } from '../../utils/colorDepthEffects';
+import { toDisplayLayerRect } from '../../utils/displayCoordinates';
+import { getXpPortalRoot } from '../../utils/portalRoot';
 
 /**
  * MenuBar Component - Windows XP style menu bar
@@ -33,6 +37,7 @@ import { withBaseUrl } from '../../utils/baseUrl';
  * />
  */
 function MenuBar({ menus = [], logo, onAction, windowActions = {} }) {
+  const { colorDepth } = useUserSettings();
   const [activeMenu, setActiveMenu] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ left: 0, top: 0 });
   const [overflowMenuOpen, setOverflowMenuOpen] = useState(false);
@@ -227,7 +232,7 @@ function MenuBar({ menus = [], logo, onAction, windowActions = {} }) {
   const handleChevronClick = useCallback(() => {
     setActiveMenu(null);
     if (!overflowMenuOpen && chevronRef.current) {
-      const rect = chevronRef.current.getBoundingClientRect();
+      const rect = toDisplayLayerRect(chevronRef.current.getBoundingClientRect());
       setOverflowDropdownPos({
         top: rect.bottom,
         left: rect.right - 120, // 120 is min-width of dropdown, align right edge
@@ -296,7 +301,10 @@ function MenuBar({ menus = [], logo, onAction, windowActions = {} }) {
       )}
 
       {overflowMenuOpen && hasOverflow && createPortal(
-        <OverflowDropdown style={{ top: overflowDropdownPos.top, left: overflowDropdownPos.left }}>
+        <OverflowDropdown
+          $colorDepth={colorDepth}
+          style={{ top: overflowDropdownPos.top, left: overflowDropdownPos.left }}
+        >
           {hiddenMenus.map((menu) => (
             <MenuOption
               key={menu.id}
@@ -307,7 +315,7 @@ function MenuBar({ menus = [], logo, onAction, windowActions = {} }) {
             </MenuOption>
           ))}
         </OverflowDropdown>,
-        document.body
+        getXpPortalRoot()
       )}
     </MenuBarContainer>
   );
@@ -395,6 +403,7 @@ const OverflowDropdown = styled.div`
   border: 1px solid #d0d0d0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   box-sizing: border-box;
+  filter: ${({ $colorDepth }) => getColorDepthFilter($colorDepth) || 'none'};
   font-family: Tahoma, Arial, sans-serif;
   font-size: 11px;
   min-width: 120px;

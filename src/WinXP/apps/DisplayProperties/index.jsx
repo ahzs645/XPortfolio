@@ -6,6 +6,12 @@ import { useUserSettings } from '../../../contexts/UserSettingsContext';
 import { useScreensaver } from '../../../contexts/ScreensaverContext';
 import { useConfig } from '../../../contexts/ConfigContext';
 import { withBaseUrl } from '../../../utils/baseUrl';
+import { getXpPortalRoot } from '../../../utils/portalRoot';
+import {
+  DISPLAY_ZOOM_LEVELS,
+  getDisplayResolutionLabels,
+  getResolutionIndexForZoom,
+} from '../../../utils/displaySettings';
 import WindowsScreensaver from '../../../components/Screensavers/WindowsScreensaver';
 
 // Base wallpapers - the custom one will have its name derived from config
@@ -57,15 +63,6 @@ const FONT_SIZES = [
   { id: 'normal', label: 'Normal' },
   { id: 'large', label: 'Large Fonts' },
   { id: 'extra', label: 'Extra Large Fonts' },
-];
-
-const RESOLUTIONS = [
-  '640 x 480',
-  '800 x 600',
-  '1024 x 768',
-  '1152 x 864',
-  '1280 x 1024',
-  '1600 x 1200',
 ];
 
 const THEME_PRESETS = {
@@ -327,7 +324,14 @@ const SCREENSAVERS = [
 
 function DisplayProperties({ onClose, onMinimize }) {
   // Use per-user settings for wallpaper
-  const { getWallpaperPath, setWallpaperPath, colorDepth: savedColorDepth, setColorDepth } = useUserSettings();
+  const {
+    getWallpaperPath,
+    setWallpaperPath,
+    colorDepth: savedColorDepth,
+    setColorDepth,
+    displayZoom: savedDisplayZoom,
+    setDisplayZoom,
+  } = useUserSettings();
   const {
     screensaverName,
     setScreensaverName,
@@ -345,6 +349,7 @@ function DisplayProperties({ onClose, onMinimize }) {
       w.id === 'custom' ? { ...w, name: osName } : w
     );
   }, [getOSName]);
+  const resolutionOptions = useMemo(() => getDisplayResolutionLabels(), []);
   const [selected, setSelected] = useState(currentDesktop);
   const [activeTab, setActiveTab] = useState('desktop');
   const applyToMobile = true;
@@ -354,16 +359,23 @@ function DisplayProperties({ onClose, onMinimize }) {
   const [colorScheme, setColorScheme] = useState('blue');
   const [windowStyle, setWindowStyle] = useState('xp');
   const [fontSize, setFontSize] = useState('normal');
-  const [resolutionIndex, setResolutionIndex] = useState(4);
+  const [resolutionIndex, setResolutionIndex] = useState(() => getResolutionIndexForZoom(savedDisplayZoom));
   const [colorQuality, setColorQuality] = useState(savedColorDepth);
-  const applySelection = () => {
+  const hasPendingChanges = selected !== currentDesktop
+    || DISPLAY_ZOOM_LEVELS[resolutionIndex] !== savedDisplayZoom
+    || colorQuality !== savedColorDepth;
+
+  const applySelection = ({ shouldClose = true } = {}) => {
     const wallpaperPath = selected || '';
     setWallpaperPath(wallpaperPath, { isMobile: false });
     if (applyToMobile) {
       setWallpaperPath(wallpaperPath, { isMobile: true });
     }
+    setDisplayZoom(DISPLAY_ZOOM_LEVELS[resolutionIndex]);
     setColorDepth(colorQuality);
-    onClose?.();
+    if (shouldClose) {
+      onClose?.();
+    }
   };
 
   const handleTabClick = (tab) => {
@@ -656,7 +668,7 @@ function DisplayProperties({ onClose, onMinimize }) {
                         value={resolutionIndex}
                         onChange={(e) => setResolutionIndex(Number(e.target.value))}
                       />
-                      <ZoomLabel>{RESOLUTIONS[resolutionIndex]}</ZoomLabel>
+                      <ZoomLabel>{resolutionOptions[resolutionIndex]}</ZoomLabel>
                     </Fieldset>
                     <Fieldset>
                       <Legend>Color quality</Legend>
@@ -685,9 +697,14 @@ function DisplayProperties({ onClose, onMinimize }) {
         </section>
 
         <Actions>
-          <ActionButton onClick={applySelection}>OK</ActionButton>
+          <ActionButton onClick={() => applySelection()}>OK</ActionButton>
           <ActionButton onClick={onClose}>Cancel</ActionButton>
-          <ActionButton disabled>Apply</ActionButton>
+          <ActionButton
+            onClick={() => applySelection({ shouldClose: false })}
+            disabled={!hasPendingChanges}
+          >
+            Apply
+          </ActionButton>
         </Actions>
 
               </WindowSurface>
@@ -701,7 +718,7 @@ function DisplayProperties({ onClose, onMinimize }) {
           fileTypes={['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp']}
           fileTypesDesc="Image Files"
         />,
-        document.body
+        getXpPortalRoot()
       )}
     </ProgramLayout>
   );

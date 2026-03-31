@@ -92,29 +92,33 @@ for (const project of manifest.projects) {
     // 3. Copy output to deploy target
     const targetDir = resolve(PROJECT_ROOT, project.deployTarget);
 
-    // Clean target directory
-    if (existsSync(targetDir)) {
-      rmSync(targetDir, { recursive: true, force: true });
-    }
-    mkdirSync(targetDir, { recursive: true });
+    if (!project.copyFiles && !project.buildOutput) {
+      log('No deploy artifacts configured; leaving existing committed files in place.');
+    } else {
+      // Clean target directory
+      if (existsSync(targetDir)) {
+        rmSync(targetDir, { recursive: true, force: true });
+      }
+      mkdirSync(targetDir, { recursive: true });
 
-    if (project.copyFiles) {
-      // Selective copy (e.g. jspaint – no build step, copy specific files)
-      for (const entry of project.copyFiles) {
-        const src = join(projectDir, entry);
-        const dest = join(targetDir, entry);
-        if (existsSync(src)) {
-          cpSync(src, dest, { recursive: true });
+      if (project.copyFiles) {
+        // Selective copy (e.g. jspaint – no build step, copy specific files)
+        for (const entry of project.copyFiles) {
+          const src = join(projectDir, entry);
+          const dest = join(targetDir, entry);
+          if (existsSync(src)) {
+            cpSync(src, dest, { recursive: true });
+          }
+          // Silently skip missing optional files
         }
-        // Silently skip missing optional files
+      } else if (project.buildOutput) {
+        // Copy entire build output directory
+        const buildDir = join(projectDir, project.buildOutput);
+        if (!existsSync(buildDir)) {
+          throw new Error(`Build output not found: ${buildDir}`);
+        }
+        cpSync(buildDir, targetDir, { recursive: true });
       }
-    } else if (project.buildOutput) {
-      // Copy entire build output directory
-      const buildDir = join(projectDir, project.buildOutput);
-      if (!existsSync(buildDir)) {
-        throw new Error(`Build output not found: ${buildDir}`);
-      }
-      cpSync(buildDir, targetDir, { recursive: true });
     }
 
     success(`${project.name} built and deployed to ${project.deployTarget}`);

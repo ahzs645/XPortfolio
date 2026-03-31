@@ -1,5 +1,6 @@
 // Initialize audio manager first (patches Audio constructor for master volume control)
 import './utils/audioManager'
+import './utils/cursorManager'
 
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'

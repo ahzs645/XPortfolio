@@ -2,10 +2,16 @@ import React, { useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import styled from 'styled-components';
 import { VIEW_MODES } from '../constants';
+import { useUserSettings } from '../../../../contexts/UserSettingsContext';
+import { getColorDepthFilter } from '../../../../utils/colorDepthEffects';
 import { withBaseUrl } from '../../../../utils/baseUrl';
+import { toDisplayLayerPoint } from '../../../../utils/displayCoordinates';
+import { getXpPortalRoot } from '../../../../utils/portalRoot';
 
 function ViewMenu({ viewMode, onViewChange, onClose, position }) {
+  const { colorDepth } = useUserSettings();
   const menuRef = useRef(null);
+  const normalizedPosition = toDisplayLayerPoint(position);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -23,7 +29,12 @@ function ViewMenu({ viewMode, onViewChange, onClose, position }) {
   };
 
   return ReactDOM.createPortal(
-    <Container ref={menuRef} $top={position?.top} $left={position?.left}>
+    <Container
+      ref={menuRef}
+      $colorDepth={colorDepth}
+      $top={normalizedPosition?.top}
+      $left={normalizedPosition?.left}
+    >
       <MenuItem
         $active={viewMode === VIEW_MODES.THUMBNAILS}
         onClick={() => handleSelect(VIEW_MODES.THUMBNAILS)}
@@ -60,7 +71,7 @@ function ViewMenu({ viewMode, onViewChange, onClose, position }) {
         Details
       </MenuItem>
     </Container>,
-    document.body
+    getXpPortalRoot()
   );
 }
 
@@ -71,6 +82,7 @@ const Container = styled.div`
   background: white;
   border: 1px solid #808080;
   box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  filter: ${({ $colorDepth }) => getColorDepthFilter($colorDepth) || 'none'};
   z-index: 10001;
   min-width: 100px;
 `;

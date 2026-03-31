@@ -42,6 +42,14 @@ const DEFAULT_USER_PICTURES = [
   { id: 'trees', name: 'Trees', path: '/icons/users/trees.png' },
 ];
 
+const DEFAULT_USER_SETTINGS = {
+  wallpaper: null,
+  screensaver: { name: 'windows', waitMinutes: 5, enabled: true },
+  desktopIconPositions: {},
+  colorDepth: '32',
+  displayZoom: null,
+};
+
 // Simple hash function using Web Crypto API
 async function hashPassword(password) {
   if (!password) return null;
@@ -67,11 +75,7 @@ function createDefaultUser(name = 'User', picture = '/icons/users/chess.png') {
     hasPassword: false,
     passwordHash: null,
     createdAt: Date.now(),
-    settings: {
-      wallpaper: null,
-      screensaver: { name: 'windows', waitMinutes: 5, enabled: true },
-      desktopIconPositions: {},
-    },
+    settings: { ...DEFAULT_USER_SETTINGS },
   };
 }
 
@@ -273,11 +277,7 @@ export function UserAccountsProvider({ children }) {
       hasPassword: !!password,
       passwordHash,
       createdAt: Date.now(),
-      settings: {
-        wallpaper: null,
-        screensaver: { name: 'windows', waitMinutes: 5, enabled: true },
-        desktopIconPositions: {},
-      },
+      settings: { ...DEFAULT_USER_SETTINGS },
     };
 
     setUsers(prev => [...prev, newUser]);
@@ -411,10 +411,13 @@ export function UserAccountsProvider({ children }) {
   // Get current user's settings
   const getCurrentUserSettings = useCallback(() => {
     const user = getCurrentUser();
-    return user?.settings || {
-      wallpaper: null,
-      screensaver: { name: 'windows', waitMinutes: 5, enabled: true },
-      desktopIconPositions: {},
+    return {
+      ...DEFAULT_USER_SETTINGS,
+      ...(user?.settings || {}),
+      screensaver: {
+        ...DEFAULT_USER_SETTINGS.screensaver,
+        ...(user?.settings?.screensaver || {}),
+      },
     };
   }, [getCurrentUser]);
 

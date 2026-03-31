@@ -53,6 +53,72 @@ import DashedBox from '../components/DashedBox';
 import BootScreen from './BootScreen';
 import Clippy from './Clippy';
 import CRTEffect from './CRTEffect';
+import {
+  FOUR_LEVEL_TABLE,
+  EIGHT_LEVEL_TABLE,
+  THIRTY_TWO_LEVEL_TABLE,
+  SIXTY_FOUR_LEVEL_TABLE,
+  DITHER_DEPTHS,
+  getColorDepthFilter,
+  getColorDitherOpacity,
+} from '../utils/colorDepthEffects';
+
+function DisplayFilterDefs() {
+  return (
+    <HiddenFilterSvg aria-hidden="true" focusable="false">
+      <defs>
+        <filter id="xp-color-2" colorInterpolationFilters="sRGB">
+          <feColorMatrix
+            type="matrix"
+            values="
+              0.299 0.587 0.114 0 0
+              0.299 0.587 0.114 0 0
+              0.299 0.587 0.114 0 0
+              0 0 0 1 0
+            "
+          />
+          <feComponentTransfer>
+            <feFuncR type="discrete" tableValues="0 1" />
+            <feFuncG type="discrete" tableValues="0 1" />
+            <feFuncB type="discrete" tableValues="0 1" />
+          </feComponentTransfer>
+        </filter>
+
+        <filter id="xp-color-8" colorInterpolationFilters="sRGB">
+          <feComponentTransfer>
+            <feFuncR type="discrete" tableValues="0 1" />
+            <feFuncG type="discrete" tableValues="0 1" />
+            <feFuncB type="discrete" tableValues="0 1" />
+          </feComponentTransfer>
+        </filter>
+
+        <filter id="xp-color-16" colorInterpolationFilters="sRGB">
+          <feComponentTransfer>
+            <feFuncR type="discrete" tableValues={FOUR_LEVEL_TABLE} />
+            <feFuncG type="discrete" tableValues={FOUR_LEVEL_TABLE} />
+            <feFuncB type="discrete" tableValues={FOUR_LEVEL_TABLE} />
+          </feComponentTransfer>
+        </filter>
+
+        <filter id="xp-color-256" colorInterpolationFilters="sRGB">
+          <feComponentTransfer>
+            <feFuncR type="discrete" tableValues={EIGHT_LEVEL_TABLE} />
+            <feFuncG type="discrete" tableValues={EIGHT_LEVEL_TABLE} />
+            <feFuncB type="discrete" tableValues={EIGHT_LEVEL_TABLE} />
+          </feComponentTransfer>
+        </filter>
+
+        <filter id="xp-color-16bit" colorInterpolationFilters="sRGB">
+          <feComponentTransfer>
+            <feFuncR type="discrete" tableValues={THIRTY_TWO_LEVEL_TABLE} />
+            <feFuncG type="discrete" tableValues={SIXTY_FOUR_LEVEL_TABLE} />
+            <feFuncB type="discrete" tableValues={THIRTY_TWO_LEVEL_TABLE} />
+          </feComponentTransfer>
+        </filter>
+      </defs>
+    </HiddenFilterSvg>
+  );
+}
 
 function WinXP() {
   const { state, dispatch, getFocusedAppId, getActiveAppIdForTaskbar } = useDesktopReducer();
@@ -654,64 +720,70 @@ function WinXP() {
         $colorDepth={colorDepth}
         $wallpaper={wallpaperPath}
       >
-        {isDraggingFiles && isFileDropOverlayEnabled() && <DesktopDropOverlay />}
-        {droppedFiles && (
-          <FileUploadDialog
-            files={droppedFiles}
-            onConfirm={handleUploadConfirm}
-            onCancel={handleUploadCancel}
-            uploading={isUploading}
-            progress={uploadProgress}
+        <DisplayFilterDefs />
+        <PowerScene $powerState={state.powerState}>
+          {isDraggingFiles && isFileDropOverlayEnabled() && <DesktopDropOverlay />}
+          {droppedFiles && (
+            <FileUploadDialog
+              files={droppedFiles}
+              onConfirm={handleUploadConfirm}
+              onCancel={handleUploadCancel}
+              uploading={isUploading}
+              progress={uploadProgress}
+            />
+          )}
+          <Icons
+            icons={state.icons}
+            onMouseDown={onMouseDownIcon}
+            onDoubleClick={onDoubleClickIcon}
+            onContextMenu={onIconContextMenu}
+            displayFocus={state.focusing === FOCUSING.ICON}
+            appSettings={appSettings}
+            mouse={mouse}
+            selecting={state.selecting}
+            setSelectedIcons={onIconsSelected}
+            onUpdatePositions={onUpdateIconPositions}
+            onMoveToFolder={onMoveToFolder}
+            renamingIconId={renamingIconId}
+            renameValue={renameValue}
+            onRenameChange={setRenameValue}
+            onRenameSubmit={handleIconRenameSubmit}
+            onRenameCancel={handleIconRenameCancel}
+            clipboardOp={clipboardOp}
+            clipboard={clipboard}
           />
-        )}
-        <Icons
-          icons={state.icons}
-          onMouseDown={onMouseDownIcon}
-          onDoubleClick={onDoubleClickIcon}
-          onContextMenu={onIconContextMenu}
-          displayFocus={state.focusing === FOCUSING.ICON}
-          appSettings={appSettings}
-          mouse={mouse}
-          selecting={state.selecting}
-          setSelectedIcons={onIconsSelected}
-          onUpdatePositions={onUpdateIconPositions}
-          onMoveToFolder={onMoveToFolder}
-          renamingIconId={renamingIconId}
-          renameValue={renameValue}
-          onRenameChange={setRenameValue}
-          onRenameSubmit={handleIconRenameSubmit}
-          onRenameCancel={handleIconRenameCancel}
-          clipboardOp={clipboardOp}
-          clipboard={clipboard}
-        />
-        <DashedBox startPos={state.selecting} mouse={mouse} />
-        <Windows
-          apps={state.apps}
-          onMouseDown={onFocusApp}
-          onClose={onCloseApp}
-          onMinimize={onMinimizeWindow}
-          onMaximize={onMaximizeWindow}
-          focusedAppId={focusedAppId}
-        />
-        {showClippy && !(isMobile && clippyHiddenOnMobile) && (
-          <Clippy isMobile={isMobile} onHideMobile={handleHideClippyMobile} />
-        )}
-        <Footer
-          apps={state.apps}
-          onMouseDownApp={onMouseDownFooterApp}
-          focusedAppId={getActiveAppIdForTaskbar()}
-          onMouseDown={onMouseDownFooter}
-          onClickMenuItem={onClickMenuItem}
-          onLaunchInstalledApp={launchInstalledApp}
-          onMinimizeAll={onMinimizeAll}
-          crtEnabled={crtEnabled}
-          onToggleCRT={handleToggleCRT}
-          playBalloonSound={playBalloon}
-          clippyHiddenOnMobile={clippyHiddenOnMobile}
-          isMobile={isMobile}
-          onShowClippy={handleShowClippyMobile}
-        />
-        <CRTEffect enabled={crtEnabled} />
+          <DashedBox startPos={state.selecting} mouse={mouse} />
+          <Windows
+            apps={state.apps}
+            onMouseDown={onFocusApp}
+            onClose={onCloseApp}
+            onMinimize={onMinimizeWindow}
+            onMaximize={onMaximizeWindow}
+            focusedAppId={focusedAppId}
+          />
+          {showClippy && !(isMobile && clippyHiddenOnMobile) && (
+            <Clippy isMobile={isMobile} onHideMobile={handleHideClippyMobile} />
+          )}
+          <Footer
+            apps={state.apps}
+            onMouseDownApp={onMouseDownFooterApp}
+            focusedAppId={getActiveAppIdForTaskbar()}
+            onMouseDown={onMouseDownFooter}
+            onClickMenuItem={onClickMenuItem}
+            onLaunchInstalledApp={launchInstalledApp}
+            onMinimizeAll={onMinimizeAll}
+            crtEnabled={crtEnabled}
+            onToggleCRT={handleToggleCRT}
+            playBalloonSound={playBalloon}
+            clippyHiddenOnMobile={clippyHiddenOnMobile}
+            isMobile={isMobile}
+            onShowClippy={handleShowClippyMobile}
+          />
+          {DITHER_DEPTHS.has(colorDepth) && (
+            <ColorDitherOverlay $mode={colorDepth} />
+          )}
+          <CRTEffect enabled={crtEnabled} />
+        </PowerScene>
         {state.powerState !== POWER_STATE.START && (
           <Modal
             onClose={onModalClose}
@@ -772,20 +844,6 @@ const animation = {
   [POWER_STATE.LOG_OFF]: powerOffAnimation,
 };
 
-const getColorDepthFilter = (depth) => {
-  switch (depth) {
-    case '2col': return ' grayscale(1) contrast(1.5)';
-    case '8col': return ' saturate(0.15) contrast(2.5)';
-    case '8+col': return ' saturate(0.25) contrast(2)';
-    case '16col': return ' saturate(0.35) contrast(1.6)';
-    case '16+col': return ' saturate(0.45) contrast(1.4)';
-    case '256col': return ' saturate(0.65) contrast(1.15)';
-    case '256+col': return ' saturate(0.75) contrast(1.1)';
-    case '16bit': return ' saturate(0.9)';
-    default: return '';
-  }
-};
-
 const Container = styled.div`
   font-family: Tahoma, 'Noto Sans', sans-serif;
   height: 100%;
@@ -793,12 +851,12 @@ const Container = styled.div`
   position: relative;
   background: url('${({ $wallpaper }) => $wallpaper || '/bliss.jpg'}') no-repeat center center fixed;
   background-size: cover;
-  animation: ${({ $powerState }) => animation[$powerState]} 5s forwards;
   filter: ${({ $crtEnabled, $colorDepth }) => {
     const crt = $crtEnabled
       ? 'brightness(1.06) contrast(1.08) saturate(1.12)'
       : 'brightness(1.01) contrast(1.015) saturate(1.02)';
-    return crt + getColorDepthFilter($colorDepth);
+    const depthFilter = getColorDepthFilter($colorDepth);
+    return depthFilter ? `${crt} ${depthFilter}` : crt;
   }};
   transition: filter 0.3s ease;
 
@@ -806,6 +864,33 @@ const Container = styled.div`
     user-select: none;
   }
   -webkit-touch-callout: none;
+`;
+
+const PowerScene = styled.div`
+  position: relative;
+  height: 100%;
+  animation: ${({ $powerState }) => animation[$powerState]} 5s forwards;
+`;
+
+const HiddenFilterSvg = styled.svg`
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+`;
+
+const ColorDitherOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 99999;
+  mix-blend-mode: overlay;
+  opacity: ${({ $mode }) => getColorDitherOpacity($mode)};
+  background-image:
+    linear-gradient(45deg, rgba(0, 0, 0, 0.32) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.2) 75%, rgba(255, 255, 255, 0.2)),
+    linear-gradient(45deg, rgba(255, 255, 255, 0.18) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, 0.28) 75%, rgba(0, 0, 0, 0.28));
+  background-position: 0 0, 1px 1px;
+  background-size: 2px 2px;
 `;
 
 const OffScreen = styled.div`

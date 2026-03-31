@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 import styled from 'styled-components';
 import { withBaseUrl } from '../../../utils/baseUrl';
+import { getXpPortalRoot } from '../../../utils/portalRoot';
 
 // Animation data extracted from original QQ Pet
 const ANIMATIONS = [
@@ -439,7 +440,7 @@ function QQPenguin({ onClose, onMinimize }) {
         </PetOverlay>
       )}
     </div>,
-    document.body
+    getXpPortalRoot()
   );
 }
 

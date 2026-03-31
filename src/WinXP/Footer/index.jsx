@@ -9,6 +9,9 @@ import { isMobileDevice } from '../../utils/deviceDetection';
 import { withBaseUrl } from '../../utils/baseUrl';
 import useSystemSounds from '../../hooks/useSystemSounds';
 import { useUserSettings } from '../../contexts/UserSettingsContext';
+import { getColorDepthFilter } from '../../utils/colorDepthEffects';
+import { getDisplayViewport, toDisplayLayerRect } from '../../utils/displayCoordinates';
+import { getXpPortalRoot } from '../../utils/portalRoot';
 import {
   XP_TASKBAR_BACKGROUND,
   XP_TASK_BUTTON_COVER_BACKGROUND,
@@ -57,7 +60,7 @@ function Footer({
   onShowClippy,
 }) {
   const { playStart } = useSystemSounds();
-  const { windowSoundsEnabled } = useUserSettings();
+  const { windowSoundsEnabled, colorDepth } = useUserSettings();
   const [time, setTime] = useState(getTime);
   const [menuOn, setMenuOn] = useState(false);
   const [showWelcomeBalloon, setShowWelcomeBalloon] = useState(false);
@@ -156,10 +159,11 @@ function Footer({
       return;
     }
 
-    const rect = button.getBoundingClientRect();
+    const rect = toDisplayLayerRect(button.getBoundingClientRect());
+    const viewport = getDisplayViewport();
     setWindowOverflowPosition({
       left: rect.right,
-      bottom: window.innerHeight - rect.top + 2,
+      bottom: viewport.height - rect.top + 2,
     });
   }, []);
 
@@ -532,6 +536,7 @@ function Footer({
             {isWindowOverflowOpen && windowOverflowPosition && createPortal(
               <WindowOverflowMenu
                 ref={windowOverflowRef}
+                $colorDepth={colorDepth}
                 style={{
                   left: windowOverflowPosition.left,
                   bottom: windowOverflowPosition.bottom,
@@ -552,7 +557,7 @@ function Footer({
                   </WindowOverflowItem>
                 ))}
               </WindowOverflowMenu>,
-              document.body
+              getXpPortalRoot()
             )}
           </WindowOverflowAnchor>
         )}
@@ -615,7 +620,7 @@ function Footer({
       </div>
 
       {showVolumePopup && createPortal(
-        <VolumePopup ref={volumePopupRef}>
+        <VolumePopup ref={volumePopupRef} $colorDepth={colorDepth}>
           <div className="volume-label">Volume</div>
           <div className="field-row">
             <div className="is-vertical">
@@ -640,7 +645,7 @@ function Footer({
             <label htmlFor="volume-mute">Mute</label>
           </div>
         </VolumePopup>,
-        document.body
+        getXpPortalRoot()
       )}
 
       {startContextMenu && (
@@ -656,6 +661,7 @@ function Footer({
       {showWelcomeBalloon && createPortal(
         <WelcomeBalloon
           className="welcome-balloon"
+          displayColorDepth={colorDepth}
           title="Welcome to XPortfolio"
           icon="/gui/taskbar/welcome.webp"
           iconAlt="welcome"
@@ -680,7 +686,7 @@ function Footer({
             </a>
           </p>
         </WelcomeBalloon>,
-        document.body
+        getXpPortalRoot()
       )}
     </Container>
   );
@@ -761,6 +767,7 @@ const VolumePopup = styled.div`
   align-items: center;
   font-family: 'Tahoma', sans-serif;
   font-size: 11px;
+  filter: ${({ $colorDepth }) => getColorDepthFilter($colorDepth) || 'none'};
 
   .volume-label {
     color: #000;
@@ -872,6 +879,7 @@ const WindowOverflowMenu = styled.div`
   border: 1px solid #0a246a;
   box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.45);
   transform: translateX(-100%);
+  filter: ${({ $colorDepth }) => getColorDepthFilter($colorDepth) || 'none'};
 `;
 
 const WindowOverflowItem = styled.button`

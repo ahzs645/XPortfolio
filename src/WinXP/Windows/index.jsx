@@ -3,17 +3,15 @@ import styled from 'styled-components';
 
 import { useElementResize, useWindowSize } from '../../hooks';
 import ErrorBoundary from '../../components/ErrorBoundary';
+import cursorManager from '../../utils/cursorManager';
 
 // Component that changes cursor to wait state while loading
 function LoadingFallback() {
   useEffect(() => {
-    // Set the wait cursor on mount
-    const originalCursor = document.body.style.cursor;
-    document.body.style.cursor = 'url(/cursors/wait.cur), wait';
+    const modeToken = cursorManager.pushMode('progress');
 
     return () => {
-      // Restore cursor on unmount (when app finishes loading)
-      document.body.style.cursor = originalCursor;
+      modeToken.release();
     };
   }, []);
 

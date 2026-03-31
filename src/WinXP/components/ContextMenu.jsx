@@ -1,6 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import styled from 'styled-components';
+import { useUserSettings } from '../../contexts/UserSettingsContext';
+import { getColorDepthFilter } from '../../utils/colorDepthEffects';
+import { getDisplayViewport, toDisplayLayerPoint, toDisplayLayerRect } from '../../utils/displayCoordinates';
+import { getXpPortalRoot } from '../../utils/portalRoot';
 
 /**
  * Generic XP-style context menu with optional submenus and icons.
@@ -15,8 +19,9 @@ export function ContextMenu({
   overlayType = 'absolute',
   zIndex = 1000,
 }) {
+  const { colorDepth } = useUserSettings();
   const menuRef = useRef(null);
-  const [adjustedPosition, setAdjustedPosition] = useState(position);
+  const [adjustedPosition, setAdjustedPosition] = useState(() => toDisplayLayerPoint(position));
 
   // Adjust position to keep menu within viewport
   /* eslint-disable react-hooks/set-state-in-effect -- DOM measurement after render */
@@ -24,27 +29,27 @@ export function ContextMenu({
     if (!menuRef.current || !position) return;
 
     const menu = menuRef.current;
-    const rect = menu.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
+    const rect = toDisplayLayerRect(menu.getBoundingClientRect());
+    const viewport = getDisplayViewport();
+    const normalizedPosition = toDisplayLayerPoint(position);
 
-    let newX = position.x;
-    let newY = position.y;
+    let newX = normalizedPosition.x;
+    let newY = normalizedPosition.y;
 
     // Adjust if menu goes off right edge
-    if (position.x + rect.width > viewportWidth) {
-      newX = Math.max(0, viewportWidth - rect.width - 5);
+    if (normalizedPosition.x + rect.width > viewport.width) {
+      newX = Math.max(0, viewport.width - rect.width - 5);
     }
 
     // Adjust if menu goes off bottom edge
-    if (position.y + rect.height > viewportHeight) {
-      newY = Math.max(0, viewportHeight - rect.height - 5);
+    if (normalizedPosition.y + rect.height > viewport.height) {
+      newY = Math.max(0, viewport.height - rect.height - 5);
     }
 
-    if (newX !== position.x || newY !== position.y) {
+    if (newX !== normalizedPosition.x || newY !== normalizedPosition.y) {
       setAdjustedPosition({ x: newX, y: newY });
     } else {
-      setAdjustedPosition(position);
+      setAdjustedPosition(normalizedPosition);
     }
   }, [position]);
   /* eslint-enable react-hooks/set-state-in-effect */
@@ -55,6 +60,7 @@ export function ContextMenu({
     <Overlay $type={overlayType} $zIndex={zIndex} onClick={onClose}>
       <MenuBox
         ref={menuRef}
+        $colorDepth={colorDepth}
         style={{ left: adjustedPosition.x, top: adjustedPosition.y }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -65,7 +71,7 @@ export function ContextMenu({
 
   // Use portal for fixed positioning to escape any CSS transforms
   if (overlayType === 'fixed') {
-    return createPortal(menuContent, document.body);
+    return createPortal(menuContent, getXpPortalRoot());
   }
 
   return menuContent;
@@ -143,6 +149,7 @@ const MenuBox = styled.div`
   min-width: 180px;
   padding: 2px 0;
   color: #000;
+  filter: ${({ $colorDepth }) => getColorDepthFilter($colorDepth) || 'none'};
 `;
 
 const MenuItem = styled.div`

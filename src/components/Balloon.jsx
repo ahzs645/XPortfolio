@@ -1,5 +1,7 @@
 import styled, { css, keyframes } from 'styled-components';
 import { withBaseUrl } from '../utils/baseUrl';
+import { getColorDepthFilter } from '../utils/colorDepthEffects';
+import { getDisplayViewport, toDisplayLayerPoint } from '../utils/displayCoordinates';
 
 const fadeIn = keyframes`
   from {
@@ -32,6 +34,16 @@ const BalloonFrame = styled.div`
   padding: 10px;
   box-shadow: none;
   filter: drop-shadow(3px 3px 2px #00000099);
+  ${({ $displayColorDepth }) => {
+    const depthFilter = getColorDepthFilter($displayColorDepth);
+    if (!depthFilter) {
+      return '';
+    }
+
+    return css`
+      filter: ${depthFilter} drop-shadow(3px 3px 2px #00000099);
+    `;
+  }}
   font-size: 11px;
   animation: ${({ $animate, $isClosing }) =>
     $animate
@@ -213,18 +225,20 @@ export default function Balloon({
   isClosing = false,
   animate = false,
   className,
+  displayColorDepth,
   ...rest
 }) {
   let computedArrowOffset = arrowOffset;
   let anchorStyle = null;
 
   if (anchor) {
+    const normalizedAnchor = toDisplayLayerPoint(anchor);
     const bubbleWidth = width || 240;
     const padding = 8;
-    const centerX = (anchor.x ?? 0) + (anchor.width ? anchor.width / 2 : 0) + (offset?.x || 0);
+    const centerX = (normalizedAnchor.x ?? 0) + (normalizedAnchor.width ? normalizedAnchor.width / 2 : 0) + (offset?.x || 0);
     const arrowHeight = 18; // visual height of the tail
-    const top = (anchor.y ?? 0) + (offset?.y || 0) - arrowHeight;
-    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : bubbleWidth;
+    const top = (normalizedAnchor.y ?? 0) + (offset?.y || 0) - arrowHeight;
+    const viewportWidth = typeof window !== 'undefined' ? getDisplayViewport().width : bubbleWidth;
     const unclampedLeft = centerX - bubbleWidth / 2;
     const clampedLeft = Math.max(padding, Math.min(unclampedLeft, viewportWidth - bubbleWidth - padding));
     const arrowFromLeft = Math.max(12, Math.min(bubbleWidth - 12, centerX - clampedLeft));
@@ -243,6 +257,7 @@ export default function Balloon({
   const frame = (
     <BalloonFrame
       className={className}
+      $displayColorDepth={displayColorDepth}
       $width={width}
       $iconSize={iconSize}
       $arrowOffset={computedArrowOffset}

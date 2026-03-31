@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import Balloon from '../Balloon';
 import { initUpdateChecker } from '../../utils/updateChecker';
 import useSystemSounds from '../../hooks/useSystemSounds';
+import { useUserSettings } from '../../contexts/UserSettingsContext';
 
 // For testing: window.triggerUpdate() or Ctrl+Shift+U
 const DEV_MODE = import.meta.env.DEV;
@@ -19,6 +20,7 @@ export default function UpdateToast() {
   const [isVisible, setIsVisible] = useState(false);
   const [anchor, setAnchor] = useState(null);
   const { playBalloon } = useSystemSounds();
+  const { colorDepth } = useUserSettings();
 
   const computeAnchor = useCallback(() => {
     const el = document.querySelector('.tray-icon--update');
@@ -159,6 +161,7 @@ export default function UpdateToast() {
   return (
     <UpdateBalloon
       className="update-balloon"
+      displayColorDepth={colorDepth}
       icon="/gui/taskbar/windows-update.png"
       iconAlt="Windows Update"
       title="Update Available"

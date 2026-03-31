@@ -4,9 +4,13 @@ import styled from 'styled-components';
 import { POWER_STATE } from '../constants';
 import { withBaseUrl } from '../../utils/baseUrl';
 import useSystemSounds from '../../hooks/useSystemSounds';
+import { useUserSettings } from '../../contexts/UserSettingsContext';
+import { getColorDepthFilter } from '../../utils/colorDepthEffects';
+import { getXpPortalRoot } from '../../utils/portalRoot';
 
 function Modal({ onClose, onRestart, onLogOff, onShutDown, onShutDownWithoutUpdates, mode, hasUpdates = false }) {
   const { playShutdown } = useSystemSounds();
+  const { colorDepth } = useUserSettings();
   const isLogOff = mode === POWER_STATE.LOG_OFF;
   const isTurnOff = mode === POWER_STATE.TURN_OFF;
 
@@ -31,7 +35,10 @@ function Modal({ onClose, onRestart, onLogOff, onShutDown, onShutDownWithoutUpda
 
   return ReactDOM.createPortal(
     <Overlay>
-      <DialogContainer $hasUpdates={hasUpdates && isTurnOff}>
+      <DialogContainer
+        $colorDepth={colorDepth}
+        $hasUpdates={hasUpdates && isTurnOff}
+      >
         <DialogBody>
           <DialogHeader>
             <DialogHeaderText>
@@ -93,7 +100,7 @@ function Modal({ onClose, onRestart, onLogOff, onShutDown, onShutDownWithoutUpda
         </DialogBody>
       </DialogContainer>
     </Overlay>,
-    document.body
+    getXpPortalRoot()
   );
 }
 
@@ -112,6 +119,7 @@ const DialogContainer = styled.div`
   border: 1px solid #2b2b2b;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   color: #000;
+  filter: ${({ $colorDepth }) => getColorDepthFilter($colorDepth) || 'none'};
   font-family: Tahoma, Arial, sans-serif;
   font-size: 11px;
   padding: 0;

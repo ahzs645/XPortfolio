@@ -15,9 +15,23 @@ const BUILD_KEY = 'xportfolio-build-number';
 
 // Check interval (5 minutes)
 const UPDATE_CHECK_INTERVAL = 5 * 60 * 1000;
+const LOOPBACK_HOSTNAMES = new Set(['localhost', '127.0.0.1', '::1']);
+const ENABLE_DEV_UPDATE_CHECKS = import.meta.env.VITE_ENABLE_DEV_UPDATE_CHECKS === 'true';
 
 // Callbacks for UI updates
 let onUpdateAvailable = null;
+
+function isLocalDevServer() {
+  if (ENABLE_DEV_UPDATE_CHECKS) {
+    return false;
+  }
+
+  if (import.meta.env.DEV) {
+    return true;
+  }
+
+  return LOOPBACK_HOSTNAMES.has(window.location.hostname);
+}
 
 /**
  * Get stored version info from localStorage
@@ -143,6 +157,11 @@ export function setUpdateCallback(callback) {
  */
 export function initUpdateChecker(onUpdate) {
   onUpdateAvailable = onUpdate;
+
+  if (isLocalDevServer()) {
+    console.log('[Update] Skipping automatic update checks on local/dev server');
+    return;
+  }
 
   // Clean up cache-busting param from URL after reload
   const url = new URL(window.location.href);

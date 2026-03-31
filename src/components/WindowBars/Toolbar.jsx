@@ -2,6 +2,10 @@ import React, { useState, useCallback, useRef, useLayoutEffect, useEffect } from
 import { createPortal } from 'react-dom';
 import styled, { css } from 'styled-components';
 import { withBaseUrl } from '../../utils/baseUrl';
+import { useUserSettings } from '../../contexts/UserSettingsContext';
+import { getColorDepthFilter } from '../../utils/colorDepthEffects';
+import { toDisplayLayerRect } from '../../utils/displayCoordinates';
+import { getXpPortalRoot } from '../../utils/portalRoot';
 
 /**
  * Toolbar Component - Windows XP style toolbar with buttons
@@ -46,6 +50,7 @@ import { withBaseUrl } from '../../utils/baseUrl';
  * />
  */
 function Toolbar({ items = [], onAction, onChange, bottomBorder = true, topBorder = false, variant = 'default' }) {
+  const { colorDepth } = useUserSettings();
   const isCompact = variant === 'compact';
   const [pressedButton, setPressedButton] = useState(null);
   const [overflowMenuOpen, setOverflowMenuOpen] = useState(false);
@@ -171,7 +176,7 @@ function Toolbar({ items = [], onAction, onChange, bottomBorder = true, topBorde
   // Handle chevron click
   const handleChevronClick = useCallback(() => {
     if (!overflowMenuOpen && chevronRef.current) {
-      const rect = chevronRef.current.getBoundingClientRect();
+      const rect = toDisplayLayerRect(chevronRef.current.getBoundingClientRect());
       setOverflowDropdownPos({
         top: rect.bottom,
         left: rect.right - 160, // 160 is min-width of dropdown, align right edge
@@ -366,10 +371,14 @@ function Toolbar({ items = [], onAction, onChange, bottomBorder = true, topBorde
         )}
       </ToolbarRow>
       {overflowMenuOpen && hasOverflow && createPortal(
-        <OverflowDropdown $isCompact={isCompact} style={{ top: overflowDropdownPos.top, left: overflowDropdownPos.left }}>
+        <OverflowDropdown
+          $colorDepth={colorDepth}
+          $isCompact={isCompact}
+          style={{ top: overflowDropdownPos.top, left: overflowDropdownPos.left }}
+        >
           {hiddenItems.map((item, index) => renderItem(item, hiddenStartIndex + index, true))}
         </OverflowDropdown>,
-        document.body
+        getXpPortalRoot()
       )}
     </ToolbarContainer>
   );
@@ -541,6 +550,7 @@ const OverflowDropdown = styled.div`
   border: 1px solid #d0d0d0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   box-sizing: border-box;
+  filter: ${({ $colorDepth }) => getColorDepthFilter($colorDepth) || 'none'};
   font-family: Tahoma, Arial, sans-serif;
   font-size: 11px;
   min-width: 160px;

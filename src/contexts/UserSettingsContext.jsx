@@ -1,8 +1,70 @@
-import React, { createContext, useContext, useCallback, useMemo, useState } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { useUserAccounts } from './UserAccountsContext';
 import { useConfig } from './ConfigContext';
+import { getDefaultDisplayZoom } from '../utils/displaySettings';
 
 const UserSettingsContext = createContext(null);
+
+function getStoredDisplayZoom() {
+  try {
+    const storedZoom = localStorage.getItem('userPreferredZoom');
+    const parsedZoom = Number.parseInt(storedZoom || '', 10);
+
+    if (Number.isFinite(parsedZoom) && parsedZoom > 0) {
+      return parsedZoom;
+    }
+  } catch {
+    // Ignore storage failures and use the runtime default.
+  }
+
+  return getDefaultDisplayZoom();
+}
+
+function applyDisplayZoomToDocument(zoom) {
+  if (typeof document === 'undefined') {
+    return;
+  }
+
+  const numericZoom = Number.parseInt(String(zoom), 10);
+  const safeZoom = Number.isFinite(numericZoom) && numericZoom > 0
+    ? numericZoom
+    : getDefaultDisplayZoom();
+  const inverseScale = `${100 / (safeZoom / 100)}%`;
+  const html = document.documentElement;
+  const body = document.body;
+  const root = document.getElementById('root');
+
+  if (!body || !root) {
+    return;
+  }
+
+  if (html) {
+    html.style.width = '';
+    html.style.height = '';
+    html.style.minHeight = '';
+  }
+
+  body.style.zoom = '';
+  body.style.width = '';
+  body.style.height = '';
+  body.style.minWidth = '';
+  body.style.minHeight = '';
+
+  root.style.zoom = '';
+  root.style.transformOrigin = 'top left';
+  root.style.transform = `scale(${safeZoom / 100})`;
+  root.style.width = inverseScale;
+  root.style.height = inverseScale;
+  root.style.minWidth = inverseScale;
+  root.style.minHeight = inverseScale;
+}
 
 /**
  * UserSettingsProvider bridges UserAccountsContext and ConfigContext
@@ -172,6 +234,8 @@ export function UserSettingsProvider({ children }) {
     }
   });
 
+  const [localDisplayZoom, setLocalDisplayZoom] = useState(getStoredDisplayZoom);
+
   // Set color depth - saves to user profile or localStorage
   const setColorDepth = useCallback((depth) => {
     if (!isLoggedIn) {
@@ -194,6 +258,41 @@ export function UserSettingsProvider({ children }) {
     }
     return localColorDepth;
   }, [isLoggedIn, currentUser, userSettings, localColorDepth]);
+
+  const setDisplayZoom = useCallback((zoom) => {
+    const parsedZoom = Number.parseInt(String(zoom), 10);
+    const nextZoom = Number.isFinite(parsedZoom) && parsedZoom > 0
+      ? parsedZoom
+      : getDefaultDisplayZoom();
+
+    try {
+      localStorage.setItem('userPreferredZoom', String(nextZoom));
+    } catch (err) {
+      console.warn('Failed to save display zoom setting', err);
+    }
+
+    if (isLoggedIn) {
+      updateCurrentUserSettings({ displayZoom: nextZoom });
+    }
+
+    setLocalDisplayZoom(nextZoom);
+  }, [isLoggedIn, updateCurrentUserSettings]);
+
+  const displayZoom = useMemo(() => {
+    if (isLoggedIn && currentUser) {
+      const savedZoom = Number.parseInt(String(userSettings?.displayZoom ?? ''), 10);
+
+      if (Number.isFinite(savedZoom) && savedZoom > 0) {
+        return savedZoom;
+      }
+    }
+
+    return localDisplayZoom;
+  }, [isLoggedIn, currentUser, userSettings, localDisplayZoom]);
+
+  useEffect(() => {
+    applyDisplayZoomToDocument(displayZoom);
+  }, [displayZoom]);
 
   // Memoized value for direct access
   const windowSoundsEnabled = useMemo(() => {
@@ -225,6 +324,8 @@ export function UserSettingsProvider({ children }) {
     // Display settings
     colorDepth,
     setColorDepth,
+    displayZoom,
+    setDisplayZoom,
 
     // User info
     isLoggedIn,

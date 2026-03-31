@@ -5,6 +5,7 @@ import { useConfig } from '../../contexts/ConfigContext';
 import { useUserAccounts } from '../../contexts/UserAccountsContext';
 import useSystemSounds from '../../hooks/useSystemSounds';
 import { withBaseUrl } from '../../utils/baseUrl';
+import cursorManager from '../../utils/cursorManager';
 
 function BootScreen({ bootState, onComplete }) {
   const [showLogin, setShowLogin] = useState(false);
@@ -39,6 +40,20 @@ function BootScreen({ bootState, onComplete }) {
     }
   }, [users, usersLoading, selectedUserId]);
   /* eslint-enable react-hooks/set-state-in-effect */
+
+  useEffect(() => {
+    if (!showLogin) {
+      const modeToken = cursorManager.pushMode('none');
+      return () => modeToken.release();
+    }
+
+    if (showWelcome) {
+      const modeToken = cursorManager.pushMode('progress');
+      return () => modeToken.release();
+    }
+
+    return undefined;
+  }, [showLogin, showWelcome]);
 
   /* eslint-disable react-hooks/set-state-in-effect -- boot sequence state transitions */
   useEffect(() => {
@@ -322,11 +337,8 @@ const fadeIn = keyframes`
 `;
 
 const BootContainer = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: absolute;
+  inset: 0;
   background: #000;
   display: flex;
   flex-direction: column;
@@ -427,10 +439,9 @@ const BootBottomRight = styled.div`
 
 // Login Screen Styles
 const LoginScreen = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
+  position: absolute;
+  inset: 0;
+  width: 100%;
   height: 100%;
   background-color: #002d99;
   color: #fff;
@@ -991,7 +1002,7 @@ const BottomRight = styled.div`
 
 // Welcome Message (overlay on login screen)
 const WelcomeMessage = styled.div`
-  position: fixed;
+  position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);

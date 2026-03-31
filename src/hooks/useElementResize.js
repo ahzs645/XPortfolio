@@ -717,23 +717,23 @@ function getComputedPagePosition(e, boundary) {
 function getCursorStyle(pos) {
   switch (pos) {
     case 'top':
-      return 'n-resize';
+      return 'url("/ui/cursors/resize_ns.cur"), ns-resize';
     case 'topRight':
-      return 'ne-resize';
+      return 'url("/ui/cursors/resize_nesw.cur"), nesw-resize';
     case 'right':
-      return 'e-resize';
+      return 'url("/ui/cursors/resize_we.cur"), ew-resize';
     case 'bottomRight':
-      return 'se-resize';
+      return 'url("/ui/cursors/resize_nwse.cur"), nwse-resize';
     case 'bottom':
-      return 's-resize';
+      return 'url("/ui/cursors/resize_ns.cur"), ns-resize';
     case 'bottomLeft':
-      return 'sw-resize';
+      return 'url("/ui/cursors/resize_nesw.cur"), nesw-resize';
     case 'left':
-      return 'w-resize';
+      return 'url("/ui/cursors/resize_we.cur"), ew-resize';
     case 'topLeft':
-      return 'nw-resize';
+      return 'url("/ui/cursors/resize_nwse.cur"), nwse-resize';
     default:
-      return 'auto';
+      return 'inherit';
   }
 }
 
