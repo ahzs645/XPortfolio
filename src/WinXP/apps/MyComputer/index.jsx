@@ -473,21 +473,49 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   }, [currentFolder, currentFolderData, explorer.fullPathInTitle, isMyComputerRoot, isControlPanel, onUpdateHeader, shortPathString]);
 
   const handleItemDoubleClick = useCallback((item) => {
-    if (item.type === 'folder' || item.type === 'drive') {
+    const openFolderTarget = (targetId) => {
       if (explorer.openFoldersInNewWindow) {
-        openApp('My Computer', { initialPath: item.id });
+        openApp('My Computer', { initialPath: targetId });
       } else {
-        navigateTo(item.id);
+        navigateTo(targetId);
       }
+    };
+
+    if (item.type === 'folder' || item.type === 'drive') {
+      openFolderTarget(item.id);
     } else if (item.type === 'file') {
       openFile(item);
-    } else if (item.type === 'executable' || item.type === 'shortcut') {
-      // Executables and shortcuts have a target property that specifies the app to launch
+    } else if (item.type === 'shortcut') {
+      const targetItem = item.fsId ? fileSystem?.[item.fsId] : null;
+
+      if (targetItem) {
+        if (
+          item.targetType === 'folder' ||
+          targetItem.type === 'folder' ||
+          targetItem.type === 'drive'
+        ) {
+          openFolderTarget(targetItem.id);
+          return;
+        }
+
+        if (item.targetType === 'file' || targetItem.type === 'file') {
+          openFile(targetItem);
+          return;
+        }
+
+        if ((item.targetType === 'executable' || targetItem.type === 'executable') && targetItem.target) {
+          openApp(targetItem.target);
+          return;
+        }
+      }
+
       if (item.target) {
         openApp(item.target);
       }
+    } else if (item.type === 'executable' && item.target) {
+      openApp(item.target);
     }
-  }, [explorer.openFoldersInNewWindow, navigateTo, openFile, openApp]);
+  }, [explorer.openFoldersInNewWindow, fileSystem, navigateTo, openFile, openApp]);
 
   const handleContainerClick = useCallback(() => {
     baseHandleContainerClick();

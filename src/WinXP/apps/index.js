@@ -32,6 +32,7 @@ const QQArcade = lazy(() => import('./QQArcade'));
 const Installer = lazy(() => import('./Installer'));
 const IframeApp = lazy(() => import('./IframeApp'));
 const Messenger = lazy(() => import('./Messenger'));
+const SoundsAndAudioDevices = lazy(() => import('./SoundsAndAudioDevices'));
 const SpeechProperties = lazy(() => import('./SpeechProperties'));
 const SystemProperties = lazy(() => import('./SystemProperties'));
 const SystemRecovery = lazy(() => import('./SystemRecovery'));
@@ -166,6 +167,7 @@ export const appCategoryMap = {
   'Control Panel': APP_CATEGORIES.SYSTEM,
   'Display Properties': APP_CATEGORIES.SYSTEM,
   'Date/Time Properties': APP_CATEGORIES.SYSTEM,
+  'Sounds and Audio Devices': APP_CATEGORIES.SYSTEM,
   'System Properties': APP_CATEGORIES.SYSTEM,
   'Speech Properties': APP_CATEGORIES.SYSTEM,
   'Taskbar Properties': APP_CATEGORIES.SYSTEM,
@@ -367,6 +369,11 @@ export const desktopIconCatalog = {
     title: 'Speech Properties',
     component: SpeechProperties,
   },
+  soundsAndAudioDevices: {
+    icon: XP_ICONS.speechProperties,
+    title: 'Sounds and Audio Devices',
+    component: SoundsAndAudioDevices,
+  },
   systemProperties: {
     icon: XP_ICONS.systemProperties,
     title: 'System Properties',
@@ -524,6 +531,7 @@ const CATALOG_TO_APP_KEY = {
   installer: 'App Installer',
   messenger: 'Windows Messenger',
   msnMessenger: 'MSN Messenger',
+  soundsAndAudioDevices: 'Sounds and Audio Devices',
   speechProperties: 'Speech Properties',
   systemProperties: 'System Properties',
   userAccounts: 'User Accounts',
@@ -1437,6 +1445,26 @@ export const appSettings = {
     defaultOffset: {
       x: 200,
       y: 100,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'Sounds and Audio Devices': {
+    header: {
+      icon: XP_ICONS.speechProperties,
+      title: 'Sounds and Audio Devices Properties',
+      buttons: ['close'],
+    },
+    component: SoundsAndAudioDevices,
+    defaultSize: {
+      width: 436,
+      height: 470,
+    },
+    defaultOffset: {
+      x: 190,
+      y: 90,
     },
     resizable: false,
     minimized: false,

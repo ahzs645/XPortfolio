@@ -137,7 +137,7 @@ const CONTROL_PANEL_ITEMS = [
     name: 'Sounds and Audio Devices',
     icon: '/icons/xp/speech.png',
     description: 'Change sound scheme and configure the settings for speakers and recording devices.',
-    action: 'Speech Properties',
+    action: 'Sounds and Audio Devices',
   },
   {
     id: 'speech',
@@ -204,7 +204,7 @@ const CONTROL_PANEL_CATEGORIES = [
     name: 'Sounds, Speech, and Audio Devices',
     icon: '/icons/xp/speech.png',
     description: 'Change the computer\'s sound scheme.',
-    action: 'Speech Properties',
+    action: 'Sounds and Audio Devices',
   },
   {
     id: 'performance',

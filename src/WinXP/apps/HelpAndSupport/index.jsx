@@ -350,14 +350,33 @@ const HELP_TOPICS = {
       { title: 'The Start menu', topic: 'startmenu_overview' },
     ],
   },
+  legacy_classic: {
+    title: 'Classic Help and Support',
+    content: null,
+    legacyPath: '/apps/help-and-support/legacy/index.html',
+    relatedLinks: [
+      { title: 'Windows Updates help', topic: 'legacy_updates' },
+    ],
+  },
+  legacy_updates: {
+    title: 'Windows Updates help',
+    content: null,
+    legacyPath: '/apps/help-and-support/legacy/updates.html',
+    relatedLinks: [
+      { title: 'Classic Help and Support', topic: 'legacy_classic' },
+    ],
+  },
 };
 
 // Default topic when none specified
 const DEFAULT_TOPIC = 'usercpl_overview';
 
 function HelpAndSupport({ initialTopic }) {
-  const [currentTopic, setCurrentTopic] = useState(initialTopic || DEFAULT_TOPIC);
-  const [history, setHistory] = useState([initialTopic || DEFAULT_TOPIC]);
+  const resolvedInitialTopic = initialTopic === 'updates'
+    ? 'legacy_updates'
+    : initialTopic || DEFAULT_TOPIC;
+  const [currentTopic, setCurrentTopic] = useState(resolvedInitialTopic);
+  const [history, setHistory] = useState([resolvedInitialTopic]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -412,6 +431,10 @@ function HelpAndSupport({ initialTopic }) {
             <TopicIcon src={HELP_ICON} alt="" />
             <span>Security and administration</span>
           </TopicItem>
+          <TopicItem onClick={() => navigate('legacy_classic')}>
+            <TopicIcon src={HELP_ICON} alt="" />
+            <span>Classic Help and Support pages</span>
+          </TopicItem>
         </TopicList>
       </WelcomeSection>
       <WelcomeSection>
@@ -428,7 +451,19 @@ function HelpAndSupport({ initialTopic }) {
 
   const renderTopicContent = () => (
     <TopicContent>
-      <ArticleContent dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(topic.content) }} />
+      {topic.legacyPath ? (
+        <LegacyContainer>
+          <LegacyIntro>
+            Legacy static content imported from the archived `helpUI` snapshot.
+          </LegacyIntro>
+          <LegacyFrame
+            src={withBaseUrl(topic.legacyPath)}
+            title={topic.title}
+          />
+        </LegacyContainer>
+      ) : (
+        <ArticleContent dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(topic.content) }} />
+      )}
       {topic.relatedLinks && topic.relatedLinks.length > 0 && (
         <RelatedLinks>
           <h3>Related Topics</h3>
@@ -487,6 +522,14 @@ function HelpAndSupport({ initialTopic }) {
               <SidebarLink onClick={() => navigate('usercpl_overview')}>
                 <img src={HELP_ICON} alt="" />
                 User Accounts
+              </SidebarLink>
+              <SidebarLink onClick={() => navigate('legacy_classic')}>
+                <img src={HELP_ICON} alt="" />
+                Classic Help Pages
+              </SidebarLink>
+              <SidebarLink onClick={() => navigate('legacy_updates')}>
+                <img src={HELP_ICON} alt="" />
+                Windows Updates
               </SidebarLink>
             </SidebarLinks>
           </SidebarPane>
@@ -721,6 +764,26 @@ const TopicIcon = styled.img`
 `;
 
 const TopicContent = styled.div``;
+
+const LegacyContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  min-height: 480px;
+`;
+
+const LegacyIntro = styled.div`
+  color: #003399;
+  font-size: 12px;
+`;
+
+const LegacyFrame = styled.iframe`
+  flex: 1;
+  min-height: 420px;
+  border: 1px solid #8db2d8;
+  background: #fff;
+`;
 
 const ArticleContent = styled.div`
   line-height: 1.5;

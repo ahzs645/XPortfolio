@@ -48,6 +48,10 @@ const DEFAULT_USER_SETTINGS = {
   desktopIconPositions: {},
   colorDepth: '32',
   displayZoom: null,
+  sound: {
+    activeSchemeName: 'Windows Default',
+    schemes: {},
+  },
 };
 
 // Simple hash function using Web Crypto API
@@ -417,6 +421,10 @@ export function UserAccountsProvider({ children }) {
       screensaver: {
         ...DEFAULT_USER_SETTINGS.screensaver,
         ...(user?.settings?.screensaver || {}),
+      },
+      sound: {
+        ...DEFAULT_USER_SETTINGS.sound,
+        ...(user?.settings?.sound || {}),
       },
     };
   }, [getCurrentUser]);

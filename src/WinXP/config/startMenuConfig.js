@@ -236,6 +236,13 @@ export const START_MENU_CATALOG = {
     title: 'Speech Properties',
     description: 'Text-to-speech settings',
   },
+  soundsAndAudioDevices: {
+    type: 'program',
+    appKey: 'Sounds and Audio Devices',
+    icon: '/icons/xp/tray/sound.png',
+    title: 'Sounds and Audio Devices',
+    description: 'Sound schemes and audio settings',
+  },
   systemProperties: {
     type: 'program',
     appKey: 'System Properties',
@@ -489,7 +496,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Entertainment',
     icon: '/icons/folder-icon.png',
-    items: ['mediaPlayer', 'mediaPlayerClassic', 'winamp', 'soundRecorder', 'volumeControl', 'flashPlayer'],
+    items: ['mediaPlayer', 'mediaPlayerClassic', 'winamp', 'soundRecorder', 'volumeControl', 'soundsAndAudioDevices', 'flashPlayer'],
   },
   myProjects: {
     type: 'folder',

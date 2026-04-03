@@ -6,6 +6,7 @@ import { SYSTEM_IDS } from './constants';
 import { buildDesktopShortcuts, DEFAULT_DESKTOP_PROGRAMS } from './desktopShortcuts';
 import { convertCvProjectToFolderProject } from './projectHelpers';
 import { createInitialFileSystem } from './initialFileSystem';
+import { applyReferenceCDriveSeed } from './referenceSeed';
 import {
   migrateToNewStructure,
   ensureDesktopShortcuts,
@@ -97,6 +98,7 @@ export function FileSystemProvider({ children }) {
 
         ensureAdditionalDrives(fs);
         ensureWindowsFolder(fs);
+        applyReferenceCDriveSeed(fs);
         ensureShellArtifacts(fs);
         ensureMetadataIcons(fs);
 

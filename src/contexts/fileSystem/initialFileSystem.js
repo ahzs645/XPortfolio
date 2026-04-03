@@ -1,5 +1,6 @@
 import { XP_ICONS, SYSTEM_IDS, fileIcons, SHORTCUT_SIZE } from './constants';
 import { createProjectFolderItems } from './projectHelpers';
+import { applyReferenceCDriveSeed } from './referenceSeed';
 
 // Program definitions for Program Files folder
 // Each program has a folder containing an executable that launches the app
@@ -30,20 +31,30 @@ export const DESKTOP_INI_CONTENT = [
 
 // Windows XP system sound files (mapped to existing public/sounds/ assets)
 export const WINDOWS_MEDIA_FILES = [
-  { id: 'media-startup', name: 'Windows XP Startup.wav', path: '/sounds/login.wav', size: 424644 },
-  { id: 'media-shutdown', name: 'Windows XP Shutdown.wav', path: '/sounds/shutdown.wav', size: 146916 },
-  { id: 'media-logoff', name: 'Windows XP Logoff Sound.wav', path: '/sounds/logoff.wav', size: 146916 },
-  { id: 'media-logon', name: 'Windows XP Logon Sound.wav', path: '/sounds/login.wav', size: 424644 },
-  { id: 'media-start', name: 'Windows XP Start.wav', path: '/sounds/start.wav', size: 84492 },
-  { id: 'media-error', name: 'Windows XP Error.wav', path: '/sounds/error.wav', size: 41124 },
-  { id: 'media-critical-stop', name: 'Windows XP Critical Stop.wav', path: '/sounds/error.wav', size: 73764 },
-  { id: 'media-exclamation', name: 'Windows XP Exclamation.wav', path: '/sounds/exclamation.wav', size: 84492 },
+  { id: 'media-alert', name: 'alert.wav', path: '/sounds/alert.wav', size: 89084 },
   { id: 'media-balloon', name: 'Windows XP Balloon.wav', path: '/sounds/balloon.wav', size: 34236 },
+  { id: 'media-battcritical', name: 'Windows XP Battery Critical.wav', path: '/sounds/battcritical.wav', size: 56366 },
+  { id: 'media-chimes', name: 'chimes.wav', path: '/sounds/chimes.wav', size: 274292 },
+  { id: 'media-chord', name: 'chord.wav', path: '/sounds/chord.wav', size: 198292 },
+  { id: 'media-critical-stop', name: 'Windows XP Critical Stop.wav', path: '/sounds/error.wav', size: 73764 },
   { id: 'media-ding', name: 'Windows XP Ding.wav', path: '/sounds/ding.wav', size: 6076 },
+  { id: 'media-error', name: 'Windows XP Error.wav', path: '/sounds/error.wav', size: 41124 },
+  { id: 'media-exclamation', name: 'Windows XP Exclamation.wav', path: '/sounds/exclamation.wav', size: 84492 },
+  { id: 'media-hdw-fail', name: 'Windows XP Hardware Fail.wav', path: '/sounds/hdw_fail.wav', size: 57702 },
+  { id: 'media-hdw-insert', name: 'Windows XP Hardware Insert.wav', path: '/sounds/hdw_insert.wav', size: 119468 },
+  { id: 'media-hdw-remove', name: 'Windows XP Hardware Remove.wav', path: '/sounds/hdw_remove.wav', size: 63774 },
+  { id: 'media-logoff', name: 'Windows XP Logoff Sound.wav', path: '/sounds/logoff.wav', size: 146916 },
+  { id: 'media-logon', name: 'Windows XP Logon Sound.wav', path: '/sounds/logon.wav', size: 391340 },
+  { id: 'media-lowbatt', name: 'lowbatt.wav', path: '/sounds/lowbatt.wav', size: 174824 },
+  { id: 'media-minimize', name: 'Windows XP Menu Command.wav', path: '/sounds/minimize.wav', size: 12204 },
   { id: 'media-notify', name: 'Windows XP Notify.wav', path: '/sounds/notify.wav', size: 24564 },
   { id: 'media-recycle', name: 'Windows XP Recycle.wav', path: '/sounds/recycle.wav', size: 52380 },
-  { id: 'media-minimize', name: 'Windows XP Menu Command.wav', path: '/sounds/minimize.wav', size: 12204 },
   { id: 'media-restore', name: 'Windows XP Restore.wav', path: '/sounds/restore.wav', size: 12204 },
+  { id: 'media-shutdown', name: 'Windows XP Shutdown.wav', path: '/sounds/shutdown.wav', size: 146916 },
+  { id: 'media-start', name: 'Windows XP Start.wav', path: '/sounds/start.wav', size: 84492 },
+  { id: 'media-startup', name: 'Windows XP Startup.wav', path: '/sounds/startup.wav', size: 424644 },
+  { id: 'media-tada', name: 'tada.wav', path: '/sounds/tada.wav', size: 234188 },
+  { id: 'media-xpding', name: 'xpding.wav', path: '/sounds/xpding.wav', size: 7934 },
 ];
 
 // Build the C:\WINDOWS folder hierarchy
@@ -348,7 +359,7 @@ export const createInitialFileSystem = (desktopShortcuts, projects = [], userNam
   // WINDOWS folder hierarchy
   const windowsItems = createWindowsFolderItems(now);
 
-  return {
+  const initialFileSystem = {
     // C: Drive - root of file system
     [SYSTEM_IDS.C_DRIVE]: {
       id: SYSTEM_IDS.C_DRIVE,
@@ -597,4 +608,8 @@ export const createInitialFileSystem = (desktopShortcuts, projects = [], userNam
     ...shellArtifacts,
     ...windowsItems,
   };
+
+  applyReferenceCDriveSeed(initialFileSystem, { now });
+
+  return initialFileSystem;
 };

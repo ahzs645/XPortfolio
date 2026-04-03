@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Help and Support Center</title>
+    <link rel="stylesheet" type="text/css" href="/css/help.css">
+    <style>
+        #search-results-container { display:none; }
+        #search-results { margin-top: 15px; border-top: 1px solid #ccc; padding-top: 10px; }
+        .search-result-item { margin-bottom: 10px; }
+        .search-result-item a { text-decoration: none; color: #d6dff5; font-weight: bold; }
+        .search-result-item a:hover { text-decoration: underline; }
+        .search-result-item h3 { margin: 0 0 2px 0; font-size: 1.1em; color: #e1eafe;}
+        .search-result-item p { margin: 0; font-size: 0.9em; color: #333; }
+        #trivia-list { margin: 5px 0 0 0; padding-left: 20px; }
+        #trivia-list li { margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+    <helpheader>
+        <h2>Search</h2><input id="search-input" type="text" placeholder="Search..."><img id="go" src="/res/ui/nav/go.png" alt="Go">
+        <span id="titletext">Help and About Center</span><img class="icon" src="/res/icons/help.png"><br>
+        <span id="subtext">Reborn XP Professional</span>
+    </helpheader>
+    <helpcontents>
+        <div id="leftcol">
+            <h1>Pick a Help topic</h1>
+            <ul>
+                <a href="updates.html"><li><img src="/res/icons/tray/winupdate.png"> What's new in Reborn XP</li></a>
+                <a href="guides/vfs_guide.html"><li><img src="/res/icons/tray/mydocuments.png"> Using Files and Folders (VFS)</li></a>
+                <a href="guides/customization_guide.html"><li><img src="/res/icons/tray/displayprops.png"> Customizing Your Desktop</li></a>
+                <a href="guides/making_apps_guide.html"><li><img src="/res/icons/tray/install.png"> Adding & Removing Programs</li></a>
+                
+                <a href="bundledapps.html"><li><img src="/res/icons/tray/programgroup.png"> Included Applications</li></a>
+            </ul>
+           
+            <h1>See Also</h1>
+            <ul>
+                <a href="credits.html"><li>Credits & External Resources</li></a>
+                <a href="#" onclick="window.open('https://dsc.gg/quenq', '_blank').focus();"><li>Join the Discord Community</li></a>
+                <a href="#" onclick="window.open('https://quenq.com', '_blank').focus();"><li>Project Quenq Website</li></a>
+            </ul>
+
+        </div>
+        <div id="rightcol">
+            <div id="default-content">
+                <h1 style="display: flex; align-items: center; gap: 10px;"> About Reborn XP</h1>
+                <p><strong>Reborn XP</strong> is an interactive simulation of the Windows XP operating system. It is a nostalgic passion project designed to recreate the look, feel, and functionality of one of computing's most iconic eras.</p>
+                <p>This project is not just a static app; it's a dynamic environment with a persistent virtual file system, a fully functional window manager, and a growing collection of applications that mimic their original counterparts.</p>
+                <p>Our goal is to provide a fun, educational, and entertaining experience. Whether you're here to relive memories, explore a classic OS for the first time, or see what's possible with modern web technologies, we're glad to have you.</p>
+
+                <h1 style="margin-top: 20px;">Did you know?</h1>
+                <ul id="trivia-list">
+                </ul>
+            </div>
+            <div id="search-results-container">
+                <h2>Search Results</h2>
+                <div id="search-results"></div>
+            </div>
+        </div>
+    </helpcontents>
+     <script src="res/search.js"></script>
+    <script>
+        window.onload = function() {
+            const triviaList = document.getElementById('trivia-list');
+            if (triviaList) {
+                const allTriviaTips = [
+                    'Right-click the desktop to change your wallpaper or theme properties in the Display Properties app.',
+                    'The D: drive is persistent and will not be wiped during system updates. Use it to store your personal files.',
+                    'You can install new web apps using the "Web App Installer" in the Start Menu.',
+                    'Try changing the Windows Media Player skin by clicking "Skin" in the top menu.',
+                    'The Command Prompt (cmd) has several working commands like `dir`, `cd`, `type`, and even `ping`!',
+                    'Change the color depth and enable a CRT filter in Display Properties > Settings for a more retro feel.',
+                    'You can "log off" a user without closing their apps and switch between multiple logged-on users.',
+                    'Most applications, like Notepad and Paint, can open and save files directly to the virtual C: and D: drives.',
+                    'Right-click on a file in Explorer to see contextual options, like "Send To > Local Computer" to download it.'
+                ];
+
+                const shuffledTips = allTriviaTips.sort(() => 0.5 - Math.random());
+                const selectedTips = shuffledTips.slice(0, 3);
+
+                selectedTips.forEach(tipText => {
+                    const li = document.createElement('li');
+                    li.textContent = tipText;
+                    triviaList.appendChild(li);
+                });
+            }
+            setupSearch();
+        };
+    </script>
+</body>
+</html>

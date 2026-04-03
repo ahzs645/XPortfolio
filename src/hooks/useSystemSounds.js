@@ -1,22 +1,24 @@
 import { useRef, useCallback, useEffect } from 'react';
 import { withBaseUrl } from '../utils/baseUrl';
+import { useUserSettings } from '../contexts/UserSettingsContext';
+import { DEFAULT_SOUND_SCHEME, SOUND_FILE_CATALOG, getEffectiveSoundSchemes } from '../utils/systemSounds';
 
-const SOUNDS = {
-  // Existing sounds
-  login: withBaseUrl('/sounds/login.wav'),
-  logoff: withBaseUrl('/sounds/logoff.wav'),
-  balloon: withBaseUrl('/sounds/balloon.wav'),
-  // New sounds - always enabled
-  shutdown: withBaseUrl('/sounds/shutdown.wav'),
-  error: withBaseUrl('/sounds/error.wav'),
-  exclamation: withBaseUrl('/sounds/exclamation.wav'),
-  ding: withBaseUrl('/sounds/ding.wav'),
-  notify: withBaseUrl('/sounds/notify.wav'),
-  recycle: withBaseUrl('/sounds/recycle.wav'),
-  // New sounds - optional (respect windowSoundsEnabled setting)
-  minimize: withBaseUrl('/sounds/minimize.wav'),
-  restore: withBaseUrl('/sounds/restore.wav'),
-  start: withBaseUrl('/sounds/start.wav'),
+const DIRECT_SOUND_KEYS = {
+  notify: 'notify',
+  minimize: 'minimize',
+  restore: 'restore',
+};
+
+const SYSTEM_EVENTS = {
+  login: 'logon',
+  logoff: 'logoff',
+  balloon: 'windowsBalloon',
+  shutdown: 'exitWindows',
+  error: 'criticalStop',
+  exclamation: 'exclamation',
+  ding: 'defaultBeep',
+  start: 'menuCommand',
+  recycle: 'recycleEmpty',
 };
 
 let audioCache = {};
@@ -27,7 +29,6 @@ const unlockAudio = () => {
   if (audioUnlocked) return;
   audioUnlocked = true;
 
-  // Play a tiny silent sound to unlock audio context
   const audioElement = new Audio();
   audioElement.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
   audioElement.volume = 0.01;
@@ -36,7 +37,6 @@ const unlockAudio = () => {
   }).catch(() => {});
 };
 
-// Set up unlock listeners once
 if (typeof window !== 'undefined') {
   document.addEventListener('touchstart', unlockAudio, { once: true });
   document.addEventListener('mousedown', unlockAudio, { once: true });
@@ -45,12 +45,12 @@ if (typeof window !== 'undefined') {
 
 function useSystemSounds() {
   const soundsRef = useRef({});
+  const { soundSettings } = useUserSettings();
 
-  // Preload all sounds on mount
   useEffect(() => {
-    Object.entries(SOUNDS).forEach(([key, src]) => {
+    Object.values(SOUND_FILE_CATALOG).forEach(({ key, path }) => {
       if (!audioCache[key]) {
-        const audio = new Audio(src);
+        const audio = new Audio(withBaseUrl(path));
         audio.preload = 'auto';
         audio.load();
         audioCache[key] = audio;
@@ -59,17 +59,23 @@ function useSystemSounds() {
     });
   }, []);
 
-  // Volume is now handled globally by audioManager.js
-  const playSound = useCallback((soundName, volume = 1) => {
-    const sound = soundsRef.current[soundName] || audioCache[soundName];
+  const getSchemeSoundKey = useCallback((eventId) => {
+    const schemes = getEffectiveSoundSchemes(soundSettings);
+    const activeScheme = schemes[soundSettings?.activeSchemeName] || DEFAULT_SOUND_SCHEME;
+    return activeScheme?.sounds?.[eventId] || '';
+  }, [soundSettings]);
+
+  const playByFileKey = useCallback((fileKey, volume = 1) => {
+    if (!fileKey) return;
+
+    const sound = soundsRef.current[fileKey] || audioCache[fileKey];
     if (!sound) return;
 
     try {
       sound.pause();
       sound.currentTime = 0;
-      sound.volume = volume; // audioManager will apply master volume
+      sound.volume = volume;
 
-      // Firefox needs a small delay
       const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
       const delay = isFirefox ? 20 : 0;
 
@@ -80,6 +86,11 @@ function useSystemSounds() {
       // Silently fail if audio playback fails
     }
   }, []);
+
+  const playSound = useCallback((soundName, volume = 1) => {
+    const fileKey = DIRECT_SOUND_KEYS[soundName] || getSchemeSoundKey(SYSTEM_EVENTS[soundName]);
+    playByFileKey(fileKey, volume);
+  }, [getSchemeSoundKey, playByFileKey]);
 
   const playLogin = useCallback(() => {
     playSound('login');
@@ -93,9 +104,9 @@ function useSystemSounds() {
     playSound('balloon');
   }, [playSound]);
 
-  // Prewarm balloon sound (silent play to prevent delay on first use)
   const prewarmBalloon = useCallback(() => {
-    const sound = soundsRef.current.balloon || audioCache.balloon;
+    const fileKey = getSchemeSoundKey(SYSTEM_EVENTS.balloon);
+    const sound = soundsRef.current[fileKey] || audioCache[fileKey];
     if (!sound) return;
 
     sound.volume = 0.01;
@@ -107,9 +118,8 @@ function useSystemSounds() {
     }).catch(() => {
       sound.volume = 1;
     });
-  }, []);
+  }, [getSchemeSoundKey]);
 
-  // New sound functions - always enabled
   const playShutdown = useCallback(() => {
     playSound('shutdown');
   }, [playSound]);
@@ -134,7 +144,6 @@ function useSystemSounds() {
     playSound('recycle');
   }, [playSound]);
 
-  // Optional sound functions - callers should check windowSoundsEnabled setting
   const playMinimize = useCallback(() => {
     playSound('minimize');
   }, [playSound]);
@@ -148,20 +157,18 @@ function useSystemSounds() {
   }, [playSound]);
 
   return {
-    // Existing
     playLogin,
     playLogoff,
     playBalloon,
     prewarmBalloon,
     playSound,
-    // New - always enabled
+    playByFileKey,
     playShutdown,
     playError,
     playExclamation,
     playDing,
     playNotify,
     playRecycle,
-    // New - optional (caller should check windowSoundsEnabled)
     playMinimize,
     playRestore,
     playStart,

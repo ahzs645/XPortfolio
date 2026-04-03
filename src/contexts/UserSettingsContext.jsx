@@ -9,6 +9,7 @@ import React, {
 import { useUserAccounts } from './UserAccountsContext';
 import { useConfig } from './ConfigContext';
 import { getDefaultDisplayZoom } from '../utils/displaySettings';
+import { DEFAULT_SOUND_SETTINGS } from '../utils/systemSounds';
 
 const UserSettingsContext = createContext(null);
 
@@ -180,6 +181,55 @@ export function UserSettingsProvider({ children }) {
     updateCurrentUserSettings({ desktopIconPositions: positions });
   }, [isLoggedIn, updateCurrentUserSettings]);
 
+  const getSoundSettings = useCallback(() => {
+    if (!isLoggedIn || !currentUser) {
+      try {
+        const saved = localStorage.getItem('xpSoundSettings');
+        if (saved) {
+          return {
+            ...DEFAULT_SOUND_SETTINGS,
+            ...JSON.parse(saved),
+          };
+        }
+      } catch {
+        // Ignore storage failures and fall back to defaults.
+      }
+
+      return { ...DEFAULT_SOUND_SETTINGS };
+    }
+
+    return {
+      ...DEFAULT_SOUND_SETTINGS,
+      ...(userSettings?.sound || {}),
+      schemes: {
+        ...DEFAULT_SOUND_SETTINGS.schemes,
+        ...(userSettings?.sound?.schemes || {}),
+      },
+    };
+  }, [currentUser, isLoggedIn, userSettings]);
+
+  const setSoundSettings = useCallback((updates) => {
+    const current = getSoundSettings();
+    const next = {
+      ...current,
+      ...updates,
+      schemes: {
+        ...(updates?.schemes || current.schemes),
+      },
+    };
+
+    if (!isLoggedIn) {
+      try {
+        localStorage.setItem('xpSoundSettings', JSON.stringify(next));
+      } catch (err) {
+        console.warn('Failed to save sound settings', err);
+      }
+      return;
+    }
+
+    updateCurrentUserSettings({ sound: next });
+  }, [getSoundSettings, isLoggedIn, updateCurrentUserSettings]);
+
   // Sync screensaver name for compatibility with ScreensaverContext
   const screensaverName = useMemo(() => {
     return getScreensaverSettings().name;
@@ -299,6 +349,10 @@ export function UserSettingsProvider({ children }) {
     return getWindowSoundsEnabled();
   }, [getWindowSoundsEnabled]);
 
+  const soundSettings = useMemo(() => {
+    return getSoundSettings();
+  }, [getSoundSettings]);
+
   const value = {
     // Wallpaper
     getWallpaperPath,
@@ -317,6 +371,9 @@ export function UserSettingsProvider({ children }) {
     setDesktopIconPositions,
 
     // Sound settings
+    soundSettings,
+    getSoundSettings,
+    setSoundSettings,
     windowSoundsEnabled,
     getWindowSoundsEnabled,
     setWindowSoundsEnabled,

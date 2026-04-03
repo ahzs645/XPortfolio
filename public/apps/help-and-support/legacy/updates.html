@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Help and Support Center - What's New</title>
+    <link rel="stylesheet" type="text/css" href="/css/help.css">
+</head>
+<body>
+    <helpheader>
+        <h2>Search</h2><input id="search-input" type="text" placeholder="Search..."><img id="go" src="/res/ui/nav/go.png" alt="Go">
+        <span id="titletext">Help and Support Center</span><img class="icon" src="/res/icons/help.png"><br>
+        <span id="subtext">Reborn XP Professional</span>
+    </helpheader>
+    <br><br>
+    <helpcontents id="updates">
+        <ul class="suggestions">
+            <h1>See Also</h1>
+            <a href="index.html"><li>Help and Support Home</li></a>
+            <a href="bundledapps.html"><li>Apps in Reborn XP</li></a>
+            <a href="credits.html"><li>Credits & External Resources</li></a>
+        </ul><br>
+
+                <section>
+    <h1>Version 3.2.0 - The Immersion Update</h1>
+    <h3>March 13, 2026</h3>
+    <p>
+        This update delivers the most authentic Windows XP experience yet, with a complete cursor system overhaul, perfected Start Menu behavior, realistic app loading, and key fixes for native apps, ads, and stability.
+    </p>
+    <ul>
+        <span><strong>Native App & Performance Fixes</strong></span>
+        <li><strong>Fixed Installation/Updates Lag:</strong> Added a concurrency limit to prevent Android app/low end devices from throttling during VFS population.</li>
+        <li><strong>Mandatory Update Overlay:</strong> Added a blocking Blue Screen-style overlay for outdated native apps (Electron and Android). Users are now clearly prompted to install the latest version.</li>
+
+        <br><span><strong>Adware Popup System</strong></span>
+        <li>Replaced intrusive full-screen video ads with authentic XP-style "Adware" dialog boxes.</li>
+
+        <br><span><strong>Authentic Cursor System</strong></span>
+        <li>The mouse cursor system has been completely overhauled to eliminate leaks from the host operating system. Your cursor will now remain a genuine Windows XP pointer (arrow, hand, working, or beam) at all times, providing a truly immersive experience. No more seeing your Mac or Windows cursor break the illusion!</li>
+        <li><strong>Realistic "Working" Cursor:</strong> We've fine-tuned the "Working in Background" cursor (the arrow with the hourglass) to appear in all the right places, exactly like it did on the original. You'll now see it when loading applications (both for the first time and from memory), opening folders in Windows Explorer, navigating back and forward in your folder history, pasting, deleting, or creating new files, emptying the Recycle Bin or restoring files, applying a new visual theme or setting a new desktop wallpaper, refreshing the desktop, and logging off a user session.</li>
+        <li><strong>Smart Application Loading:</strong> Apps now have a more realistic loading feel. The first time you open an application, it will have a slightly longer cold start delay, just like on a real PC. Subsequent launches of the same app will be much faster but still retain a subtle, snappy re-opening delay showing the working cursor to feel authentic.</li>
+
+        <br><span><strong>Perfected Start Menu Behavior</strong></span>
+        <li>The Start Menu has been re-engineered to behave identically to the original.</li>
+        <li><strong>"All Programs" Locks Open:</strong> The "All Programs" list now correctly stays highlighted and open as you move your mouse into its submenus, only closing when you move back to your pinned apps.</li>
+        <li><strong>Sticky Submenus:</strong> Folders inside "All Programs" (like "Accessories" or "Games") will now lock open and stay highlighted. They will only close when you deliberately move your mouse to a different folder at the same level, preventing accidental closures from stray mouse movements.</li>
+        <li><strong>Stability:</strong> A rare bug where the Start button could get stuck in its active state without opening the Start Menu has been fixed.</li>
+
+        <br><span><strong>Boot Screen Polish</strong></span>
+        <li><strong>Non-Draggable Boot Screen:</strong> The classic Windows XP boot animation is now locked to the screen, preventing it from being accidentally dragged around like a normal image.</li>
+    </ul>
+</section>
+
+        <section>
+    <h1>Version 3.1.0 - Hotfixes</h1>
+    <h3>February 26, 2026</h3>
+    <p>Rapid patches addressing web app loading issues and the desktop auto-updater.</p>
+    <ul>
+        <li><strong>Web App Loading:</strong> Fixed a Service Worker conflict with Cloudflare routing that caused 404 errors for apps like Paint, Pinball, and Help & Support.</li>
+        <br><span><strong>Desktop Auto-Updater Fixes & Notice</strong></span>
+        <li>Fixed a flaw in the desktop app where the auto-updater would force quit or get stuck.</li>
+        <li>Fixed Internet Explorer not loading in the desktop app. Restored Google as the default search engine and homepage, while the web and Android versions continue to use "Qooqle".</li>
+        <li><strong>Important for users on older versions of the desktop app (pre-3.0.0):</strong> Because the old code terminates the app before it can launch the installer, the auto-updater will fail. <br>
+        <strong>Fix:</strong> Uninstall the old version, then download and install fresh from our Store. This is a one-time manual step; afterward, auto-updates will work normally. Your data will remain safe during this process.</li>
+    </ul>
+</section>
+
+
+        <section>
+    <h1>Version 3.0.0 - The Unbound</h1>
+    <h3>February 25, 2026</h3>
+    <p>
+        This massive milestone represents a paradigm shift for Reborn XP, evolving from a web-based simulation into a multi-platform operating environment. Featuring a native Android application, a completely rewritten performance engine, and the long-awaited restoration of MSN Messenger, Version 3.0.0 is the definitive Reborn XP experience.
+    </p>
+    <ul>
+        <span>Introducing Reborn XP for Android</span>
+        <li>Reborn XP is now available as a native Android app! Experience Windows XP on your phone with optimized touch controls, high-DPI scaling, and hardware-accelerated performance.</li>
+        <li>Unlike the web version, the Android app's Internet Explorer allows you to browse most of the websites without CORS or iframe restrictions, providing a truly open web experience.</li>
+        <li>A dynamic, multi-touch virtual gamepad overlay has been added for touch devices. Now you can play keyboard-based Flash games and App Market titles on Mobile.</li>
+        <li>Fully resolved coordinate synchronization and DPI scaling issues across various mobile resolutions and screen sizes.</li>
+        <li>Added dynamic touch controls for 3D Pinball to make the classic game fully playable on mobile devices.</li>
+
+        <br>
+        <div style="text-align: center;">
+            <a href="https://xp.quenq.com/mobile-app" target="_blank" style="text-decoration: none;">
+                <img src="/res/symbols/android.png" style="height: 50px;border: 0;" alt="Get for Android">
+            </a>
+        </div>
+
+        <br><span>MSN Messenger 7.5 Restoration</span>
+        <li>MSN Messenger 7.5 is back! We have restored the original UI, preloaded with classic Winks, Emoticons, Nudges, and authentic sounds.</li>
+        <li>Chat with pre-integrated NPC bots and explore preloaded conversation histories to relive the golden era of instant messaging.</li>
+        <li>For real-time user-to-user chat, Chatango app is now available via the App Market.</li>
+
+        <br><span>Desktop Logic & User Experience</span>
+        <li><strong>Free Icon Positioning:</strong> Desktop icons have been converted to absolute positioning. You can now place your shortcuts anywhere on the screen.</li>
+        <li><strong>Grid Snapping & Auto-Arrange:</strong> Implemented a professional 75x75px "Align to Grid" system. Enabling "Auto Arrange" or changing "Sort By" now intelligently calculates and saves a clean layout.</li>
+        <li>Every icon's coordinates and your specific view settings are now saved individually in localStorage for each user account.</li>
+        <li>Removed the banner advertisement from the logon screen to ensure a pure, nostalgic first impression.</li>
+        <li>Fixed the "Take a Tour" balloon popup; it now correctly tracks state per user and only appears during the very first logon of a new account.</li>
+
+        <br><span>Architectural & VFS Overhaul</span>
+        <li><strong>Near-Instant Loading:</strong> Optimized the Virtual File System to make folder browsing and desktop initialization near-instant, regardless of file count.</li>
+        <li><strong>Binary Streaming:</strong> Completely rewrote VFS logic to handle large Blobs as binary streams. This prevents main-thread freezing and eliminates errors during backup/restore.</li>
+        <li>Prevented the OS interface from freezing or flashing during application installations, file uploads, and ZIP extractions.</li>
+        <li>Added native-style dialogs with real-time progress bars for all file transfer operations between Reborn XP and the host OS.</li>
+        <li>Enabled in-session caching for UI assets (icons, sounds, system files). If your internet drops after boot, the OS remains functional and visually intact (no more broken images).</li>
+
+        <br><span>Application & System Updates</span>
+        <li>Implemented an auto-update system for installed apps. If a new version is released on the Market, you will be prompted to update directly without re-opening the App Market.</li>
+        <li>The "Qooqle" search engine has returned to Internet Explorer. It features a custom proxy for web, image, and video search, allowing you to play videos directly within search results (bypassing YouTube's iframe blocks).</li>
+        <li>Backups now use binary JSZip streaming. Automatically excludes the <code>C:/RECYCLER</code> folder to save space and includes a detection system to remain backward compatible with old backup formats.</li>
+        <li>The standalone Windows app has been upgraded to Electron 40 for improved security and performance.</li>
+        <li>Resolved titlebar style issues in the Royale Noir theme when windows are maximized.</li>
+        <li>Removed native Winamp (due to skins and file association issues)</li>
+
+        <br><span>App Market Changes</span>
+        <li>GTA: Vice City</strong> and <strong>Chatango</strong> are now available.</li>
+        <li>Removed Quake 3 (due to lack of touch controls); Winamp is planned to return as a 3rd party app soon.</li>
+    </ul>
+</section>
+
+        <section>
+    <h1>Version 2.4.1 - Firefox Compatibility</h1>
+    <h3>November 24, 2025</h3>
+    <p>
+        This update introduces full compatibility with Mozilla Firefox, optimizes system performance, and streamlines the desktop application update process.
+    </p>
+    <ul>
+        <span><strong>Firefox Compatibility:</strong> Addressed critical Service Worker issues (Asset 404 errors) by improved bundling. Reborn XP now loads and functions correctly on Firefox.</span>
+        <br><span><strong>Desktop App & Bug Fixes</strong></span>
+        <li><strong>Seamless Updates:</strong> The Windows Desktop App now closes completely upon exit instead of minimizing to the system tray. This prevents file locks that previously hindered the auto-update process.</li>
+        <li><strong>Cleanup:</strong> Removed legacy background processes to reduce memory usage and improve startup times.</li>
+    </ul>
+</section>
+
+         <section>
+            <h1>Version 2.4.0 - Quality Updates</h1>
+            <h3>October 31, 2025</h3>
+            <p>
+                This update fixes several bugs, provides a smoother login experience, and includes additional key fixes requested by the community.
+            </p>
+            <ul>
+                <span><strong>Fixed Login "Jerk" and Flicker:</strong> Resolved a visual bug where the default "Bliss" wallpaper and "Luna" theme would flash for a moment during the user login sequence.</span>
+
+                <br><span><strong>Application Updates</strong></span>
+                <li><strong>Internet Explorer Search Update:</strong> The default search engine in Internet Explorer has been updated from the custom "Qooqle" to Yep.com.</li>
+
+                <br><span><strong>Desktop App & Bug Fixes</strong></span>
+                <li><strong>Improved Update Process:</strong> For the standalone desktop app, resolved an issue where updates could fail if the app was still running in the background.</li>
+                <li><strong>Minesweeper Face-Click Fix:</strong> Clicking the smiley face in Minesweeper will now correctly restart the game, even after a game has been won or lost.</li>
+                <li><strong>General Stability:</strong> Implemented various other minor bug fixes and UI polish across the operating system for a more stable and authentic experience.</li>
+            </ul>
+        </section>
+
+        <section>
+    <h1>Version 2.3.1 - VFS Fixes & App Market Returns</h1>
+    <h3>September 17, 2025</h3>
+    <p>
+        This patch addresses an urgent critical VFS pathing issue for modern web apps and re-introduces community-favorite games to the App Market.
+    </p>
+    <ul>
+        <span><strong>Core System Enhancements</strong></span>
+        <li><strong>VFS Pathing Fix for HTML5 Apps:</strong> Implemented a crucial fix in the Service Worker that correctly handles relative asset paths for HTML5 games and apps installed from the App Market.</li>
+        <li><strong>Premium State Bugfix:</strong> Fixed an issue where the Premium panel and Assistive Touch drawer would not correctly display the "Premium Active" state after a page reload, instead showing the license entry prompt again.</li>
+        <li><strong>Firefox Compatibility Notice:</strong> To ensure a quality experience, a notice is now displayed to Firefox users, recommending a Chromium-based browser or the standalone desktop application for full compatibility.</li>
+
+        <br><span><strong>App Market Updates</strong></span>
+        <li><strong>App Market Comebacks:</strong> The legendary games <strong>Quake III Arena</strong> and <strong>Angry Birds</strong> have been re-added to the App Market for installation.</li>
+    </ul>
+</section>
+
+        <section>
+            <h1>Version 2.3.0 - The Filesystem & Functionality Overhaul</h1>
+            <h3>September 15, 2025</h3>
+            <p>
+                This major update introduces a rewritten filesystem architecture, critical new features, and significant quality improvements.
+            </p>
+            <ul>
+                <span><strong>Critical Filesystem & App Enhancements</strong></span>
+                <li><strong>VFS Web Server:</strong> A Service Worker (<code>sw.js</code>) acts as a virtual web server, enabling URL-like paths (<code>/vfs/...</code>) for file access. Most apps now use direct VFS instead of blob-based methods, supporting future OS and community app development. <a href="https://github.com/Project-Quenq" target="_blank">Learn more</a>.</li>
+                <li><strong>Reborn XP Desktop App:</strong> Available for Windows. Offers hybrid/offline support and unrestricted website access in Internet Explorer. Apps work without iframe restrictions.</li>
+                <li><strong>App Store Overhaul:</strong> Hosted on GitHub with real-time bundle downloads to VFS. Supports offline games/apps and features a native client-side UI. Comprehensive API, SDK, and UI documentation for developers. <a href="https://github.com/Project-Quenq" target="_blank">Explore SDK</a>.</li>
+
+                <br><span><strong>New Features & Functionality</strong></span>
+                <li><strong>Program Defaults & "Open With":</strong> Set default programs for file types. The "Open With" context menu dynamically lists newly installed App Market apps (e.g., Notepad++ for <code>.html</code> files).</li>
+                <li><strong>Backup and Restore App:</strong> Save files and settings to D: drive or download locally for restoration. Includes Files and Settings Transfer Wizard for cross-device syncing (All Programs > Accessories > System Tools).</li>
+                <li><strong>MSN Messenger Workaround:</strong> Temporary solution included to keep you connected until the perfected MSN Messenger arrives in future updates.</li>
+                <li><strong>Sound Scheme Personalization:</strong> Create custom sound schemes for system events (e.g., startup, logoff, Start Menu, Recycle Bin). Supports user-specific schemes.</li>
+                <li><strong>Premium Subscription:</strong> Ad-free experience with quarterly, 6-month, and yearly plans via Gumroad, plus exclusive perks.</li>
+
+                <br><span><strong>System & UI Polish</strong></span>
+                <li><strong>Iframe Games/Canvases Fix:</strong> Intelligent keyboard focus restoration when interacting with Start Menu, Taskbar, or other apps.</li>
+                <li><strong>Internet Explorer Improvements:</strong> Bug fixes, rewritten default homepage, and new "Qooqle" search engine.</li>
+                <li><strong>Stand By Functionality:</strong> Added to the "Turn Off Computer" menu.</li>
+                <li><strong>Performance & UI Fixes:</strong> Resolved glitches in apps, including dialogs with excessive heights.</li>
+                <li><strong>Zip File Extraction Fix:</strong> Corrected issues and added a progress bar to extraction/compression dialogs.</li>
+                <li><strong>3D Text Screensaver:</strong> Added the classic Windows XP 3D Text screensaver.</li>
+                <li><strong>Assistive Touch Drawer Redesign:</strong> Includes a realistic CRT filter option.</li>
+                <li><strong>New Apps & Games:</strong> Expanded App Market with new additions.</li>
+            </ul>
+        </section>
+
+                <section>
+            <h1>Version 2.2.0 - The Quality & Accessibility Update</h1>
+            <h3>August 22, 2025</h3>
+            <p>
+                This release focuses on significant quality-of-life improvements, major enhancements for mobile devices, and powerful new accessibility and display features to make the Reborn XP experience more seamless and enjoyable.
+            </p>
+            <ul>
+                <span><strong>Mobile & Display Upgrades</strong></span>
+                <li><strong>Landscape Mode Enforced:</strong> On portrait devices, an overlay now prompts users to rotate to landscape mode for the best experience.</li>
+                <li><strong>Smart Window Resizing:</strong> App windows now auto-resize their height on mobile to prevent overlapping the taskbar.</li>
+                <li><strong>New Immersive Mode:</strong> Games and Web Apps installed from the Web Installer can now be set to launch in a distraction-free, true fullscreen mode. A draggable button allows you to exit easily.</li>
+
+                <br><span><strong>New Features & Functionality</strong></span>
+                <li><strong>Assistive Touch Button:</strong> A new draggable, on-screen button provides quick access to actions like entering fullscreen, sharing Reborn XP, and hiding the button itself.</li>
+                <li><strong>Auto-Login:</strong> The system will now automatically log in if only one user account exists and it has no password.</li>
+                <li><strong>Clock App Shortcut:</strong> Double-clicking the taskbar clock now opens the Date and Time Properties window.</li>
+                
+                <br><span><strong>System & UI Polish</strong></span>
+                <li><strong>Authentic Shutdown Screen:</strong> The classic "Windows is shutting down..." screen has been restored.</li>
+                <li><strong>Dynamic "New" Programs:</strong> The "new" highlight on Start Menu items now correctly disappears after a program has been launched for the first time.</li>
+                <li><strong>Improved User Avatars:</strong> Custom-uploaded pictures for user accounts are now automatically cropped to a square to prevent distortion.</li>
+                <li><strong>Font Correction:</strong> Windows Classic themes now uses the correct font in title bars.</li>
+                <li><strong>Security Update:</strong> The browser extension prompt has been removed. Instead, users are advised to download the upcoming standalone Reborn XP app from itch.io for the best compatibility.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h1>Version 2.1.0 - The "Service Pack 1" Update</h1>
+            <h3>August 5, 2025</h3>
+            <p>
+                Just like a classic XP Service Pack, this major update delivers a massive collection of new features, security enhancements, and system fixes. Version 2.0.1 enhances the core 2.0 experience with full mobile support, the definitive MSN Messenger revival, and some of the most requested community features.
+            </p>
+            <ul>
+                <span><strong>MSN Messenger Reborn</strong></span>
+                <li>Experience the definitive, fully-featured MSN Messenger revival. This is a complete overhaul, restoring the original user interface, login screen, and the full set of classic emoticons. Connect with other Reborn XP users in real-time with Global and P2P chats, and express yourself with iconic Winks and Nudges. This is the only full MSN revival on the internet—exclusively on Reborn XP.</li>
+
+                <br><span><strong>Mobile & Touch Support</strong></span>
+                <li>Reborn XP is now supported on mobile devices. Interact with the desktop using intuitive gestures: a single tap for a click, a double-tap for a double-click, and a long-press to open right-click context menus. You can now also drag and resize windows seamlessly on your phone or tablet.</li>
+
+                <br><span><strong>Enhanced User Security & Customization</strong></span>
+                <li>User accounts now support <strong>password protection</strong>. Secure your profile by adding a password through the User Accounts panel in the Control Panel. You can add or remove passwords at any time.</li>
+                <li>The Appearance settings are now smarter. When selecting a classic tiled wallpaper (BMP format), the "Position" setting will now automatically default to "Tile" for the best possible look, preventing the stretching that distorted these pixel-perfect backgrounds.</li>
+                
+                <br><span><strong>New Apps & System Fixes</strong></span>
+                <li>The App Store expands with two legendary additions: <strong>Firefox</strong> and <strong>Minecraft</strong>. Install them now and browse the web or build your world directly within Reborn XP.</li>
+                <li>A bug preventing Winamp from launching has been resolved.</li>
+                <li>Fixed a bug with Minesweeper that caused graphical glitches with its spritesheet.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h1>Version 2.0.0 - The "Whistler" Update</h1>
+            <h3>June 11, 2025</h3>
+            <p>
+                This isn't just an update; it's a new beginning. After a full year of development, Version 2.0.0 is a <b>complete, ground-up rewrite</b> of the entire operating system. Reborn XP has been transformed from a visual project into a deeply functional and immersive web-based OS simulation.
+            </p>
+            <p>
+                From the system core to the user interface, every component has been re-engineered for performance, authenticity, and unprecedented interactivity.
+            </p>
+            <p>
+                <ul>
+                    <span><strong>A Truly Interactive System</strong></span>
+                    <li>The <b>Control Panel is now alive.</b> Customize your display, manage user accounts, configure your taskbar and Start Menu, and watch the OS respond to your choices.</li>
+                    <li>The <b>theming engine is fully realized.</b> Experience the complete suite of official XP visual styles, including Luna, Royale, Zune, Watercolor, and a comprehensive library of Classic themes.</li>
+                    
+                    <br><span><strong>Deeply Functional Applications & Features</strong></span>
+                    <li>The entire <b>suite of bundled applications</b> has been completely overhauled. System utilities, multimedia players, and accessories now operate with the rich functionality you'd expect.</li>
+                    <li>A <b>true multi-user architecture</b> is now in place. Create, customize, and switch between multiple user accounts, each with its own secure files, personal settings, and desktop environment.</li>
+                    <li>The <b>App Market</b> is powered by a robust new backend, allowing you to install new programs directly into the fast and reliable virtual file system.</li>
+
+                    <br><span><strong>Unmatched Authenticity</strong></span>
+                    <li>Experience an authentic OS journey from boot to shutdown. The initial <b>first-run setup (OOBE)</b> and login processes have been perfected to mirror a real Windows XP installation.</li>
+                    <li>Countless stability fixes and performance enhancements have been implemented across the board for a fluid and responsive experience.</li>
+                </ul>
+            </p>
+        </section>
+
+        <section>
+            <h1>Version 1.0 Series — The Foundation</h1>
+            <h3>April 22, 2021 - June 2024</h3>
+            <p>
+                <ul>
+                    <span><b>The Original Vision</b></span>
+                    <li>The Reborn XP project began on April 22, 2021, as an open-source project to demonstrate the possibilities of vanilla JavaScript, HTML, and CSS. The initial goal was to create a visual simulation of the Windows XP desktop environment that could run directly in a web browser. For several years, it was hosted on GitHub and was most notably accessible via the <i>rebornxp.js.org</i> domain, prior to the acquisition of quenq.com in 2024. These early versions served as a crucial proof of concept, establishing the core desktop environment and the iconic Windows XP look.</li>
+                    <li>The experience was centered around the classic <b>Luna theme</b> and a basic set of applications with limited interactivity. This foundational work was essential for building the community and vision that led to the complete transformation in Version 2.0.0.</li>
+                </ul>
+            </p>
+        </section>
+
+    </helpcontents>
+      <script src="res/search.js"></script>
+    <script>window.onload = setupSearch;</script>
+</body>
+</html>

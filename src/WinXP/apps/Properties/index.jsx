@@ -64,6 +64,7 @@ function Properties({ onClose, itemId, itemData }) {
         file: 'File',
         folder: 'File Folder',
         drive: 'Local Disk',
+        executable: 'Application',
       };
       itemType = typeMap[item.type] || 'Unknown';
     }
@@ -82,11 +83,11 @@ function Properties({ onClose, itemId, itemData }) {
     if (item.type === 'shortcut') {
       // Shortcuts store size directly in bytes
       sizeBytes = item.size || 90;
-    } else if (item.type === 'file') {
+    } else if (item.type === 'file' || item.type === 'executable') {
       // Files might store size in bytes or KB, check magnitude
       sizeBytes = item.size || 0;
       // If size seems too small to be in bytes (likely KB), convert
-      if (sizeBytes > 0 && sizeBytes < 10000) {
+      if (item.type === 'file' && sizeBytes > 0 && sizeBytes < 10000) {
         sizeBytes = sizeBytes * 1024;
       }
     } else if (item.type === 'folder') {
