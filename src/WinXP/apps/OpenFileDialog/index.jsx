@@ -399,6 +399,8 @@ function OpenFileDialog({
     if (currentFolderId === SYSTEM_IDS.MY_DOCUMENTS) return 'My Documents';
     if (currentFolderId === SYSTEM_IDS.DESKTOP) return 'Desktop';
     if (currentFolderId === SYSTEM_IDS.C_DRIVE) return 'Local Disk (C:)';
+    if (currentFolderId === SYSTEM_IDS.D_DRIVE) return 'Local Disk (D:)';
+    if (currentFolderId === SYSTEM_IDS.E_DRIVE) return 'CD Drive (E:)';
     return getFileSystemItemDisplayName(currentFolder, {
       showFileExtensions: explorer.showFileExtensions,
     }) || 'Unknown';
@@ -409,6 +411,8 @@ function OpenFileDialog({
     if (currentFolderId === SYSTEM_IDS.MY_DOCUMENTS) return XP_ICONS.myDocuments || '/icons/xp/MyDocuments.png';
     if (currentFolderId === SYSTEM_IDS.DESKTOP) return '/icons/xp/Desktop.png';
     if (currentFolderId === SYSTEM_IDS.C_DRIVE) return XP_ICONS.localDisk || '/icons/xp/LocalDisk.png';
+    if (currentFolderId === SYSTEM_IDS.D_DRIVE) return XP_ICONS.localDisk || '/icons/xp/LocalDisk.png';
+    if (currentFolderId === SYSTEM_IDS.E_DRIVE) return XP_ICONS.driveOptical || '/icons/luna/drive_optical.png';
     return resolveFileSystemItemIcon(currentFolder, {
       folderIcon: FILE_ICONS.folder,
       driveIcon: XP_ICONS.localDisk,

@@ -13,14 +13,23 @@ import { useUserSettings } from '../../contexts/UserSettingsContext';
 import { getColorDepthFilter } from '../../utils/colorDepthEffects';
 import { getDisplayViewport, toDisplayLayerRect } from '../../utils/displayCoordinates';
 import { getXpPortalRoot } from '../../utils/portalRoot';
-import {
-  XP_TASKBAR_BACKGROUND,
-  XP_TASK_BUTTON_COVER_BACKGROUND,
-  XP_TASK_BUTTON_COVER_BOX_SHADOW,
-  XP_TASK_BUTTON_FOCUS_BACKGROUND,
-  XP_TASK_BUTTON_FOCUS_BOX_SHADOW,
-  XP_TRAY_BACKGROUND,
-} from '../styles/shellTheme';
+import { useTheme } from '../../contexts/ThemeContext';
+
+/**
+ * Process a CSS background value that may contain url() paths needing base URL prefix.
+ * Leaves gradients and other CSS values unchanged.
+ */
+function resolveThemeBg(value) {
+  if (!value) return value;
+  // If it contains a url() with a relative path, prefix it
+  return value.replace(/url\(([^)]+)\)/g, (match, path) => {
+    const trimmed = path.replace(/['"]/g, '');
+    if (trimmed.startsWith('/') && !trimmed.startsWith('//')) {
+      return `url(${withBaseUrl(trimmed)})`;
+    }
+    return match;
+  });
+}
 
 const MAX_VISIBLE_TASKBAR_WINDOWS = 2;
 
@@ -60,9 +69,11 @@ function Footer({
   const { playStart } = useSystemSounds();
   const { windowSoundsEnabled, colorDepth } = useUserSettings();
   const { taskbar, audio, setTaskbarSettings, setAudioSettings } = useShellSettings();
+  const { activeTheme, setActiveTheme } = useTheme();
   const [time, setTime] = useState(getTime);
   const [menuOn, setMenuOn] = useState(false);
   const [showWelcomeBalloon, setShowWelcomeBalloon] = useState(false);
+  const [themeBalloon, setThemeBalloon] = useState(null); // { themeId, themeName }
   const [welcomeAnchor, setWelcomeAnchor] = useState(null);
   const [hasUpdate, setHasUpdate] = useState(false);
   const [updateTooltip, setUpdateTooltip] = useState('Updates available');
@@ -424,6 +435,28 @@ function Footer({
     };
   }, []);
 
+  // Listen for theme installation events to show balloon notification
+  useEffect(() => {
+    const handleThemeInstalled = (e) => {
+      const { theme } = e.detail || {};
+      if (theme) {
+        setThemeBalloon({ themeId: theme.id, themeName: theme.name });
+        // Play balloon sound if available
+        playBalloonSound?.();
+      }
+    };
+
+    window.addEventListener('xp:theme-installed', handleThemeInstalled);
+    return () => window.removeEventListener('xp:theme-installed', handleThemeInstalled);
+  }, [playBalloonSound]);
+
+  const handleThemeBalloonApply = useCallback(() => {
+    if (themeBalloon?.themeId) {
+      setActiveTheme(themeBalloon.themeId);
+    }
+    setThemeBalloon(null);
+  }, [themeBalloon, setActiveTheme]);
+
   const handleTaskbarContextMenu = useCallback((e) => {
     // Only show context menu if clicking on the taskbar background, not on buttons
     if (
@@ -441,20 +474,33 @@ function Footer({
   }, []);
 
   return (
-    <Container onMouseDown={_onMouseDown} onContextMenu={handleTaskbarContextMenu}>
+    <Container onMouseDown={_onMouseDown} onContextMenu={handleTaskbarContextMenu} $theme={activeTheme}>
       <div className="footer__items left">
         <div ref={menuRef} className="footer__start__menu">
           {menuOn && <FooterMenu onClick={_onClickMenuItem} onLaunchInstalledApp={onLaunchInstalledApp} />}
         </div>
-        <StartButton
-          ref={startButtonRef}
-          src={withBaseUrl('/start-button.webp')}
-          alt="start"
-          onMouseDown={toggleMenu}
-          onContextMenu={handleStartContextMenu}
-          $active={menuOn}
-          draggable={false}
-        />
+        {activeTheme.startButton?.type === 'sprite' ? (
+          <SpriteStartButton
+            ref={startButtonRef}
+            role="button"
+            tabIndex={0}
+            aria-label="Start"
+            onMouseDown={toggleMenu}
+            onContextMenu={handleStartContextMenu}
+            $active={menuOn}
+            $sprite={activeTheme.startButton}
+          />
+        ) : (
+          <StartButton
+            ref={startButtonRef}
+            src={withBaseUrl('/start-button.webp')}
+            alt="start"
+            onMouseDown={toggleMenu}
+            onContextMenu={handleStartContextMenu}
+            $active={menuOn}
+            draggable={false}
+          />
+        )}
         <QuickLaunch
           enabled={taskbar.showQuickLaunch && !isMobile && !isMobileDevice()}
           onClickMenuItem={_onClickMenuItem}
@@ -477,6 +523,7 @@ function Footer({
               className={`footer__window-overflow ${hasFocusedOverflowWindow ? 'focus' : 'cover'}`}
               onClick={handleWindowOverflowToggle}
               title={`${overflowTaskbarApps.length} more open window${overflowTaskbarApps.length === 1 ? '' : 's'}`}
+              $theme={activeTheme}
             >
               <span aria-hidden="true">▲</span>
             </WindowOverflowButton>
@@ -638,6 +685,35 @@ function Footer({
         </WelcomeBalloon>,
         getXpPortalRoot()
       )}
+
+      {themeBalloon && createPortal(
+        <ThemeBalloon
+          className="theme-balloon"
+          displayColorDepth={colorDepth}
+          title="A new skin has been installed."
+          icon="/gui/taskbar/welcome.webp"
+          iconAlt="WindowBlinds"
+          width={300}
+          animate
+          onClose={() => setThemeBalloon(null)}
+        >
+          <p className="balloon__text">
+            A skin called &apos;{themeBalloon.themeName}&apos; has been installed.
+          </p>
+          <p className="balloon__text">
+            Click this tooltip to apply the skin, or you can apply this from the appearance tab in display properties.
+          </p>
+          <div className="balloon__actions">
+            <button className="balloon__btn" onClick={handleThemeBalloonApply}>
+              Apply Now
+            </button>
+            <button className="balloon__btn" onClick={() => setThemeBalloon(null)}>
+              Dismiss
+            </button>
+          </div>
+        </ThemeBalloon>,
+        getXpPortalRoot()
+      )}
     </Container>
   );
 }
@@ -671,6 +747,30 @@ const StartButton = styled.img`
   }
 `;
 
+const SpriteStartButton = styled.div`
+  height: ${({ $sprite }) => $sprite.stateHeight || 30}px;
+  width: ${({ $sprite }) => $sprite.stateWidth || 75}px;
+  cursor: pointer;
+  margin-right: 10px;
+  flex-shrink: 0;
+  background-image: url(${({ $sprite }) => withBaseUrl($sprite.spriteSheet)});
+  background-repeat: no-repeat;
+  background-size: auto 100%;
+  background-position: 0 0;
+
+  &:hover {
+    background-position: -${({ $sprite }) => $sprite.stateWidth || 75}px 0;
+  }
+
+  &:active {
+    background-position: -${({ $sprite }) => ($sprite.stateWidth || 75) * 2}px 0;
+  }
+
+  ${({ $active, $sprite }) => $active ? `
+    background-position: -${($sprite.stateWidth || 75) * 2}px 0;
+  ` : ''}
+`;
+
 const TrayIcon = styled.img`
   width: 16px;
   height: 16px;
@@ -697,6 +797,13 @@ const TrayIcon = styled.img`
 `;
 
 const WelcomeBalloon = styled(Balloon)`
+  position: fixed;
+  bottom: 50px;
+  right: 16px;
+  z-index: 9999;
+`;
+
+const ThemeBalloon = styled(Balloon)`
   position: fixed;
   bottom: 50px;
   right: 16px;
@@ -766,7 +873,7 @@ const WindowOverflowAnchor = styled.div`
 const WindowOverflowButton = styled.button`
   width: 30px;
   min-width: 30px;
-  color: #fff;
+  color: ${({ $theme }) => $theme?.taskButton?.textColor || '#fff'};
   border-radius: 2px;
   margin-top: 2px;
   margin-left: 3px;
@@ -781,39 +888,25 @@ const WindowOverflowButton = styled.button`
   border: none;
 
   &.cover {
-    background: ${XP_TASK_BUTTON_COVER_BACKGROUND};
-    box-shadow: ${XP_TASK_BUTTON_COVER_BOX_SHADOW};
+    background: ${({ $theme }) => resolveThemeBg($theme?.taskButton?.cover?.background)};
+    box-shadow: ${({ $theme }) => $theme?.taskButton?.cover?.boxShadow};
   }
 
   &.cover:hover {
-    background: linear-gradient(
-      to bottom,
-      #5ca8ff 0%,
-      #53a1fa 10%,
-      #4a9af5 30%,
-      #4293f0 60%,
-      #3c8dec 100%
-    );
+    background: ${({ $theme }) => resolveThemeBg($theme?.taskButton?.coverHover?.background)};
   }
 
   &.focus {
-    background: ${XP_TASK_BUTTON_FOCUS_BACKGROUND};
-    box-shadow: ${XP_TASK_BUTTON_FOCUS_BOX_SHADOW};
+    background: ${({ $theme }) => resolveThemeBg($theme?.taskButton?.focus?.background)};
+    box-shadow: ${({ $theme }) => $theme?.taskButton?.focus?.boxShadow};
   }
 
   &.focus:hover {
-    background: linear-gradient(
-      to bottom,
-      #1f4fb2 0%,
-      #1c4cad 15%,
-      #1948a7 40%,
-      #1644a1 70%,
-      #14419c 100%
-    );
+    background: ${({ $theme }) => resolveThemeBg($theme?.taskButton?.focusHover?.background)};
   }
 
   &:active {
-    background: #0c358a;
+    background: ${({ $theme }) => resolveThemeBg($theme?.taskButton?.focusActive?.background) || '#0c358a'};
   }
 `;
 
@@ -865,7 +958,9 @@ const WindowOverflowItem = styled.button`
 
 const Container = styled.footer`
   height: 30px;
-  background: ${XP_TASKBAR_BACKGROUND};
+  background: ${({ $theme }) => resolveThemeBg($theme.taskbar.background)};
+  ${({ $theme }) => $theme.taskbar.backgroundRepeat ? `background-repeat: ${$theme.taskbar.backgroundRepeat};` : ''}
+  ${({ $theme }) => $theme.taskbar.backgroundSize ? `background-size: ${$theme.taskbar.backgroundSize};` : ''}
   position: absolute;
   bottom: 0;
   right: 0;
@@ -882,12 +977,13 @@ const Container = styled.footer`
   }
 
   .footer__items.right {
-    background-color: #0b77e9;
     flex-shrink: 0;
-    background: ${XP_TRAY_BACKGROUND};
-    border-left: 1px solid #1042af;
-    box-shadow: inset 1px 0 1px #18bbff;
-    padding: 0 10px;
+    background: ${({ $theme }) => resolveThemeBg($theme.tray.background)};
+    ${({ $theme }) => $theme.tray.backgroundSize ? `background-size: ${$theme.tray.backgroundSize};` : ''}
+    ${({ $theme }) => $theme.tray.backgroundRepeat ? `background-repeat: ${$theme.tray.backgroundRepeat};` : ''}
+    border-left: ${({ $theme }) => $theme.tray.borderLeft || 'none'};
+    box-shadow: ${({ $theme }) => $theme.tray.boxShadow || 'none'};
+    padding: ${({ $theme }) => $theme.tray.padding || '0 10px'};
     margin-left: 10px;
     display: flex;
     align-items: center;
@@ -904,7 +1000,7 @@ const Container = styled.footer`
     flex: 0 1 150px;
     min-width: 110px;
     max-width: 150px;
-    color: #fff;
+    color: ${({ $theme }) => $theme.taskButton.textColor || '#fff'};
     border-radius: 2px;
     margin-top: 2px;
     margin-left: 3px;
@@ -933,11 +1029,12 @@ const Container = styled.footer`
 
   /* Inactive/unfocused window - raised button appearance */
   .footer__window.cover {
-    background: ${XP_TASK_BUTTON_COVER_BACKGROUND};
-    box-shadow: ${XP_TASK_BUTTON_COVER_BOX_SHADOW};
+    background: ${({ $theme }) => resolveThemeBg($theme.taskButton.cover.background)};
+    box-shadow: ${({ $theme }) => $theme.taskButton.cover.boxShadow};
   }
 
   .footer__window.cover:before {
+    ${({ $theme }) => $theme.taskButton.showTopHighlight === false ? 'display: none;' : `
     display: block;
     content: '';
     position: absolute;
@@ -946,29 +1043,23 @@ const Container = styled.footer`
     right: 2px;
     height: 1px;
     background: linear-gradient(to right, rgba(255,255,255,0.4), rgba(255,255,255,0.1));
+    `}
   }
 
   .footer__window.cover:hover {
-    background: linear-gradient(
-      to bottom,
-      #5ca8ff 0%,
-      #53a1fa 10%,
-      #4a9af5 30%,
-      #4293f0 60%,
-      #3c8dec 100%
-    );
+    background: ${({ $theme }) => resolveThemeBg($theme.taskButton.coverHover.background)};
   }
 
   .footer__window.cover:hover:active {
-    background: #1e52b7;
-    box-shadow: inset 0 0 2px 1px rgba(0, 0, 0, 0.4),
-      inset 1px 1px 2px rgba(0, 0, 0, 0.5);
+    background: ${({ $theme }) => resolveThemeBg($theme.taskButton.coverActive?.background || $theme.taskButton.coverHover.background)};
+    ${({ $theme }) => $theme.taskButton.coverActive?.boxShadow ? `box-shadow: ${$theme.taskButton.coverActive.boxShadow};` : ''}
   }
 
   /* Active/focused window - pressed/sunken appearance */
   .footer__window.focus {
-    background: ${XP_TASK_BUTTON_FOCUS_BACKGROUND};
-    box-shadow: ${XP_TASK_BUTTON_FOCUS_BOX_SHADOW};
+    background: ${({ $theme }) => resolveThemeBg($theme.taskButton.focus.background)};
+    box-shadow: ${({ $theme }) => $theme.taskButton.focus.boxShadow};
+    ${({ $theme }) => $theme.taskButton.focusTextColor ? `color: ${$theme.taskButton.focusTextColor};` : ''}
   }
 
   .footer__window.focus:before {
@@ -976,23 +1067,16 @@ const Container = styled.footer`
   }
 
   .footer__window.focus:hover {
-    background: linear-gradient(
-      to bottom,
-      #1f4fb2 0%,
-      #1c4cad 15%,
-      #1948a7 40%,
-      #1644a1 70%,
-      #14419c 100%
-    );
+    background: ${({ $theme }) => resolveThemeBg($theme.taskButton.focusHover.background)};
   }
 
   .footer__window.focus:hover:active {
-    background: #0c358a;
+    background: ${({ $theme }) => resolveThemeBg($theme.taskButton.focusActive?.background || $theme.taskButton.focusHover.background)};
   }
 
   .footer__time {
     margin: 0 5px;
-    color: #fff;
+    color: ${({ $theme }) => $theme.tray.textColor || '#fff'};
     font-size: 11px;
     font-weight: lighter;
     text-shadow: none;

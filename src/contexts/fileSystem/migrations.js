@@ -5,6 +5,7 @@ import {
   SAMPLE_MUSIC_FILES,
   SHELL_ARTIFACT_IDS,
   DESKTOP_INI_CONTENT,
+  WINDOWS_MEDIA_FILES,
 } from './initialFileSystem';
 
 // IDs of old shortcuts that should be removed (now system icons or replaced with folders)
@@ -674,4 +675,246 @@ export const migrateFileSizes = (fs) => {
     }
   }
   return migrated;
+};
+
+// Ensure D: and E: drives exist
+export const ensureAdditionalDrives = (fs) => {
+  if (!fs) return false;
+  const now = Date.now();
+  let modified = false;
+
+  if (!fs[SYSTEM_IDS.D_DRIVE]) {
+    fs[SYSTEM_IDS.D_DRIVE] = {
+      id: SYSTEM_IDS.D_DRIVE,
+      type: 'drive',
+      name: 'Local Disk (D:)',
+      icon: XP_ICONS.localDisk,
+      parent: null,
+      children: [],
+      metadata: { driveType: 'local' },
+      dateCreated: now,
+      dateModified: now,
+    };
+    modified = true;
+  } else if (!fs[SYSTEM_IDS.D_DRIVE].metadata?.driveType) {
+    fs[SYSTEM_IDS.D_DRIVE].metadata = { ...fs[SYSTEM_IDS.D_DRIVE].metadata, driveType: 'local' };
+    modified = true;
+  }
+
+  if (!fs[SYSTEM_IDS.E_DRIVE]) {
+    fs[SYSTEM_IDS.E_DRIVE] = {
+      id: SYSTEM_IDS.E_DRIVE,
+      type: 'drive',
+      name: 'CD Drive (E:)',
+      icon: XP_ICONS.driveOptical,
+      parent: null,
+      children: [],
+      metadata: { driveType: 'optical' },
+      dateCreated: now,
+      dateModified: now,
+    };
+    modified = true;
+  } else if (!fs[SYSTEM_IDS.E_DRIVE].metadata?.driveType) {
+    fs[SYSTEM_IDS.E_DRIVE].metadata = { ...fs[SYSTEM_IDS.E_DRIVE].metadata, driveType: 'optical' };
+    modified = true;
+  }
+
+  // Ensure C: drive has driveType metadata
+  if (fs[SYSTEM_IDS.C_DRIVE] && !fs[SYSTEM_IDS.C_DRIVE].metadata?.driveType) {
+    fs[SYSTEM_IDS.C_DRIVE].metadata = { ...fs[SYSTEM_IDS.C_DRIVE].metadata, driveType: 'local' };
+    modified = true;
+  }
+
+  return modified;
+};
+
+// Ensure WINDOWS folder hierarchy exists on C: drive
+export const ensureWindowsFolder = (fs) => {
+  if (!fs) return false;
+  const now = Date.now();
+  let modified = false;
+
+  const ensureChild = (parentId, childId) => {
+    if (!fs[parentId]) return;
+    if (!fs[parentId].children?.includes(childId)) {
+      fs[parentId].children = [...(fs[parentId].children || []), childId];
+      modified = true;
+    }
+  };
+
+  // WINDOWS root folder
+  if (!fs[SYSTEM_IDS.WINDOWS]) {
+    const windowsChildIds = [
+      SYSTEM_IDS.WINDOWS_SYSTEM32,
+      SYSTEM_IDS.WINDOWS_FONTS,
+      SYSTEM_IDS.WINDOWS_MEDIA,
+      SYSTEM_IDS.WINDOWS_HELP,
+      SYSTEM_IDS.WINDOWS_CURSORS,
+      SYSTEM_IDS.WINDOWS_INF,
+      SYSTEM_IDS.WINDOWS_TEMP,
+      SYSTEM_IDS.WINDOWS_PREFETCH,
+      'windows-addins', 'windows-apppatch', 'windows-config',
+      'windows-connection-wizard', 'windows-debug',
+      'windows-downloaded-program-files', 'windows-driver-cache',
+      'windows-ehome', 'windows-ime', 'windows-java',
+      'windows-msagent', 'windows-msapps', 'windows-mui',
+      'windows-offline-web-pages', 'windows-pchealth', 'windows-peernet',
+      'windows-provisioning', 'windows-registration', 'windows-repair',
+      'windows-resources', 'windows-security', 'windows-servicepacks',
+      'windows-softwaredistr', 'windows-srchasst', 'windows-tasks',
+      'windows-twain32', 'windows-web',
+    ];
+
+    fs[SYSTEM_IDS.WINDOWS] = {
+      id: SYSTEM_IDS.WINDOWS, type: 'folder', name: 'WINDOWS',
+      icon: XP_ICONS.folder, parent: SYSTEM_IDS.C_DRIVE,
+      children: windowsChildIds, metadata: { system: true },
+      dateCreated: now, dateModified: now,
+    };
+    modified = true;
+  }
+  ensureChild(SYSTEM_IDS.C_DRIVE, SYSTEM_IDS.WINDOWS);
+
+  // system32
+  if (!fs[SYSTEM_IDS.WINDOWS_SYSTEM32]) {
+    fs[SYSTEM_IDS.WINDOWS_SYSTEM32] = {
+      id: SYSTEM_IDS.WINDOWS_SYSTEM32, type: 'folder', name: 'system32',
+      icon: XP_ICONS.folder, parent: SYSTEM_IDS.WINDOWS,
+      children: ['windows-system32-config', 'windows-system32-drivers', 'windows-system32-wbem', 'windows-system32-dllcache', 'windows-system32-spool', 'windows-system32-oobe', 'windows-system32-restore', 'windows-system32-ras'],
+      metadata: { system: true }, dateCreated: now, dateModified: now,
+    };
+    modified = true;
+  }
+  ensureChild(SYSTEM_IDS.WINDOWS, SYSTEM_IDS.WINDOWS_SYSTEM32);
+
+  // system32 subfolders
+  const sys32Subs = [
+    { id: 'windows-system32-config', name: 'config' },
+    { id: 'windows-system32-drivers', name: 'drivers' },
+    { id: 'windows-system32-wbem', name: 'wbem' },
+    { id: 'windows-system32-dllcache', name: 'dllcache', hidden: true },
+    { id: 'windows-system32-spool', name: 'spool' },
+    { id: 'windows-system32-oobe', name: 'oobe' },
+    { id: 'windows-system32-restore', name: 'Restore' },
+    { id: 'windows-system32-ras', name: 'ras' },
+  ];
+  sys32Subs.forEach(sub => {
+    if (!fs[sub.id]) {
+      fs[sub.id] = {
+        id: sub.id, type: 'folder', name: sub.name,
+        icon: XP_ICONS.folder, parent: SYSTEM_IDS.WINDOWS_SYSTEM32,
+        children: [],
+        metadata: sub.hidden ? { hidden: true, system: true } : { system: true },
+        dateCreated: now, dateModified: now,
+      };
+      modified = true;
+    }
+  });
+
+  // Fonts
+  if (!fs[SYSTEM_IDS.WINDOWS_FONTS]) {
+    fs[SYSTEM_IDS.WINDOWS_FONTS] = {
+      id: SYSTEM_IDS.WINDOWS_FONTS, type: 'folder', name: 'Fonts',
+      icon: XP_ICONS.folderFonts || XP_ICONS.folder, parent: SYSTEM_IDS.WINDOWS,
+      children: [], dateCreated: now, dateModified: now,
+    };
+    modified = true;
+  }
+  ensureChild(SYSTEM_IDS.WINDOWS, SYSTEM_IDS.WINDOWS_FONTS);
+
+  // Media folder with sound files
+  const mediaFileIds = WINDOWS_MEDIA_FILES.map(f => f.id);
+  if (!fs[SYSTEM_IDS.WINDOWS_MEDIA]) {
+    fs[SYSTEM_IDS.WINDOWS_MEDIA] = {
+      id: SYSTEM_IDS.WINDOWS_MEDIA, type: 'folder', name: 'Media',
+      icon: XP_ICONS.folderMusic || XP_ICONS.folder, parent: SYSTEM_IDS.WINDOWS,
+      children: mediaFileIds, dateCreated: now, dateModified: now,
+    };
+    modified = true;
+  }
+  ensureChild(SYSTEM_IDS.WINDOWS, SYSTEM_IDS.WINDOWS_MEDIA);
+
+  // Ensure media sound files exist
+  WINDOWS_MEDIA_FILES.forEach(sound => {
+    if (!fs[sound.id]) {
+      fs[sound.id] = {
+        id: sound.id, type: 'file', name: sound.name,
+        basename: sound.name.replace(/\.[^/.]+$/, ''), ext: '.wav',
+        icon: XP_ICONS.wav, parent: SYSTEM_IDS.WINDOWS_MEDIA,
+        size: sound.size, url: sound.path,
+        dateCreated: now, dateModified: now,
+      };
+      modified = true;
+    }
+    if (fs[SYSTEM_IDS.WINDOWS_MEDIA] && !fs[SYSTEM_IDS.WINDOWS_MEDIA].children?.includes(sound.id)) {
+      fs[SYSTEM_IDS.WINDOWS_MEDIA].children = [...(fs[SYSTEM_IDS.WINDOWS_MEDIA].children || []), sound.id];
+      modified = true;
+    }
+  });
+
+  // Remaining simple subfolders
+  const simpleFolders = [
+    { id: SYSTEM_IDS.WINDOWS_HELP, name: 'Help' },
+    { id: SYSTEM_IDS.WINDOWS_CURSORS, name: 'Cursors' },
+    { id: SYSTEM_IDS.WINDOWS_INF, name: 'inf', hidden: true },
+    { id: SYSTEM_IDS.WINDOWS_TEMP, name: 'Temp' },
+    { id: SYSTEM_IDS.WINDOWS_PREFETCH, name: 'Prefetch', hidden: true },
+  ];
+  simpleFolders.forEach(sub => {
+    if (!fs[sub.id]) {
+      fs[sub.id] = {
+        id: sub.id, type: 'folder', name: sub.name,
+        icon: XP_ICONS.folder, parent: SYSTEM_IDS.WINDOWS,
+        children: [],
+        metadata: sub.hidden ? { hidden: true, system: true } : undefined,
+        dateCreated: now, dateModified: now,
+      };
+      modified = true;
+    }
+    ensureChild(SYSTEM_IDS.WINDOWS, sub.id);
+  });
+
+  // Additional WINDOWS subfolders (id must match initialFileSystem.js)
+  const additionalFolders = [
+    { id: 'windows-addins', name: 'addins' },
+    { id: 'windows-apppatch', name: 'AppPatch' },
+    { id: 'windows-config', name: 'Config' },
+    { id: 'windows-connection-wizard', name: 'Connection Wizard' },
+    { id: 'windows-debug', name: 'Debug' },
+    { id: 'windows-downloaded-program-files', name: 'Downloaded Program Files' },
+    { id: 'windows-driver-cache', name: 'Driver Cache' },
+    { id: 'windows-ehome', name: 'ehome' },
+    { id: 'windows-ime', name: 'ime' },
+    { id: 'windows-java', name: 'Java' },
+    { id: 'windows-msagent', name: 'msagent' },
+    { id: 'windows-msapps', name: 'msapps' },
+    { id: 'windows-mui', name: 'mui' },
+    { id: 'windows-offline-web-pages', name: 'Offline Web Pages' },
+    { id: 'windows-pchealth', name: 'pchealth' },
+    { id: 'windows-peernet', name: 'PeerNet' },
+    { id: 'windows-provisioning', name: 'Provisioning' },
+    { id: 'windows-registration', name: 'Registration' },
+    { id: 'windows-repair', name: 'repair' },
+    { id: 'windows-resources', name: 'Resources' },
+    { id: 'windows-security', name: 'security' },
+    { id: 'windows-servicepacks', name: 'ServicePackFiles' },
+    { id: 'windows-softwaredistr', name: 'SoftwareDistribution' },
+    { id: 'windows-srchasst', name: 'srchasst' },
+    { id: 'windows-tasks', name: 'Tasks' },
+    { id: 'windows-twain32', name: 'twain_32' },
+    { id: 'windows-web', name: 'Web' },
+  ];
+  additionalFolders.forEach(({ id, name }) => {
+    if (!fs[id]) {
+      fs[id] = {
+        id, type: 'folder', name,
+        icon: XP_ICONS.folder, parent: SYSTEM_IDS.WINDOWS,
+        children: [], dateCreated: now, dateModified: now,
+      };
+      modified = true;
+    }
+    ensureChild(SYSTEM_IDS.WINDOWS, id);
+  });
+
+  return modified;
 };

@@ -476,6 +476,8 @@ export function useFileSystemOperations(fileSystem, setFileSystem) {
 
     if (['.zip', '.rar', '.7z', '.tar', '.gz'].includes(lowerExt)) {
       icon = XP_ICONS.rar;
+    } else if (lowerExt === '.wba') {
+      icon = XP_ICONS.rar;
     } else if (['.html', '.htm'].includes(lowerExt)) {
       icon = '/icons/xp/InternetExplorer6.png';
     } else if (['.txt', '.log', '.md'].includes(lowerExt)) {

@@ -27,7 +27,12 @@ export function resolveFileSystemItemIcon(
   }
 
   if (item.type === 'drive') {
-    return storedIcon || driveIcon;
+    if (storedIcon) return storedIcon;
+    const driveType = item.metadata?.driveType;
+    if (driveType === 'optical') return XP_ICONS.driveOptical;
+    if (driveType === 'floppy') return XP_ICONS.driveFloppy || XP_ICONS.floppy;
+    if (driveType === 'external') return XP_ICONS.driveExternal;
+    return driveIcon;
   }
 
   if (item.type === 'shortcut' || item.type === 'executable') {

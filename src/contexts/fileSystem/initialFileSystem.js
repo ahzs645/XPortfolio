@@ -28,6 +28,200 @@ export const DESKTOP_INI_CONTENT = [
   'LocalizedResourceName=@%SystemRoot%\\\\system32\\\\shell32.dll,-21787',
 ].join('\n');
 
+// Windows XP system sound files (mapped to existing public/sounds/ assets)
+export const WINDOWS_MEDIA_FILES = [
+  { id: 'media-startup', name: 'Windows XP Startup.wav', path: '/sounds/login.wav', size: 424644 },
+  { id: 'media-shutdown', name: 'Windows XP Shutdown.wav', path: '/sounds/shutdown.wav', size: 146916 },
+  { id: 'media-logoff', name: 'Windows XP Logoff Sound.wav', path: '/sounds/logoff.wav', size: 146916 },
+  { id: 'media-logon', name: 'Windows XP Logon Sound.wav', path: '/sounds/login.wav', size: 424644 },
+  { id: 'media-start', name: 'Windows XP Start.wav', path: '/sounds/start.wav', size: 84492 },
+  { id: 'media-error', name: 'Windows XP Error.wav', path: '/sounds/error.wav', size: 41124 },
+  { id: 'media-critical-stop', name: 'Windows XP Critical Stop.wav', path: '/sounds/error.wav', size: 73764 },
+  { id: 'media-exclamation', name: 'Windows XP Exclamation.wav', path: '/sounds/exclamation.wav', size: 84492 },
+  { id: 'media-balloon', name: 'Windows XP Balloon.wav', path: '/sounds/balloon.wav', size: 34236 },
+  { id: 'media-ding', name: 'Windows XP Ding.wav', path: '/sounds/ding.wav', size: 6076 },
+  { id: 'media-notify', name: 'Windows XP Notify.wav', path: '/sounds/notify.wav', size: 24564 },
+  { id: 'media-recycle', name: 'Windows XP Recycle.wav', path: '/sounds/recycle.wav', size: 52380 },
+  { id: 'media-minimize', name: 'Windows XP Menu Command.wav', path: '/sounds/minimize.wav', size: 12204 },
+  { id: 'media-restore', name: 'Windows XP Restore.wav', path: '/sounds/restore.wav', size: 12204 },
+];
+
+// Build the C:\WINDOWS folder hierarchy
+const createWindowsFolderItems = (now) => {
+  const items = {};
+
+  // Media sound file entries
+  const mediaFileIds = WINDOWS_MEDIA_FILES.map(f => f.id);
+  WINDOWS_MEDIA_FILES.forEach(sound => {
+    items[sound.id] = {
+      id: sound.id,
+      type: 'file',
+      name: sound.name,
+      basename: sound.name.replace(/\.[^/.]+$/, ''),
+      ext: '.wav',
+      icon: XP_ICONS.wav,
+      parent: SYSTEM_IDS.WINDOWS_MEDIA,
+      size: sound.size,
+      url: sound.path,
+      dateCreated: now,
+      dateModified: now,
+    };
+  });
+
+  // WINDOWS root folder
+  items[SYSTEM_IDS.WINDOWS] = {
+    id: SYSTEM_IDS.WINDOWS,
+    type: 'folder',
+    name: 'WINDOWS',
+    icon: XP_ICONS.folder,
+    parent: SYSTEM_IDS.C_DRIVE,
+    children: [
+      SYSTEM_IDS.WINDOWS_SYSTEM32,
+      SYSTEM_IDS.WINDOWS_FONTS,
+      SYSTEM_IDS.WINDOWS_MEDIA,
+      SYSTEM_IDS.WINDOWS_HELP,
+      SYSTEM_IDS.WINDOWS_CURSORS,
+      SYSTEM_IDS.WINDOWS_INF,
+      SYSTEM_IDS.WINDOWS_TEMP,
+      SYSTEM_IDS.WINDOWS_PREFETCH,
+      'windows-addins',
+      'windows-apppatch',
+      'windows-config',
+      'windows-connection-wizard',
+      'windows-debug',
+      'windows-downloaded-program-files',
+      'windows-driver-cache',
+      'windows-ehome',
+      'windows-ime',
+      'windows-java',
+      'windows-msagent',
+      'windows-msapps',
+      'windows-mui',
+      'windows-offline-web-pages',
+      'windows-pchealth',
+      'windows-peernet',
+      'windows-provisioning',
+      'windows-registration',
+      'windows-repair',
+      'windows-resources',
+      'windows-security',
+      'windows-servicepacks',
+      'windows-softwaredistr',
+      'windows-srchasst',
+      'windows-tasks',
+      'windows-twain32',
+      'windows-web',
+    ],
+    metadata: { system: true },
+    dateCreated: now,
+    dateModified: now,
+  };
+
+  // Primary subfolders with children
+  items[SYSTEM_IDS.WINDOWS_SYSTEM32] = {
+    id: SYSTEM_IDS.WINDOWS_SYSTEM32, type: 'folder', name: 'system32',
+    icon: XP_ICONS.folder, parent: SYSTEM_IDS.WINDOWS,
+    children: ['windows-system32-config', 'windows-system32-drivers', 'windows-system32-wbem', 'windows-system32-dllcache', 'windows-system32-spool', 'windows-system32-oobe', 'windows-system32-restore', 'windows-system32-ras'],
+    metadata: { system: true }, dateCreated: now, dateModified: now,
+  };
+  items[SYSTEM_IDS.WINDOWS_FONTS] = {
+    id: SYSTEM_IDS.WINDOWS_FONTS, type: 'folder', name: 'Fonts',
+    icon: XP_ICONS.folderFonts || XP_ICONS.folder, parent: SYSTEM_IDS.WINDOWS,
+    children: [], dateCreated: now, dateModified: now,
+  };
+  items[SYSTEM_IDS.WINDOWS_MEDIA] = {
+    id: SYSTEM_IDS.WINDOWS_MEDIA, type: 'folder', name: 'Media',
+    icon: XP_ICONS.folderMusic || XP_ICONS.folder, parent: SYSTEM_IDS.WINDOWS,
+    children: mediaFileIds, dateCreated: now, dateModified: now,
+  };
+  items[SYSTEM_IDS.WINDOWS_HELP] = {
+    id: SYSTEM_IDS.WINDOWS_HELP, type: 'folder', name: 'Help',
+    icon: XP_ICONS.folder, parent: SYSTEM_IDS.WINDOWS,
+    children: [], dateCreated: now, dateModified: now,
+  };
+  items[SYSTEM_IDS.WINDOWS_CURSORS] = {
+    id: SYSTEM_IDS.WINDOWS_CURSORS, type: 'folder', name: 'Cursors',
+    icon: XP_ICONS.folder, parent: SYSTEM_IDS.WINDOWS,
+    children: [], dateCreated: now, dateModified: now,
+  };
+  items[SYSTEM_IDS.WINDOWS_INF] = {
+    id: SYSTEM_IDS.WINDOWS_INF, type: 'folder', name: 'inf',
+    icon: XP_ICONS.folder, parent: SYSTEM_IDS.WINDOWS,
+    children: [], metadata: { hidden: true, system: true }, dateCreated: now, dateModified: now,
+  };
+  items[SYSTEM_IDS.WINDOWS_TEMP] = {
+    id: SYSTEM_IDS.WINDOWS_TEMP, type: 'folder', name: 'Temp',
+    icon: XP_ICONS.folder, parent: SYSTEM_IDS.WINDOWS,
+    children: [], dateCreated: now, dateModified: now,
+  };
+  items[SYSTEM_IDS.WINDOWS_PREFETCH] = {
+    id: SYSTEM_IDS.WINDOWS_PREFETCH, type: 'folder', name: 'Prefetch',
+    icon: XP_ICONS.folder, parent: SYSTEM_IDS.WINDOWS,
+    children: [], metadata: { hidden: true, system: true }, dateCreated: now, dateModified: now,
+  };
+
+  // system32 subfolders
+  const sys32Subs = [
+    { id: 'windows-system32-config', name: 'config' },
+    { id: 'windows-system32-drivers', name: 'drivers' },
+    { id: 'windows-system32-wbem', name: 'wbem' },
+    { id: 'windows-system32-dllcache', name: 'dllcache', hidden: true },
+    { id: 'windows-system32-spool', name: 'spool' },
+    { id: 'windows-system32-oobe', name: 'oobe' },
+    { id: 'windows-system32-restore', name: 'Restore' },
+    { id: 'windows-system32-ras', name: 'ras' },
+  ];
+  sys32Subs.forEach(sub => {
+    items[sub.id] = {
+      id: sub.id, type: 'folder', name: sub.name,
+      icon: XP_ICONS.folder, parent: SYSTEM_IDS.WINDOWS_SYSTEM32,
+      children: [],
+      metadata: sub.hidden ? { hidden: true, system: true } : { system: true },
+      dateCreated: now, dateModified: now,
+    };
+  });
+
+  // Additional WINDOWS subfolders (empty placeholder directories)
+  const additionalFolders = [
+    { id: 'windows-addins', name: 'addins' },
+    { id: 'windows-apppatch', name: 'AppPatch' },
+    { id: 'windows-config', name: 'Config' },
+    { id: 'windows-connection-wizard', name: 'Connection Wizard' },
+    { id: 'windows-debug', name: 'Debug' },
+    { id: 'windows-downloaded-program-files', name: 'Downloaded Program Files' },
+    { id: 'windows-driver-cache', name: 'Driver Cache' },
+    { id: 'windows-ehome', name: 'ehome' },
+    { id: 'windows-ime', name: 'ime' },
+    { id: 'windows-java', name: 'Java' },
+    { id: 'windows-msagent', name: 'msagent' },
+    { id: 'windows-msapps', name: 'msapps' },
+    { id: 'windows-mui', name: 'mui' },
+    { id: 'windows-offline-web-pages', name: 'Offline Web Pages' },
+    { id: 'windows-pchealth', name: 'pchealth' },
+    { id: 'windows-peernet', name: 'PeerNet' },
+    { id: 'windows-provisioning', name: 'Provisioning' },
+    { id: 'windows-registration', name: 'Registration' },
+    { id: 'windows-repair', name: 'repair' },
+    { id: 'windows-resources', name: 'Resources' },
+    { id: 'windows-security', name: 'security' },
+    { id: 'windows-servicepacks', name: 'ServicePackFiles' },
+    { id: 'windows-softwaredistr', name: 'SoftwareDistribution' },
+    { id: 'windows-srchasst', name: 'srchasst' },
+    { id: 'windows-tasks', name: 'Tasks' },
+    { id: 'windows-twain32', name: 'twain_32' },
+    { id: 'windows-web', name: 'Web' },
+  ];
+  additionalFolders.forEach(sub => {
+    items[sub.id] = {
+      id: sub.id, type: 'folder', name: sub.name,
+      icon: XP_ICONS.folder, parent: SYSTEM_IDS.WINDOWS,
+      children: [], dateCreated: now, dateModified: now,
+    };
+  });
+
+  return items;
+};
+
 // Initial file system structure
 export const createInitialFileSystem = (desktopShortcuts, projects = [], userName = 'User') => {
   const now = Date.now();
@@ -151,6 +345,9 @@ export const createInitialFileSystem = (desktopShortcuts, projects = [], userNam
     },
   };
 
+  // WINDOWS folder hierarchy
+  const windowsItems = createWindowsFolderItems(now);
+
   return {
     // C: Drive - root of file system
     [SYSTEM_IDS.C_DRIVE]: {
@@ -162,8 +359,10 @@ export const createInitialFileSystem = (desktopShortcuts, projects = [], userNam
       children: [
         SYSTEM_IDS.DOCUMENTS_AND_SETTINGS,
         SYSTEM_IDS.PROGRAM_FILES,
+        SYSTEM_IDS.WINDOWS,
         SHELL_ARTIFACT_IDS.SYSTEM_VOLUME_INFORMATION,
       ],
+      metadata: { driveType: 'local' },
       dateCreated: now,
       dateModified: now,
     },
@@ -353,6 +552,32 @@ export const createInitialFileSystem = (desktopShortcuts, projects = [], userNam
       dateModified: now,
     },
 
+    // D: Drive - secondary local disk
+    [SYSTEM_IDS.D_DRIVE]: {
+      id: SYSTEM_IDS.D_DRIVE,
+      type: 'drive',
+      name: 'Local Disk (D:)',
+      icon: XP_ICONS.localDisk,
+      parent: null,
+      children: [],
+      metadata: { driveType: 'local' },
+      dateCreated: now,
+      dateModified: now,
+    },
+
+    // E: Drive - CD/DVD drive
+    [SYSTEM_IDS.E_DRIVE]: {
+      id: SYSTEM_IDS.E_DRIVE,
+      type: 'drive',
+      name: 'CD Drive (E:)',
+      icon: XP_ICONS.driveOptical,
+      parent: null,
+      children: [],
+      metadata: { driveType: 'optical' },
+      dateCreated: now,
+      dateModified: now,
+    },
+
     // Recycle Bin (special system folder, not in C: drive hierarchy)
     [SYSTEM_IDS.RECYCLE_BIN]: {
       id: SYSTEM_IDS.RECYCLE_BIN,
@@ -370,5 +595,6 @@ export const createInitialFileSystem = (desktopShortcuts, projects = [], userNam
     ...programFilesItems,
     ...sampleMusicItems,
     ...shellArtifacts,
+    ...windowsItems,
   };
 };

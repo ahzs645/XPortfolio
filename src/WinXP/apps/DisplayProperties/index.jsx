@@ -5,6 +5,7 @@ import { ProgramLayout, FileChooser } from '../../../components';
 import { useUserSettings } from '../../../contexts/UserSettingsContext';
 import { useScreensaver } from '../../../contexts/ScreensaverContext';
 import { useConfig } from '../../../contexts/ConfigContext';
+import { useTheme } from '../../../contexts/ThemeContext';
 import { withBaseUrl } from '../../../utils/baseUrl';
 import { getXpPortalRoot } from '../../../utils/portalRoot';
 import {
@@ -40,11 +41,11 @@ const TABS = [
   { id: 'settings', label: 'Settings', enabled: true },
 ];
 
-const THEMES = [
-  { id: 'xp', name: 'Windows XP' },
-  { id: 'silver', name: 'Windows XP (Silver)' },
-  { id: 'olive', name: 'Windows XP (Olive)' },
-  { id: 'classic', name: 'Windows Classic' },
+const BUILTIN_THEMES = [
+  { id: 'xp', name: 'Windows XP', themeId: 'luna' },
+  { id: 'silver', name: 'Windows XP (Silver)', themeId: 'luna' },
+  { id: 'olive', name: 'Windows XP (Olive)', themeId: 'luna' },
+  { id: 'classic', name: 'Windows Classic', themeId: 'luna' },
 ];
 
 const COLOR_SCHEMES = [
@@ -340,7 +341,21 @@ function DisplayProperties({ onClose, onMinimize }) {
     previewScreensaver,
   } = useScreensaver();
   const { getOSName } = useConfig();
+  const { activeThemeId, installedThemes, setActiveTheme, allThemes } = useTheme();
   const currentDesktop = getWallpaperPath(false);
+
+  // Build combined theme list: builtins + installed WindowBlinds themes
+  const THEMES = useMemo(() => {
+    const themes = [...BUILTIN_THEMES];
+    for (const installed of installedThemes) {
+      themes.push({
+        id: installed.id,
+        name: installed.name,
+        themeId: installed.id,
+      });
+    }
+    return themes;
+  }, [installedThemes]);
 
   // Build wallpapers list with dynamic OS name for custom wallpaper
   const WALLPAPERS = useMemo(() => {
@@ -355,7 +370,14 @@ function DisplayProperties({ onClose, onMinimize }) {
   const applyToMobile = true;
   const [showBrowse, setShowBrowse] = useState(false);
   const [customWallpapers, setCustomWallpapers] = useState([]);
-  const [theme, setTheme] = useState('xp');
+  // Map active shell theme back to the theme dropdown value
+  const [theme, setTheme] = useState(() => {
+    if (activeThemeId === 'luna') return 'xp';
+    // Check if the active theme is an installed theme
+    const installed = installedThemes.find(t => t.id === activeThemeId);
+    if (installed) return installed.id;
+    return 'xp';
+  });
   const [colorScheme, setColorScheme] = useState('blue');
   const [windowStyle, setWindowStyle] = useState('xp');
   const [fontSize, setFontSize] = useState('normal');
@@ -398,10 +420,17 @@ function DisplayProperties({ onClose, onMinimize }) {
   };
 
   const handleThemeChange = (value) => {
-    const preset = THEME_PRESETS[value] || THEME_PRESETS.xp;
+    const preset = THEME_PRESETS[value];
     setTheme(value);
-    setWindowStyle(preset.windowStyle);
-    setColorScheme(preset.colorScheme);
+    if (preset) {
+      // Built-in XP theme variant
+      setWindowStyle(preset.windowStyle);
+      setColorScheme(preset.colorScheme);
+      setActiveTheme('luna');
+    } else {
+      // Installed WindowBlinds theme
+      setActiveTheme(value);
+    }
   };
 
   return (

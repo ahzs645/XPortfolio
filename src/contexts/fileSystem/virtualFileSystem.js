@@ -8,6 +8,8 @@ const ROOT_NODE_ID = '__vfs_root__';
 
 const DRIVE_LETTER_BY_SYSTEM_ID = {
   [SYSTEM_IDS.C_DRIVE]: 'C',
+  [SYSTEM_IDS.D_DRIVE]: 'D',
+  [SYSTEM_IDS.E_DRIVE]: 'E',
 };
 
 const SPECIAL_PATH_BY_ID = {

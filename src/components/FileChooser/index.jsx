@@ -29,6 +29,8 @@ const MY_COMPUTER_FOLDERS = [
 
 const MY_COMPUTER_DRIVES = [
   { id: SYSTEM_IDS.C_DRIVE, name: 'Local Disk (C:)', icon: XP_ICONS.localDisk },
+  { id: SYSTEM_IDS.D_DRIVE, name: 'Local Disk (D:)', icon: XP_ICONS.localDisk },
+  { id: SYSTEM_IDS.E_DRIVE, name: 'CD Drive (E:)', icon: XP_ICONS.driveOptical },
 ];
 
 function FileChooser({

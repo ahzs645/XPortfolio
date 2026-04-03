@@ -357,7 +357,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
 
   // Get items for My Computer root view
   const myComputerItems = React.useMemo(() => {
-    if (!fileSystem) return { folders: [], drives: [] };
+    if (!fileSystem) return { folders: [], hardDrives: [], removableDrives: [] };
 
     const folders = [
       fileSystem[SYSTEM_IDS.MY_DOCUMENTS],
@@ -365,23 +365,39 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
       fileSystem[SYSTEM_IDS.MY_MUSIC],
     ].filter(Boolean);
 
-    const drives = [
-      fileSystem[SYSTEM_IDS.C_DRIVE],
-    ].filter(Boolean);
+    // Dynamically discover all drives
+    const allDrives = Object.values(fileSystem)
+      .filter(item => item?.type === 'drive' && !item.parent)
+      .sort((a, b) => {
+        // Sort by drive letter extracted from name
+        const letterA = a.name?.match(/\(([A-Z]):\)/)?.[1] || 'Z';
+        const letterB = b.name?.match(/\(([A-Z]):\)/)?.[1] || 'Z';
+        return letterA.localeCompare(letterB);
+      });
 
-    return { folders, drives };
+    const hardDrives = allDrives.filter(d => {
+      const dt = d.metadata?.driveType;
+      return !dt || dt === 'local';
+    });
+    const removableDrives = allDrives.filter(d => {
+      const dt = d.metadata?.driveType;
+      return dt === 'optical' || dt === 'floppy' || dt === 'external';
+    });
+
+    return { folders, hardDrives, removableDrives };
   }, [fileSystem]);
 
   const filteredMyComputerItems = React.useMemo(() => ({
     folders: filterItems(myComputerItems.folders, searchQuery),
-    drives: filterItems(myComputerItems.drives, searchQuery),
+    hardDrives: filterItems(myComputerItems.hardDrives, searchQuery),
+    removableDrives: filterItems(myComputerItems.removableDrives, searchQuery),
   }), [myComputerItems, searchQuery]);
 
   const showClassicFolders = explorer.sidebarMode === 'classic';
   const showExplorerSidebar = showClassicFolders || showFoldersPane;
 
   const folderTreeRoots = React.useMemo(() => {
-    const driveIds = myComputerItems.drives.map(item => item.id);
+    const driveIds = [...myComputerItems.hardDrives, ...myComputerItems.removableDrives].map(item => item.id);
     return [{
       id: 'my-computer-root',
       name: 'My Computer',
@@ -393,7 +409,10 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   // Format path as shorter string
   const formatShortPath = useCallback((path) => {
     if (!path || path === 'My Computer') return 'My Computer';
-    return path.replace('Local Disk (C:)', 'C:').replace(/\\/g, '/');
+    return path
+      .replace(/Local Disk \(([A-Z]):\)/g, '$1:')
+      .replace(/CD Drive \(([A-Z]):\)/g, '$1:')
+      .replace(/\\/g, '/');
   }, []);
 
   const shortPathString = formatShortPath(pathString);
@@ -753,10 +772,10 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   ];
 
   const totalItems = isMyComputerRoot
-    ? myComputerItems.folders.length + myComputerItems.drives.length
+    ? myComputerItems.folders.length + myComputerItems.hardDrives.length + myComputerItems.removableDrives.length
     : visibleContents.length;
   const visibleItems = isMyComputerRoot
-    ? filteredMyComputerItems.folders.length + filteredMyComputerItems.drives.length
+    ? filteredMyComputerItems.folders.length + filteredMyComputerItems.hardDrives.length + filteredMyComputerItems.removableDrives.length
     : filteredContents.length;
   const statusText = selectedItems.length > 0
     ? `${selectedItems.length} object(s) selected`
@@ -942,7 +961,11 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
                           </strong>
                         </TaskPanel.Text>
                         <TaskPanel.Text>
-                          {fileSystem[selectedItems[0]]?.type === 'drive' ? 'Local Disk' : 'System Folder'}
+                          {fileSystem[selectedItems[0]]?.type === 'drive'
+                            ? (fileSystem[selectedItems[0]]?.metadata?.driveType === 'optical' ? 'CD Drive'
+                              : fileSystem[selectedItems[0]]?.metadata?.driveType === 'floppy' ? 'Floppy Disk'
+                              : 'Local Disk')
+                            : 'System Folder'}
                         </TaskPanel.Text>
                         <DetailsSpacer />
                         <TaskPanel.Text>
@@ -975,7 +998,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
                     </CategoryItems>
                   </CategorySection>
                 )}
-                {filteredMyComputerItems.drives.length > 0 && (
+                {filteredMyComputerItems.hardDrives.length > 0 && (
                   <CategorySection>
                     <CategoryHeader>
                       <CategoryIcon src={withBaseUrl('/gui/mycomputer/drives_header.png')} alt="" onError={(e) => e.target.style.display = 'none'} />
@@ -990,11 +1013,30 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
                       </MyComputerDetailsHeader>
                     )}
                     <CategoryItems $viewMode={viewMode}>
-                      {filteredMyComputerItems.drives.map(renderMyComputerItem)}
+                      {filteredMyComputerItems.hardDrives.map(renderMyComputerItem)}
                     </CategoryItems>
                   </CategorySection>
                 )}
-                {filteredMyComputerItems.folders.length === 0 && filteredMyComputerItems.drives.length === 0 && (
+                {filteredMyComputerItems.removableDrives.length > 0 && (
+                  <CategorySection>
+                    <CategoryHeader>
+                      <CategoryIcon src={withBaseUrl('/gui/mycomputer/drives_header.png')} alt="" onError={(e) => e.target.style.display = 'none'} />
+                      <CategoryTitle>Devices with Removable Storage</CategoryTitle>
+                    </CategoryHeader>
+                    <CategoryDivider />
+                    {viewMode === 'details' && (
+                      <MyComputerDetailsHeader>
+                        <MyComputerDetailsHeaderCell $width="50%">Name</MyComputerDetailsHeaderCell>
+                        <MyComputerDetailsHeaderCell $width="25%">Type</MyComputerDetailsHeaderCell>
+                        <MyComputerDetailsHeaderCell $width="25%">Total Size</MyComputerDetailsHeaderCell>
+                      </MyComputerDetailsHeader>
+                    )}
+                    <CategoryItems $viewMode={viewMode}>
+                      {filteredMyComputerItems.removableDrives.map(renderMyComputerItem)}
+                    </CategoryItems>
+                  </CategorySection>
+                )}
+                {filteredMyComputerItems.folders.length === 0 && filteredMyComputerItems.hardDrives.length === 0 && filteredMyComputerItems.removableDrives.length === 0 && (
                   <MyComputerEmptyMessage>
                     {searchQuery.trim() ? 'No items match your search.' : 'No drives or folders available.'}
                   </MyComputerEmptyMessage>

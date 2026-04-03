@@ -164,6 +164,10 @@ export function useNavigation({ fileSystem, initialPath = null, resolveVfsPath =
       'desktop': SYSTEM_IDS.DESKTOP,
       'c:': SYSTEM_IDS.C_DRIVE,
       'local disk (c:)': SYSTEM_IDS.C_DRIVE,
+      'd:': SYSTEM_IDS.D_DRIVE,
+      'local disk (d:)': SYSTEM_IDS.D_DRIVE,
+      'e:': SYSTEM_IDS.E_DRIVE,
+      'cd drive (e:)': SYSTEM_IDS.E_DRIVE,
     };
 
     const lowerPath = normalizedPath.toLowerCase();
@@ -172,17 +176,26 @@ export function useNavigation({ fileSystem, initialPath = null, resolveVfsPath =
       return true;
     }
 
-    // If path starts with C: or C:\, try to resolve it
-    if (lowerPath.startsWith('c:')) {
-      const pathParts = normalizedPath.replace(/^[Cc]:[\\/]?/, '').split(/[\\/]/).filter(Boolean);
+    // Map drive letters to system IDs
+    const driveLetterMap = {
+      'c': SYSTEM_IDS.C_DRIVE,
+      'd': SYSTEM_IDS.D_DRIVE,
+      'e': SYSTEM_IDS.E_DRIVE,
+    };
+
+    // If path starts with a drive letter, try to resolve it
+    const driveMatch = lowerPath.match(/^([a-z]):/);
+    const driveId = driveMatch ? driveLetterMap[driveMatch[1]] : null;
+    if (driveId) {
+      const pathParts = normalizedPath.replace(/^[A-Za-z]:[\\/]?/, '').split(/[\\/]/).filter(Boolean);
 
       if (pathParts.length === 0) {
-        navigateTo(SYSTEM_IDS.C_DRIVE);
+        navigateTo(driveId);
         return true;
       }
 
-      // Start from C: drive and navigate through path parts
-      let currentId = SYSTEM_IDS.C_DRIVE;
+      // Start from the drive and navigate through path parts
+      let currentId = driveId;
       for (const part of pathParts) {
         const currentItem = fileSystem[currentId];
         if (!currentItem || !currentItem.children) {

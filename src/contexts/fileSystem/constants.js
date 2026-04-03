@@ -129,6 +129,8 @@ export const XP_ICONS = {
 // Special folder IDs
 export const SYSTEM_IDS = {
   C_DRIVE: 'c-drive',
+  D_DRIVE: 'd-drive',
+  E_DRIVE: 'e-drive',
   DOCUMENTS_AND_SETTINGS: 'documents-and-settings',
   USER_PROFILE: 'user-profile',
   ALL_USERS: 'all-users',
@@ -146,11 +148,23 @@ export const SYSTEM_IDS = {
   DESKTOP: 'desktop-folder',
   RECYCLE_BIN: 'recycle-bin',
   CONTROL_PANEL: 'control-panel', // Virtual location, not in file system
+  // WINDOWS folder hierarchy
+  WINDOWS: 'windows-folder',
+  WINDOWS_SYSTEM32: 'windows-system32',
+  WINDOWS_FONTS: 'windows-fonts',
+  WINDOWS_MEDIA: 'windows-media',
+  WINDOWS_HELP: 'windows-help',
+  WINDOWS_CURSORS: 'windows-cursors',
+  WINDOWS_INF: 'windows-inf',
+  WINDOWS_TEMP: 'windows-temp',
+  WINDOWS_PREFETCH: 'windows-prefetch',
 };
 
 // Protected items that cannot be deleted
 export const PROTECTED_ITEMS = [
   SYSTEM_IDS.C_DRIVE,
+  SYSTEM_IDS.D_DRIVE,
+  SYSTEM_IDS.E_DRIVE,
   SYSTEM_IDS.DOCUMENTS_AND_SETTINGS,
   SYSTEM_IDS.USER_PROFILE,
   SYSTEM_IDS.ALL_USERS,
@@ -167,6 +181,8 @@ export const PROTECTED_ITEMS = [
   SYSTEM_IDS.MY_MUSIC,
   SYSTEM_IDS.DESKTOP,
   SYSTEM_IDS.RECYCLE_BIN,
+  SYSTEM_IDS.WINDOWS,
+  SYSTEM_IDS.WINDOWS_SYSTEM32,
 ];
 
 // Shortcut file size in bytes (Windows .lnk files are typically small)

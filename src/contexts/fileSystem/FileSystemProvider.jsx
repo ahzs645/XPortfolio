@@ -15,6 +15,8 @@ import {
   ensureMetadataIcons,
   ensureShellArtifacts,
   migrateFileSizes,
+  ensureAdditionalDrives,
+  ensureWindowsFolder,
 } from './migrations';
 import { useFileSystemOperations } from './useFileSystemOperations';
 import { createVirtualFileSystemAdapter } from './virtualFileSystem';
@@ -93,6 +95,8 @@ export function FileSystemProvider({ children }) {
           fs = migrateFileSizes(fs);
         }
 
+        ensureAdditionalDrives(fs);
+        ensureWindowsFolder(fs);
         ensureShellArtifacts(fs);
         ensureMetadataIcons(fs);
 

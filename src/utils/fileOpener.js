@@ -128,6 +128,14 @@ export function openFileWithApp({
     return true;
   }
 
+  // For WindowBlinds theme files (.wba)
+  if (ext === '.wba') {
+    window.dispatchEvent(new CustomEvent('xp:theme-install-request', {
+      detail: { fileData, fileName },
+    }));
+    return true;
+  }
+
   // For archive files
   const archiveExtensions = ['.zip', '.rar', '.7z', '.tar', '.gz'];
   if (archiveExtensions.includes(ext)) {

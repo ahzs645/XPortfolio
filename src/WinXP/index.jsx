@@ -14,6 +14,7 @@ import { useShellSettings } from '../contexts/ShellSettingsContext';
 import { AppProvider } from '../contexts/AppContext';
 import { RunningAppsProvider } from '../contexts/RunningAppsContext';
 import { MessageBoxProvider } from '../contexts/MessageBoxContext';
+import { ThemeProvider } from '../contexts/ThemeContext';
 import { ContextMenu } from './components/ContextMenu';
 import FileUploadDialog from './FileUploadDialog';
 import { useFileContextMenu, useBackgroundContextMenu } from './hooks/useFileContextMenu';
@@ -710,6 +711,7 @@ function WinXP() {
   }
 
   return (
+    <ThemeProvider>
     <AppProvider appSettings={appSettings} dispatch={dispatch} addAppAction={ADD_APP}>
       <MessageBoxProvider dispatch={dispatch} appSettings={appSettings} addAppAction={ADD_APP}>
       <RunningAppsProvider apps={state.apps} onEndTask={handleEndTask} onSwitchTo={handleSwitchToApp} showClippy={showClippy} onEndClippy={handleEndClippy}>
@@ -830,6 +832,7 @@ function WinXP() {
       </RunningAppsProvider>
       </MessageBoxProvider>
     </AppProvider>
+    </ThemeProvider>
   );
 }
 

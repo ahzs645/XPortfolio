@@ -4,6 +4,8 @@ import styled from 'styled-components';
 import { useElementResize, useWindowSize } from '../../hooks';
 import ErrorBoundary from '../../components/ErrorBoundary';
 import cursorManager from '../../utils/cursorManager';
+import { useTheme } from '../../contexts/ThemeContext';
+import { withBaseUrl } from '../../utils/baseUrl';
 
 // Component that changes cursor to wait state while loading
 function LoadingFallback() {
@@ -36,6 +38,7 @@ function Windows({
   onMaximize,
   focusedAppId,
 }) {
+  const { activeTheme } = useTheme();
   return (
     <div style={{ position: 'relative', zIndex: 0 }}>
       {apps.map((app) => (
@@ -48,6 +51,7 @@ function Windows({
           onMouseUpMinimize={onMinimize}
           onMouseUpMaximize={onMaximize}
           isFocus={focusedAppId === app.id}
+          shellTheme={activeTheme}
           {...app}
         />
       ))}
@@ -72,6 +76,7 @@ const Window = memo(function ({
   zIndex,
   isFocus,
   show,
+  shellTheme,
 }) {
   // State for dynamic header updates from child components
   const [dynamicHeader, setDynamicHeader] = React.useState(null);
@@ -151,6 +156,8 @@ const Window = memo(function ({
     <WindowContainer
       ref={ref}
       className={currentHeader.invisible ? 'frameless' : `window ${isFocus ? '' : 'inactive'}`}
+      data-theme-type={shellTheme?.titleBar?.type !== 'css' ? 'image' : undefined}
+      $shellTheme={shellTheme}
       onMouseDown={_onMouseDown}
       onTouchStart={_onMouseDown}
       onFocusCapture={_onFocusCapture}
@@ -189,27 +196,59 @@ const Window = memo(function ({
             {currentHeader.title}
           </div>
           <div className="title-bar-controls">
-            {(!currentHeader.buttons || currentHeader.buttons.includes('minimize')) && (
-              <button
-                aria-label="Minimize"
-                onClick={_onMouseUpMinimize}
-                onTouchEnd={(e) => { e.stopPropagation(); _onMouseUpMinimize(); }}
-              />
-            )}
-            {(!currentHeader.buttons || currentHeader.buttons.includes('maximize')) && (
-              <button
-                aria-label={maximized ? 'Restore' : 'Maximize'}
-                onClick={_onMouseUpMaximize}
-                onTouchEnd={(e) => { e.stopPropagation(); if (resizable) _onMouseUpMaximize(); }}
-                disabled={!resizable}
-              />
-            )}
-            {(!currentHeader.buttons || currentHeader.buttons.includes('close')) && (
-              <button
-                aria-label="Close"
-                onClick={_onMouseUpClose}
-                onTouchEnd={(e) => { e.stopPropagation(); _onMouseUpClose(); }}
-              />
+            {shellTheme?.windowControls?.type === 'sprite' ? (
+              <>
+                {(!currentHeader.buttons || currentHeader.buttons.includes('minimize')) && (
+                  <SpriteButton
+                    aria-label="Minimize"
+                    onClick={_onMouseUpMinimize}
+                    onTouchEnd={(e) => { e.stopPropagation(); _onMouseUpMinimize(); }}
+                    $sprite={shellTheme.windowControls.minimize}
+                  />
+                )}
+                {(!currentHeader.buttons || currentHeader.buttons.includes('maximize')) && (
+                  <SpriteButton
+                    aria-label={maximized ? 'Restore' : 'Maximize'}
+                    onClick={_onMouseUpMaximize}
+                    onTouchEnd={(e) => { e.stopPropagation(); if (resizable) _onMouseUpMaximize(); }}
+                    disabled={!resizable}
+                    $sprite={maximized ? shellTheme.windowControls.restore : shellTheme.windowControls.maximize}
+                  />
+                )}
+                {(!currentHeader.buttons || currentHeader.buttons.includes('close')) && (
+                  <SpriteButton
+                    aria-label="Close"
+                    onClick={_onMouseUpClose}
+                    onTouchEnd={(e) => { e.stopPropagation(); _onMouseUpClose(); }}
+                    $sprite={shellTheme.windowControls.close}
+                  />
+                )}
+              </>
+            ) : (
+              <>
+                {(!currentHeader.buttons || currentHeader.buttons.includes('minimize')) && (
+                  <button
+                    aria-label="Minimize"
+                    onClick={_onMouseUpMinimize}
+                    onTouchEnd={(e) => { e.stopPropagation(); _onMouseUpMinimize(); }}
+                  />
+                )}
+                {(!currentHeader.buttons || currentHeader.buttons.includes('maximize')) && (
+                  <button
+                    aria-label={maximized ? 'Restore' : 'Maximize'}
+                    onClick={_onMouseUpMaximize}
+                    onTouchEnd={(e) => { e.stopPropagation(); if (resizable) _onMouseUpMaximize(); }}
+                    disabled={!resizable}
+                  />
+                )}
+                {(!currentHeader.buttons || currentHeader.buttons.includes('close')) && (
+                  <button
+                    aria-label="Close"
+                    onClick={_onMouseUpClose}
+                    onTouchEnd={(e) => { e.stopPropagation(); _onMouseUpClose(); }}
+                  />
+                )}
+              </>
             )}
           </div>
         </div>
@@ -245,6 +284,32 @@ const Window = memo(function ({
     </WindowContainer>
   );
 });
+
+const SpriteButton = styled.button`
+  all: unset;
+  width: ${({ $sprite }) => $sprite?.stateWidth || 19}px;
+  height: ${({ $sprite }) => $sprite?.stateHeight || 17}px;
+  background-image: url(${({ $sprite }) => withBaseUrl($sprite?.spriteSheet)});
+  background-repeat: no-repeat;
+  background-size: auto 100%;
+  background-position: 0 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-left: 2px;
+
+  &:hover {
+    background-position: -${({ $sprite }) => $sprite?.stateWidth || 19}px 0;
+  }
+
+  &:active {
+    background-position: -${({ $sprite }) => ($sprite?.stateWidth || 19) * 2}px 0;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+`;
 
 const WindowContainer = styled.div`
   position: absolute;
@@ -298,6 +363,74 @@ const WindowContainer = styled.div`
     bottom: 0;
     z-index: 9999;
     cursor: default;
+  }
+
+  /* Image-based theme overrides for window chrome */
+  &[data-theme-type="image"] {
+    ${({ $shellTheme }) => {
+      const tb = $shellTheme?.titleBar;
+      const wf = $shellTheme?.windowFrame;
+      if (!tb || tb.type === 'css') return '';
+
+      const frameImg = tb.frameImage ? withBaseUrl(tb.frameImage) : '';
+      const sideImg = wf?.sideImage ? withBaseUrl(wf.sideImage) : '';
+      const frameW = tb.frameWidth || 180;
+
+      return `
+        border-color: ${wf?.borderColor || '#646464'} !important;
+        background-color: ${wf?.bodyBackground || '#b4b4b4'} !important;
+
+        .title-bar {
+          background: url(${frameImg}) 0 0 / ${frameW}px auto no-repeat !important;
+          background-size: cover !important;
+          height: ${tb.height || 28}px !important;
+          min-height: ${tb.height || 28}px !important;
+        }
+
+        &.inactive .title-bar {
+          background-position: -${frameW}px 0 !important;
+          background-size: cover !important;
+        }
+
+        .title-bar-text {
+          color: ${tb.textColor || '#dcdcdc'} !important;
+          text-shadow: ${tb.textShadow || 'none'} !important;
+          font-family: ${tb.fontFamily || 'Tahoma, sans-serif'} !important;
+          font-size: ${tb.fontSize || '13px'} !important;
+          font-weight: ${tb.fontWeight || 'normal'} !important;
+        }
+
+        &.inactive .title-bar-text {
+          color: ${tb.inactiveTextColor || '#b4b4b4'} !important;
+        }
+
+        .title-bar-controls {
+          display: flex;
+          align-items: center;
+          gap: 0;
+        }
+
+        .title-bar-controls button:not([class]) {
+          /* Hide default xp.css button styling for image themes */
+          background: none !important;
+          border: none !important;
+          box-shadow: none !important;
+          min-width: 0 !important;
+          min-height: 0 !important;
+          width: auto !important;
+          height: auto !important;
+          padding: 0 !important;
+          margin: 0 !important;
+        }
+
+        ${sideImg ? `
+          border-left: ${wf.sideWidth || 4}px solid transparent;
+          border-right: ${wf.sideWidth || 4}px solid transparent;
+          border-image-source: url(${sideImg});
+          border-image-slice: 0 ${wf.sideWidth || 4} fill;
+        ` : ''}
+      `;
+    }}
   }
 `;
 
