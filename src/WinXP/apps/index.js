@@ -74,6 +74,9 @@ const RegistryEditValueDialog = lazy(() => import('./RegistryEditor/EditValueDia
 const RegistryNewValueDialog = lazy(() => import('./RegistryEditor/NewValueDialog'));
 const RegistryNewKeyDialog = lazy(() => import('./RegistryEditor/NewKeyDialog'));
 const FolderOptions = lazy(() => import('./FolderOptions'));
+const DiskDefrag = lazy(() => import('./DiskDefrag'));
+const SystemInformation = lazy(() => import('./SystemInformation'));
+const CharacterMap = lazy(() => import('./CharacterMap'));
 // ControlPanel is now integrated into MyComputer as a navigable view
 
 // XP Icons paths
@@ -165,6 +168,9 @@ export const appCategoryMap = {
   'Speech Properties': APP_CATEGORIES.SYSTEM,
   'Taskbar Properties': APP_CATEGORIES.SYSTEM,
   'Folder Options': APP_CATEGORIES.SYSTEM,
+  'Disk Defragmenter': APP_CATEGORIES.SYSTEM,
+  'Character Map': APP_CATEGORIES.ACCESSORY,
+  'System Information': APP_CATEGORIES.SYSTEM,
   'Task Manager': APP_CATEGORIES.SYSTEM,
   'User Accounts': APP_CATEGORIES.SYSTEM,
   'Add or Remove Programs': APP_CATEGORIES.SYSTEM,
@@ -457,6 +463,11 @@ export const desktopIconCatalog = {
     title: 'Registry Editor',
     component: RegistryEditor,
   },
+  systemInformation: {
+    icon: '/icons/xp/system.png',
+    title: 'System Information',
+    component: SystemInformation,
+  },
 };
 
 // Load saved icon positions from localStorage
@@ -531,6 +542,9 @@ const CATALOG_TO_APP_KEY = {
   blueScreenOfDeath: 'Blue Screen of Death',
   esheep: 'eSheep',
   registryEditor: 'Registry Editor',
+  diskDefrag: 'Disk Defragmenter',
+  characterMap: 'Character Map',
+  systemInformation: 'System Information',
 };
 
 // Generate desktop icon state from program list
@@ -759,6 +773,70 @@ export const appSettings = {
       y: 120,
     },
     resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'Disk Defragmenter': {
+    header: {
+      icon: '/icons/xp/DiskDefrag.png',
+      title: 'Disk Defragmenter',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: DiskDefrag,
+    defaultSize: {
+      width: 640,
+      height: 480,
+    },
+    defaultOffset: {
+      x: 150,
+      y: 80,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'System Information': {
+    header: {
+      icon: '/icons/xp/system.png',
+      title: 'System Information',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: SystemInformation,
+    defaultSize: {
+      width: 660,
+      height: 480,
+    },
+    defaultOffset: {
+      x: 130,
+      y: 60,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'Character Map': {
+    header: {
+      icon: '/icons/xp/font.png',
+      title: 'Character Map',
+      buttons: ['minimize', 'close'],
+    },
+    component: CharacterMap,
+    defaultSize: {
+      width: 450,
+      height: 470,
+    },
+    minSize: {
+      width: 370,
+      height: 350,
+    },
+    defaultOffset: {
+      x: 180,
+      y: 90,
+    },
+    resizable: true,
     minimized: false,
     maximized: false,
     multiInstance: false,

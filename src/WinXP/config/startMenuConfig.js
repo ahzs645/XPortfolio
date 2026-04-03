@@ -383,6 +383,27 @@ export const START_MENU_CATALOG = {
     title: 'Registry Editor',
     description: 'Edit the Windows registry',
   },
+  characterMap: {
+    type: 'program',
+    appKey: 'Character Map',
+    icon: '/icons/xp/font.png',
+    title: 'Character Map',
+    description: 'View and copy special characters',
+  },
+  diskDefrag: {
+    type: 'program',
+    appKey: 'Disk Defragmenter',
+    icon: '/icons/xp/DiskDefrag.png',
+    title: 'Disk Defragmenter',
+    description: 'Defragment your hard drive',
+  },
+  systemInformation: {
+    type: 'program',
+    appKey: 'System Information',
+    icon: '/icons/xp/system.png',
+    title: 'System Information',
+    description: 'View system configuration',
+  },
   blueScreenOfDeath: {
     type: 'program',
     appKey: 'Blue Screen of Death',
@@ -442,13 +463,13 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'System Tools',
     icon: '/icons/folder-icon.png',
-    items: ['backupWizard', 'transferWizard', 'systemRecovery'],
+    items: ['backupWizard', 'diskDefrag', 'systemInformation', 'transferWizard', 'systemRecovery'],
   },
   accessories: {
     type: 'folder',
     title: 'Accessories',
     icon: '/icons/folder-icon.png',
-    items: ['calculator', 'notepad', 'wordpad', 'microsoftWord', 'microsoftExcel', 'displayProperties', 'speechProperties', 'systemProperties', 'userAccounts', 'paint', 'cmd', 'imageViewer', 'installer', 'registryEditor', 'blueScreenOfDeath', 'systemTools'],
+    items: ['calculator', 'characterMap', 'notepad', 'wordpad', 'microsoftWord', 'microsoftExcel', 'displayProperties', 'speechProperties', 'systemProperties', 'userAccounts', 'paint', 'cmd', 'imageViewer', 'installer', 'registryEditor', 'blueScreenOfDeath', 'systemTools'],
   },
   entertainment: {
     type: 'folder',

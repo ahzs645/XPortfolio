@@ -721,7 +721,7 @@ function WinXP() {
         $wallpaper={wallpaperPath}
       >
         <DisplayFilterDefs />
-        <PowerScene $powerState={state.powerState}>
+        <PowerScene $powerState={state.powerState} data-desktop-area>
           {isDraggingFiles && isFileDropOverlayEnabled() && <DesktopDropOverlay />}
           {droppedFiles && (
             <FileUploadDialog
