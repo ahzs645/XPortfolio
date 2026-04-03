@@ -1,12 +1,22 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
-import { XP_ICONS, resolveFileSystemItemIcon } from '../../../../contexts/FileSystemContext';
+import {
+  XP_ICONS,
+  resolveFileSystemItemIcon,
+  filterVisibleFileSystemItems,
+} from '../../../../contexts/FileSystemContext';
 
 /**
  * Folder tree navigation pane inspired by the XP "Folders" view.
  * Shows drives/folders and lets users jump between them.
  */
-function FolderTree({ roots = [], fileSystem, currentFolder, onNavigate }) {
+function FolderTree({
+  roots = [],
+  fileSystem,
+  currentFolder,
+  onNavigate,
+  showHiddenContents = false,
+}) {
   const [expandedIds, setExpandedIds] = useState(() => new Set(['my-computer-root']));
 
   // Expand ancestors of the current folder so it stays visible
@@ -74,10 +84,12 @@ function FolderTree({ roots = [], fileSystem, currentFolder, onNavigate }) {
     const node = getNode(id);
     if (!node) return null;
 
-    const childrenIds = (node.children || []).filter(childId => {
-      const child = fileSystem?.[childId];
-      return child && (child.type === 'folder' || child.type === 'drive');
-    });
+    const childrenIds = filterVisibleFileSystemItems(
+      (node.children || []).map(childId => fileSystem?.[childId]).filter(Boolean),
+      { showHiddenContents }
+    )
+      .filter(child => child.type === 'folder' || child.type === 'drive')
+      .map(child => child.id);
 
     const isExpanded = expandedIds.has(node.id);
     const hasChildren = childrenIds.length > 0;

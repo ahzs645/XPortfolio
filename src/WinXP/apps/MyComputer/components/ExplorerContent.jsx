@@ -43,6 +43,7 @@ function ExplorerContent({
   onItemDrop,
   onContentMouseDown,
   onBackgroundContextMenu,
+  showFileExtensions = true,
 }) {
   const lastTapRef = useRef(null);
   const longPressTimerRef = useRef(null);
@@ -211,6 +212,7 @@ function ExplorerContent({
       onMouseMove: handleItemMouseMove,
       onMouseLeave: handleItemMouseLeave,
       itemRef: (el) => { itemRefs.current[item.id] = el; },
+      showFileExtensions,
     };
 
     switch (viewMode) {

@@ -17,4 +17,8 @@ export {
   buildDesktopShortcuts,
   getStoredItemIcon,
   resolveFileSystemItemIcon,
+  isShortcutItem,
+  isHiddenFileSystemItem,
+  filterVisibleFileSystemItems,
+  getFileSystemItemDisplayName,
 } from './fileSystem/index';

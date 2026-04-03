@@ -33,7 +33,7 @@ export function openFileWithApp({
   const ext = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
 
   // For text files with inline content (like Project Info.txt)
-  const textExtensions = ['.txt', '.log', '.md', '.json', '.js', '.jsx', '.ts', '.tsx', '.css'];
+  const textExtensions = ['.txt', '.log', '.md', '.ini', '.json', '.js', '.jsx', '.ts', '.tsx', '.css'];
   if (inlineContent && textExtensions.includes(ext)) {
     dispatch({
       type: addAppAction,

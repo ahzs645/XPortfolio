@@ -1,6 +1,14 @@
 import { useState, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
-import { useFileSystem, SYSTEM_IDS, XP_ICONS, resolveFileSystemItemIcon } from '../../../contexts/FileSystemContext';
+import {
+  useFileSystem,
+  SYSTEM_IDS,
+  XP_ICONS,
+  resolveFileSystemItemIcon,
+  filterVisibleFileSystemItems,
+  getFileSystemItemDisplayName,
+} from '../../../contexts/FileSystemContext';
+import { useShellSettings } from '../../../contexts/ShellSettingsContext';
 import { withBaseUrl } from '../../../utils/baseUrl';
 
 // Container
@@ -265,6 +273,7 @@ function OpenFileDialog({
   allowedFilters = ['all'],
 }) {
   const { fileSystem } = useFileSystem();
+  const { explorer } = useShellSettings();
   const [currentFolderId, setCurrentFolderId] = useState(SYSTEM_IDS.MY_DOCUMENTS);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [fileName, setFileName] = useState('');
@@ -281,9 +290,12 @@ function OpenFileDialog({
     const filterConfig = FILE_FILTERS[currentFilter];
     const extensions = filterConfig?.extensions || [];
 
-    return currentFolder.children
+    return filterVisibleFileSystemItems(
+      currentFolder.children
       .map(id => fileSystem[id])
-      .filter(Boolean)
+      .filter(Boolean),
+      { showHiddenContents: explorer.showHiddenContents }
+    )
       .filter(item => {
         // Always show folders
         if (item.type === 'folder' || item.type === 'drive') return true;
@@ -303,7 +315,7 @@ function OpenFileDialog({
         if (!aIsFolder && bIsFolder) return 1;
         return a.name.localeCompare(b.name);
       });
-  }, [currentFolder, fileSystem, currentFilter]);
+  }, [currentFolder, explorer.showHiddenContents, fileSystem, currentFilter]);
 
   // Navigate to folder
   const navigateTo = useCallback((folderId) => {
@@ -315,9 +327,9 @@ function OpenFileDialog({
 
   // Go up one level
   const goUp = useCallback(() => {
-    if (currentFolder?.parentId) {
+    if (currentFolder?.parent) {
       setHistory(prev => [...prev, currentFolderId]);
-      setCurrentFolderId(currentFolder.parentId);
+      setCurrentFolderId(currentFolder.parent);
       setSelectedItemId(null);
       setFileName('');
     }
@@ -387,7 +399,9 @@ function OpenFileDialog({
     if (currentFolderId === SYSTEM_IDS.MY_DOCUMENTS) return 'My Documents';
     if (currentFolderId === SYSTEM_IDS.DESKTOP) return 'Desktop';
     if (currentFolderId === SYSTEM_IDS.C_DRIVE) return 'Local Disk (C:)';
-    return currentFolder?.name || 'Unknown';
+    return getFileSystemItemDisplayName(currentFolder, {
+      showFileExtensions: explorer.showFileExtensions,
+    }) || 'Unknown';
   };
 
   // Get folder icon
@@ -395,7 +409,11 @@ function OpenFileDialog({
     if (currentFolderId === SYSTEM_IDS.MY_DOCUMENTS) return XP_ICONS.myDocuments || '/icons/xp/MyDocuments.png';
     if (currentFolderId === SYSTEM_IDS.DESKTOP) return '/icons/xp/Desktop.png';
     if (currentFolderId === SYSTEM_IDS.C_DRIVE) return XP_ICONS.localDisk || '/icons/xp/LocalDisk.png';
-    return currentFolder?.icon || '/icons/xp/FolderClosed.png';
+    return resolveFileSystemItemIcon(currentFolder, {
+      folderIcon: FILE_ICONS.folder,
+      driveIcon: XP_ICONS.localDisk,
+      fileIcon: FILE_ICONS.default,
+    });
   };
 
   return (
@@ -409,7 +427,7 @@ function OpenFileDialog({
         <ToolbarButton onClick={goBack} disabled={history.length === 0} title="Back">
           <img src={withBaseUrl('/gui/toolbar/back.webp')} alt="Back" />
         </ToolbarButton>
-        <ToolbarButton onClick={goUp} disabled={!currentFolder?.parentId} title="Up One Level">
+        <ToolbarButton onClick={goUp} disabled={!currentFolder?.parent} title="Up One Level">
           <img src={withBaseUrl('/icons/xp/FolderUp.png')} alt="Up" />
         </ToolbarButton>
       </LookInRow>
@@ -427,7 +445,9 @@ function OpenFileDialog({
                 onDoubleClick={() => handleItemDoubleClick(item)}
               >
                 <img src={withBaseUrl(getFileIcon(item))} alt="" />
-                <span>{item.name}</span>
+                <span>{getFileSystemItemDisplayName(item, {
+                  showFileExtensions: explorer.showFileExtensions,
+                })}</span>
               </FileItem>
             ))}
           </FileList>

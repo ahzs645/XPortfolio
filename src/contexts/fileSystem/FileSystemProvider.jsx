@@ -13,6 +13,7 @@ import {
   ensureProjectsFolder,
   ensureProgramFilesExecutables,
   ensureMetadataIcons,
+  ensureShellArtifacts,
   migrateFileSizes,
 } from './migrations';
 import { useFileSystemOperations } from './useFileSystemOperations';
@@ -92,6 +93,7 @@ export function FileSystemProvider({ children }) {
           fs = migrateFileSizes(fs);
         }
 
+        ensureShellArtifacts(fs);
         ensureMetadataIcons(fs);
 
         await idb.set(storageKey, fs);

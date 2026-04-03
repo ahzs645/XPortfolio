@@ -1,6 +1,10 @@
 import { useCallback, useState, useEffect, useRef } from 'react';
 import { UPDATE_ICON_POSITIONS, SET_ICONS } from '../constants/actions';
-import { SYSTEM_IDS, SYSTEM_DESKTOP_ICONS } from '../../contexts/FileSystemContext';
+import {
+  SYSTEM_IDS,
+  SYSTEM_DESKTOP_ICONS,
+  filterVisibleFileSystemItems,
+} from '../../contexts/FileSystemContext';
 import {
   convertToDesktopIcons,
   ICON_GRID,
@@ -20,6 +24,7 @@ export function useIconManager({
   getDesktopIconPositions,
   setDesktopIconPositions,
   appSettings,
+  explorerSettings,
   moveItem,
 }) {
   const [alignToGridEnabled, setAlignToGridEnabled] = useState(true);
@@ -34,10 +39,15 @@ export function useIconManager({
     const desktopContents = desktopPath
       ? await vfs?.list(desktopPath)
       : getFolderContents(SYSTEM_IDS.DESKTOP);
+    const visibleDesktopContents = filterVisibleFileSystemItems(desktopContents || [], {
+      showHiddenContents: explorerSettings?.showHiddenContents,
+    });
     const savedIndices = getDesktopIconPositions(); // Now stores gridIndex
 
     // Convert file system items to icons
-    const fileIcons = convertToDesktopIcons(desktopContents || [], appSettings, {});
+    const fileIcons = convertToDesktopIcons(visibleDesktopContents, appSettings, {}, {
+      showFileExtensions: explorerSettings?.showFileExtensions,
+    });
 
     // Build occupied indices map
     const occupiedIndices = {};
@@ -96,7 +106,17 @@ export function useIconManager({
 
     const allIcons = [...systemIcons, ...fileIconsWithIndex];
     dispatch({ type: SET_ICONS, payload: allIcons });
-  }, [appSettings, dispatch, fileSystem, getDesktopIconPositions, getFolderContents, getVfsPath, vfs]);
+  }, [
+    appSettings,
+    dispatch,
+    explorerSettings?.showFileExtensions,
+    explorerSettings?.showHiddenContents,
+    fileSystem,
+    getDesktopIconPositions,
+    getFolderContents,
+    getVfsPath,
+    vfs,
+  ]);
 
   // Update desktop icons from file system Desktop folder + system icons
   useEffect(() => {

@@ -1,6 +1,14 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import styled from 'styled-components';
-import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../../contexts/FileSystemContext';
+import {
+  useFileSystem,
+  SYSTEM_IDS,
+  XP_ICONS,
+  resolveFileSystemItemIcon,
+  filterVisibleFileSystemItems,
+  getFileSystemItemDisplayName,
+} from '../../contexts/FileSystemContext';
+import { useShellSettings } from '../../contexts/ShellSettingsContext';
 import { isMobileDevice } from '../../utils/deviceDetection';
 import { withBaseUrl } from '../../utils/baseUrl';
 
@@ -33,6 +41,7 @@ function FileChooser({
   showFoldersOnly = false,
 }) {
   const { fileSystem, getFolderContents, getPath, getFileContent } = useFileSystem();
+  const { explorer } = useShellSettings();
   // null = My Computer view
   const [currentFolder, setCurrentFolder] = useState(SYSTEM_IDS.DESKTOP);
   const [selectedItems, setSelectedItems] = useState([]);
@@ -46,7 +55,16 @@ function FileChooser({
   const dialogRef = useRef(null);
 
   const isMyComputer = currentFolder === null;
-  const contents = isMyComputer ? [] : getFolderContents(currentFolder);
+  const contents = useMemo(
+    () => (isMyComputer ? [] : getFolderContents(currentFolder)),
+    [currentFolder, getFolderContents, isMyComputer]
+  );
+  const visibleContents = useMemo(
+    () => filterVisibleFileSystemItems(contents, {
+      showHiddenContents: explorer.showHiddenContents,
+    }),
+    [contents, explorer.showHiddenContents]
+  );
   const currentFolderData = isMyComputer ? null : fileSystem?.[currentFolder];
   const pathString = isMyComputer ? 'My Computer' : getPath(currentFolder);
 
@@ -59,7 +77,7 @@ function FileChooser({
   const shortPathString = formatShortPath(pathString);
 
   // Filter contents based on file types
-  const filteredContents = contents.filter(item => {
+  const filteredContents = visibleContents.filter(item => {
     if (item.type === 'folder' || item.type === 'drive') return true;
     if (showFoldersOnly) return false;
     if (!fileTypes || fileTypes.length === 0) return true;
@@ -309,7 +327,11 @@ function FileChooser({
             <Toolbar>
               <PathInput>
                 <FolderIcon
-                  src={isMyComputer ? XP_ICONS.myComputer : (currentFolderData?.icon || XP_ICONS.folder)}
+                  src={isMyComputer ? XP_ICONS.myComputer : resolveFileSystemItemIcon(currentFolderData, {
+                    folderIcon: XP_ICONS.folder,
+                    driveIcon: XP_ICONS.localDisk,
+                    fileIcon: XP_ICONS.file,
+                  })}
                   alt=""
                 />
                 <PathText>{shortPathString}</PathText>
@@ -352,9 +374,18 @@ function FileChooser({
                       onDoubleClick={() => !isMobile && handleItemDoubleClick(item)}
                       onTouchStart={(e) => handleItemTouchStart(e, item, handleItemDoubleClick)}
                     >
-                      <FileIcon src={item.icon || XP_ICONS.file} alt="" />
+                      <FileIcon
+                        src={resolveFileSystemItemIcon(item, {
+                          folderIcon: XP_ICONS.folder,
+                          driveIcon: XP_ICONS.localDisk,
+                          fileIcon: XP_ICONS.file,
+                        })}
+                        alt=""
+                      />
                       <FileName $selected={selectedItems.includes(item.id)}>
-                        {item.name}
+                        {getFileSystemItemDisplayName(item, {
+                          showFileExtensions: explorer.showFileExtensions,
+                        })}
                       </FileName>
                     </FileItem>
                   ))

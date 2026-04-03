@@ -1,11 +1,13 @@
 import React from 'react';
 import styled from 'styled-components';
-import { XP_ICONS, resolveFileSystemItemIcon } from '../../../../contexts/FileSystemContext';
+import {
+  XP_ICONS,
+  resolveFileSystemItemIcon,
+  isShortcutItem,
+  getFileSystemItemDisplayName,
+} from '../../../../contexts/FileSystemContext';
 import { getFileType, formatFileSize, formatDate, calculateFolderSize } from '../utils';
 import { withBaseUrl } from '../../../../utils/baseUrl';
-
-// Check if item is a shortcut
-const isShortcut = (item) => item.type === 'shortcut' || item.name?.endsWith('.lnk');
 
 // Get icon for item - dynamically compute from extension, falling back to stored icon
 const getItemIcon = (item) => {
@@ -14,14 +16,6 @@ const getItemIcon = (item) => {
     driveIcon: XP_ICONS.localDisk,
     fileIcon: XP_ICONS.file,
   });
-};
-
-// Get display name (strip .lnk extension for shortcuts)
-const getDisplayName = (item) => {
-  if (isShortcut(item) && item.name?.endsWith('.lnk')) {
-    return item.name.slice(0, -4);
-  }
-  return item.name;
 };
 
 // Icon View Item
@@ -49,7 +43,10 @@ export function IconItem({
   onMouseMove,
   onMouseLeave,
   itemRef,
+  showFileExtensions = true,
 }) {
+  const displayName = getFileSystemItemDisplayName(item, { showFileExtensions });
+
   return (
     <IconItemContainer
       ref={itemRef}
@@ -74,7 +71,7 @@ export function IconItem({
     >
       <IconImageWrapper>
         <IconImage src={withBaseUrl(getItemIcon(item))} alt="" $selected={selected} />
-        {isShortcut(item) && <ShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" />}
+        {isShortcutItem(item) && <ShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" />}
       </IconImageWrapper>
       {isRenaming ? (
         <RenameForm onSubmit={onRenameSubmit}>
@@ -87,7 +84,7 @@ export function IconItem({
           />
         </RenameForm>
       ) : (
-        <IconName $selected={selected}>{getDisplayName(item)}</IconName>
+        <IconName $selected={selected}>{displayName}</IconName>
       )}
     </IconItemContainer>
   );
@@ -118,7 +115,10 @@ export function ListItem({
   onMouseMove,
   onMouseLeave,
   itemRef,
+  showFileExtensions = true,
 }) {
+  const displayName = getFileSystemItemDisplayName(item, { showFileExtensions });
+
   return (
     <ListItemContainer
       ref={itemRef}
@@ -143,7 +143,7 @@ export function ListItem({
     >
       <ListIconWrapper>
         <ListIcon src={withBaseUrl(getItemIcon(item))} alt="" $selected={selected} />
-        {isShortcut(item) && <SmallShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" />}
+        {isShortcutItem(item) && <SmallShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" />}
       </ListIconWrapper>
       {isRenaming ? (
         <RenameForm onSubmit={onRenameSubmit}>
@@ -156,7 +156,7 @@ export function ListItem({
           />
         </RenameForm>
       ) : (
-        <ListFileName>{getDisplayName(item)}</ListFileName>
+        <ListFileName>{displayName}</ListFileName>
       )}
     </ListItemContainer>
   );
@@ -188,10 +188,12 @@ export function DetailsRow({
   onMouseLeave,
   itemRef,
   fileSystem,
+  showFileExtensions = true,
 }) {
   const size = item.type === 'folder'
     ? calculateFolderSize(item.id, fileSystem)
     : item.size;
+  const displayName = getFileSystemItemDisplayName(item, { showFileExtensions });
 
   return (
     <DetailsRowContainer
@@ -218,7 +220,7 @@ export function DetailsRow({
       <DetailsCell $width="40%">
         <DetailsIconWrapper>
           <DetailsIcon src={withBaseUrl(getItemIcon(item))} alt="" $selected={selected} />
-          {isShortcut(item) && <SmallShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" />}
+          {isShortcutItem(item) && <SmallShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" />}
         </DetailsIconWrapper>
         {isRenaming ? (
           <RenameForm onSubmit={onRenameSubmit}>
@@ -231,7 +233,7 @@ export function DetailsRow({
             />
           </RenameForm>
         ) : (
-          <span>{getDisplayName(item)}</span>
+          <span>{displayName}</span>
         )}
       </DetailsCell>
       <DetailsCell $width="15%" $align="right">
@@ -268,7 +270,10 @@ export function ThumbnailItem({
   onMouseMove,
   onMouseLeave,
   itemRef,
+  showFileExtensions = true,
 }) {
+  const displayName = getFileSystemItemDisplayName(item, { showFileExtensions });
+
   return (
     <ThumbnailItemContainer
       ref={itemRef}
@@ -293,7 +298,7 @@ export function ThumbnailItem({
     >
       <ThumbnailImageWrapper $selected={selected}>
         <ThumbnailImage src={withBaseUrl(getItemIcon(item))} alt="" />
-        {isShortcut(item) && <ShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" />}
+        {isShortcutItem(item) && <ShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" />}
       </ThumbnailImageWrapper>
       {isRenaming ? (
         <RenameForm onSubmit={onRenameSubmit}>
@@ -306,7 +311,7 @@ export function ThumbnailItem({
           />
         </RenameForm>
       ) : (
-        <ThumbnailName $selected={selected}>{getDisplayName(item)}</ThumbnailName>
+        <ThumbnailName $selected={selected}>{displayName}</ThumbnailName>
       )}
     </ThumbnailItemContainer>
   );
@@ -337,7 +342,10 @@ export function TileItem({
   onMouseMove,
   onMouseLeave,
   itemRef,
+  showFileExtensions = true,
 }) {
+  const displayName = getFileSystemItemDisplayName(item, { showFileExtensions });
+
   return (
     <TileItemContainer
       ref={itemRef}
@@ -362,7 +370,7 @@ export function TileItem({
     >
       <TileIconWrapper>
         <TileIcon src={withBaseUrl(getItemIcon(item))} alt="" $selected={selected} />
-        {isShortcut(item) && <TileShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" />}
+        {isShortcutItem(item) && <TileShortcutOverlay src={withBaseUrl('/icons/xp/Shortcutoverlay.png')} alt="" />}
       </TileIconWrapper>
       <TileInfo>
         {isRenaming ? (
@@ -377,7 +385,7 @@ export function TileItem({
           </RenameForm>
         ) : (
           <>
-            <TileName $selected={selected}>{getDisplayName(item)}</TileName>
+            <TileName $selected={selected}>{displayName}</TileName>
             <TileType>{getFileType(item)}</TileType>
             {item.type !== 'folder' && <TileSize>{formatFileSize(item.size)}</TileSize>}
           </>

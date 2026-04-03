@@ -18,6 +18,16 @@ export const SAMPLE_MUSIC_FILES = [
   { id: 'sample-music-3', name: 'New Stories - Highway Blues.mp3', path: '/content/sample-music/New Stories - Highway Blues.mp3', size: 1696965 },
 ];
 
+export const SHELL_ARTIFACT_IDS = {
+  DESKTOP_INI: 'desktop-ini-file',
+  SYSTEM_VOLUME_INFORMATION: 'system-volume-information-folder',
+};
+
+export const DESKTOP_INI_CONTENT = [
+  '[.ShellClassInfo]',
+  'LocalizedResourceName=@%SystemRoot%\\\\system32\\\\shell32.dll,-21787',
+].join('\n');
+
 // Initial file system structure
 export const createInitialFileSystem = (desktopShortcuts, projects = [], userName = 'User') => {
   const now = Date.now();
@@ -104,6 +114,43 @@ export const createInitialFileSystem = (desktopShortcuts, projects = [], userNam
     };
   });
 
+  const shellArtifacts = {
+    [SHELL_ARTIFACT_IDS.DESKTOP_INI]: {
+      id: SHELL_ARTIFACT_IDS.DESKTOP_INI,
+      type: 'file',
+      name: 'desktop.ini',
+      basename: 'desktop',
+      ext: '.ini',
+      icon: fileIcons['.ini'] || XP_ICONS.notepad,
+      parent: SYSTEM_IDS.DESKTOP,
+      size: DESKTOP_INI_CONTENT.length,
+      contentType: 'text/plain',
+      content: DESKTOP_INI_CONTENT,
+      metadata: {
+        hidden: true,
+        system: true,
+        icon: fileIcons['.ini'] || XP_ICONS.notepad,
+      },
+      dateCreated: now,
+      dateModified: now,
+    },
+    [SHELL_ARTIFACT_IDS.SYSTEM_VOLUME_INFORMATION]: {
+      id: SHELL_ARTIFACT_IDS.SYSTEM_VOLUME_INFORMATION,
+      type: 'folder',
+      name: 'System Volume Information',
+      icon: XP_ICONS.folder,
+      parent: SYSTEM_IDS.C_DRIVE,
+      children: [],
+      metadata: {
+        hidden: true,
+        system: true,
+        icon: XP_ICONS.folder,
+      },
+      dateCreated: now,
+      dateModified: now,
+    },
+  };
+
   return {
     // C: Drive - root of file system
     [SYSTEM_IDS.C_DRIVE]: {
@@ -112,7 +159,11 @@ export const createInitialFileSystem = (desktopShortcuts, projects = [], userNam
       name: 'Local Disk (C:)',
       icon: XP_ICONS.localDisk,
       parent: null,
-      children: [SYSTEM_IDS.DOCUMENTS_AND_SETTINGS, SYSTEM_IDS.PROGRAM_FILES],
+      children: [
+        SYSTEM_IDS.DOCUMENTS_AND_SETTINGS,
+        SYSTEM_IDS.PROGRAM_FILES,
+        SHELL_ARTIFACT_IDS.SYSTEM_VOLUME_INFORMATION,
+      ],
       dateCreated: now,
       dateModified: now,
     },
@@ -160,7 +211,7 @@ export const createInitialFileSystem = (desktopShortcuts, projects = [], userNam
       name: 'Desktop',
       icon: XP_ICONS.desktop,
       parent: SYSTEM_IDS.USER_PROFILE,
-      children: shortcutIds,
+      children: [...shortcutIds, SHELL_ARTIFACT_IDS.DESKTOP_INI],
       dateCreated: now,
       dateModified: now,
     },
@@ -318,5 +369,6 @@ export const createInitialFileSystem = (desktopShortcuts, projects = [], userNam
     ...projectItems,
     ...programFilesItems,
     ...sampleMusicItems,
+    ...shellArtifacts,
   };
 };

@@ -1,5 +1,12 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { useFileSystem, SYSTEM_IDS, XP_ICONS, resolveFileSystemItemIcon } from '../../../contexts/FileSystemContext';
+import {
+  useFileSystem,
+  SYSTEM_IDS,
+  XP_ICONS,
+  resolveFileSystemItemIcon,
+  filterVisibleFileSystemItems,
+  getFileSystemItemDisplayName,
+} from '../../../contexts/FileSystemContext';
 import { useApp } from '../../../contexts/AppContext';
 import { useConfig } from '../../../contexts/ConfigContext';
 import { useShellSettings } from '../../../contexts/ShellSettingsContext';
@@ -225,6 +232,13 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     ? 'Control Panel'
     : getVfsPath(currentFolder) || getPath(currentFolder);
 
+  const visibleContents = React.useMemo(
+    () => filterVisibleFileSystemItems(contents, {
+      showHiddenContents: explorer.showHiddenContents,
+    }),
+    [contents, explorer.showHiddenContents]
+  );
+
   // Selection hook
   const {
     selectedItems,
@@ -234,7 +248,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     handleContainerClick: baseHandleContainerClick,
     handleContentMouseDown,
     selectAll,
-  } = useSelection({ contents, contentRef, itemRefs });
+  } = useSelection({ contents: visibleContents, contentRef, itemRefs });
 
   // File operations hook
   const {
@@ -295,7 +309,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   useKeyboardShortcuts({
     containerRef,
     selectedItems,
-    contents,
+    contents: visibleContents,
     onDelete: handleDelete,
     onRename: handleRename,
     onCopy: handleCopy,
@@ -310,8 +324,26 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   const selectedItem = contextMenu?.isItem ? fileSystem?.[selectedItemId] : null;
 
   // Sort and filter contents
-  const sortedContents = React.useMemo(() => sortItems(contents, sortBy, sortOrder), [contents, sortBy, sortOrder]);
-  const filteredContents = React.useMemo(() => filterItems(sortedContents, searchQuery), [sortedContents, searchQuery]);
+  const sortedContents = React.useMemo(
+    () => sortItems(visibleContents, sortBy, sortOrder),
+    [visibleContents, sortBy, sortOrder]
+  );
+  const filteredContents = React.useMemo(
+    () => filterItems(sortedContents, searchQuery),
+    [sortedContents, searchQuery]
+  );
+
+  useEffect(() => {
+    if (isMyComputerRoot || isControlPanel) {
+      return;
+    }
+
+    const visibleIds = new Set(visibleContents.map((item) => item.id));
+    setSelectedItems((prev) => {
+      const next = prev.filter((id) => visibleIds.has(id));
+      return next.length === prev.length ? prev : next;
+    });
+  }, [isMyComputerRoot, isControlPanel, setSelectedItems, visibleContents]);
 
   // Handle column header click for sorting
   const handleColumnSort = useCallback((column) => {
@@ -344,6 +376,9 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     folders: filterItems(myComputerItems.folders, searchQuery),
     drives: filterItems(myComputerItems.drives, searchQuery),
   }), [myComputerItems, searchQuery]);
+
+  const showClassicFolders = explorer.sidebarMode === 'classic';
+  const showExplorerSidebar = showClassicFolders || showFoldersPane;
 
   const folderTreeRoots = React.useMemo(() => {
     const driveIds = myComputerItems.drives.map(item => item.id);
@@ -528,6 +563,9 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
         break;
       case 'folders':
         setIsSearching(false);
+        if (showClassicFolders) {
+          break;
+        }
         setShowFoldersPane(prev => !prev);
         break;
       case 'views':
@@ -544,7 +582,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
       default:
         console.log('Toolbar action:', action);
     }
-  }, [goBack, goForward, goUp, isSearching]);
+  }, [goBack, goForward, goUp, isSearching, showClassicFolders]);
 
   // Menu action handler
   const handleMenuAction = useCallback((action) => {
@@ -716,7 +754,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
 
   const totalItems = isMyComputerRoot
     ? myComputerItems.folders.length + myComputerItems.drives.length
-    : contents.length;
+    : visibleContents.length;
   const visibleItems = isMyComputerRoot
     ? filteredMyComputerItems.folders.length + filteredMyComputerItems.drives.length
     : filteredContents.length;
@@ -728,6 +766,9 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
 
   // Render item for My Computer root view
   const renderMyComputerItem = (item) => {
+    const displayName = getFileSystemItemDisplayName(item, {
+      showFileExtensions: explorer.showFileExtensions,
+    });
     const itemIcon = resolveFileSystemItemIcon(item, {
       folderIcon: XP_ICONS.folder,
       driveIcon: XP_ICONS.localDisk,
@@ -751,7 +792,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
           <MyComputerDetailsRow key={item.id} {...commonProps}>
             <MyComputerDetailsCell $width="50%">
               <MyComputerDetailsIcon src={itemIcon} alt="" />
-              <span>{item.name}</span>
+              <span>{displayName}</span>
             </MyComputerDetailsCell>
             <MyComputerDetailsCell $width="25%">
               {item.type === 'drive' ? 'Local Disk' : 'File Folder'}
@@ -765,7 +806,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
         return (
           <MyComputerListItem key={item.id} {...commonProps}>
             <MyComputerListIcon src={itemIcon} alt="" />
-            <MyComputerListName>{item.name}</MyComputerListName>
+            <MyComputerListName>{displayName}</MyComputerListName>
           </MyComputerListItem>
         );
       case 'tiles':
@@ -773,7 +814,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
           <MyComputerTileItem key={item.id} {...commonProps}>
             <MyComputerTileIcon src={itemIcon} alt="" />
             <MyComputerTileInfo>
-              <MyComputerTileName>{item.name}</MyComputerTileName>
+              <MyComputerTileName>{displayName}</MyComputerTileName>
               <MyComputerTileType>
                 {item.type === 'drive' ? 'Local Disk' : 'File Folder'}
               </MyComputerTileType>
@@ -787,7 +828,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
               <MyComputerThumbnailIcon src={itemIcon} alt="" />
             </MyComputerThumbnailImageWrapper>
             <MyComputerThumbnailName $selected={selectedItems.includes(item.id)}>
-              {item.name}
+              {displayName}
             </MyComputerThumbnailName>
           </MyComputerThumbnailItem>
         );
@@ -795,7 +836,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
         return (
           <MyComputerFileItem key={item.id} {...commonProps}>
             <MyComputerFileIcon src={itemIcon} alt="" />
-            <MyComputerFileName>{item.name}</MyComputerFileName>
+            <MyComputerFileName>{displayName}</MyComputerFileName>
           </MyComputerFileItem>
         );
     }
@@ -853,12 +894,13 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
                   onSearchChange={setSearchQuery}
                   onClose={closeSearch}
                 />
-              ) : showFoldersPane ? (
+              ) : showExplorerSidebar ? (
                 <FolderTree
                   roots={folderTreeRoots}
                   fileSystem={fileSystem}
                   currentFolder={currentFolder}
                   onNavigate={handleTreeNavigate}
+                  showHiddenContents={explorer.showHiddenContents}
                 />
               ) : (
                 <TaskPanel width={180}>
@@ -892,7 +934,13 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
                       </>
                     ) : selectedItems.length === 1 ? (
                       <>
-                        <TaskPanel.Text><strong>{fileSystem[selectedItems[0]]?.name}</strong></TaskPanel.Text>
+                        <TaskPanel.Text>
+                          <strong>
+                            {getFileSystemItemDisplayName(fileSystem[selectedItems[0]], {
+                              showFileExtensions: explorer.showFileExtensions,
+                            })}
+                          </strong>
+                        </TaskPanel.Text>
                         <TaskPanel.Text>
                           {fileSystem[selectedItems[0]]?.type === 'drive' ? 'Local Disk' : 'System Folder'}
                         </TaskPanel.Text>
@@ -961,12 +1009,13 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
                   onSearchChange={setSearchQuery}
                   onClose={closeSearch}
                 />
-              ) : showFoldersPane ? (
+              ) : showExplorerSidebar ? (
                 <FolderTree
                   roots={folderTreeRoots}
                   fileSystem={fileSystem}
                   currentFolder={currentFolder}
                   onNavigate={handleTreeNavigate}
+                  showHiddenContents={explorer.showHiddenContents}
                 />
               ) : (
                 <TaskPanel width={180}>
@@ -1015,7 +1064,13 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
                       </>
                     ) : selectedItems.length === 1 ? (
                       <>
-                        <TaskPanel.Text><strong>{fileSystem[selectedItems[0]]?.name}</strong></TaskPanel.Text>
+                        <TaskPanel.Text>
+                          <strong>
+                            {getFileSystemItemDisplayName(fileSystem[selectedItems[0]], {
+                              showFileExtensions: explorer.showFileExtensions,
+                            })}
+                          </strong>
+                        </TaskPanel.Text>
                         <TaskPanel.Text>{getSimpleFileType(fileSystem[selectedItems[0]])}</TaskPanel.Text>
                         <DetailsSpacer />
                         <TaskPanel.Text>
@@ -1062,6 +1117,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
                 onItemDrop={handleItemDrop}
                 onContentMouseDown={handleContentMouseDown}
                 onBackgroundContextMenu={(e) => handleContextMenu(e, null)}
+                showFileExtensions={explorer.showFileExtensions}
               />
             </FolderLayout>
           )}

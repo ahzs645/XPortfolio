@@ -10,6 +10,7 @@ import { useInstalledApps } from '../contexts/InstalledAppsContext';
 import { useStartMenu } from '../contexts/StartMenuContext';
 import { useUserAccounts } from '../contexts/UserAccountsContext';
 import { useRegistry } from '../contexts/RegistryContext';
+import { useShellSettings } from '../contexts/ShellSettingsContext';
 import { AppProvider } from '../contexts/AppContext';
 import { RunningAppsProvider } from '../contexts/RunningAppsContext';
 import { MessageBoxProvider } from '../contexts/MessageBoxContext';
@@ -123,6 +124,7 @@ function DisplayFilterDefs() {
 function WinXP() {
   const { state, dispatch, getFocusedAppId, getActiveAppIdForTaskbar } = useDesktopReducer();
   const { getValue } = useRegistry();
+  const { explorer } = useShellSettings();
   const [crtEnabled, setCrtEnabled] = useState(true);
   const [showClippy, setShowClippy] = useState(true);
   const [clippyHiddenOnMobile, setClippyHiddenOnMobile] = useState(() => {
@@ -267,6 +269,7 @@ function WinXP() {
     getDesktopIconPositions,
     setDesktopIconPositions,
     appSettings,
+    explorerSettings: explorer,
     moveItem,
   });
 

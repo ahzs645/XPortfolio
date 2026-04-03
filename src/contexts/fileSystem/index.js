@@ -17,6 +17,12 @@ export {
   getStoredItemIcon,
   resolveFileSystemItemIcon,
 } from './iconResolver';
+export {
+  isShortcutItem,
+  isHiddenFileSystemItem,
+  filterVisibleFileSystemItems,
+  getFileSystemItemDisplayName,
+} from './shellDisplay';
 
 // Constants
 export {

@@ -15,6 +15,7 @@ export const SortOrders = Object.freeze({
 // File type icons mapping
 export const fileIcons = {
   '.txt': '/icons/xp/Notepad.png',
+  '.ini': '/icons/xp/Notepad.png',
   '.mp3': '/icons/media-player.png',
   '.mp4': '/icons/media-player.png',
   '.jpg': '/icons/image-viewer.png',

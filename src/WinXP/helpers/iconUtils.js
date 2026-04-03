@@ -1,4 +1,8 @@
-import { XP_ICONS, resolveFileSystemItemIcon } from '../../contexts/FileSystemContext';
+import {
+  XP_ICONS,
+  resolveFileSystemItemIcon,
+  getFileSystemItemDisplayName,
+} from '../../contexts/FileSystemContext';
 
 // Get icon for a file item - dynamically compute from extension
 const getItemIcon = (item) => {
@@ -83,7 +87,12 @@ export const findNearestAvailableIndex = (targetIndex, occupiedIndices, excludeI
 };
 
 // Convert file system items to desktop icon format
-export const convertToDesktopIcons = (items, appSettings, savedPositions = {}) => {
+export const convertToDesktopIcons = (
+  items,
+  appSettings,
+  savedPositions = {},
+  { showFileExtensions = true } = {}
+) => {
   const { iconWidth, iconHeight, iconGapX, iconGapY, startX, startY } = ICON_GRID;
   // Calculate max icons per column based on viewport (leave room for taskbar)
   const maxHeight = window.innerHeight - 60; // 60px for taskbar
@@ -110,11 +119,7 @@ export const convertToDesktopIcons = (items, appSettings, savedPositions = {}) =
       }
     }
 
-    // For shortcuts, strip the .lnk extension from display title
-    let displayTitle = item.name;
-    if (item.type === 'shortcut' && item.name.endsWith('.lnk')) {
-      displayTitle = item.name.slice(0, -4);
-    }
+    const displayTitle = getFileSystemItemDisplayName(item, { showFileExtensions });
 
     return {
       id: item.id,

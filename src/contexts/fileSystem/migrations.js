@@ -1,6 +1,11 @@
 import { XP_ICONS, SYSTEM_IDS, fileIcons, SHORTCUT_SIZE } from './constants';
 import { createProjectFolderItems } from './projectHelpers';
-import { PROGRAM_FILES_PROGRAMS, SAMPLE_MUSIC_FILES } from './initialFileSystem';
+import {
+  PROGRAM_FILES_PROGRAMS,
+  SAMPLE_MUSIC_FILES,
+  SHELL_ARTIFACT_IDS,
+  DESKTOP_INI_CONTENT,
+} from './initialFileSystem';
 
 // IDs of old shortcuts that should be removed (now system icons or replaced with folders)
 export const OLD_SHORTCUT_IDS = ['shortcut-my-computer', 'shortcut-recycle-bin', 'shortcut-projects'];
@@ -138,6 +143,116 @@ export const ensureMetadataIcons = (fs) => {
     };
     modified = true;
   });
+
+  return modified;
+};
+
+export const ensureShellArtifacts = (fs) => {
+  if (!fs) return false;
+
+  const now = Date.now();
+  let modified = false;
+
+  const ensureChild = (parentId, childId) => {
+    if (!fs[parentId]) return;
+    if (!fs[parentId].children?.includes(childId)) {
+      fs[parentId].children = [...(fs[parentId].children || []), childId];
+      modified = true;
+    }
+  };
+
+  if (!fs[SHELL_ARTIFACT_IDS.DESKTOP_INI]) {
+    fs[SHELL_ARTIFACT_IDS.DESKTOP_INI] = {
+      id: SHELL_ARTIFACT_IDS.DESKTOP_INI,
+      type: 'file',
+      name: 'desktop.ini',
+      basename: 'desktop',
+      ext: '.ini',
+      icon: fileIcons['.ini'] || XP_ICONS.notepad,
+      parent: SYSTEM_IDS.DESKTOP,
+      size: DESKTOP_INI_CONTENT.length,
+      contentType: 'text/plain',
+      content: DESKTOP_INI_CONTENT,
+      metadata: {
+        hidden: true,
+        system: true,
+        icon: fileIcons['.ini'] || XP_ICONS.notepad,
+      },
+      dateCreated: now,
+      dateModified: now,
+    };
+    modified = true;
+  } else {
+    const item = fs[SHELL_ARTIFACT_IDS.DESKTOP_INI];
+    const nextMetadata = {
+      ...(item.metadata || {}),
+      hidden: true,
+      system: true,
+      icon: item.metadata?.icon || item.icon || fileIcons['.ini'] || XP_ICONS.notepad,
+    };
+    if (
+      item.parent !== SYSTEM_IDS.DESKTOP ||
+      item.content !== DESKTOP_INI_CONTENT ||
+      item.contentType !== 'text/plain' ||
+      item.ext !== '.ini' ||
+      JSON.stringify(item.metadata || {}) !== JSON.stringify(nextMetadata)
+    ) {
+      fs[SHELL_ARTIFACT_IDS.DESKTOP_INI] = {
+        ...item,
+        parent: SYSTEM_IDS.DESKTOP,
+        content: DESKTOP_INI_CONTENT,
+        contentType: 'text/plain',
+        ext: '.ini',
+        metadata: nextMetadata,
+      };
+      modified = true;
+    }
+  }
+  ensureChild(SYSTEM_IDS.DESKTOP, SHELL_ARTIFACT_IDS.DESKTOP_INI);
+
+  if (!fs[SHELL_ARTIFACT_IDS.SYSTEM_VOLUME_INFORMATION]) {
+    fs[SHELL_ARTIFACT_IDS.SYSTEM_VOLUME_INFORMATION] = {
+      id: SHELL_ARTIFACT_IDS.SYSTEM_VOLUME_INFORMATION,
+      type: 'folder',
+      name: 'System Volume Information',
+      icon: XP_ICONS.folder,
+      parent: SYSTEM_IDS.C_DRIVE,
+      children: [],
+      metadata: {
+        hidden: true,
+        system: true,
+        icon: XP_ICONS.folder,
+      },
+      dateCreated: now,
+      dateModified: now,
+    };
+    modified = true;
+  } else {
+    const item = fs[SHELL_ARTIFACT_IDS.SYSTEM_VOLUME_INFORMATION];
+    const nextMetadata = {
+      ...(item.metadata || {}),
+      hidden: true,
+      system: true,
+      icon: item.metadata?.icon || item.icon || XP_ICONS.folder,
+    };
+    if (
+      item.parent !== SYSTEM_IDS.C_DRIVE ||
+      item.type !== 'folder' ||
+      item.name !== 'System Volume Information' ||
+      JSON.stringify(item.metadata || {}) !== JSON.stringify(nextMetadata)
+    ) {
+      fs[SHELL_ARTIFACT_IDS.SYSTEM_VOLUME_INFORMATION] = {
+        ...item,
+        type: 'folder',
+        name: 'System Volume Information',
+        parent: SYSTEM_IDS.C_DRIVE,
+        children: item.children || [],
+        metadata: nextMetadata,
+      };
+      modified = true;
+    }
+  }
+  ensureChild(SYSTEM_IDS.C_DRIVE, SHELL_ARTIFACT_IDS.SYSTEM_VOLUME_INFORMATION);
 
   return modified;
 };
