@@ -8,6 +8,7 @@ import { ContextMenu } from '../components/ContextMenu';
 import { isMobileDevice } from '../../utils/deviceDetection';
 import { withBaseUrl } from '../../utils/baseUrl';
 import useSystemSounds from '../../hooks/useSystemSounds';
+import { useShellSettings } from '../../contexts/ShellSettingsContext';
 import { useUserSettings } from '../../contexts/UserSettingsContext';
 import { getColorDepthFilter } from '../../utils/colorDepthEffects';
 import { getDisplayViewport, toDisplayLayerRect } from '../../utils/displayCoordinates';
@@ -21,9 +22,6 @@ import {
   XP_TRAY_BACKGROUND,
 } from '../styles/shellTheme';
 
-const QUICK_LAUNCH_ENABLED_KEY = 'xp-quick-launch-enabled';
-const VOLUME_KEY = 'xp-volume';
-const MUTED_KEY = 'xp-muted';
 const MAX_VISIBLE_TASKBAR_WINDOWS = 2;
 
 const getTime = () => {
@@ -61,6 +59,7 @@ function Footer({
 }) {
   const { playStart } = useSystemSounds();
   const { windowSoundsEnabled, colorDepth } = useUserSettings();
+  const { taskbar, audio, setTaskbarSettings, setAudioSettings } = useShellSettings();
   const [time, setTime] = useState(getTime);
   const [menuOn, setMenuOn] = useState(false);
   const [showWelcomeBalloon, setShowWelcomeBalloon] = useState(false);
@@ -68,33 +67,9 @@ function Footer({
   const [hasUpdate, setHasUpdate] = useState(false);
   const [updateTooltip, setUpdateTooltip] = useState('Updates available');
   const [startContextMenu, setStartContextMenu] = useState(null);
-  const [quickLaunchEnabled, setQuickLaunchEnabled] = useState(() => {
-    try {
-      const saved = localStorage.getItem(QUICK_LAUNCH_ENABLED_KEY);
-      return saved !== null ? JSON.parse(saved) : true;
-    } catch {
-      return true;
-    }
-  });
   const [showVolumePopup, setShowVolumePopup] = useState(false);
   const [showWindowOverflow, setShowWindowOverflow] = useState(false);
   const [windowOverflowPosition, setWindowOverflowPosition] = useState(null);
-  const [volume, setVolume] = useState(() => {
-    try {
-      const saved = localStorage.getItem(VOLUME_KEY);
-      return saved !== null ? parseInt(saved, 10) : 50;
-    } catch {
-      return 50;
-    }
-  });
-  const [muted, setMuted] = useState(() => {
-    try {
-      const saved = localStorage.getItem(MUTED_KEY);
-      return saved !== null ? JSON.parse(saved) : false;
-    } catch {
-      return false;
-    }
-  });
   const menuRef = useRef(null);
   const startButtonRef = useRef(null);
   const welcomeIconRef = useRef(null);
@@ -115,42 +90,14 @@ function Footer({
   const hasFocusedOverflowWindow = overflowTaskbarApps.some((app) => app.id === focusedAppId);
   const isWindowOverflowOpen = showWindowOverflow && hasWindowOverflow;
 
-  // Persist Quick Launch enabled state
-  useEffect(() => {
-    try {
-      localStorage.setItem(QUICK_LAUNCH_ENABLED_KEY, JSON.stringify(quickLaunchEnabled));
-    } catch (e) {
-      console.error('Failed to save Quick Launch state:', e);
-    }
-  }, [quickLaunchEnabled]);
-
-  // Persist volume settings
-  useEffect(() => {
-    try {
-      localStorage.setItem(VOLUME_KEY, String(volume));
-    } catch (e) {
-      console.error('Failed to save volume:', e);
-    }
-  }, [volume]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(MUTED_KEY, JSON.stringify(muted));
-    } catch (e) {
-      console.error('Failed to save muted state:', e);
-    }
-  }, [muted]);
-
-  // Dispatch volume change event for other components to listen
-  useEffect(() => {
-    window.dispatchEvent(new CustomEvent('xp:volume-change', {
-      detail: { volume: muted ? 0 : volume, muted }
-    }));
-  }, [volume, muted]);
-
   const handleVolumeClick = useCallback(() => {
     setShowVolumePopup(prev => !prev);
   }, []);
+
+  const handleVolumeDoubleClick = useCallback(() => {
+    setShowVolumePopup(false);
+    onClickMenuItem('Volume Control');
+  }, [onClickMenuItem]);
 
   const updateWindowOverflowPosition = useCallback(() => {
     const button = windowOverflowButtonRef.current;
@@ -178,12 +125,12 @@ function Footer({
   }, [updateWindowOverflowPosition]);
 
   const handleVolumeChange = useCallback((e) => {
-    setVolume(parseInt(e.target.value, 10));
-  }, []);
+    setAudioSettings({ volume: parseInt(e.target.value, 10) });
+  }, [setAudioSettings]);
 
   const handleMuteToggle = useCallback(() => {
-    setMuted(prev => !prev);
-  }, []);
+    setAudioSettings({ muted: !audio.muted });
+  }, [audio.muted, setAudioSettings]);
 
   const computeWelcomeAnchor = useCallback(() => {
     const el = welcomeIconRef.current;
@@ -297,8 +244,8 @@ function Footer({
         },
         {
           label: 'Quick Launch',
-          checked: quickLaunchEnabled,
-          onClick: () => setQuickLaunchEnabled(prev => !prev),
+          checked: taskbar.showQuickLaunch,
+          onClick: () => setTaskbarSettings({ showQuickLaunch: !taskbar.showQuickLaunch }),
         },
         { type: 'divider' },
         {
@@ -509,7 +456,7 @@ function Footer({
           draggable={false}
         />
         <QuickLaunch
-          enabled={quickLaunchEnabled && !isMobile && !isMobileDevice()}
+          enabled={taskbar.showQuickLaunch && !isMobile && !isMobileDevice()}
           onClickMenuItem={_onClickMenuItem}
           onMinimizeAll={onMinimizeAll}
         />
@@ -607,16 +554,19 @@ function Footer({
           ref={volumeIconRef}
           src={withBaseUrl('/gui/taskbar/speaker.png')}
           alt="Volume"
-          title={muted ? 'Volume: Muted' : `Volume: ${volume}%`}
+          title={audio.muted ? 'Volume: Muted' : `Volume: ${audio.volume}%`}
           onClick={handleVolumeClick}
+          onDoubleClick={handleVolumeDoubleClick}
         />
-        <div
-          className="footer__time"
-          onClick={() => onClickMenuItem('Date and Time Properties')}
-          title="Click to change date and time settings"
-        >
-          {time}
-        </div>
+        {taskbar.showClock && (
+          <div
+            className="footer__time"
+            onClick={() => onClickMenuItem('Date and Time Properties')}
+            title="Click to change date and time settings"
+          >
+            {time}
+          </div>
+        )}
       </div>
 
       {showVolumePopup && createPortal(
@@ -626,11 +576,11 @@ function Footer({
             <div className="is-vertical">
               <input
                 id="volume-slider"
-                className={`has-box-indicator ${muted ? 'disabled' : ''}`}
+                className={`has-box-indicator ${audio.muted ? 'disabled' : ''}`}
                 type="range"
                 min="0"
                 max="100"
-                value={volume}
+                value={audio.volume}
                 onChange={handleVolumeChange}
               />
             </div>
@@ -639,7 +589,7 @@ function Footer({
             <input
               type="checkbox"
               id="volume-mute"
-              checked={muted}
+              checked={audio.muted}
               onChange={handleMuteToggle}
             />
             <label htmlFor="volume-mute">Mute</label>

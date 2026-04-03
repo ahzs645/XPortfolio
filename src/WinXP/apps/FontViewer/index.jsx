@@ -1,25 +1,31 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 
-function FontViewer({ fontData, fontName, fontPath }) {
+const FORMAT_LABELS = {
+  ttf: 'TrueType',
+  otf: 'OpenType',
+  woff: 'WOFF',
+  woff2: 'WOFF2',
+  fon: 'Font Resource',
+};
+
+const FORMAT_HINTS = {
+  ttf: 'truetype',
+  otf: 'opentype',
+  woff: 'woff',
+  woff2: 'woff2',
+};
+
+function FontViewer({ fontData, fontName, fontPath, onClose }) {
   const [fontFamily, setFontFamily] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [fileSize, setFileSize] = useState(null);
 
-  // Extract display name from font name or path
-  const displayName = fontName || (fontPath ? fontPath.split('/').pop().replace(/\.[^.]+$/, '') : 'Font Preview');
-
-  // Determine font format from extension
-  const getFormatFromName = useCallback((name) => {
-    const ext = (name || '').toLowerCase().split('.').pop();
-    switch (ext) {
-      case 'ttf': return 'truetype';
-      case 'otf': return 'opentype';
-      case 'woff': return 'woff';
-      case 'woff2': return 'woff2';
-      default: return 'truetype';
-    }
-  }, []);
+  const fileName = fontName || (fontPath ? fontPath.split('/').pop() : '');
+  const ext = (fileName || '').toLowerCase().split('.').pop();
+  const formatLabel = FORMAT_LABELS[ext] || 'Font File';
+  const displayName = fileName.replace(/\.[^.]+$/, '') || 'Font Preview';
 
   // Load the font
   /* eslint-disable react-hooks/set-state-in-effect -- async font loading */
@@ -35,20 +41,18 @@ function FontViewer({ fontData, fontName, fontPath }) {
         setIsLoading(true);
         setError(null);
 
-        // Create blob URL from font data
         let fontUrl = fontData;
 
-        // If it's a data URL, convert to blob URL
         if (fontData.startsWith('data:')) {
           const response = await fetch(fontData);
           const blob = await response.blob();
+          setFileSize(blob.size);
           fontUrl = URL.createObjectURL(blob);
         }
 
-        const format = getFormatFromName(fontName || fontPath);
+        const format = FORMAT_HINTS[ext] || 'truetype';
         const uniqueFontName = `FontViewer_${Date.now()}`;
 
-        // Create and load the font face
         const fontFace = new FontFace(uniqueFontName, `url(${fontUrl}) format('${format}')`);
         await fontFace.load();
         document.fonts.add(fontFace);
@@ -63,13 +67,20 @@ function FontViewer({ fontData, fontName, fontPath }) {
     };
 
     loadFont();
-  }, [fontData, fontName, fontPath, getFormatFromName]);
+  }, [fontData, ext]);
   /* eslint-enable react-hooks/set-state-in-effect */
+
+  const formatSize = (bytes) => {
+    if (bytes == null) return null;
+    return bytes >= 1048576
+      ? `${(bytes / 1048576).toFixed(1)} MB`
+      : `${(bytes / 1024).toFixed(1)} KB`;
+  };
 
   return (
     <Container>
       <Toolbar>
-        <ToolbarButton disabled>Done</ToolbarButton>
+        <ToolbarButton onClick={onClose}>Done</ToolbarButton>
         <ToolbarButton disabled>Print</ToolbarButton>
       </Toolbar>
 
@@ -80,7 +91,16 @@ function FontViewer({ fontData, fontName, fontPath }) {
           <ErrorMessage>{error}</ErrorMessage>
         ) : (
           <FontContent $fontFamily={fontFamily}>
-            <FontTitle $fontFamily={fontFamily}>{displayName}</FontTitle>
+            <FontTitle $fontFamily={fontFamily}>
+              {displayName} ({formatLabel})
+            </FontTitle>
+
+            <FontMeta>
+              {formatLabel} Font{fileSize ? `, File size: ${formatSize(fileSize)}` : ''}
+              <br />
+              Typeface name: {displayName}
+            </FontMeta>
+
             <Separator />
 
             <CharacterPreview $fontFamily={fontFamily}>
@@ -93,12 +113,12 @@ function FontViewer({ fontData, fontName, fontPath }) {
 
             <SizePreviews>
               {[12, 18, 24, 36, 48, 60, 72].map((size) => (
-                <SizeRow key={size}>
+                <React.Fragment key={size}>
                   <SizeLabel>{size}</SizeLabel>
                   <SizePreview $fontFamily={fontFamily} $fontSize={size}>
                     The quick brown fox jumps over the lazy dog. 1234567890
                   </SizePreview>
-                </SizeRow>
+                </React.Fragment>
               ))}
             </SizePreviews>
           </FontContent>
@@ -185,43 +205,45 @@ const FontContent = styled.div`
 const FontTitle = styled.div`
   font-size: 32pt;
   font-family: ${({ $fontFamily }) => $fontFamily ? `'${$fontFamily}', sans-serif` : 'sans-serif'};
-  margin-bottom: 10px;
+  margin-bottom: 5px;
   word-break: break-word;
+`;
+
+const FontMeta = styled.p`
+  font-family: Tahoma, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.5;
+  margin: 0 0 5px;
+  color: #000;
 `;
 
 const Separator = styled.hr`
   border: none;
   border-top: 1px solid #ccc;
-  margin: 15px 0;
+  margin: 12px 0;
 `;
 
 const CharacterPreview = styled.p`
   font-family: ${({ $fontFamily }) => $fontFamily ? `'${$fontFamily}', sans-serif` : 'sans-serif'};
-  font-size: 18pt;
+  font-size: 16pt;
   line-height: 1.4;
   margin: 0;
   word-break: break-all;
 `;
 
 const SizePreviews = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-`;
-
-const SizeRow = styled.div`
-  display: flex;
-  align-items: flex-end;
-  gap: 15px;
+  display: grid;
+  grid-template-columns: 32px 1fr;
 `;
 
 const SizeLabel = styled.span`
   font-size: 11px;
   font-family: Tahoma, sans-serif;
   color: #000;
-  min-width: 24px;
+  grid-column: 1;
+  align-self: end;
   text-align: right;
-  flex-shrink: 0;
 `;
 
 const SizePreview = styled.span`
@@ -229,7 +251,7 @@ const SizePreview = styled.span`
   font-size: ${({ $fontSize }) => $fontSize}pt;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+  grid-column: 2;
 `;
 
 export default FontViewer;

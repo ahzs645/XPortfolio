@@ -117,6 +117,31 @@ export const ensureProgramFilesExecutables = (fs) => {
   return modified;
 };
 
+export const ensureMetadataIcons = (fs) => {
+  if (!fs) return false;
+
+  let modified = false;
+
+  Object.keys(fs).forEach((id) => {
+    if (id.startsWith('_')) return;
+
+    const item = fs[id];
+    if (!item || typeof item !== 'object') return;
+    if (!item.icon || item.metadata?.icon) return;
+
+    fs[id] = {
+      ...item,
+      metadata: {
+        ...(item.metadata || {}),
+        icon: item.icon,
+      },
+    };
+    modified = true;
+  });
+
+  return modified;
+};
+
 // Migrate old file system structure to new XP-style structure
 export const migrateToNewStructure = (fs, userName) => {
   const now = Date.now();

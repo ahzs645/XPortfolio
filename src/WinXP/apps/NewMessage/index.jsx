@@ -1,7 +1,9 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import styled from 'styled-components';
 import ProgramLayout from '../../../components/WindowBars/ProgramLayout';
 import { useConfig } from '../../../contexts/ConfigContext';
+
+const SEND_STATE = { IDLE: 'idle', SENDING: 'sending', SENT: 'sent', ERROR: 'error' };
 
 const ICONS = {
   send: '/gui/toolbar/send.webp',
@@ -22,7 +24,10 @@ const ICONS = {
 };
 
 function NewMessage({ onClose, onMinimize, onMaximize }) {
-  const { getFullName, cvData } = useConfig();
+  const { getFullName, cvData, config } = useConfig();
+
+  const emailMode = config?.EMAIL_SEND_MODE || 'mailto';
+  const emailEndpoint = config?.EMAIL_API_ENDPOINT || '';
 
   // Get email from CV data
   const ownerEmail = cvData?.cv?.email || 'me@example.com';
@@ -36,6 +41,9 @@ function NewMessage({ onClose, onMinimize, onMaximize }) {
     message: '',
   });
 
+  const [sendState, setSendState] = useState(SEND_STATE.IDLE);
+  const closeTimerRef = useRef(null);
+
   // Format state (visual only, not functional)
   const [fontName, setFontName] = useState('Arial');
   const [fontSize, setFontSize] = useState('10');
@@ -48,13 +56,35 @@ function NewMessage({ onClose, onMinimize, onMaximize }) {
     }));
   }, []);
 
-  const handleSendMessage = useCallback(() => {
-    // Create mailto link to send to owner
-    const mailtoLink = `mailto:${ownerEmail}?subject=${encodeURIComponent(composeData.subject)}&body=${encodeURIComponent(composeData.message)}`;
-    window.open(mailtoLink, '_blank');
-    // Close the window after sending
-    onClose?.();
-  }, [ownerEmail, composeData.subject, composeData.message, onClose]);
+  const handleSendMessage = useCallback(async () => {
+    if (sendState === SEND_STATE.SENDING) return;
+
+    if (emailMode === 'api' && emailEndpoint) {
+      setSendState(SEND_STATE.SENDING);
+      try {
+        const res = await fetch(emailEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: composeData.from,
+            to: ownerEmail,
+            subject: composeData.subject,
+            message: composeData.message,
+          }),
+        });
+        if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+        setSendState(SEND_STATE.SENT);
+        closeTimerRef.current = setTimeout(() => onClose?.(), 1500);
+      } catch {
+        setSendState(SEND_STATE.ERROR);
+      }
+    } else {
+      // Default: mailto
+      const mailtoLink = `mailto:${ownerEmail}?subject=${encodeURIComponent(composeData.subject)}&body=${encodeURIComponent(composeData.message)}`;
+      window.open(mailtoLink, '_blank');
+      onClose?.();
+    }
+  }, [sendState, emailMode, emailEndpoint, ownerEmail, composeData, onClose]);
 
   const windowActions = { onClose, onMinimize, onMaximize };
 
@@ -292,7 +322,12 @@ function NewMessage({ onClose, onMinimize, onMaximize }) {
       menuLogo={ICONS.flag}
       toolbars={toolbars}
       windowActions={windowActions}
-      statusFields="Compose a new message"
+      statusFields={
+        sendState === SEND_STATE.SENDING ? 'Sending message...' :
+        sendState === SEND_STATE.SENT ? 'Message sent successfully!' :
+        sendState === SEND_STATE.ERROR ? 'Failed to send message. Please try again.' :
+        'Compose a new message'
+      }
       showStatusBar
       onMenuAction={handleMenuAction}
       onToolbarAction={handleToolbarAction}

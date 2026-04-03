@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import styled from 'styled-components';
 import { ProgramLayout } from '../../../components';
+import { useShellSettings } from '../../../contexts/ShellSettingsContext';
 import { withBaseUrl } from '../../../utils/baseUrl';
 
 const TABS = [
@@ -8,99 +9,44 @@ const TABS = [
   { id: 'view', label: 'View' },
 ];
 
-const SETTINGS_CONFIG = [
-  {
-    key: 'sidebarOption',
-    type: 'radio',
-    storageKey: 'folderopt_noExplorerSidebar',
-    defaultValue: 'show',
-    values: { show: false, classic: true },
-  },
-  {
-    key: 'browseFoldersOption',
-    type: 'radio',
-    storageKey: 'folderopt_openFoldersInNewWindow',
-    defaultValue: 'same',
-    values: { same: false, new: true },
-  },
-  {
-    key: 'displayFullPathTitle',
-    type: 'checkbox',
-    storageKey: 'folderopt_fullPathInTitle',
-    defaultChecked: false,
-  },
-  {
-    key: 'hiddenFilesOption',
-    type: 'radio',
-    storageKey: 'folderopt_showHiddenContents',
-    defaultValue: 'dontshow',
-    values: { dontshow: false, show: true },
-  },
-  {
-    key: 'hideFileExt',
-    type: 'checkbox',
-    storageKey: 'folderopt_showFileExtensions',
-    defaultChecked: false,
-    inverted: true,
-  },
-];
-
-function loadSettings() {
-  const settings = {};
-  SETTINGS_CONFIG.forEach((cfg) => {
-    const stored = localStorage.getItem(cfg.storageKey);
-    if (cfg.type === 'radio') {
-      if (stored !== null) {
-        // Find which radio value maps to stored boolean
-        const storedBool = stored === 'true';
-        const entry = Object.entries(cfg.values).find(([, v]) => v === storedBool);
-        settings[cfg.key] = entry ? entry[0] : cfg.defaultValue;
-      } else {
-        settings[cfg.key] = cfg.defaultValue;
-      }
-    } else {
-      if (stored !== null) {
-        const val = stored === 'true';
-        settings[cfg.key] = cfg.inverted ? !val : val;
-      } else {
-        settings[cfg.key] = cfg.defaultChecked;
-      }
-    }
-  });
-  return settings;
+function createDraftFromExplorerSettings(explorer) {
+  return {
+    sidebarOption: explorer.sidebarMode,
+    browseFoldersOption: explorer.openFoldersInNewWindow ? 'new' : 'same',
+    displayFullPathTitle: explorer.fullPathInTitle,
+    hiddenFilesOption: explorer.showHiddenContents ? 'show' : 'dontshow',
+    hideFileExt: !explorer.showFileExtensions,
+  };
 }
 
-function saveSettings(settings) {
-  SETTINGS_CONFIG.forEach((cfg) => {
-    if (cfg.type === 'radio') {
-      const val = cfg.values[settings[cfg.key]];
-      localStorage.setItem(cfg.storageKey, String(val));
-    } else {
-      const val = cfg.inverted ? !settings[cfg.key] : settings[cfg.key];
-      localStorage.setItem(cfg.storageKey, String(val));
-    }
-  });
+function toExplorerSettings(draft) {
+  return {
+    sidebarMode: draft.sidebarOption,
+    openFoldersInNewWindow: draft.browseFoldersOption === 'new',
+    fullPathInTitle: draft.displayFullPathTitle,
+    showHiddenContents: draft.hiddenFilesOption === 'show',
+    showFileExtensions: !draft.hideFileExt,
+  };
 }
 
 function FolderOptions({ onClose }) {
+  const { explorer, setExplorerSettings } = useShellSettings();
   const [activeTab, setActiveTab] = useState('general');
-  const [settings, setSettings] = useState(loadSettings);
-  const [isDirty, setIsDirty] = useState(false);
+  const [settings, setSettings] = useState(() => createDraftFromExplorerSettings(explorer));
+  const isDirty = JSON.stringify(settings) !== JSON.stringify(createDraftFromExplorerSettings(explorer));
 
   const updateSetting = useCallback((key, value) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
-    setIsDirty(true);
   }, []);
 
   const handleApply = useCallback(() => {
-    saveSettings(settings);
-    setIsDirty(false);
-  }, [settings]);
+    setExplorerSettings(toExplorerSettings(settings));
+  }, [setExplorerSettings, settings]);
 
   const handleOk = useCallback(() => {
-    saveSettings(settings);
+    setExplorerSettings(toExplorerSettings(settings));
     onClose();
-  }, [settings, onClose]);
+  }, [setExplorerSettings, settings, onClose]);
 
   const handleCancel = useCallback(() => {
     onClose();

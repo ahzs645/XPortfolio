@@ -9,7 +9,7 @@ const CONTROL_PANEL_ID = SYSTEM_IDS.CONTROL_PANEL;
  * Handles back, forward, up, and folder navigation
  * Supports virtual locations like Control Panel
  */
-export function useNavigation({ fileSystem, initialPath = null }) {
+export function useNavigation({ fileSystem, initialPath = null, resolveVfsPath = null }) {
   // null = My Computer root view, folder ID, or CONTROL_PANEL_ID
   const [currentFolder, setCurrentFolder] = useState(initialPath || null);
   const [history, setHistory] = useState([null]);
@@ -117,6 +117,17 @@ export function useNavigation({ fileSystem, initialPath = null }) {
       return true;
     }
 
+    if (resolveVfsPath) {
+      const resolvedId = resolveVfsPath(normalizedPath);
+      if (resolvedId && fileSystem[resolvedId]) {
+        const resolvedItem = fileSystem[resolvedId];
+        if (resolvedItem.type === 'folder' || resolvedItem.type === 'drive') {
+          navigateTo(resolvedId);
+          return true;
+        }
+      }
+    }
+
     // Try to find the folder by matching the path
     // First, check for exact path matches in the file system
     for (const [id, item] of Object.entries(fileSystem)) {
@@ -199,7 +210,7 @@ export function useNavigation({ fileSystem, initialPath = null }) {
     }
 
     return false; // Path not found
-  }, [fileSystem, navigateTo, goToRoot, goToControlPanel]);
+  }, [fileSystem, navigateTo, goToRoot, goToControlPanel, resolveVfsPath]);
 
   return {
     currentFolder,

@@ -404,6 +404,20 @@ export const START_MENU_CATALOG = {
     title: 'System Information',
     description: 'View system configuration',
   },
+  aboutWindows: {
+    type: 'program',
+    appKey: 'About Windows',
+    icon: '/icons/xp/system.png',
+    title: 'About Windows',
+    description: 'Display Windows version information',
+  },
+  volumeControl: {
+    type: 'program',
+    appKey: 'Volume Control',
+    icon: '/icons/luna/volume_on.png',
+    title: 'Volume Control',
+    description: 'Adjust system volume',
+  },
   blueScreenOfDeath: {
     type: 'program',
     appKey: 'Blue Screen of Death',
@@ -463,7 +477,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'System Tools',
     icon: '/icons/folder-icon.png',
-    items: ['backupWizard', 'diskDefrag', 'systemInformation', 'transferWizard', 'systemRecovery'],
+    items: ['aboutWindows', 'backupWizard', 'diskDefrag', 'systemInformation', 'transferWizard', 'systemRecovery'],
   },
   accessories: {
     type: 'folder',
@@ -475,7 +489,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Entertainment',
     icon: '/icons/folder-icon.png',
-    items: ['mediaPlayer', 'mediaPlayerClassic', 'winamp', 'soundRecorder', 'flashPlayer'],
+    items: ['mediaPlayer', 'mediaPlayerClassic', 'winamp', 'soundRecorder', 'volumeControl', 'flashPlayer'],
   },
   myProjects: {
     type: 'folder',

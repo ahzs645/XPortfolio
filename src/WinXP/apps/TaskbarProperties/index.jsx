@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { ProgramLayout } from '../../../components';
 import { useConfig } from '../../../contexts/ConfigContext';
+import { useShellSettings } from '../../../contexts/ShellSettingsContext';
 import { withBaseUrl } from '../../../utils/baseUrl';
 
 const TABS = [
@@ -11,18 +12,38 @@ const TABS = [
 
 function TaskbarProperties({ onClose, onMinimize }) {
   const { getUsername } = useConfig();
+  const { taskbar, setTaskbarSettings } = useShellSettings();
   const [activeTab, setActiveTab] = useState('taskbar');
-  const [lockTaskbar, setLockTaskbar] = useState(true);
-  const [autoHide, setAutoHide] = useState(false);
-  const [keepOnTop, setKeepOnTop] = useState(true);
-  const [groupButtons, setGroupButtons] = useState(false);
-  const [showQuickLaunch, setShowQuickLaunch] = useState(true);
-  const [showClock, setShowClock] = useState(true);
-  const [hideInactive, setHideInactive] = useState(false);
-  const [startMenuStyle, setStartMenuStyle] = useState('modern');
+  const [lockTaskbar, setLockTaskbar] = useState(taskbar.lockTaskbar);
+  const [autoHide, setAutoHide] = useState(taskbar.autoHide);
+  const [keepOnTop, setKeepOnTop] = useState(taskbar.keepOnTop);
+  const [groupButtons, setGroupButtons] = useState(taskbar.groupButtons);
+  const [showQuickLaunch, setShowQuickLaunch] = useState(taskbar.showQuickLaunch);
+  const [showClock, setShowClock] = useState(taskbar.showClock);
+  const [hideInactive, setHideInactive] = useState(taskbar.hideInactiveIcons);
+  const [startMenuStyle, setStartMenuStyle] = useState(taskbar.startMenuStyle);
+  const isDirty = (
+    lockTaskbar !== taskbar.lockTaskbar
+    || autoHide !== taskbar.autoHide
+    || keepOnTop !== taskbar.keepOnTop
+    || groupButtons !== taskbar.groupButtons
+    || showQuickLaunch !== taskbar.showQuickLaunch
+    || showClock !== taskbar.showClock
+    || hideInactive !== taskbar.hideInactiveIcons
+    || startMenuStyle !== taskbar.startMenuStyle
+  );
 
   const handleApply = () => {
-    // Settings are visual-only for now
+    setTaskbarSettings({
+      lockTaskbar,
+      autoHide,
+      keepOnTop,
+      groupButtons,
+      showQuickLaunch,
+      showClock,
+      hideInactiveIcons: hideInactive,
+      startMenuStyle,
+    });
   };
 
   return (
@@ -194,7 +215,7 @@ function TaskbarProperties({ onClose, onMinimize }) {
         <Actions>
           <ActionButton onClick={() => { handleApply(); onClose?.(); }}>OK</ActionButton>
           <ActionButton onClick={onClose}>Cancel</ActionButton>
-          <ActionButton disabled>Apply</ActionButton>
+          <ActionButton disabled={!isDirty} onClick={handleApply}>Apply</ActionButton>
         </Actions>
       </WindowSurface>
     </ProgramLayout>

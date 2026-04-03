@@ -3,6 +3,20 @@
 
 export { FileSystemProvider, useFileSystem } from './FileSystemProvider';
 export { default } from './FileSystemProvider';
+export {
+  createVirtualFileSystemAdapter,
+  normalizeVirtualPath,
+  joinVirtualPath,
+  dirnameVirtualPath,
+  basenameVirtualPath,
+  VFS_ROOT_PATH,
+  VFS_ROOT_LABEL,
+  VFS_RECYCLE_BIN_PATH,
+} from './virtualFileSystem';
+export {
+  getStoredItemIcon,
+  resolveFileSystemItemIcon,
+} from './iconResolver';
 
 // Constants
 export {

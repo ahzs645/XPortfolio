@@ -85,6 +85,10 @@ function getDefaultConfig() {
     MEDIA_PLAYER_PRIMARY_PLAYLIST: 'PLWoiCrWR5QfNd1s2WwJwjqBfWewzIszLb',
     MEDIA_PLAYER_ALT_PLAYLIST: 'PLgwcgfCVaMC1z5AqphnubDfIu_pp0Ok9O',
 
+    // Email / Contact
+    EMAIL_SEND_MODE: 'mailto', // 'mailto' or 'api'
+    EMAIL_API_ENDPOINT: '',
+
     // File system
     ENABLE_FILE_DROP_UPLOAD: true,
     SHOW_FILE_DROP_OVERLAY: false,

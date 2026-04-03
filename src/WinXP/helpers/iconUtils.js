@@ -1,20 +1,12 @@
-import { XP_ICONS, fileIcons } from '../../contexts/FileSystemContext';
+import { XP_ICONS, resolveFileSystemItemIcon } from '../../contexts/FileSystemContext';
 
 // Get icon for a file item - dynamically compute from extension
 const getItemIcon = (item) => {
-  // For folders, drives, and special items, use stored icon
-  if (item.type === 'folder' || item.type === 'drive' || item.type === 'shortcut') {
-    return item.icon || XP_ICONS.folder;
-  }
-
-  // For files, compute icon from extension
-  const ext = item.name?.toLowerCase().match(/\.[^.]+$/)?.[0];
-  if (ext && fileIcons[ext]) {
-    return fileIcons[ext];
-  }
-
-  // Fall back to stored icon or default file icon
-  return item.icon || XP_ICONS.file;
+  return resolveFileSystemItemIcon(item, {
+    folderIcon: XP_ICONS.folder,
+    driveIcon: XP_ICONS.localDisk,
+    fileIcon: XP_ICONS.file,
+  });
 };
 
 // Icon grid layout constants (used for arranging icons)

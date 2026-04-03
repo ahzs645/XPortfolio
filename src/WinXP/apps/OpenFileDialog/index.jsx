@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
-import { useFileSystem, SYSTEM_IDS, XP_ICONS, fileIcons as centralFileIcons } from '../../../contexts/FileSystemContext';
+import { useFileSystem, SYSTEM_IDS, XP_ICONS, resolveFileSystemItemIcon } from '../../../contexts/FileSystemContext';
 import { withBaseUrl } from '../../../utils/baseUrl';
 
 // Container
@@ -240,24 +240,22 @@ const FILE_ICONS = {
 };
 
 function getFileIcon(item) {
-  if (item.type === 'folder' || item.type === 'drive') {
-    return item.icon || FILE_ICONS.folder;
+  const resolvedIcon = resolveFileSystemItemIcon(item, {
+    folderIcon: FILE_ICONS.folder,
+    driveIcon: XP_ICONS.localDisk,
+    fileIcon: FILE_ICONS.default,
+  });
+
+  if (resolvedIcon) {
+    return resolvedIcon;
   }
 
   const name = item.name?.toLowerCase() || '';
-
-  // First, check centralized file icons mapping by extension
-  const ext = name.match(/\.[^.]+$/)?.[0];
-  if (ext && centralFileIcons[ext]) {
-    return centralFileIcons[ext];
-  }
-
-  // Fallback to legacy checks
   if (name.endsWith('.pdf')) return FILE_ICONS.pdf;
-  if (/\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(name)) return item.icon || FILE_ICONS.image;
+  if (/\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(name)) return FILE_ICONS.image;
   if (name.endsWith('.txt')) return FILE_ICONS.text;
 
-  return item.icon || FILE_ICONS.default;
+  return FILE_ICONS.default;
 }
 
 function OpenFileDialog({

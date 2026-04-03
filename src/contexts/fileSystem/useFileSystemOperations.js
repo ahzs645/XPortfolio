@@ -21,6 +21,71 @@ const getFileIcon = (filename, type) => {
   return fileIcons[ext] || '/icons/notepad.png';
 };
 
+const normalizeFilePayload = (fileContent) => {
+  if (fileContent == null) {
+    return null;
+  }
+
+  if (fileContent instanceof Blob) {
+    return {
+      data: fileContent,
+      size: fileContent.size,
+      type: fileContent.type,
+    };
+  }
+
+  if (typeof fileContent === 'object' && 'data' in fileContent) {
+    return {
+      ...fileContent,
+      size: fileContent.size ?? (fileContent.data instanceof Blob ? fileContent.data.size : 0),
+      type: fileContent.type ?? (fileContent.data instanceof Blob ? fileContent.data.type : ''),
+    };
+  }
+
+  return {
+    data: fileContent,
+    size: fileContent?.size || 0,
+    type: fileContent?.type || '',
+  };
+};
+
+const normalizeCreateFileArgs = (args) => {
+  if (
+    args.length === 1 &&
+    args[0] &&
+    typeof args[0] === 'object' &&
+    !Array.isArray(args[0]) &&
+    !('data' in args[0])
+  ) {
+    const {
+      parentId,
+      name,
+      content,
+      fileContent,
+      icon,
+      metadata,
+    } = args[0];
+
+    return {
+      parentId,
+      name,
+      fileContent: normalizeFilePayload(fileContent ?? content),
+      options: {
+        ...(icon ? { icon } : {}),
+        ...(metadata ? { metadata } : {}),
+      },
+    };
+  }
+
+  const [parentId, name, fileContent, options = {}] = args;
+  return {
+    parentId,
+    name,
+    fileContent: normalizeFilePayload(fileContent),
+    options,
+  };
+};
+
 /**
  * Extracts all file system CRUD operations into a standalone hook.
  * Receives fileSystem state and setFileSystem setter from the provider.
@@ -95,6 +160,11 @@ export function useFileSystemOperations(fileSystem, setFileSystem) {
     const ext = isShortcut ? '.lnk' : (type === 'file' ? getExtension(name) : '');
     const baseName = type === 'file' || isShortcut ? getBasename(name) : name;
     const uniqueName = generateUniqueName(parentId, baseName, ext);
+    const resolvedIcon = options.icon || getFileIcon(uniqueName, type);
+    const metadata = {
+      ...(options.metadata || {}),
+      ...(resolvedIcon && !options.metadata?.icon ? { icon: resolvedIcon } : {}),
+    };
 
     const newItem = {
       id,
@@ -102,7 +172,8 @@ export function useFileSystemOperations(fileSystem, setFileSystem) {
       name: uniqueName,
       basename: baseName,
       ext,
-      icon: options.icon || getFileIcon(uniqueName, type),
+      icon: resolvedIcon,
+      metadata,
       parent: parentId,
       children: type === 'folder' ? [] : undefined,
       size: file ? file.size : (isShortcut ? 90 : 0),
@@ -380,7 +451,18 @@ export function useFileSystemOperations(fileSystem, setFileSystem) {
   }, [fileSystem]);
 
   // Create a file with content (convenience wrapper)
-  const createFile = useCallback(async (parentId, name, fileContent) => {
+  const createFile = useCallback(async (...args) => {
+    const {
+      parentId,
+      name,
+      fileContent,
+      options = {},
+    } = normalizeCreateFileArgs(args);
+
+    if (!parentId || !name || !fileContent || !fileSystem?.[parentId]) {
+      return null;
+    }
+
     const now = Date.now();
     const id = uuidv4();
     const ext = getExtension(name);
@@ -418,6 +500,12 @@ export function useFileSystemOperations(fileSystem, setFileSystem) {
       }
     }
 
+    const resolvedIcon = options.icon || icon;
+    const metadata = {
+      ...(options.metadata || {}),
+      ...(resolvedIcon && !options.metadata?.icon ? { icon: resolvedIcon } : {}),
+    };
+
     setFileSystem(prev => {
       if (!prev || !prev[parentId]) {
         console.error('Parent folder not found:', parentId);
@@ -441,7 +529,8 @@ export function useFileSystemOperations(fileSystem, setFileSystem) {
         name: uniqueName,
         basename: baseName,
         ext,
-        icon,
+        icon: resolvedIcon,
+        metadata,
         parent: parentId,
         size: fileContent.size || 0,
         contentType: fileContent.type,
@@ -464,7 +553,7 @@ export function useFileSystemOperations(fileSystem, setFileSystem) {
     });
 
     return id;
-  }, [setFileSystem]);
+  }, [fileSystem, setFileSystem]);
 
   // Save file content
   const saveFileContent = useCallback(async (id, content) => {
@@ -486,6 +575,7 @@ export function useFileSystemOperations(fileSystem, setFileSystem) {
         storageType: 'local',
         storageKey,
         size: content instanceof Blob ? content.size : 0,
+        contentType: content instanceof Blob ? (content.type || prev[id].contentType) : prev[id].contentType,
         dateModified: Date.now(),
       },
     }));

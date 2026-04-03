@@ -77,6 +77,8 @@ const FolderOptions = lazy(() => import('./FolderOptions'));
 const DiskDefrag = lazy(() => import('./DiskDefrag'));
 const SystemInformation = lazy(() => import('./SystemInformation'));
 const CharacterMap = lazy(() => import('./CharacterMap'));
+const AboutWindows = lazy(() => import('./AboutWindows'));
+const VolumeControl = lazy(() => import('./VolumeControl'));
 // ControlPanel is now integrated into MyComputer as a navigable view
 
 // XP Icons paths
@@ -191,6 +193,8 @@ export const appCategoryMap = {
   'Run': APP_CATEGORIES.UTILITY,
   'Blue Screen of Death': APP_CATEGORIES.GAME,
   'Registry Editor': APP_CATEGORIES.SYSTEM,
+  'About Windows': APP_CATEGORIES.SYSTEM,
+  'Volume Control': APP_CATEGORIES.SYSTEM,
 
   // Fun/Extra
   'QQ Penguin': APP_CATEGORIES.GAME,
@@ -545,6 +549,8 @@ const CATALOG_TO_APP_KEY = {
   diskDefrag: 'Disk Defragmenter',
   characterMap: 'Character Map',
   systemInformation: 'System Information',
+  aboutWindows: 'About Windows',
+  volumeControl: 'Volume Control',
 };
 
 // Generate desktop icon state from program list
@@ -2168,6 +2174,46 @@ export const appSettings = {
     maximized: false,
     multiInstance: false,
   },
+  'Volume Control': {
+    header: {
+      icon: '/icons/luna/volume_on.png',
+      title: 'Volume Control',
+      buttons: ['minimize', 'close'],
+    },
+    component: VolumeControl,
+    defaultSize: {
+      width: 160,
+      height: 300,
+    },
+    defaultOffset: {
+      x: 200,
+      y: 100,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'About Windows': {
+    header: {
+      icon: '/icons/xp/system.png',
+      title: 'About Windows',
+      buttons: ['close'],
+    },
+    component: AboutWindows,
+    defaultSize: {
+      width: 413,
+      height: 322,
+    },
+    defaultOffset: {
+      x: 200,
+      y: 100,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
   // Control Panel is now integrated into MyComputer as a navigable view
   // Access via My Computer sidebar > Control Panel
 };
@@ -2227,4 +2273,6 @@ export {
   Wizard101,
   Run,
   FolderOptions,
+  AboutWindows,
+  VolumeControl,
 };

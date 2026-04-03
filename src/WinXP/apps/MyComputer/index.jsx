@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../../../contexts/FileSystemContext';
+import { useFileSystem, SYSTEM_IDS, XP_ICONS, resolveFileSystemItemIcon } from '../../../contexts/FileSystemContext';
 import { useApp } from '../../../contexts/AppContext';
 import { useConfig } from '../../../contexts/ConfigContext';
+import { useShellSettings } from '../../../contexts/ShellSettingsContext';
 import { useTooltip } from '../../../contexts/TooltipContext';
 import { isMobileDevice } from '../../../utils/deviceDetection';
 import { ProgramLayout, TaskPanel } from '../../../components';
@@ -75,6 +76,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     isLoading,
     getFolderContents,
     getPath,
+    getVfsPath,
     createItem,
     createFile,
     moveToRecycleBin,
@@ -86,10 +88,12 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     clipboardOp,
     getFileContent,
     moveItem,
+    resolveVfsPath,
   } = useFileSystem();
 
   const { openFile, openApp } = useApp();
   const { isFileDropUploadEnabled, isFileDropOverlayEnabled } = useConfig();
+  const { explorer } = useShellSettings();
 
   // Refs
   const wrapperRef = useRef(null);
@@ -208,14 +212,18 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     handleTreeNavigate,
     canGoBack,
     canGoForward,
-  } = useNavigation({ fileSystem, initialPath });
+  } = useNavigation({ fileSystem, initialPath, resolveVfsPath });
 
   // Computed values
   const contents = React.useMemo(
     () => (isMyComputerRoot || isControlPanel ? [] : getFolderContents(currentFolder)),
     [isMyComputerRoot, isControlPanel, getFolderContents, currentFolder]
   );
-  const pathString = isMyComputerRoot ? 'My Computer' : isControlPanel ? 'Control Panel' : getPath(currentFolder);
+  const pathString = isMyComputerRoot
+    ? 'My Computer'
+    : isControlPanel
+    ? 'Control Panel'
+    : getVfsPath(currentFolder) || getPath(currentFolder);
 
   // Selection hook
   const {
@@ -350,7 +358,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   // Format path as shorter string
   const formatShortPath = useCallback((path) => {
     if (!path || path === 'My Computer') return 'My Computer';
-    return path.replace('Local Disk (C:)', 'C:').replace(/\\/g, '\\');
+    return path.replace('Local Disk (C:)', 'C:').replace(/\\/g, '/');
   }, []);
 
   const shortPathString = formatShortPath(pathString);
@@ -387,8 +395,14 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
       };
     } else if (currentFolderData) {
       newHeader = {
-        icon: currentFolderData.icon || XP_ICONS.folder,
-        title: currentFolderData.name || 'My Computer',
+        icon: resolveFileSystemItemIcon(currentFolderData, {
+          folderIcon: XP_ICONS.folder,
+          driveIcon: XP_ICONS.localDisk,
+          fileIcon: XP_ICONS.file,
+        }),
+        title: explorer.fullPathInTitle
+          ? (shortPathString || currentFolderData.name || 'My Computer')
+          : (currentFolderData.name || 'My Computer'),
         buttons: ['minimize', 'maximize', 'close'],
       };
     }
@@ -402,11 +416,15 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
       prevHeaderRef.current = newHeader;
       onUpdateHeader(newHeader);
     }
-  }, [currentFolder, currentFolderData, isMyComputerRoot, isControlPanel, onUpdateHeader]);
+  }, [currentFolder, currentFolderData, explorer.fullPathInTitle, isMyComputerRoot, isControlPanel, onUpdateHeader, shortPathString]);
 
   const handleItemDoubleClick = useCallback((item) => {
     if (item.type === 'folder' || item.type === 'drive') {
-      navigateTo(item.id);
+      if (explorer.openFoldersInNewWindow) {
+        openApp('My Computer', { initialPath: item.id });
+      } else {
+        navigateTo(item.id);
+      }
     } else if (item.type === 'file') {
       openFile(item);
     } else if (item.type === 'executable' || item.type === 'shortcut') {
@@ -415,7 +433,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
         openApp(item.target);
       }
     }
-  }, [navigateTo, openFile, openApp]);
+  }, [explorer.openFoldersInNewWindow, navigateTo, openFile, openApp]);
 
   const handleContainerClick = useCallback(() => {
     baseHandleContainerClick();
@@ -710,6 +728,12 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
 
   // Render item for My Computer root view
   const renderMyComputerItem = (item) => {
+    const itemIcon = resolveFileSystemItemIcon(item, {
+      folderIcon: XP_ICONS.folder,
+      driveIcon: XP_ICONS.localDisk,
+      fileIcon: XP_ICONS.file,
+    });
+
     const commonProps = {
       $selected: selectedItems.includes(item.id),
       onClick: (e) => handleItemClick(e, item),
@@ -726,7 +750,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
         return (
           <MyComputerDetailsRow key={item.id} {...commonProps}>
             <MyComputerDetailsCell $width="50%">
-              <MyComputerDetailsIcon src={item.icon || XP_ICONS.folder} alt="" />
+              <MyComputerDetailsIcon src={itemIcon} alt="" />
               <span>{item.name}</span>
             </MyComputerDetailsCell>
             <MyComputerDetailsCell $width="25%">
@@ -740,14 +764,14 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
       case 'list':
         return (
           <MyComputerListItem key={item.id} {...commonProps}>
-            <MyComputerListIcon src={item.icon || XP_ICONS.folder} alt="" />
+            <MyComputerListIcon src={itemIcon} alt="" />
             <MyComputerListName>{item.name}</MyComputerListName>
           </MyComputerListItem>
         );
       case 'tiles':
         return (
           <MyComputerTileItem key={item.id} {...commonProps}>
-            <MyComputerTileIcon src={item.icon || XP_ICONS.folder} alt="" />
+            <MyComputerTileIcon src={itemIcon} alt="" />
             <MyComputerTileInfo>
               <MyComputerTileName>{item.name}</MyComputerTileName>
               <MyComputerTileType>
@@ -760,7 +784,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
         return (
           <MyComputerThumbnailItem key={item.id} {...commonProps}>
             <MyComputerThumbnailImageWrapper $selected={selectedItems.includes(item.id)}>
-              <MyComputerThumbnailIcon src={item.icon || XP_ICONS.folder} alt="" />
+              <MyComputerThumbnailIcon src={itemIcon} alt="" />
             </MyComputerThumbnailImageWrapper>
             <MyComputerThumbnailName $selected={selectedItems.includes(item.id)}>
               {item.name}
@@ -770,7 +794,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
       default:
         return (
           <MyComputerFileItem key={item.id} {...commonProps}>
-            <MyComputerFileIcon src={item.icon || XP_ICONS.folder} alt="" />
+            <MyComputerFileIcon src={itemIcon} alt="" />
             <MyComputerFileName>{item.name}</MyComputerFileName>
           </MyComputerFileItem>
         );
@@ -785,7 +809,13 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
       toolbarItems={toolbarItems}
       onToolbarAction={handleToolbarAction}
       addressTitle={shortPathString || 'My Computer'}
-      addressIcon={currentFolderData?.icon || XP_ICONS.myComputer}
+      addressIcon={currentFolderData
+        ? resolveFileSystemItemIcon(currentFolderData, {
+          folderIcon: XP_ICONS.folder,
+          driveIcon: XP_ICONS.localDisk,
+          fileIcon: XP_ICONS.file,
+        })
+        : XP_ICONS.myComputer}
       onAddressNavigate={handleAddressNavigate}
       statusFields={statusText}
     >

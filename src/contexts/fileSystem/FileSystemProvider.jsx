@@ -12,9 +12,11 @@ import {
   migrateShortcuts,
   ensureProjectsFolder,
   ensureProgramFilesExecutables,
+  ensureMetadataIcons,
   migrateFileSizes,
 } from './migrations';
 import { useFileSystemOperations } from './useFileSystemOperations';
+import { createVirtualFileSystemAdapter } from './virtualFileSystem';
 
 const FileSystemContext = createContext(null);
 
@@ -90,6 +92,8 @@ export function FileSystemProvider({ children }) {
           fs = migrateFileSizes(fs);
         }
 
+        ensureMetadataIcons(fs);
+
         await idb.set(storageKey, fs);
         currentUserIdRef.current = activeUserId;
         setFileSystem(fs);
@@ -115,6 +119,26 @@ export function FileSystemProvider({ children }) {
 
   // CRUD operations (extracted to separate hook)
   const operations = useFileSystemOperations(fileSystem, setFileSystem);
+
+  const vfs = useMemo(() => createVirtualFileSystemAdapter({
+    fileSystem,
+    createItem: operations.createItem,
+    createFile: operations.createFile,
+    deleteItem: operations.deleteItem,
+    renameItem: operations.renameItem,
+    moveItem: operations.moveItem,
+    getFileContent: operations.getFileContent,
+    saveFileContent: operations.saveFileContent,
+  }), [
+    fileSystem,
+    operations.createItem,
+    operations.createFile,
+    operations.deleteItem,
+    operations.renameItem,
+    operations.moveItem,
+    operations.getFileContent,
+    operations.saveFileContent,
+  ]);
 
   // Clipboard operations
   const copy = useCallback((ids) => {
@@ -184,6 +208,7 @@ export function FileSystemProvider({ children }) {
     // File content
     getFileContent: operations.getFileContent,
     saveFileContent: operations.saveFileContent,
+    updateFile: operations.saveFileContent,
     // Utilities
     getPath: operations.getPath,
     getFolderContents: operations.getFolderContents,
@@ -191,6 +216,10 @@ export function FileSystemProvider({ children }) {
     getExtension: operations.getExtension,
     emptyRecycleBin: operations.emptyRecycleBin,
     resetFileSystem,
+    // Path-based VFS facade
+    vfs,
+    getVfsPath: vfs.getPathForId,
+    resolveVfsPath: vfs.getIdForPath,
     // Constants
     SYSTEM_IDS,
   };

@@ -14,6 +14,8 @@ export function useIconManager({
   icons,
   fileSystem,
   fsLoading,
+  vfs,
+  getVfsPath,
   getFolderContents,
   getDesktopIconPositions,
   setDesktopIconPositions,
@@ -25,74 +27,83 @@ export function useIconManager({
   const iconIndicesRef = useRef({});
   const [, _ForceUpdate] = useState(0); // For triggering re-renders on resize
 
+  const loadDesktopIcons = useCallback(async () => {
+    if (!fileSystem) return;
+
+    const desktopPath = getVfsPath?.(SYSTEM_IDS.DESKTOP);
+    const desktopContents = desktopPath
+      ? await vfs?.list(desktopPath)
+      : getFolderContents(SYSTEM_IDS.DESKTOP);
+    const savedIndices = getDesktopIconPositions(); // Now stores gridIndex
+
+    // Convert file system items to icons
+    const fileIcons = convertToDesktopIcons(desktopContents || [], appSettings, {});
+
+    // Build occupied indices map
+    const occupiedIndices = {};
+
+    // Add system icons (My Computer, Recycle Bin) - these are not in the file system
+    const systemIcons = Object.values(SYSTEM_DESKTOP_ICONS).map((sysIcon, index) => {
+      // System icons get indices 0, 1, 2, etc. by default
+      const savedIndex = savedIndices[sysIcon.id];
+      const gridIndex = savedIndex?.gridIndex ?? index;
+      occupiedIndices[sysIcon.id] = gridIndex;
+
+      const pos = getPixelPositionFromIndex(gridIndex);
+
+      return {
+        id: sysIcon.id,
+        programId: sysIcon.id,
+        icon: sysIcon.icon,
+        title: sysIcon.name,
+        fullName: sysIcon.name,
+        component: appSettings[sysIcon.target]?.component,
+        isFocus: false,
+        x: pos.x,
+        y: pos.y,
+        gridIndex,
+        type: 'system',
+        target: sysIcon.target,
+      };
+    });
+
+    // Assign grid indices to file icons
+    const systemCount = systemIcons.length;
+    const fileIconsWithIndex = fileIcons.map((icon, index) => {
+      const savedIndex = savedIndices[icon.id];
+      let gridIndex;
+
+      if (savedIndex?.gridIndex !== undefined) {
+        gridIndex = savedIndex.gridIndex;
+      } else {
+        // Default: place after system icons
+        gridIndex = systemCount + index;
+      }
+
+      // Find available index if occupied
+      gridIndex = findNearestAvailableIndex(gridIndex, occupiedIndices, icon.id);
+      occupiedIndices[icon.id] = gridIndex;
+
+      const pos = getPixelPositionFromIndex(gridIndex);
+
+      return {
+        ...icon,
+        x: pos.x,
+        y: pos.y,
+        gridIndex,
+      };
+    });
+
+    const allIcons = [...systemIcons, ...fileIconsWithIndex];
+    dispatch({ type: SET_ICONS, payload: allIcons });
+  }, [appSettings, dispatch, fileSystem, getDesktopIconPositions, getFolderContents, getVfsPath, vfs]);
+
   // Update desktop icons from file system Desktop folder + system icons
   useEffect(() => {
     if (!fsLoading && fileSystem) {
-      const desktopContents = getFolderContents(SYSTEM_IDS.DESKTOP);
-      const savedIndices = getDesktopIconPositions(); // Now stores gridIndex
-
-      // Convert file system items to icons
-      const fileIcons = convertToDesktopIcons(desktopContents, appSettings, {});
-
-      // Build occupied indices map
-      const occupiedIndices = {};
-
-      // Add system icons (My Computer, Recycle Bin) - these are not in the file system
-      const systemIcons = Object.values(SYSTEM_DESKTOP_ICONS).map((sysIcon, index) => {
-        // System icons get indices 0, 1, 2, etc. by default
-        const savedIndex = savedIndices[sysIcon.id];
-        const gridIndex = savedIndex?.gridIndex ?? index;
-        occupiedIndices[sysIcon.id] = gridIndex;
-
-        const pos = getPixelPositionFromIndex(gridIndex);
-
-        return {
-          id: sysIcon.id,
-          programId: sysIcon.id,
-          icon: sysIcon.icon,
-          title: sysIcon.name,
-          fullName: sysIcon.name,
-          component: appSettings[sysIcon.target]?.component,
-          isFocus: false,
-          x: pos.x,
-          y: pos.y,
-          gridIndex,
-          type: 'system',
-          target: sysIcon.target,
-        };
-      });
-
-      // Assign grid indices to file icons
-      const systemCount = systemIcons.length;
-      const fileIconsWithIndex = fileIcons.map((icon, index) => {
-        const savedIndex = savedIndices[icon.id];
-        let gridIndex;
-
-        if (savedIndex?.gridIndex !== undefined) {
-          gridIndex = savedIndex.gridIndex;
-        } else {
-          // Default: place after system icons
-          gridIndex = systemCount + index;
-        }
-
-        // Find available index if occupied
-        gridIndex = findNearestAvailableIndex(gridIndex, occupiedIndices, icon.id);
-        occupiedIndices[icon.id] = gridIndex;
-
-        const pos = getPixelPositionFromIndex(gridIndex);
-
-        return {
-          ...icon,
-          x: pos.x,
-          y: pos.y,
-          gridIndex,
-        };
-      });
-
-      const allIcons = [...systemIcons, ...fileIconsWithIndex];
-      dispatch({ type: SET_ICONS, payload: allIcons });
+      void loadDesktopIcons();
     }
-  }, [fsLoading, fileSystem, getFolderContents, getDesktopIconPositions, appSettings, dispatch]);
+  }, [fsLoading, fileSystem, loadDesktopIcons]);
 
   // Save icon grid indices when they change (per-user)
   useEffect(() => {
@@ -298,53 +309,8 @@ export function useIconManager({
 
   // Refresh desktop icons
   const refreshIcons = useCallback(() => {
-    const desktopContents = getFolderContents(SYSTEM_IDS.DESKTOP);
-    const savedIndices = getDesktopIconPositions();
-    const fileIcons = convertToDesktopIcons(desktopContents, appSettings, {});
-
-    const occupiedIndices = {};
-
-    const systemIcons = Object.values(SYSTEM_DESKTOP_ICONS).map((sysIcon, index) => {
-      const savedIndex = savedIndices[sysIcon.id];
-      const gridIndex = savedIndex?.gridIndex ?? index;
-      occupiedIndices[sysIcon.id] = gridIndex;
-      const pos = getPixelPositionFromIndex(gridIndex);
-
-      return {
-        id: sysIcon.id,
-        programId: sysIcon.id,
-        icon: sysIcon.icon,
-        title: sysIcon.name,
-        fullName: sysIcon.name,
-        component: appSettings[sysIcon.target]?.component,
-        isFocus: false,
-        x: pos.x,
-        y: pos.y,
-        gridIndex,
-        type: 'system',
-        target: sysIcon.target,
-      };
-    });
-
-    const systemCount = systemIcons.length;
-    const fileIconsWithIndex = fileIcons.map((icon, index) => {
-      const savedIndex = savedIndices[icon.id];
-      let gridIndex = savedIndex?.gridIndex ?? (systemCount + index);
-      gridIndex = findNearestAvailableIndex(gridIndex, occupiedIndices, icon.id);
-      occupiedIndices[icon.id] = gridIndex;
-      const pos = getPixelPositionFromIndex(gridIndex);
-
-      return {
-        ...icon,
-        x: pos.x,
-        y: pos.y,
-        gridIndex,
-      };
-    });
-
-    const allIcons = [...systemIcons, ...fileIconsWithIndex];
-    dispatch({ type: SET_ICONS, payload: allIcons });
-  }, [getFolderContents, getDesktopIconPositions, appSettings, dispatch]);
+    void loadDesktopIcons();
+  }, [loadDesktopIcons]);
 
   return {
     alignToGridEnabled,

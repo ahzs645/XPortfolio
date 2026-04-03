@@ -4,6 +4,7 @@ import { createGlobalStyle } from 'styled-components';
 import { ConfigProvider } from './contexts/ConfigContext';
 import { UserAccountsProvider } from './contexts/UserAccountsContext';
 import { UserSettingsProvider } from './contexts/UserSettingsContext';
+import { ShellSettingsProvider } from './contexts/ShellSettingsContext';
 import { FileSystemProvider } from './contexts/FileSystemContext';
 import { InstalledAppsProvider } from './contexts/InstalledAppsContext';
 import { StartMenuProvider } from './contexts/StartMenuContext';
@@ -53,23 +54,25 @@ function App() {
     <ConfigProvider>
       <UserAccountsProvider>
         <UserSettingsProvider>
-          <FileSystemProvider>
-            <InstalledAppsProvider>
-              <StartMenuProvider>
-                <ScreensaverProvider>
-                  <TooltipProvider>
-                    <RegistryProvider>
-                      <GlobalStyle />
-                      <ErrorBoundary name="Desktop">
-                        <WinXP />
-                      </ErrorBoundary>
-                      <UpdateToast />
-                    </RegistryProvider>
-                  </TooltipProvider>
-                </ScreensaverProvider>
-              </StartMenuProvider>
-            </InstalledAppsProvider>
-          </FileSystemProvider>
+          <ShellSettingsProvider>
+            <FileSystemProvider>
+              <InstalledAppsProvider>
+                <StartMenuProvider>
+                  <ScreensaverProvider>
+                    <TooltipProvider>
+                      <RegistryProvider>
+                        <GlobalStyle />
+                        <ErrorBoundary name="Desktop">
+                          <WinXP />
+                        </ErrorBoundary>
+                        <UpdateToast />
+                      </RegistryProvider>
+                    </TooltipProvider>
+                  </ScreensaverProvider>
+                </StartMenuProvider>
+              </InstalledAppsProvider>
+            </FileSystemProvider>
+          </ShellSettingsProvider>
         </UserSettingsProvider>
       </UserAccountsProvider>
     </ConfigProvider>

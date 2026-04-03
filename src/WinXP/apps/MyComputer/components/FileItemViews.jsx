@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { XP_ICONS, fileIcons } from '../../../../contexts/FileSystemContext';
+import { XP_ICONS, resolveFileSystemItemIcon } from '../../../../contexts/FileSystemContext';
 import { getFileType, formatFileSize, formatDate, calculateFolderSize } from '../utils';
 import { withBaseUrl } from '../../../../utils/baseUrl';
 
@@ -9,19 +9,11 @@ const isShortcut = (item) => item.type === 'shortcut' || item.name?.endsWith('.l
 
 // Get icon for item - dynamically compute from extension, falling back to stored icon
 const getItemIcon = (item) => {
-  // For folders and special items, use stored icon
-  if (item.type === 'folder' || item.type === 'drive') {
-    return item.icon || XP_ICONS.folder;
-  }
-
-  // For files, compute icon from extension
-  const ext = item.name?.toLowerCase().match(/\.[^.]+$/)?.[0];
-  if (ext && fileIcons[ext]) {
-    return fileIcons[ext];
-  }
-
-  // Fall back to stored icon or default
-  return item.icon || XP_ICONS.folder;
+  return resolveFileSystemItemIcon(item, {
+    folderIcon: XP_ICONS.folder,
+    driveIcon: XP_ICONS.localDisk,
+    fileIcon: XP_ICONS.file,
+  });
 };
 
 // Get display name (strip .lnk extension for shortcuts)

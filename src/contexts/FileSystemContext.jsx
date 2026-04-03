@@ -15,4 +15,6 @@ export {
   DESKTOP_SHORTCUT_CATALOG,
   DEFAULT_DESKTOP_PROGRAMS,
   buildDesktopShortcuts,
+  getStoredItemIcon,
+  resolveFileSystemItemIcon,
 } from './fileSystem/index';

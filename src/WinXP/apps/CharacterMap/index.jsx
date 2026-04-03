@@ -71,7 +71,7 @@ function getUnicodeName(code) {
   return `Unicode Character`;
 }
 
-function CharacterMap({ onClose, isFocus }) {
+function CharacterMap() {
   const [selectedFont, setSelectedFont] = useState('Times New Roman');
   const [selectedChar, setSelectedChar] = useState(null);
   const [hoveredChar, setHoveredChar] = useState(null);

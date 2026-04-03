@@ -146,6 +146,7 @@ function WinXP() {
     createItem,
     getFolderContents,
     getFileContent,
+    getVfsPath,
     fileSystem,
     isLoading: fsLoading,
     moveToRecycleBin,
@@ -156,6 +157,7 @@ function WinXP() {
     clipboard,
     clipboardOp,
     moveItem,
+    vfs,
   } = useFileSystem();
 
   const { registerLaunchCallback, launchInstalledApp } = useInstalledApps();
@@ -259,6 +261,8 @@ function WinXP() {
     icons: state.icons,
     fileSystem,
     fsLoading,
+    vfs,
+    getVfsPath,
     getFolderContents,
     getDesktopIconPositions,
     setDesktopIconPositions,

@@ -3,12 +3,40 @@ import styled from 'styled-components';
 import { ProgramLayout } from '../../../components';
 import { useConfig } from '../../../contexts/ConfigContext';
 
-const TREE_ITEMS = [
-  { id: 'summary', label: 'System Summary', depth: 0 },
-  { id: 'hardware', label: 'Hardware Resources', depth: 0, expandable: true },
-  { id: 'components', label: 'Components', depth: 0, expandable: true },
-  { id: 'software', label: 'Software Environment', depth: 0, expandable: true },
-  { id: 'internet', label: 'Internet Settings', depth: 0, expandable: true },
+const TREE_DATA = [
+  {
+    id: 'summary', label: 'System Summary', children: [
+      { id: 'hardware', label: 'Hardware Resources', children: [
+        { id: 'hw-conflicts', label: 'Conflicts/Sharing' },
+        { id: 'hw-dma', label: 'DMA' },
+        { id: 'hw-io', label: 'I/O' },
+        { id: 'hw-irqs', label: 'IRQs' },
+        { id: 'hw-memory', label: 'Memory' },
+      ]},
+      { id: 'components', label: 'Components', children: [
+        { id: 'comp-multimedia', label: 'Multimedia' },
+        { id: 'comp-display', label: 'Display' },
+        { id: 'comp-input', label: 'Input' },
+        { id: 'comp-network', label: 'Network' },
+        { id: 'comp-ports', label: 'Ports' },
+        { id: 'comp-storage', label: 'Storage' },
+        { id: 'comp-printing', label: 'Printing' },
+      ]},
+      { id: 'software', label: 'Software Environment', children: [
+        { id: 'sw-drivers', label: 'System Drivers' },
+        { id: 'sw-env', label: 'Environment Variables' },
+        { id: 'sw-print', label: 'Print Jobs' },
+        { id: 'sw-net', label: 'Network Connections' },
+        { id: 'sw-tasks', label: 'Running Tasks' },
+        { id: 'sw-services', label: 'Services' },
+        { id: 'sw-startup', label: 'Startup Programs' },
+      ]},
+      { id: 'internet', label: 'Internet Settings', children: [
+        { id: 'inet-summary', label: 'Internet Explorer' },
+        { id: 'inet-conn', label: 'Connectivity' },
+      ]},
+    ],
+  },
 ];
 
 function getUptime() {
@@ -19,10 +47,55 @@ function getUptime() {
   return `${days} day(s), ${hours}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
 
+function TreeNodeItem({ node, depth, selected, expanded, onSelect, onToggle }) {
+  const hasChildren = node.children && node.children.length > 0;
+  const isExpanded = expanded.has(node.id);
+  const isSelected = selected === node.id;
+
+  return (
+    <>
+      <TreeRow
+        $selected={isSelected}
+        $depth={depth}
+        onClick={() => {
+          onSelect(node.id);
+          if (hasChildren) onToggle(node.id);
+        }}
+      >
+        <ToggleArea>
+          {hasChildren ? (isExpanded ? '\u25BC' : '\u25B6') : ''}
+        </ToggleArea>
+        {node.label}
+      </TreeRow>
+      {hasChildren && isExpanded && node.children.map((child) => (
+        <TreeNodeItem
+          key={child.id}
+          node={child}
+          depth={depth + 1}
+          selected={selected}
+          expanded={expanded}
+          onSelect={onSelect}
+          onToggle={onToggle}
+        />
+      ))}
+    </>
+  );
+}
+
 function SystemInformation({ onClose, onMinimize }) {
   const { getOSName, getFullName } = useConfig();
   const [selected, setSelected] = useState('summary');
+  const [expanded, setExpanded] = useState(() => new Set(['summary']));
   const [findText, setFindText] = useState('');
+
+  const toggleExpand = (id) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const uptime = useMemo(() => getUptime(), []);
   const osName = getOSName() || 'Microsoft Windows XP';
@@ -179,15 +252,16 @@ function SystemInformation({ onClose, onMinimize }) {
       <Shell>
         <Content>
           <TreePane>
-            {TREE_ITEMS.map((node) => (
-              <TreeNode
+            {TREE_DATA.map((node) => (
+              <TreeNodeItem
                 key={node.id}
-                $selected={selected === node.id}
-                $depth={node.depth}
-                onClick={() => setSelected(node.id)}
-              >
-                {node.label}
-              </TreeNode>
+                node={node}
+                depth={0}
+                selected={selected}
+                expanded={expanded}
+                onSelect={setSelected}
+                onToggle={toggleExpand}
+              />
             ))}
           </TreePane>
 
@@ -262,16 +336,26 @@ const TreePane = styled.div`
   padding: 2px 0;
 `;
 
-const TreeNode = styled.div`
-  padding: 2px 4px 2px ${({ $depth }) => 8 + ($depth || 0) * 16}px;
+const TreeRow = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 1px 4px 1px ${({ $depth }) => 4 + ($depth || 0) * 16}px;
   cursor: pointer;
   white-space: nowrap;
   background: ${({ $selected }) => ($selected ? '#316ac5' : 'transparent')};
   color: ${({ $selected }) => ($selected ? '#fff' : '#000')};
+  user-select: none;
 
   &:hover {
     background: ${({ $selected }) => ($selected ? '#316ac5' : '#e8e8e0')};
   }
+`;
+
+const ToggleArea = styled.span`
+  width: 16px;
+  font-size: 8px;
+  text-align: center;
+  flex-shrink: 0;
 `;
 
 const DetailPane = styled.div`

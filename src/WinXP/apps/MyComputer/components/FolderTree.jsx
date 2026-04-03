@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
-import { XP_ICONS } from '../../../../contexts/FileSystemContext';
+import { XP_ICONS, resolveFileSystemItemIcon } from '../../../../contexts/FileSystemContext';
 
 /**
  * Folder tree navigation pane inspired by the XP "Folders" view.
@@ -41,7 +41,11 @@ function FolderTree({ roots = [], fileSystem, currentFolder, onNavigate }) {
     return {
       id,
       name: item.name,
-      icon: item.icon || XP_ICONS.folder,
+      icon: resolveFileSystemItemIcon(item, {
+        folderIcon: XP_ICONS.folder,
+        driveIcon: XP_ICONS.localDisk,
+        fileIcon: XP_ICONS.file,
+      }),
       type: item.type,
       children: item.children || [],
     };

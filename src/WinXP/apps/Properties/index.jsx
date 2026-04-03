@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import styled from 'styled-components';
-import { useFileSystem, XP_ICONS } from '../../../contexts/FileSystemContext';
+import { useFileSystem, XP_ICONS, resolveFileSystemItemIcon } from '../../../contexts/FileSystemContext';
 import { withBaseUrl } from '../../../utils/baseUrl';
 
 // Helper function to format bytes with both readable and raw bytes
@@ -19,7 +19,7 @@ const formatDate = (timestamp) => {
 };
 
 function Properties({ onClose, itemId, itemData }) {
-  const { fileSystem, getPath } = useFileSystem();
+  const { fileSystem, getPath, getVfsPath } = useFileSystem();
   const [activeTab, setActiveTab] = useState('General');
   const [readOnly, setReadOnly] = useState(false);
   const [hidden, setHidden] = useState(false);
@@ -69,8 +69,13 @@ function Properties({ onClose, itemId, itemData }) {
     }
 
     // Location
-    const path = getPath ? getPath(item.id) : item.name;
-    const location = path ? `C:/${path.split('\\').slice(0, -1).join('/')}` : 'C:/';
+    const path = getVfsPath ? getVfsPath(item.id) : '';
+    const legacyPath = getPath ? getPath(item.id) : item.name;
+    const location = path
+      ? (path.includes('/') ? path.split('/').slice(0, -1).join('/') : path)
+      : legacyPath
+      ? `C:/${legacyPath.split('\\').slice(0, -1).join('/')}`
+      : 'C:/';
 
     // Size - shortcuts and other items store size directly in bytes
     let sizeBytes;
@@ -100,15 +105,15 @@ function Properties({ onClose, itemId, itemData }) {
       sizeOnDisk: formatBytes(sizeOnDisk),
       created: formatDate(item.dateCreated),
     };
-  }, [item, getPath, calculateFolderSize]);
+  }, [item, getPath, getVfsPath, calculateFolderSize]);
 
   // Get icon for the item
   const getItemIcon = () => {
-    if (!item) return XP_ICONS.default;
-    if (item.icon) return item.icon;
-    if (item.type === 'folder') return XP_ICONS.folder;
-    if (item.type === 'drive') return XP_ICONS.localDisk;
-    return XP_ICONS.default;
+    return resolveFileSystemItemIcon(item, {
+      folderIcon: XP_ICONS.folder,
+      driveIcon: XP_ICONS.localDisk,
+      fileIcon: XP_ICONS.default,
+    });
   };
 
   const handleCheckboxChange = (setter) => (e) => {

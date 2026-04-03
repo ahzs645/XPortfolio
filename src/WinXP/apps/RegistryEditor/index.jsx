@@ -28,6 +28,8 @@ function RegistryEditor({ onClose, onMinimize }) {
     deleteValue,
     createKey,
     deleteKey,
+    isBoundValue,
+    isProtectedKey,
   } = useRegistry();
 
   const { openApp } = useApp();
@@ -237,6 +239,11 @@ function RegistryEditor({ onClose, onMinimize }) {
     }
   }, [handleNewKey, handleNewValue, handleDeleteKey]);
 
+  const selectedKeyProtected = selectedPath ? isProtectedKey(selectedPath) : false;
+  const selectedValueBound = contextMenu?.type === 'value'
+    ? isBoundValue(selectedPath, contextMenu.name)
+    : false;
+
   const menus = [
     {
       id: 'file',
@@ -258,7 +265,7 @@ function RegistryEditor({ onClose, onMinimize }) {
         { label: 'New DWORD Value', action: 'newDwordValue', disabled: !selectedPath },
         { label: 'New Binary Value', action: 'newBinaryValue', disabled: !selectedPath },
         { separator: true },
-        { label: 'Delete Key', action: 'deleteKey', disabled: !selectedPath || !selectedPath.includes('\\') },
+        { label: 'Delete Key', action: 'deleteKey', disabled: !selectedPath || !selectedPath.includes('\\') || selectedKeyProtected },
       ],
     },
     {
@@ -404,7 +411,7 @@ function RegistryEditor({ onClose, onMinimize }) {
                     </CtxSubMenu>
                   )}
                 </CtxSubmenuItem>
-                {selectedPath && selectedPath.includes('\\') && (
+                {selectedPath && selectedPath.includes('\\') && !selectedKeyProtected && (
                   <>
                     <CtxSep />
                     <CtxItem onClick={handleDeleteKey}>Delete</CtxItem>
@@ -415,12 +422,16 @@ function RegistryEditor({ onClose, onMinimize }) {
             {contextMenu.type === 'value' && (
               <>
                 <CtxItem onClick={() => { handleEditValue(contextMenu.name, contextMenu.val); setContextMenu(null); }}>Modify...</CtxItem>
-                <CtxSep />
-                {contextMenu.name !== '(Default)' && (
+                {!selectedValueBound && (
                   <>
-                    <CtxItem onClick={() => { handleDeleteValue(contextMenu.name); setContextMenu(null); }}>Delete</CtxItem>
-                    <CtxItem onClick={() => { setRenamingValue(contextMenu.name); setContextMenu(null); }}>Rename</CtxItem>
                     <CtxSep />
+                    {contextMenu.name !== '(Default)' && (
+                      <>
+                        <CtxItem onClick={() => { handleDeleteValue(contextMenu.name); setContextMenu(null); }}>Delete</CtxItem>
+                        <CtxItem onClick={() => { setRenamingValue(contextMenu.name); setContextMenu(null); }}>Rename</CtxItem>
+                        <CtxSep />
+                      </>
+                    )}
                   </>
                 )}
                 <CtxSubmenuItem
