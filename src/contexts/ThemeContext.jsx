@@ -109,7 +109,7 @@ export function ThemeProvider({ children }) {
   // Listen for WBA file open requests (from fileOpener.js)
   useEffect(() => {
     const handleWbaRequest = async (e) => {
-      const { fileData, fileName } = e.detail || {};
+      const { fileData } = e.detail || {};
       if (!fileData) return;
 
       try {

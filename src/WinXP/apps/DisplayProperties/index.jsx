@@ -341,7 +341,7 @@ function DisplayProperties({ onClose, onMinimize }) {
     previewScreensaver,
   } = useScreensaver();
   const { getOSName } = useConfig();
-  const { activeThemeId, installedThemes, setActiveTheme, allThemes } = useTheme();
+  const { activeThemeId, installedThemes, setActiveTheme } = useTheme();
   const currentDesktop = getWallpaperPath(false);
 
   // Build combined theme list: builtins + installed WindowBlinds themes
