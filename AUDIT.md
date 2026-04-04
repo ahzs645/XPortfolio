@@ -15,7 +15,7 @@ XPortfolio is a well-structured React application simulating Windows XP. The cod
 | Critical | 2 |
 | High     | 5 |
 | Medium   | 8 |
-| Low      | 6 |
+| Low      | 7 |
 
 ---
 
@@ -143,29 +143,76 @@ XPortfolio is a well-structured React application simulating Windows XP. The cod
 - **Good:** GitHub Pages base path auto-detection
 - **Good:** Cross-origin isolation headers for SharedArrayBuffer support
 - **Issue (Low):** `execSync('git rev-parse')` in config runs on every dev server start; could cache result
+- **Issue (Low):** No explicit `minify` or `cssMinify` settings — relying on Vite defaults
 
 ### Dependencies (`package.json`)
 - **Good:** Modern versions of React 19, Vite 7, ESLint 9
 - **Good:** DOMPurify included for sanitization
-- **Note:** `xlsx@^0.18.5` is the community fork (SheetJS) - check license compliance for commercial use
-- **Note:** Large dependency footprint (webamp, tinymce, react-pdf, fortune-sheet) - consider lazy loading for rarely-used apps
+- **Note:** `xlsx@^0.18.5` is the community fork (SheetJS) — check license compliance for commercial use
+- **Note:** Large dependency footprint (webamp, tinymce, react-pdf, fortune-sheet) — consider lazy loading for rarely-used apps
+- **Note:** `@types/react` and `@types/react-dom` are installed but no TypeScript is used — either adopt TS or remove these
+- **Note:** Potential redundancy: `docx` + `mammoth` both handle Word documents; `xlsx` + `@fortune-sheet/react` both handle spreadsheets
 
 ### ESLint Configuration
 - **Good:** Well-reasoned rule decisions with documented rationale for disabled rules
 - **Good:** React hooks plugin enabled
 - **Good:** `no-unused-vars` with pattern exception for component names
-- **Note:** `react-refresh/only-export-components` is off - may miss HMR issues during development
+- **Good:** `.eslint-report.json` shows 0 violations across 177 files — clean lint state
+- **Note:** `react-refresh/only-export-components` is off — may miss HMR issues during development
 
 ### Project Structure
 - **Good:** Clean separation: `components/`, `contexts/`, `hooks/`, `utils/`, `WinXP/`
 - **Good:** Context files have clear responsibility boundaries
-- **Good:** File system logic well-organized in `contexts/fileSystem/` subdirectory
-- **Concern:** `WinXP/apps/` contains 30+ app directories - consider grouping by category (system, games, office, etc.)
+- **Good:** File system logic well-organized in `contexts/fileSystem/` subdirectory (12 files, ~4K lines)
+- **Concern:** `WinXP/apps/` contains 30+ app directories — consider grouping by category (system, games, office, etc.)
+- **Concern:** `WinXP/index.jsx` is 32KB / 914 lines — needs decomposition
+
+### Asset Management
+- **Concern:** `public/` directory is ~200MB+ total
+- **Critical:** `public/ruffle/*.wasm` is 13MB uncompressed — should be gzipped (~3-4MB)
+- **Critical:** Profile pictures are oversized (`astronaut.jpg` 9.4MB, `chess.jpg` 5.6MB) — should be resized/converted to WebP
+- **Note:** Duplicate SVG: `public/xp.svg` and `src/assets/xp.svg` (32KB each)
+- **Note:** Multiple favicon formats (ico, png, webp) — consolidate
+- **Recommendation:** Implement lazy loading for games and screensavers; consider CDN for large assets
+
+### Context Architecture (14 Providers)
+The app uses 14 nested context providers across `App.jsx` and `WinXP/index.jsx`:
+
+| Context | Lines | Import Count | Notes |
+|---------|-------|-------------|-------|
+| ConfigContext | 699 | 23 | High usage — appropriate |
+| FileSystemContext | 3,986* | 32 | High usage, well-modularized |
+| RegistryContext | 660 | 3 | Very low usage for its size |
+| InstalledAppsContext | 517 | — | Moderate |
+| UserAccountsContext | 506 | — | Moderate |
+| AppContext | 420 | 16 | Moderate |
+| UserSettingsContext | 408 | 14 | Moderate |
+| ShellSettingsContext | 305 | — | Moderate |
+| StartMenuContext | 289 | — | Moderate |
+| ScreensaverContext | 178 | 3 | Very low — combine candidate |
+| TooltipContext | 171 | 7 | Low — combine candidate |
+| MessageBoxContext | 171 | 3 | Very low — combine candidate |
+| ThemeContext | 157 | — | WinXP-specific, should move |
+| RunningAppsContext | 29 | 3 | Lightweight |
+
+*\*FileSystem includes submodule files*
+
+**Recommendation:** Consolidate into 3-4 composite providers:
+- `<SystemProvider>` — Config, UserAccounts, ShellSettings, Registry
+- `<UIProvider>` — Tooltip, Theme, Screensaver, MessageBox
+- `<DataProvider>` — FileSystem, InstalledApps, StartMenu, UserSettings
 
 ### Git Configuration
 - **Good:** `.gitignore` covers standard patterns
-- **Note:** `.gitmodules` references external submodules - ensure they're pinned to specific commits for reproducibility
-- **Note:** Both `package-lock.json` and `pnpm-lock.yaml` exist - should standardize on one package manager
+- **Note:** `.gitmodules` references 5 submodules (spider-solitaire, js-solitaire, jspaint, command-and-conquer, isle-portable) — **all are empty/uninitialized**
+- **Note:** Both `package-lock.json` and `pnpm-lock.yaml` exist — should standardize on one package manager
+
+### Documentation
+- **Weak:** `README.md` is only 797 bytes — lacks architecture overview, setup guide, screenshots
+- **Good:** `docs/PROJECTS_FOLDER.md` is detailed (3.2KB) with YAML schema docs
+- **Good:** Component USAGE.md files exist for WindowBars and TaskPanel
+- **Missing:** No ARCHITECTURE.md, SETUP.md, CONTRIBUTING.md, or context API docs
+- **Missing:** Large files (32KB WinXP/index.jsx, 920-line migrations.js) lack inline comments
 
 ---
 
@@ -183,16 +230,20 @@ XPortfolio is a well-structured React application simulating Windows XP. The cod
 7. Fix memory leak in useSystemSounds (Q2)
 8. Fix stale closure in useMobileAppLauncher (Q3)
 9. Add try-catch around all JSON.parse on localStorage data (S8)
+10. Optimize oversized assets (compress WASM, resize profile images to WebP)
 
 ### Medium-term (Quality Improvements)
-10. Break up the 914-line WinXP component (Q1)
-11. Use unique IDs instead of array indices as React keys (Q5)
-12. Consider flattening/splitting context providers (Q6)
-13. Standardize on one package manager (npm or pnpm)
-14. Add user-facing error notifications for file system failures (Q4)
+11. Break up the 914-line WinXP component (Q1)
+12. Use unique IDs instead of array indices as React keys (Q5)
+13. Consolidate 14 context providers into 3-4 composite providers (Q6)
+14. Standardize on one package manager (npm or pnpm)
+15. Add user-facing error notifications for file system failures (Q4)
+16. Initialize or remove empty git submodules
+17. Remove unused `@types/*` devDependencies (or adopt TypeScript)
 
 ### Long-term (Polish)
-15. Progressive accessibility improvements (Q10)
-16. Lazy-load heavy dependencies (tinymce, webamp, fortune-sheet)
-17. Add CSP header and Subresource Integrity for CDN resources
-18. Group apps by category in the file structure
+18. Progressive accessibility improvements (Q10)
+19. Lazy-load heavy dependencies (tinymce, webamp, fortune-sheet)
+20. Add CSP header and Subresource Integrity for CDN resources
+21. Group apps by category in the file structure
+22. Add architecture documentation (ARCHITECTURE.md, SETUP.md, CONTRIBUTING.md)
