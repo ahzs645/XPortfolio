@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import styled from 'styled-components';
+import DOMPurify from 'dompurify';
 import { ProgramLayout } from '../../../components';
 
 const FONTS = [
@@ -101,7 +102,7 @@ function Wordpad({ onClose, onMinimize, onMaximize }) {
   }, []);
 
   const handlePrint = useCallback(() => {
-    const content = editorRef.current?.innerHTML || '';
+    const content = DOMPurify.sanitize(editorRef.current?.innerHTML || '');
     const printWindow = window.open('', '', 'width=800,height=600');
     printWindow.document.write(`
       <html>
@@ -114,7 +115,7 @@ function Wordpad({ onClose, onMinimize, onMaximize }) {
   }, []);
 
   const handlePreview = useCallback(() => {
-    const content = editorRef.current?.innerHTML || '';
+    const content = DOMPurify.sanitize(editorRef.current?.innerHTML || '');
     const previewWindow = window.open('', '', 'width=800,height=600');
     previewWindow.document.write(`<html><body>${content}</body></html>`);
     previewWindow.document.close();

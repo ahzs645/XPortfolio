@@ -48,6 +48,7 @@ function useSystemSounds() {
   const { soundSettings } = useUserSettings();
 
   useEffect(() => {
+    const loadedKeys = [];
     Object.values(SOUND_FILE_CATALOG).forEach(({ key, path }) => {
       if (!audioCache[key]) {
         const audio = new Audio(withBaseUrl(path));
@@ -56,7 +57,21 @@ function useSystemSounds() {
         audioCache[key] = audio;
       }
       soundsRef.current[key] = audioCache[key];
+      loadedKeys.push(key);
     });
+
+    return () => {
+      loadedKeys.forEach((key) => {
+        const audio = audioCache[key];
+        if (audio) {
+          audio.pause();
+          audio.removeAttribute('src');
+          audio.load();
+        }
+        delete audioCache[key];
+      });
+      soundsRef.current = {};
+    };
   }, []);
 
   const getSchemeSoundKey = useCallback((eventId) => {
