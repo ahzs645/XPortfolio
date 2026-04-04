@@ -74,11 +74,16 @@ export class BinaryReader {
   }
 
   readFixedString(length) {
-    const bytes = new Uint8Array(this.buffer, this.offset, length);
+    const available = Math.min(length, this.buffer.byteLength - this.offset);
+    if (available <= 0) {
+      this.offset += length;
+      return '';
+    }
+    const bytes = new Uint8Array(this.buffer, this.offset, available);
     this.offset += length;
     // Find null terminator
     let end = bytes.indexOf(0);
-    if (end === -1) end = length;
+    if (end === -1) end = available;
     return new TextDecoder('windows-1252').decode(bytes.slice(0, end));
   }
 

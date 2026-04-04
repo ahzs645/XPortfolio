@@ -120,49 +120,58 @@ export class HlpParser {
   _readBTreePages(pagesStart, rootPage, pageSize, nLevels, totalPages) {
     const r = this.reader;
 
-    // Navigate to leaf level
-    const readPage = (pageNum, level) => {
-      r.seek(pagesStart + pageNum * pageSize);
+    // For leaf-only tree (nLevels=1), just read leaf pages via linked list
+    if (nLevels <= 1) {
+      this._readLeafPages(pagesStart, rootPage, pageSize);
+      return;
+    }
 
-      if (level > 1) {
-        // Index page
-        r.skip(2); // unused
-        const nEntries = r.readUint16();
-        // Read first child page number
-        let childPage = r.readUint16();
+    // Multi-level: find the leftmost leaf by descending through index pages
+    let currentPage = rootPage;
+    for (let level = nLevels; level > 1; level--) {
+      const pageOffset = pagesStart + currentPage * pageSize;
+      if (pageOffset + 6 > r.length) return;
+      r.seek(pageOffset);
+      r.skip(2); // unused
+      r.readUint16(); // nEntries
+      currentPage = r.readUint16(); // first child page
+    }
 
-        if (nEntries === 0) {
-          readPage(childPage, level - 1);
-          return;
-        }
+    // Now read all leaf pages via linked list starting from leftmost
+    this._readLeafPages(pagesStart, currentPage, pageSize);
+  }
 
-        // Read all entries (filename + pageNum pairs)
-        for (let i = 0; i < nEntries; i++) {
+  _readLeafPages(pagesStart, startPage, pageSize) {
+    const r = this.reader;
+    const visited = new Set();
+    let pageNum = startPage;
+
+    while (pageNum >= 0 && !visited.has(pageNum)) {
+      visited.add(pageNum);
+      const pageOffset = pagesStart + pageNum * pageSize;
+      const pageEnd = pageOffset + pageSize;
+
+      if (pageOffset + 6 > r.length) break;
+      r.seek(pageOffset);
+
+      r.skip(2); // previous page
+      const nextPage = r.readInt16();
+      const nEntries = r.readUint16();
+
+      for (let i = 0; i < nEntries; i++) {
+        if (r.offset + 5 > pageEnd || r.offset + 5 > r.length) break;
+        try {
           const filename = r.readString();
-          const nextChild = r.readUint16();
-          // We want to visit all children
-          readPage(childPage, level - 1);
-          childPage = nextChild;
-        }
-        readPage(childPage, level - 1);
-      } else {
-        // Leaf page
-        r.skip(2); // unused (previous page)
-        const nextPage = r.readInt16();
-        const nEntries = r.readUint16();
-
-        for (let i = 0; i < nEntries; i++) {
-          const filename = r.readString();
+          if (r.offset + 4 > r.length) break;
           const fileOffset = r.readInt32();
           this.internalFiles.set(filename, fileOffset);
+        } catch {
+          break;
         }
-
-        // Follow linked list of leaf pages only if we started at root
-        // (avoid infinite loops by not following here - the tree walk handles it)
       }
-    };
 
-    readPage(rootPage, nLevels);
+      pageNum = nextPage;
+    }
   }
 
   _readInternalFile(name) {
@@ -305,47 +314,92 @@ export class HlpParser {
     const fontFile = this._readInternalFile('|FONT');
     if (!fontFile) return;
 
+    if (fontFile.remaining < 8) return;
     const numFacenames = fontFile.readUint16();
     const numDescriptors = fontFile.readUint16();
     const facenamesOffset = fontFile.readUint16();
     const descriptorsOffset = fontFile.readUint16();
 
-    // Read face names
+    // Determine descriptor size: old style (11 bytes) vs new style (variable)
+    // If facenamesOffset >= 12, there may be style/charmap info after
+    const descSize = numDescriptors > 0 && descriptorsOffset > 0 && facenamesOffset > descriptorsOffset
+      ? Math.floor((facenamesOffset - descriptorsOffset) / numDescriptors)
+      : numDescriptors > 0 && descriptorsOffset > 0
+        ? Math.max(11, Math.floor((fontFile.length - descriptorsOffset) / Math.max(numDescriptors, 1)))
+        : 11;
+
+    // Read face names (each is a null-terminated string within a 32-byte slot)
     const faceNames = [];
-    fontFile.seek(facenamesOffset);
-    for (let i = 0; i < numFacenames; i++) {
-      faceNames.push(fontFile.readFixedString(32));
+    if (facenamesOffset < fontFile.length) {
+      fontFile.seek(facenamesOffset);
+      for (let i = 0; i < numFacenames && fontFile.remaining >= 1; i++) {
+        // Face names are stored in fixed 32-byte slots
+        faceNames.push(fontFile.readFixedString(32));
+      }
     }
 
     // Read font descriptors
-    fontFile.seek(descriptorsOffset);
-    for (let i = 0; i < numDescriptors; i++) {
-      try {
-        const attrs = fontFile.readUint8();
-        const halfPoints = fontFile.readUint16();
-        const fontFamily = fontFile.readUint8();
-        const faceIndex = fontFile.readUint16();
-        const fgR = fontFile.readUint8();
-        const fgG = fontFile.readUint8();
-        const fgB = fontFile.readUint8();
-        const bgR = fontFile.readUint8();
-        const bgG = fontFile.readUint8();
-        const bgB = fontFile.readUint8();
+    if (descriptorsOffset < fontFile.length) {
+      fontFile.seek(descriptorsOffset);
+      for (let i = 0; i < numDescriptors && fontFile.remaining >= 11; i++) {
+        try {
+          if (descSize >= 24) {
+            // New-style descriptor (HC31+/Win95): 24+ bytes
+            const attrs = fontFile.readUint8();
+            const halfPoints = fontFile.readUint16();
+            const fontFamily = fontFile.readUint8();
+            const faceIndex = fontFile.readUint16();
+            const fgR = fontFile.readUint8();
+            const fgG = fontFile.readUint8();
+            const fgB = fontFile.readUint8();
+            const bgR = fontFile.readUint8();
+            const bgG = fontFile.readUint8();
+            const bgB = fontFile.readUint8();
+            // Skip remaining bytes of new-style descriptor
+            const consumed = 12;
+            if (descSize > consumed) fontFile.skip(descSize - consumed);
 
-        this.fonts.push({
-          face: faceNames[faceIndex] || 'MS Sans Serif',
-          size: Math.round(halfPoints / 2),
-          bold: !!(attrs & 0x01),
-          italic: !!(attrs & 0x02),
-          underline: !!(attrs & 0x04),
-          strikeout: !!(attrs & 0x08),
-          doubleUnderline: !!(attrs & 0x10),
-          smallCaps: !!(attrs & 0x20),
-          fgColor: `rgb(${fgR},${fgG},${fgB})`,
-          bgColor: `rgb(${bgR},${bgG},${bgB})`,
-        });
-      } catch {
-        break;
+            this.fonts.push({
+              face: faceNames[faceIndex] || 'MS Sans Serif',
+              size: Math.max(1, Math.round(halfPoints / 2)),
+              bold: !!(attrs & 0x01),
+              italic: !!(attrs & 0x02),
+              underline: !!(attrs & 0x04),
+              strikeout: !!(attrs & 0x08),
+              doubleUnderline: !!(attrs & 0x10),
+              smallCaps: !!(attrs & 0x20),
+              fgColor: `rgb(${fgR},${fgG},${fgB})`,
+              bgColor: `rgb(${bgR},${bgG},${bgB})`,
+            });
+          } else {
+            // Old-style descriptor (HC30): 11 bytes
+            const attrs = fontFile.readUint8();
+            const halfPoints = fontFile.readUint16();
+            const fontFamily = fontFile.readUint8();
+            const faceIndex = fontFile.readUint16();
+            const fgR = fontFile.readUint8();
+            const fgG = fontFile.readUint8();
+            const fgB = fontFile.readUint8();
+            const bgR = fontFile.readUint8();
+            const bgG = fontFile.readUint8();
+            const bgB = fontFile.readUint8();
+
+            this.fonts.push({
+              face: faceNames[faceIndex] || 'MS Sans Serif',
+              size: Math.max(1, Math.round(halfPoints / 2)),
+              bold: !!(attrs & 0x01),
+              italic: !!(attrs & 0x02),
+              underline: !!(attrs & 0x04),
+              strikeout: !!(attrs & 0x08),
+              doubleUnderline: !!(attrs & 0x10),
+              smallCaps: !!(attrs & 0x20),
+              fgColor: `rgb(${fgR},${fgG},${fgB})`,
+              bgColor: `rgb(${bgR},${bgG},${bgB})`,
+            });
+          }
+        } catch {
+          break;
+        }
       }
     }
 
@@ -370,40 +424,62 @@ export class HlpParser {
     if (!topicFile) return;
 
     const topicData = topicFile.readBytes(topicFile.remaining);
+    const blockSize = this.topicBlockSize;
+    const isCompressed = this.compressionType !== 0;
+
+    // Step 1: Process blocks - strip 12-byte headers, decompress payloads, concatenate
+    const payloads = [];
     let pos = 0;
-
     while (pos + 12 <= topicData.length) {
-      // Read TOPICBLOCKHEADER
-      const blockStart = pos;
-      const lastTopicLink = readInt32(topicData, pos); pos += 4;
-      const firstTopicLink = readInt32(topicData, pos); pos += 4;
-      const lastTopicHeader = readInt32(topicData, pos); pos += 4;
+      const blockEnd = Math.min(pos + blockSize, topicData.length);
 
-      // Process topic links within this block
-      let linkPos = pos;
-      const blockEnd = Math.min(blockStart + this.topicBlockSize, topicData.length);
+      // Skip 12-byte TOPICBLOCKHEADER (always uncompressed)
+      const payload = topicData.slice(pos + 12, blockEnd);
 
-      while (linkPos + 21 <= blockEnd) {
+      if (isCompressed && payload.length > 0) {
         try {
-          const linkData = this._readTopicLink(topicData, linkPos, blockEnd);
-          if (!linkData) break;
-
-          if (linkData.topic) {
-            this.topics.push(linkData.topic);
-          }
-          linkPos = linkData.nextPos;
-
-          if (linkPos <= 0 || linkPos >= topicData.length) break;
+          const decompressed = decompressLZ77(payload, blockSize * 4);
+          payloads.push(decompressed);
         } catch {
-          break;
+          payloads.push(payload);
         }
+      } else {
+        payloads.push(payload);
       }
 
-      // Move to next block
       pos = blockEnd;
     }
 
-    // If no topics were parsed, create a fallback
+    // Concatenate all payloads (headers stripped)
+    const totalLen = payloads.reduce((sum, p) => sum + p.length, 0);
+    const allData = new Uint8Array(totalLen);
+    let writePos = 0;
+    for (const p of payloads) {
+      allData.set(p, writePos);
+      writePos += p.length;
+    }
+
+    // Step 2: Parse topic links linearly from concatenated data
+    pos = 0;
+    let safety = 0;
+    while (pos + 21 <= allData.length && safety < 10000) {
+      safety++;
+      try {
+        const linkData = this._readTopicLink(allData, pos, allData.length);
+        if (!linkData) break;
+
+        if (linkData.topic) {
+          this.topics.push(linkData.topic);
+        }
+
+        if (linkData.nextPos <= pos) break;
+        pos = linkData.nextPos;
+      } catch {
+        break;
+      }
+    }
+
+    // Fallback if nothing parsed
     if (this.topics.length === 0) {
       this.topics.push({
         id: 0,
@@ -431,25 +507,15 @@ export class HlpParser {
     const contentEnd = Math.min(pos + blockSize, blockEnd);
 
     if (contentStart >= contentEnd) {
-      return { nextPos: pos + Math.max(blockSize, 21), topic: null };
+      return { nextPos: pos + Math.max(blockSize, headerSize), topic: null };
     }
 
-    let rawContent = data.slice(contentStart, contentEnd);
-
-    // Decompress if needed
-    if (this.compressionType && dataLen2 > 0) {
-      try {
-        rawContent = decompressLZ77(rawContent, dataLen2);
-      } catch {
-        // Use raw content as fallback
-      }
-    }
+    const rawContent = data.slice(contentStart, contentEnd);
 
     let topic = null;
     if (recType === TL_TOPICHDR || recType === TL_DISPLAY30) {
       topic = this._parseTopicHeader(rawContent, this.topics.length);
     } else if (recType === TL_TOPICTXT || recType === TL_TABLE) {
-      // Text/table record - append to last topic
       const textContent = this._parseTopicText(rawContent);
       if (this.topics.length > 0 && textContent.length > 0) {
         this.topics[this.topics.length - 1].content.push(...textContent);
@@ -464,7 +530,7 @@ export class HlpParser {
     }
 
     return {
-      nextPos: pos + Math.max(blockSize, 21),
+      nextPos: pos + Math.max(blockSize, headerSize),
       topic,
     };
   }
@@ -516,22 +582,25 @@ export class HlpParser {
 
     // Skip paragraph formatting info
     if (data.length > 0) {
-      // Try to find where text content starts by scanning for printable characters
-      // after the formatting block
       const formatFlags = data[0];
       let skipBytes = 1;
 
-      // Count format-related bytes based on flags
+      // Paragraph format fields - sizes vary by version/format
       if (formatFlags & 0x01) skipBytes += 4; // SpacingAbove
       if (formatFlags & 0x02) skipBytes += 4; // SpacingBelow
       if (formatFlags & 0x04) skipBytes += 4; // SpacingLines
       if (formatFlags & 0x08) skipBytes += 4; // LeftIndent
       if (formatFlags & 0x10) skipBytes += 4; // RightIndent
       if (formatFlags & 0x20) skipBytes += 4; // FirstlineIndent
-      if (formatFlags & 0x80) skipBytes += 2; // TabInfo
       if (formatFlags & 0x40) skipBytes += 4; // Border info
+      if (formatFlags & 0x80) {
+        // Tab stops: 2-byte count + variable data
+        if (skipBytes + 2 <= data.length) {
+          const numTabs = data[skipBytes] | (data[skipBytes + 1] << 8);
+          skipBytes += 2 + numTabs * 4;
+        }
+      }
 
-      // Clamp skip to reasonable range
       skipBytes = Math.min(skipBytes, data.length);
       i = skipBytes;
     }
@@ -540,17 +609,14 @@ export class HlpParser {
       const byte = data[i];
 
       if (byte === 0) {
-        // End of text
-        break;
-      } else if (byte === 0xFF) {
-        // End of formatting commands
+        // Null terminator - end of text section
         break;
       } else if (byte >= 0x80 && byte <= 0x8F) {
-        // Formatting command
+        // Inline formatting command
         switch (byte) {
-          case 0x80: // Font change
-            i += 2; // skip font number
-            break;
+          case 0x80: // Font change (followed by 2-byte font number)
+            i += 3;
+            continue;
           case 0x81: // Line break
             result.push('\n');
             break;
@@ -560,18 +626,27 @@ export class HlpParser {
           case 0x83: // Tab
             result.push('\t');
             break;
-          case 0x86: // Embedded object (variable length)
+          case 0x86: // Hotspot start (variable length, skip until end marker)
           case 0x87:
           case 0x88:
-            // Skip until we find the end marker
             i++;
-            while (i < data.length && data[i] !== 0xFF) i++;
+            while (i < data.length && data[i] !== 0x89) i++;
+            i++; // skip end marker
+            continue;
+          case 0x89: // End of hotspot
             break;
-          case 0x89: // End of hot spot
+          case 0x8B: // Non-break space
+            result.push(' ');
+            break;
+          case 0x8C: // Non-break hyphen
+            result.push('-');
             break;
           default:
             break;
         }
+        i++;
+      } else if (byte === 0xFF) {
+        // Formatting separator - skip and continue (NOT end of text)
         i++;
       } else if (byte >= 0xC8 && byte <= 0xCF) {
         // Macro commands - skip
@@ -581,21 +656,25 @@ export class HlpParser {
           i += 2 + macroLen;
         }
       } else if (byte >= 0xE0 && byte <= 0xEF) {
-        // Topic jump / popup - read the link data
+        // Topic jump / popup
         i++;
-        // Skip 4 bytes of hash/offset
-        i += 4;
-      } else if (byte < 0x10 && this.phrases.length > 0) {
+        i += 4; // skip hash/offset
+      } else if (byte >= 0x20 && byte <= 0x7F) {
+        // Regular printable ASCII character
+        result.push(String.fromCharCode(byte));
+        i++;
+      } else if (byte >= 0xA0) {
+        // Extended character (windows-1252 range, printable)
+        result.push(decoder.decode(new Uint8Array([byte])));
+        i++;
+      } else if (byte < 0x10 && this.phrases.length > byte && byte > 0) {
         // Phrase reference (old-style compression)
-        if (byte < this.phrases.length) {
+        if (this.phrases[byte]) {
           result.push(this.phrases[byte]);
         }
         i++;
-      } else if (byte >= 0x20) {
-        // Regular printable character
-        result.push(decoder.decode(new Uint8Array([byte])));
-        i++;
       } else {
+        // Unknown control byte - skip
         i++;
       }
     }
