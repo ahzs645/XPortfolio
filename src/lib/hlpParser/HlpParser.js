@@ -470,7 +470,7 @@ export class HlpParser {
   }
 
   _parseTopicHeader(data, topicId) {
-    if (data.length < 12) {
+    if (data.length < 2) {
       return {
         id: topicId,
         title: `Topic ${topicId}`,
