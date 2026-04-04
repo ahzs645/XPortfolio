@@ -117,11 +117,19 @@ export function FileSystemProvider({ children }) {
     loadFileSystem();
   }, [configLoading, userLoading, activeUserId, fileSystem, desktopShortcuts, folderProjects, userName]);
 
+  // Track file system save errors for consumer visibility
+  const [saveError, setSaveError] = useState(null);
+
   // Save file system to IndexedDB whenever it changes
   useEffect(() => {
     if (fileSystem && !isLoading && activeUserId) {
       const storageKey = getFileSystemKey(activeUserId);
-      idb.set(storageKey, fileSystem).catch(console.error);
+      idb.set(storageKey, fileSystem)
+        .then(() => setSaveError(null))
+        .catch((err) => {
+          console.error('Failed to save file system:', err);
+          setSaveError(err);
+        });
     }
   }, [fileSystem, isLoading, activeUserId]);
 
@@ -200,6 +208,7 @@ export function FileSystemProvider({ children }) {
   const value = {
     fileSystem,
     isLoading,
+    saveError,
     clipboard,
     clipboardOp,
     // Operations

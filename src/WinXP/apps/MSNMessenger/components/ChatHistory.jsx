@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import DOMPurify from 'dompurify';
 import { parseEmoticons } from '../data/emoticons';
 
 function Message({ message }) {
@@ -23,13 +24,19 @@ function Message({ message }) {
     const styleAttr = styles.length ? ` style="${styles.join(';')}"` : '';
     contentHTML = `<span${styleAttr}>${text}</span>`;
   } else if (message.type === 'wink') {
-    contentHTML = `<img src="${message.content}" width="128px" style="border-radius: 8px" alt="Wink">`;
+    const sanitizedSrc = DOMPurify.sanitize(message.content, { ALLOWED_TAGS: [] });
+    contentHTML = `<img src="${sanitizedSrc}" width="128px" style="border-radius: 8px" alt="Wink">`;
   }
+
+  const sanitizedHTML = DOMPurify.sanitize(contentHTML, {
+    ALLOWED_TAGS: ['span', 'img'],
+    ALLOWED_ATTR: ['style', 'src', 'width', 'alt'],
+  });
 
   return (
     <div className={`message ${senderClass}`}>
       <div className="message-header">{message.senderName} says:</div>
-      <div className="message-content" dangerouslySetInnerHTML={{ __html: contentHTML }} />
+      <div className="message-content" dangerouslySetInnerHTML={{ __html: sanitizedHTML }} />
     </div>
   );
 }
@@ -49,8 +56,8 @@ export default function ChatHistory({ contactName, messages }) {
         To: <strong>{contactName}</strong>
       </div>
       <div className="history-messages" ref={historyRef}>
-        {messages.map((msg, i) => (
-          <Message key={i} message={msg} />
+        {messages.map((msg) => (
+          <Message key={msg.id || `${msg.timestamp}-${msg.sender}`} message={msg} />
         ))}
       </div>
     </div>

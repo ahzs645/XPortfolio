@@ -16,6 +16,7 @@ import { RunningAppsProvider } from '../contexts/RunningAppsContext';
 import { MessageBoxProvider } from '../contexts/MessageBoxContext';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { ContextMenu } from './components/ContextMenu';
+import DisplayFilterDefs from './components/DisplayFilterDefs';
 import FileUploadDialog from './FileUploadDialog';
 import { useFileContextMenu, useBackgroundContextMenu } from './hooks/useFileContextMenu';
 
@@ -26,6 +27,8 @@ import { useFileHandler } from './hooks/useFileHandler';
 import { useFileUpload } from './hooks/useFileUpload';
 import { useContextMenuActions } from './hooks/useContextMenuActions';
 import { useMobileAppLauncher } from './hooks/useMobileAppLauncher';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { useClippyState } from './hooks/useClippyState';
 
 // Import components
 import { DesktopDropOverlay } from './components/DesktopDropOverlay';
@@ -56,86 +59,17 @@ import BootScreen from './BootScreen';
 import Clippy from './Clippy';
 import CRTEffect from './CRTEffect';
 import {
-  FOUR_LEVEL_TABLE,
-  EIGHT_LEVEL_TABLE,
-  THIRTY_TWO_LEVEL_TABLE,
-  SIXTY_FOUR_LEVEL_TABLE,
   DITHER_DEPTHS,
   getColorDepthFilter,
   getColorDitherOpacity,
 } from '../utils/colorDepthEffects';
-
-function DisplayFilterDefs() {
-  return (
-    <HiddenFilterSvg aria-hidden="true" focusable="false">
-      <defs>
-        <filter id="xp-color-2" colorInterpolationFilters="sRGB">
-          <feColorMatrix
-            type="matrix"
-            values="
-              0.299 0.587 0.114 0 0
-              0.299 0.587 0.114 0 0
-              0.299 0.587 0.114 0 0
-              0 0 0 1 0
-            "
-          />
-          <feComponentTransfer>
-            <feFuncR type="discrete" tableValues="0 1" />
-            <feFuncG type="discrete" tableValues="0 1" />
-            <feFuncB type="discrete" tableValues="0 1" />
-          </feComponentTransfer>
-        </filter>
-
-        <filter id="xp-color-8" colorInterpolationFilters="sRGB">
-          <feComponentTransfer>
-            <feFuncR type="discrete" tableValues="0 1" />
-            <feFuncG type="discrete" tableValues="0 1" />
-            <feFuncB type="discrete" tableValues="0 1" />
-          </feComponentTransfer>
-        </filter>
-
-        <filter id="xp-color-16" colorInterpolationFilters="sRGB">
-          <feComponentTransfer>
-            <feFuncR type="discrete" tableValues={FOUR_LEVEL_TABLE} />
-            <feFuncG type="discrete" tableValues={FOUR_LEVEL_TABLE} />
-            <feFuncB type="discrete" tableValues={FOUR_LEVEL_TABLE} />
-          </feComponentTransfer>
-        </filter>
-
-        <filter id="xp-color-256" colorInterpolationFilters="sRGB">
-          <feComponentTransfer>
-            <feFuncR type="discrete" tableValues={EIGHT_LEVEL_TABLE} />
-            <feFuncG type="discrete" tableValues={EIGHT_LEVEL_TABLE} />
-            <feFuncB type="discrete" tableValues={EIGHT_LEVEL_TABLE} />
-          </feComponentTransfer>
-        </filter>
-
-        <filter id="xp-color-16bit" colorInterpolationFilters="sRGB">
-          <feComponentTransfer>
-            <feFuncR type="discrete" tableValues={THIRTY_TWO_LEVEL_TABLE} />
-            <feFuncG type="discrete" tableValues={SIXTY_FOUR_LEVEL_TABLE} />
-            <feFuncB type="discrete" tableValues={THIRTY_TWO_LEVEL_TABLE} />
-          </feComponentTransfer>
-        </filter>
-      </defs>
-    </HiddenFilterSvg>
-  );
-}
 
 function WinXP() {
   const { state, dispatch, getFocusedAppId, getActiveAppIdForTaskbar } = useDesktopReducer();
   const { getValue } = useRegistry();
   const { explorer } = useShellSettings();
   const [crtEnabled, setCrtEnabled] = useState(true);
-  const [showClippy, setShowClippy] = useState(true);
-  const [clippyHiddenOnMobile, setClippyHiddenOnMobile] = useState(() => {
-    try {
-      const saved = localStorage.getItem('xp-clippy-hidden-mobile');
-      return saved === 'true';
-    } catch {
-      return false;
-    }
-  });
+  const { showClippy, clippyHiddenOnMobile, handleEndClippy, handleHideClippyMobile, handleShowClippyMobile } = useClippyState();
   const [hasPendingUpdates] = useState(true); // Set to true to show update dialog
   const ref = useRef(null);
   const mouse = useMouse(ref);
@@ -578,28 +512,6 @@ function WinXP() {
     dispatch({ type: FOCUS_APP, payload: id });
   }, [dispatch]);
 
-  const handleEndClippy = useCallback(() => {
-    setShowClippy(false);
-  }, []);
-
-  const handleHideClippyMobile = useCallback(() => {
-    setClippyHiddenOnMobile(true);
-    try {
-      localStorage.setItem('xp-clippy-hidden-mobile', 'true');
-    } catch (e) {
-      console.error('Failed to save Clippy mobile preference:', e);
-    }
-  }, []);
-
-  const handleShowClippyMobile = useCallback(() => {
-    setClippyHiddenOnMobile(false);
-    try {
-      localStorage.removeItem('xp-clippy-hidden-mobile');
-    } catch (e) {
-      console.error('Failed to clear Clippy mobile preference:', e);
-    }
-  }, []);
-
   useEffect(() => {
     function handleRestartRequest() {
       performRestart();
@@ -609,84 +521,14 @@ function WinXP() {
     return () => window.removeEventListener('xp:restart-request', handleRestartRequest);
   }, [performRestart]);
 
-  // Global keyboard shortcuts (Win+R for Run, Win+E for Explorer, Win+D for Show Desktop)
-  useEffect(() => {
-    if (state.bootState !== BOOT_STATE.DESKTOP) return;
-
-    function handleKeyDown(e) {
-      // Win+R → Run Dialog
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'r') {
-        // Don't intercept if user is typing in an input/textarea
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
-        e.preventDefault();
-        const runSetting = appSettings['Run'];
-        if (runSetting) {
-          dispatch({ type: ADD_APP, payload: applyMobileSettings(runSetting, 'Run') });
-        }
-      }
-      // Win+E → My Computer (Explorer)
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'e') {
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
-        e.preventDefault();
-        const explorerSetting = appSettings['My Computer'];
-        if (explorerSetting) {
-          dispatch({ type: ADD_APP, payload: applyMobileSettings(explorerSetting, 'My Computer') });
-        }
-      }
-      // Win+D → Show Desktop (minimize all)
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd') {
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
-        e.preventDefault();
-        dispatch({ type: 'MINIMIZE_ALL_APPS' });
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [state.bootState, dispatch, applyMobileSettings]);
-
-  // CrashOnCtrlScroll: Ctrl + ScrollLock + ScrollLock triggers BSOD
-  // Mimics real Windows XP behavior when CrashOnCtrlScroll registry value is set to 1
-  useEffect(() => {
-    if (state.bootState !== BOOT_STATE.DESKTOP) return;
-
-    let scrollLockCount = 0;
-    let scrollLockTimer = null;
-
-    function handleKeyDown(e) {
-      // Check if CrashOnCtrlScroll is enabled in the registry
-      const crashValue = getValue(
-        'HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\i8042prt\\Parameters',
-        'CrashOnCtrlScroll'
-      );
-      if (!crashValue || crashValue.data !== 1) return;
-
-      // ScrollLock key while Ctrl is held
-      if (e.key === 'ScrollLock' && e.ctrlKey) {
-        scrollLockCount++;
-
-        if (scrollLockTimer) clearTimeout(scrollLockTimer);
-        // Reset count if second press doesn't come within 2 seconds
-        scrollLockTimer = setTimeout(() => { scrollLockCount = 0; }, 2000);
-
-        if (scrollLockCount >= 2) {
-          scrollLockCount = 0;
-          if (scrollLockTimer) clearTimeout(scrollLockTimer);
-          // Trigger BSOD
-          const bsodSetting = appSettings['Blue Screen of Death'];
-          if (bsodSetting) {
-            dispatch({ type: ADD_APP, payload: bsodSetting });
-          }
-        }
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      if (scrollLockTimer) clearTimeout(scrollLockTimer);
-    };
-  }, [state.bootState, dispatch, getValue]);
+  // Global keyboard shortcuts (Win+R, Win+E, Win+D, CrashOnCtrlScroll)
+  useKeyboardShortcuts({
+    bootState: state.bootState,
+    dispatch,
+    applyMobileSettings,
+    appSettings,
+    getValue,
+  });
 
   // Show boot screen during boot sequence
   if (state.bootState !== BOOT_STATE.DESKTOP) {
@@ -880,13 +722,6 @@ const PowerScene = styled.div`
   position: relative;
   height: 100%;
   animation: ${({ $powerState }) => animation[$powerState]} 5s forwards;
-`;
-
-const HiddenFilterSvg = styled.svg`
-  position: absolute;
-  width: 0;
-  height: 0;
-  pointer-events: none;
 `;
 
 const ColorDitherOverlay = styled.div`

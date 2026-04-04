@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { ADD_APP } from '../constants/actions';
 import { isMobileDevice } from '../../utils/deviceDetection';
 import { getMobileConfig } from '../config/mobileConfig';
@@ -11,7 +11,13 @@ import { getMobileConfig } from '../config/mobileConfig';
  * @returns {Object} Object containing launchApp function
  */
 export function useMobileAppLauncher(dispatch) {
-  const isMobile = useMemo(() => isMobileDevice(), []);
+  const [isMobile, setIsMobile] = useState(() => isMobileDevice());
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(isMobileDevice());
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   /**
    * Launch an app with mobile-aware settings.

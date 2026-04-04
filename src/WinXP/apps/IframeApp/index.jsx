@@ -168,12 +168,13 @@ function IframeApp({
     const { type, action, data, requestId } = event.data || {};
     if (type !== 'xportfolio') return;
 
+    const targetOrigin = appUrl ? new URL(appUrl).origin : '*';
     const respond = (response) => {
       iframeRef.current?.contentWindow?.postMessage({
         type: 'xportfolio-response',
         requestId,
         ...response,
-      }, '*');
+      }, targetOrigin);
     };
 
     switch (action) {
@@ -352,6 +353,7 @@ function IframeApp({
     setError(null);
 
     // Send init message to iframe
+    const initOrigin = appUrl ? new URL(appUrl).origin : '*';
     iframeRef.current?.contentWindow?.postMessage({
       type: 'xportfolio-init',
       data: {
@@ -359,8 +361,8 @@ function IframeApp({
         version: '1.0.0',
         capabilities: ['window', 'fileSystem', 'components'],
       },
-    }, '*');
-  }, [appId]);
+    }, initOrigin);
+  }, [appId, appUrl]);
 
   // Handle iframe error
   const handleError = useCallback(() => {

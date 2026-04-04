@@ -12,6 +12,11 @@ const processUrlForIframe = (url) => {
   try {
     const urlObj = new URL(url);
 
+    // Only allow http and https schemes to prevent javascript: and data: URL attacks
+    if (urlObj.protocol !== 'http:' && urlObj.protocol !== 'https:') {
+      return HOME_PAGE;
+    }
+
     // Check if it's a Google domain (google.com, google.co.uk, google.de, etc.)
     const isGoogleDomain = /^(www\.)?google\.[a-z]{2,3}(\.[a-z]{2})?$/i.test(urlObj.hostname);
 

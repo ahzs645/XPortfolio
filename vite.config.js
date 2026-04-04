@@ -29,6 +29,7 @@ export default defineConfig(({ mode }) => {
   const crossOriginIsolationHeaders = {
     'Cross-Origin-Opener-Policy': 'same-origin',
     'Cross-Origin-Embedder-Policy': 'require-corp',
+    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https:; frame-src 'self' https: blob:; worker-src 'self' blob:;",
   }
 
   return {

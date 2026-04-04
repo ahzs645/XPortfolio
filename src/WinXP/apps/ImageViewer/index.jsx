@@ -248,6 +248,7 @@ function ImageViewer({ initialImages, initialImage }) {
         URL.revokeObjectURL(url);
         return;
       }
+      const safeUrl = url.startsWith('blob:') ? url : '';
       printWindow.document.write(`
         <html>
           <head>
@@ -259,7 +260,7 @@ function ImageViewer({ initialImages, initialImage }) {
             </style>
           </head>
           <body>
-            <img src="${url}" onload="window.print(); window.close();" />
+            <img src="${safeUrl}" onload="window.print(); window.close();" />
           </body>
         </html>
       `);
