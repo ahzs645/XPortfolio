@@ -1,37 +1,43 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
 import DOMPurify from 'dompurify';
 import { parseEmoticons } from '../data/emoticons';
 
 function Message({ message }) {
+  const sanitizedHTML = useMemo(() => {
+    if (message.type === 'system') return null;
+
+    let contentHTML = '';
+    if (message.type === 'text') {
+      let text = message.content
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+      text = parseEmoticons(text);
+
+      const styles = [];
+      if (message.style?.bold) styles.push('font-weight:bold');
+      if (message.style?.italic) styles.push('font-style:italic');
+      if (message.style?.underline) styles.push('text-decoration:underline');
+      const styleAttr = styles.length ? ` style="${styles.join(';')}"` : '';
+      contentHTML = `<span${styleAttr}>${text}</span>`;
+    } else if (message.type === 'wink') {
+      const sanitizedSrc = DOMPurify.sanitize(message.content, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+      contentHTML = `<img src="${sanitizedSrc}" width="128" style="border-radius: 8px" alt="Wink">`;
+    }
+
+    return DOMPurify.sanitize(contentHTML, {
+      ALLOWED_TAGS: ['span', 'img'],
+      ALLOWED_ATTR: ['style', 'src', 'width', 'alt', 'class', 'title'],
+      ALLOW_DATA_ATTR: false,
+    });
+  }, [message.content, message.type, message.style?.bold, message.style?.italic, message.style?.underline]);
+
   if (message.type === 'system') {
     return <div className="system-message">{message.content}</div>;
   }
 
   const senderClass = message.sender === 'local' ? 'local' : 'remote';
-
-  let contentHTML = '';
-  if (message.type === 'text') {
-    let text = message.content
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-    text = parseEmoticons(text);
-
-    const styles = [];
-    if (message.style?.bold) styles.push('font-weight:bold');
-    if (message.style?.italic) styles.push('font-style:italic');
-    if (message.style?.underline) styles.push('text-decoration:underline');
-    const styleAttr = styles.length ? ` style="${styles.join(';')}"` : '';
-    contentHTML = `<span${styleAttr}>${text}</span>`;
-  } else if (message.type === 'wink') {
-    const sanitizedSrc = DOMPurify.sanitize(message.content, { ALLOWED_TAGS: [] });
-    contentHTML = `<img src="${sanitizedSrc}" width="128px" style="border-radius: 8px" alt="Wink">`;
-  }
-
-  const sanitizedHTML = DOMPurify.sanitize(contentHTML, {
-    ALLOWED_TAGS: ['span', 'img'],
-    ALLOWED_ATTR: ['style', 'src', 'width', 'alt'],
-  });
 
   return (
     <div className={`message ${senderClass}`}>

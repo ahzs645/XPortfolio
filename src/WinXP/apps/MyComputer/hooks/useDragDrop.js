@@ -27,9 +27,10 @@ export function useDragDrop({
     // Don't show overlay for internal drags within this window
     if (isDraggingInternalRef.current) return;
 
-    // Allow cross-window file system item drops
+    // Allow cross-window file system item drops (from other explorer windows or desktop)
     const hasXPortfolioItems = e.dataTransfer?.types?.includes('application/x-xportfolio-items');
-    if (hasXPortfolioItems) {
+    const hasDesktopIcon = e.dataTransfer?.types?.includes('application/x-desktop-icon');
+    if (hasXPortfolioItems || hasDesktopIcon) {
       e.dataTransfer.dropEffect = 'move';
       return;
     }
@@ -170,6 +171,26 @@ export function useDragDrop({
     setDropTargetId(item.id);
   }, [draggingItems]);
 
+  // Handle drops from desktop icons onto folders in explorer
+  const handleItemDropFromDesktop = useCallback((e, targetFolder) => {
+    // Only allow dropping on folders
+    if (targetFolder.type !== 'folder') return;
+
+    const xportfolioData = e.dataTransfer.getData('application/x-xportfolio-items');
+    if (xportfolioData && moveItem) {
+      try {
+        const itemIds = JSON.parse(xportfolioData);
+        for (const itemId of itemIds) {
+          moveItem(itemId, targetFolder.id);
+        }
+      } catch (error) {
+        console.error('Error moving desktop items to folder:', error);
+      }
+      return true;
+    }
+    return false;
+  }, [moveItem]);
+
   const handleItemDragLeave = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -194,11 +215,14 @@ export function useDragDrop({
       for (const itemId of draggingItems) {
         moveItem(itemId, targetFolder.id);
       }
+    } else {
+      // Try cross-window drop (from desktop or other explorer)
+      handleItemDropFromDesktop(e, targetFolder);
     }
 
     setDraggingItems(null);
     setDropTargetId(null);
-  }, [draggingItems, moveItem]);
+  }, [draggingItems, moveItem, handleItemDropFromDesktop]);
 
   return {
     // State

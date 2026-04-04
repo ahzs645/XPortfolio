@@ -41,6 +41,7 @@ const Wordpad = lazy(() => import('./Wordpad'));
 const MicrosoftWord = lazy(() => import('./MicrosoftWord'));
 const MicrosoftExcel = lazy(() => import('./MicrosoftExcel'));
 const HelpAndSupport = lazy(() => import('./HelpAndSupport'));
+const WinHelp = lazy(() => import('./WinHelp'));
 const FontViewer = lazy(() => import('./FontViewer'));
 const OutlookExpress = lazy(() => import('./OutlookExpress'));
 const NewMessage = lazy(() => import('./NewMessage'));
@@ -180,6 +181,7 @@ export const appCategoryMap = {
   'Add or Remove Programs': APP_CATEGORIES.SYSTEM,
   'App Installer': APP_CATEGORIES.SYSTEM,
   'Help and Support': APP_CATEGORIES.SYSTEM,
+  'Windows Help': APP_CATEGORIES.SYSTEM,
   'System Recovery': APP_CATEGORIES.SYSTEM,
   'Backup Wizard': APP_CATEGORIES.SYSTEM,
   'Transfer Wizard': APP_CATEGORIES.SYSTEM,
@@ -1119,6 +1121,26 @@ export const appSettings = {
     minimized: false,
     maximized: false,
     multiInstance: false,
+  },
+  'Windows Help': {
+    header: {
+      icon: XP_ICONS.helpAndSupport,
+      title: 'Windows Help',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: WinHelp,
+    defaultSize: {
+      width: 680,
+      height: 520,
+    },
+    defaultOffset: {
+      x: 100,
+      y: 60,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
   },
   'Recycle Bin': {
     header: {

@@ -104,21 +104,24 @@ function Wordpad({ onClose, onMinimize, onMaximize }) {
   const handlePrint = useCallback(() => {
     const content = DOMPurify.sanitize(editorRef.current?.innerHTML || '');
     const printWindow = window.open('', '', 'width=800,height=600');
-    printWindow.document.write(`
-      <html>
-        <head><title>Print</title></head>
-        <body>${content}</body>
-      </html>
-    `);
-    printWindow.document.close();
+    if (!printWindow) return;
+    const doc = printWindow.document;
+    doc.open();
+    doc.write('<!DOCTYPE html><html><head><title>Print</title></head><body></body></html>');
+    doc.close();
+    doc.body.innerHTML = content;
     printWindow.print();
   }, []);
 
   const handlePreview = useCallback(() => {
     const content = DOMPurify.sanitize(editorRef.current?.innerHTML || '');
     const previewWindow = window.open('', '', 'width=800,height=600');
-    previewWindow.document.write(`<html><body>${content}</body></html>`);
-    previewWindow.document.close();
+    if (!previewWindow) return;
+    const doc = previewWindow.document;
+    doc.open();
+    doc.write('<!DOCTYPE html><html><head></head><body></body></html>');
+    doc.close();
+    doc.body.innerHTML = content;
   }, []);
 
   useEffect(() => {

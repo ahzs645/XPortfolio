@@ -168,7 +168,9 @@ function IframeApp({
     const { type, action, data, requestId } = event.data || {};
     if (type !== 'xportfolio') return;
 
-    const targetOrigin = appUrl ? new URL(appUrl).origin : '*';
+    // Never use wildcard targetOrigin - require a known app URL
+    if (!appUrl) return;
+    const targetOrigin = new URL(appUrl).origin;
     const respond = (response) => {
       iframeRef.current?.contentWindow?.postMessage({
         type: 'xportfolio-response',
@@ -352,16 +354,18 @@ function IframeApp({
     setIsLoading(false);
     setError(null);
 
-    // Send init message to iframe
-    const initOrigin = appUrl ? new URL(appUrl).origin : '*';
-    iframeRef.current?.contentWindow?.postMessage({
-      type: 'xportfolio-init',
-      data: {
-        appId,
-        version: '1.0.0',
-        capabilities: ['window', 'fileSystem', 'components'],
-      },
-    }, initOrigin);
+    // Send init message to iframe - only with a known origin
+    if (appUrl) {
+      const initOrigin = new URL(appUrl).origin;
+      iframeRef.current?.contentWindow?.postMessage({
+        type: 'xportfolio-init',
+        data: {
+          appId,
+          version: '1.0.0',
+          capabilities: ['window', 'fileSystem', 'components'],
+        },
+      }, initOrigin);
+    }
   }, [appId, appUrl]);
 
   // Handle iframe error
