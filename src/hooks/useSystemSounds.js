@@ -22,6 +22,7 @@ const SYSTEM_EVENTS = {
 };
 
 let audioCache = {};
+let audioCacheRefCount = 0;
 let audioUnlocked = false;
 
 // Unlock audio on first user interaction (required by browsers)
@@ -48,7 +49,7 @@ function useSystemSounds() {
   const { soundSettings } = useUserSettings();
 
   useEffect(() => {
-    const loadedKeys = [];
+    audioCacheRefCount++;
     Object.values(SOUND_FILE_CATALOG).forEach(({ key, path }) => {
       if (!audioCache[key]) {
         const audio = new Audio(withBaseUrl(path));
@@ -57,20 +58,23 @@ function useSystemSounds() {
         audioCache[key] = audio;
       }
       soundsRef.current[key] = audioCache[key];
-      loadedKeys.push(key);
     });
 
     return () => {
-      loadedKeys.forEach((key) => {
-        const audio = audioCache[key];
-        if (audio) {
-          audio.pause();
-          audio.removeAttribute('src');
-          audio.load();
-        }
-        delete audioCache[key];
-      });
+      audioCacheRefCount--;
       soundsRef.current = {};
+      // Only destroy audio when the last consumer unmounts
+      if (audioCacheRefCount <= 0) {
+        Object.keys(audioCache).forEach((key) => {
+          const audio = audioCache[key];
+          if (audio) {
+            audio.pause();
+            audio.src = '';
+          }
+          delete audioCache[key];
+        });
+        audioCacheRefCount = 0;
+      }
     };
   }, []);
 

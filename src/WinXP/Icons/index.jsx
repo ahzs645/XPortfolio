@@ -506,7 +506,7 @@ function Icons({
     return { x: icon.x, y: icon.y };
   };
 
-  // Handle HTML5 drag start - set data for Quick Launch drops
+  // Handle HTML5 drag start - set data for Quick Launch and cross-window drops
   const handleDragStart = useCallback((e, icon) => {
     // Set drag data for Quick Launch bar
     const dragData = {
@@ -519,7 +519,14 @@ function Icons({
     e.dataTransfer.effectAllowed = 'copyMove';
     e.dataTransfer.setData('application/x-desktop-icon', JSON.stringify(dragData));
     e.dataTransfer.setData('text/plain', icon.title);
-  }, []);
+
+    // Set xportfolio-items data for cross-window file explorer drops
+    const selectedIcons = icons.filter((i) => i.isFocus);
+    const itemIds = selectedIcons.length > 0
+      ? selectedIcons.map((i) => i.id)
+      : [icon.id];
+    e.dataTransfer.setData('application/x-xportfolio-items', JSON.stringify(itemIds));
+  }, [icons]);
 
   // Handle HTML5 drag - update positions during native drag
   const handleDrag = useCallback((e) => {

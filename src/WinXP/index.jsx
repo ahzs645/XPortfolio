@@ -1,11 +1,10 @@
 import React, { useRef, useCallback, useState, useEffect } from 'react';
-import styled, { keyframes } from 'styled-components';
 import { useMouse, useWindowSize, useMobileRestriction } from '../hooks';
 import useSystemSounds from '../hooks/useSystemSounds';
 import { useConfig } from '../contexts/ConfigContext';
 import { useUserSettings } from '../contexts/UserSettingsContext';
 import MobileRestrictionPopup from '../components/MobileRestrictionPopup';
-import { useFileSystem, SYSTEM_IDS } from '../contexts/FileSystemContext';
+import { useFileSystem } from '../contexts/FileSystemContext';
 import { useInstalledApps } from '../contexts/InstalledAppsContext';
 import { useStartMenu } from '../contexts/StartMenuContext';
 import { useUserAccounts } from '../contexts/UserAccountsContext';
@@ -29,22 +28,20 @@ import { useContextMenuActions } from './hooks/useContextMenuActions';
 import { useMobileAppLauncher } from './hooks/useMobileAppLauncher';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useClippyState } from './hooks/useClippyState';
+import { usePowerActions } from './hooks/usePowerActions';
+import { useWindowActions } from './hooks/useWindowActions';
 
 // Import components
 import { DesktopDropOverlay } from './components/DesktopDropOverlay';
 
 import {
   ADD_APP,
-  FOCUS_APP,
-  MINIMIZE_APP,
-  DEL_APP,
   FOCUS_ICON,
   SELECT_ICONS,
   FOCUS_DESKTOP,
   START_SELECT,
   END_SELECT,
   POWER_OFF,
-  CANCEL_POWER_OFF,
   SET_BOOT_STATE,
   CLOSE_ALL_APPS,
 } from './constants/actions';
@@ -58,11 +55,10 @@ import DashedBox from '../components/DashedBox';
 import BootScreen from './BootScreen';
 import Clippy from './Clippy';
 import CRTEffect from './CRTEffect';
-import {
-  DITHER_DEPTHS,
-  getColorDepthFilter,
-  getColorDitherOpacity,
-} from '../utils/colorDepthEffects';
+import { DITHER_DEPTHS } from '../utils/colorDepthEffects';
+
+// Import extracted styled components
+import { Container, PowerScene, ColorDitherOverlay, OffScreen } from './styles/desktopStyles';
 
 function WinXP() {
   const { state, dispatch, getFocusedAppId, getActiveAppIdForTaskbar } = useDesktopReducer();
@@ -318,59 +314,31 @@ function WinXP() {
     setCrtEnabled((prev) => !prev);
   }, []);
 
-  const performRestart = useCallback(() => {
-    dispatch({ type: CANCEL_POWER_OFF });
-    dispatch({ type: CLOSE_ALL_APPS });
-    logoutUser();
-    dispatch({ type: SET_BOOT_STATE, payload: BOOT_STATE.BOOTING });
-  }, [dispatch, logoutUser]);
+  // Extracted power and window action hooks
+  const {
+    performRestart,
+    onModalRestart,
+    onModalLogOff,
+    onModalShutDown,
+    onModalShutDownWithoutUpdates,
+    onModalClose,
+  } = usePowerActions({ dispatch, logoutUser, playLogoff });
 
-  const onFocusApp = useCallback((id) => {
-    dispatch({ type: FOCUS_APP, payload: id });
-  }, [dispatch]);
-
-  const onMaximizeWindow = useCallback(
-    (id) => {
-      if (focusedAppId === id) {
-        if (windowSoundsEnabled) {
-          playRestore();
-        }
-        dispatch({ type: 'TOGGLE_MAXIMIZE_APP', payload: id });
-      }
-    },
-    [focusedAppId, dispatch, windowSoundsEnabled, playRestore]
-  );
-
-  const onMinimizeWindow = useCallback(
-    (id) => {
-      if (focusedAppId === id) {
-        if (windowSoundsEnabled) {
-          playMinimize();
-        }
-        dispatch({ type: MINIMIZE_APP, payload: id });
-      }
-    },
-    [focusedAppId, dispatch, windowSoundsEnabled, playMinimize]
-  );
-
-  const onCloseApp = useCallback(
-    (id) => {
-      if (focusedAppId === id) {
-        dispatch({ type: DEL_APP, payload: id });
-      }
-    },
-    [focusedAppId, dispatch]
-  );
-
-  const onMinimizeAll = useCallback(() => {
-    dispatch({ type: 'MINIMIZE_ALL_APPS' });
-  }, [dispatch]);
+  const {
+    onFocusApp,
+    onMaximizeWindow,
+    onMinimizeWindow,
+    onCloseApp,
+    onMinimizeAll,
+    handleEndTask,
+    handleSwitchToApp,
+  } = useWindowActions({ dispatch, focusedAppId, windowSoundsEnabled, playMinimize, playRestore });
 
   function onMouseDownFooterApp(id) {
     if (focusedAppId === id) {
-      dispatch({ type: MINIMIZE_APP, payload: id });
+      onMinimizeWindow(id);
     } else {
-      dispatch({ type: FOCUS_APP, payload: id });
+      onFocusApp(id);
     }
   }
 
@@ -471,46 +439,9 @@ function WinXP() {
     alignToGridEnabled,
   });
 
-  function onModalRestart() {
-    performRestart();
-  }
-
-  function onModalLogOff() {
-    playLogoff();
-    dispatch({ type: CANCEL_POWER_OFF });
-    logoutUser();
-    dispatch({ type: SET_BOOT_STATE, payload: BOOT_STATE.LOGIN });
-  }
-
-  function onModalShutDown() {
-    dispatch({ type: CANCEL_POWER_OFF });
-    dispatch({ type: CLOSE_ALL_APPS });
-    logoutUser();
-    dispatch({ type: SET_BOOT_STATE, payload: BOOT_STATE.OFF });
-  }
-
-  function onModalShutDownWithoutUpdates() {
-    dispatch({ type: CANCEL_POWER_OFF });
-    dispatch({ type: CLOSE_ALL_APPS });
-    logoutUser();
-    dispatch({ type: SET_BOOT_STATE, payload: BOOT_STATE.OFF });
-  }
-
-  function onModalClose() {
-    dispatch({ type: CANCEL_POWER_OFF });
-  }
-
   function onBootComplete() {
     dispatch({ type: SET_BOOT_STATE, payload: BOOT_STATE.DESKTOP });
   }
-
-  const handleEndTask = useCallback((id) => {
-    dispatch({ type: DEL_APP, payload: id });
-  }, [dispatch]);
-
-  const handleSwitchToApp = useCallback((id) => {
-    dispatch({ type: FOCUS_APP, payload: id });
-  }, [dispatch]);
 
   useEffect(() => {
     function handleRestartRequest() {
@@ -677,73 +608,5 @@ function WinXP() {
     </ThemeProvider>
   );
 }
-
-const powerOffAnimation = keyframes`
-  0% {
-    filter: brightness(1) grayscale(0);
-  }
-  30% {
-    filter: brightness(1) grayscale(0);
-  }
-  100% {
-    filter: brightness(0.6) grayscale(1);
-  }
-`;
-
-const animation = {
-  [POWER_STATE.START]: 'none',
-  [POWER_STATE.TURN_OFF]: powerOffAnimation,
-  [POWER_STATE.LOG_OFF]: powerOffAnimation,
-};
-
-const Container = styled.div`
-  font-family: Tahoma, 'Noto Sans', sans-serif;
-  height: 100%;
-  overflow: hidden;
-  position: relative;
-  background: url('${({ $wallpaper }) => $wallpaper || '/bliss.jpg'}') no-repeat center center fixed;
-  background-size: cover;
-  filter: ${({ $crtEnabled, $colorDepth }) => {
-    const crt = $crtEnabled
-      ? 'brightness(1.06) contrast(1.08) saturate(1.12)'
-      : 'brightness(1.01) contrast(1.015) saturate(1.02)';
-    const depthFilter = getColorDepthFilter($colorDepth);
-    return depthFilter ? `${crt} ${depthFilter}` : crt;
-  }};
-  transition: filter 0.3s ease;
-
-  *:not(input):not(textarea) {
-    user-select: none;
-  }
-  -webkit-touch-callout: none;
-`;
-
-const PowerScene = styled.div`
-  position: relative;
-  height: 100%;
-  animation: ${({ $powerState }) => animation[$powerState]} 5s forwards;
-`;
-
-const ColorDitherOverlay = styled.div`
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 99999;
-  mix-blend-mode: overlay;
-  opacity: ${({ $mode }) => getColorDitherOpacity($mode)};
-  background-image:
-    linear-gradient(45deg, rgba(0, 0, 0, 0.32) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.2) 75%, rgba(255, 255, 255, 0.2)),
-    linear-gradient(45deg, rgba(255, 255, 255, 0.18) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, 0.28) 75%, rgba(0, 0, 0, 0.28));
-  background-position: 0 0, 1px 1px;
-  background-size: 2px 2px;
-`;
-
-const OffScreen = styled.div`
-  position: fixed;
-  inset: 0;
-  background: #000;
-  cursor: pointer;
-  z-index: 99999;
-`;
 
 export default WinXP;

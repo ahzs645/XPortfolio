@@ -249,21 +249,17 @@ function ImageViewer({ initialImages, initialImage }) {
         return;
       }
       const safeUrl = url.startsWith('blob:') ? url : '';
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Print</title>
-            <style>
-              @media print { html,body{width:100%;height:100%;margin:0} img{display:block;margin:auto;max-width:100%;max-height:100%;object-fit:contain} }
-              body{margin:0;display:flex;justify-content:center;align-items:center;height:100vh}
-              img{max-width:100vw;max-height:100vh;object-fit:contain;display:block;margin:auto}
-            </style>
-          </head>
-          <body>
-            <img src="${safeUrl}" onload="window.print(); window.close();" />
-          </body>
-        </html>
-      `);
+      const doc = printWindow.document;
+      doc.open();
+      doc.write('<!DOCTYPE html><html><head><title>Print</title></head><body></body></html>');
+      doc.close();
+      const style = doc.createElement('style');
+      style.textContent = '@media print { html,body{width:100%;height:100%;margin:0} img{display:block;margin:auto;max-width:100%;max-height:100%;object-fit:contain} } body{margin:0;display:flex;justify-content:center;align-items:center;height:100vh} img{max-width:100vw;max-height:100vh;object-fit:contain;display:block;margin:auto}';
+      doc.head.appendChild(style);
+      const img = doc.createElement('img');
+      img.src = safeUrl;
+      img.onload = () => { printWindow.print(); printWindow.close(); };
+      doc.body.appendChild(img);
       setTimeout(() => URL.revokeObjectURL(url), 5000);
     } catch (err) {
       console.error(err);

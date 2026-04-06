@@ -38,6 +38,7 @@ export const fileIcons = {
   '.woff2': '/icons/xp/font.png',
   '.fon': '/icons/xp/font.png',
   '.eml': '/icons/xp/Email.png',
+  '.hlp': '/icons/help.png',
 };
 
 // XP-style icons

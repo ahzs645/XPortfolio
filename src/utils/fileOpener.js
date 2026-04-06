@@ -357,6 +357,27 @@ export function openFileWithApp({
     return true;
   }
 
+  // For HLP (WinHelp) files
+  if (ext === '.hlp') {
+    if (appSettings['Windows Help']) {
+      dispatch({
+        type: addAppAction,
+        payload: {
+          ...appSettings['Windows Help'],
+          header: {
+            ...appSettings['Windows Help'].header,
+            title: `${fileName} - Windows Help`,
+          },
+          injectProps: {
+            fileContent: fileData,
+            filePath: fileId,
+          },
+        },
+      });
+      return true;
+    }
+  }
+
   // File type not handled - return false to indicate fallback to download
   return false;
 }
