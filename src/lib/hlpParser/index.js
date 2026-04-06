@@ -1,3 +1,3 @@
 export { HlpParser } from './HlpParser';
 export { BinaryReader } from './BinaryReader';
-export { decompressLZ77 } from './decompress';
+export { decompressLZ77, decompressPhrasesOld, decompressPhrasesNew } from './decompress';

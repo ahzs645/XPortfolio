@@ -129,31 +129,34 @@ function buildTestHlp() {
   b.writeFixedString('MS Sans Serif', 32);
   b.writeFixedString('Arial', 32);
 
-  // Descriptors (11 bytes each: attrs(1) + halfPoints(2) + family(1) + faceIndex(2) + fg(3) + bg(3))
+  // Descriptors (11 bytes each: attrs(1) + halfPoints(1) + family(1) + faceIdx(1) + unknown(1) + fg(3) + bg(3))
   const descStart = b.getPos() - (fontOffset + 9);
   b.buf.writeUInt16LE(descStart, descOffsetPos);
 
   // Font 0: Normal 10pt MS Sans Serif
-  b.writeUint8(0x00);  // no attrs
-  b.writeUint16(20);   // 10pt * 2
-  b.writeUint8(0x03);  // Swiss
-  b.writeUint16(0);    // face index 0
+  b.writeUint8(0x00);  // attrs: normal
+  b.writeUint8(20);    // halfPoints: 10pt * 2
+  b.writeUint8(0x03);  // fontFamily: Swiss
+  b.writeUint8(0);     // faceIndex: 0 (MS Sans Serif)
+  b.writeUint8(0);     // unknown
   b.writeUint8(0); b.writeUint8(0); b.writeUint8(0);       // fg black
   b.writeUint8(255); b.writeUint8(255); b.writeUint8(255); // bg white
 
   // Font 1: Bold 12pt MS Sans Serif
-  b.writeUint8(0x01);  // bold
-  b.writeUint16(24);   // 12pt * 2
-  b.writeUint8(0x03);
-  b.writeUint16(0);
+  b.writeUint8(0x01);  // attrs: bold
+  b.writeUint8(24);    // halfPoints: 12pt * 2
+  b.writeUint8(0x03);  // fontFamily: Swiss
+  b.writeUint8(0);     // faceIndex: 0
+  b.writeUint8(0);     // unknown
   b.writeUint8(0); b.writeUint8(0); b.writeUint8(128);     // fg dark blue
   b.writeUint8(255); b.writeUint8(255); b.writeUint8(255);
 
   // Font 2: Italic 10pt Arial
-  b.writeUint8(0x02);  // italic
-  b.writeUint16(20);
-  b.writeUint8(0x03);
-  b.writeUint16(1);    // face index 1 (Arial)
+  b.writeUint8(0x02);  // attrs: italic
+  b.writeUint8(20);    // halfPoints: 10pt * 2
+  b.writeUint8(0x03);  // fontFamily: Swiss
+  b.writeUint8(1);     // faceIndex: 1 (Arial)
+  b.writeUint8(0);     // unknown
   b.writeUint8(0); b.writeUint8(128); b.writeUint8(0);     // fg dark green
   b.writeUint8(255); b.writeUint8(255); b.writeUint8(255);
 
@@ -184,7 +187,7 @@ function buildTestHlp() {
   b.writeInt32(0);    // data len 2
   b.writeInt32(-1);   // prev
   b.writeInt32(-1);   // next (patch later)
-  b.writeInt32(0);    // data len 1
+  b.writeInt32(22);   // data len 1 (21-byte header + 1 format byte)
   b.writeUint8(0x02); // record type: topic header
 
   // Content: format flags + title text
@@ -203,7 +206,7 @@ function buildTestHlp() {
   b.writeInt32(0);
   b.writeInt32(-1);
   b.writeInt32(-1);
-  b.writeInt32(0);
+  b.writeInt32(22);   // data len 1 (21-byte header + 1 format byte)
   b.writeUint8(0x20); // record type: text (new style)
 
   b.writeUint8(0x00);
@@ -221,7 +224,7 @@ function buildTestHlp() {
   b.writeInt32(0);
   b.writeInt32(-1);
   b.writeInt32(-1);
-  b.writeInt32(0);
+  b.writeInt32(22);   // data len 1 (21-byte header + 1 format byte)
   b.writeUint8(0x02);
 
   b.writeUint8(0x00);
@@ -239,7 +242,7 @@ function buildTestHlp() {
   b.writeInt32(0);
   b.writeInt32(-1);
   b.writeInt32(-1);
-  b.writeInt32(0);
+  b.writeInt32(22);   // data len 1 (21-byte header + 1 format byte)
   b.writeUint8(0x20);
 
   b.writeUint8(0x00);
@@ -257,7 +260,7 @@ function buildTestHlp() {
   b.writeInt32(0);
   b.writeInt32(-1);
   b.writeInt32(-1);
-  b.writeInt32(0);
+  b.writeInt32(22);   // data len 1 (21-byte header + 1 format byte)
   b.writeUint8(0x02);
 
   b.writeUint8(0x00);
@@ -275,7 +278,7 @@ function buildTestHlp() {
   b.writeInt32(0);
   b.writeInt32(-1);
   b.writeInt32(-1);
-  b.writeInt32(0);
+  b.writeInt32(22);   // data len 1 (21-byte header + 1 format byte)
   b.writeUint8(0x20);
 
   b.writeUint8(0x00);
