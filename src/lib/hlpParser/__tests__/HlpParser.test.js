@@ -7,7 +7,10 @@ import { BinaryReader } from '../BinaryReader';
 import { decompressLZ77 } from '../decompress';
 import { HlpParser } from '../HlpParser';
 import { readFileSync } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Helper to build a minimal valid HLP file buffer
 function buildMinimalHlp({ title = 'Test Help', topicText = 'Hello World' } = {}) {
@@ -28,8 +31,6 @@ function buildMinimalHlp({ title = 'Test Help', topicText = 'Hello World' } = {}
   const writeBytes = (arr) => {
     arr.forEach(b => writeUint8(b));
   };
-
-  const getOffset = () => offset;
 
   // We'll build a very simple HLP:
   // [Header 16 bytes] [|SYSTEM file] [|TOPIC file] [Directory B+ tree]
@@ -158,7 +159,6 @@ function buildMinimalHlp({ title = 'Test Help', topicText = 'Hello World' } = {}
   // --- Phase 3: Assemble buffer ---
   const buffer = new ArrayBuffer(offset);
   const view = new DataView(buffer);
-  const bytes = new Uint8Array(buffer);
   let pos = 0;
 
   for (const part of parts) {

@@ -11,6 +11,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+/* global Buffer */
 class HlpBuilder {
   constructor() {
     this.buf = Buffer.alloc(65536);
@@ -172,8 +173,6 @@ function buildTestHlp() {
   const topicUsedPatch = b.getPos();
   b.writeInt32(0);
   b.writeUint8(4);
-
-  const topicContentStart = b.getPos();
 
   // TOPICBLOCKHEADER (12 bytes)
   b.writeInt32(-1);  // last topic link
