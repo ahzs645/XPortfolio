@@ -5,6 +5,8 @@ YAML-driven portfolio builder (React + Vite) with multiple selectable portfolio 
 ## Quickstart
 
 ```sh
+git submodule update --init --recursive
+pnpm install
 pnpm dev
 ```
 

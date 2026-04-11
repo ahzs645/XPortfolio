@@ -1,13 +1,14 @@
 import styled from 'styled-components';
 import { withBaseUrl } from '../../../../../utils/baseUrl';
 
-export const Container = styled.div`
+export const Container = styled.div.attrs({
+  className: 'explorer-panel xp-search-panel',
+})`
   width: 210px;
   min-width: 210px;
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #748aff 0%, #4057d3 100%);
   overflow: hidden;
   position: relative;
 
@@ -36,10 +37,12 @@ export const Content = styled.div`
   height: 100%;
 `;
 
-export const Balloon = styled.div`
+export const Balloon = styled.div.attrs({
+  className: 'xp-search-panel__balloon',
+})`
   position: relative;
-  background: linear-gradient(180deg, #E8F0F8 0%, #D8E8F0 100%);
-  border: 1px solid #FFFFFF;
+  background: var(--xp-surface, #ece9d8);
+  border: 1px solid rgba(255, 255, 255, 0.85);
   border-radius: 12px;
   box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
   margin-bottom: 24px;
@@ -70,11 +73,13 @@ export const BalloonTip = styled.div`
   left: 30px;
   width: 0;
   height: 0;
-  border-top: 16px solid #D8E8F0;
+  border-top: 16px solid var(--xp-surface, #ece9d8);
   border-left: 16px solid transparent;
 `;
 
-export const BalloonTitle = styled.div`
+export const BalloonTitle = styled.div.attrs({
+  className: 'xp-search-panel__title',
+})`
   font-size: 11px;
   font-weight: bold;
   color: #000;
@@ -104,7 +109,9 @@ export const OptionsList = styled.div`
   margin-bottom: 12px;
 `;
 
-export const OptionItem = styled.div`
+export const OptionItem = styled.div.attrs({
+  className: 'xp-search-panel__option xp-highlightable',
+})`
   display: flex;
   align-items: center;
   gap: 4px;
@@ -116,7 +123,7 @@ export const OptionItem = styled.div`
 
   &:hover span {
     text-decoration: underline;
-    color: #0066CC;
+    color: inherit;
   }
 `;
 
@@ -124,14 +131,18 @@ export const AlsoSection = styled.div`
   margin-top: 8px;
 `;
 
-export const AlsoTitle = styled.div`
+export const AlsoTitle = styled.div.attrs({
+  className: 'xp-search-panel__section-title',
+})`
   font-size: 11px;
   color: #666;
   font-family: Tahoma, 'Noto Sans', sans-serif;
   margin-bottom: 8px;
 `;
 
-export const AlsoItem = styled.div`
+export const AlsoItem = styled.div.attrs({
+  className: 'xp-search-panel__link xp-highlightable',
+})`
   display: flex;
   align-items: center;
   gap: 6px;
@@ -143,7 +154,7 @@ export const AlsoItem = styled.div`
 
   &:hover span {
     text-decoration: underline;
-    color: #0066CC;
+    color: inherit;
   }
 `;
 
@@ -207,7 +218,9 @@ export const SelectInput = styled.select`
   font-size: 11px;
 `;
 
-export const CollapsibleRow = styled.div`
+export const CollapsibleRow = styled.div.attrs({
+  className: 'xp-search-panel__toggle',
+})`
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -219,7 +232,7 @@ export const CollapsibleRow = styled.div`
   color: #000;
 
   &:hover {
-    color: #0066CC;
+    color: var(--xp-highlight, #316ac5);
   }
 `;
 
@@ -323,19 +336,7 @@ export const XPButton = styled.button`
   padding: 4px 12px;
   font-size: 11px;
   font-family: Tahoma, 'Noto Sans', sans-serif;
-  background: linear-gradient(180deg, #fff 0%, #e3e3e3 50%, #cfcfcf 51%, #d8d8d8 100%);
-  border: 1px solid #003c74;
-  border-radius: 3px;
   cursor: pointer;
-  color: #000;
-
-  &:hover {
-    background: linear-gradient(180deg, #fff 0%, #e5f4fc 50%, #c4e5f6 51%, #d8e8f0 100%);
-  }
-
-  &:active {
-    background: linear-gradient(180deg, #c4e5f6 0%, #98d1ef 50%, #68b8e3 51%, #8ccded 100%);
-  }
 `;
 
 export const RoverArea = styled.div`

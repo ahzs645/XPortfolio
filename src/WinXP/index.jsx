@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useState, useEffect } from 'react';
+import React, { useRef, useCallback, useState, useEffect, useMemo } from 'react';
 import { useMouse, useWindowSize, useMobileRestriction } from '../hooks';
 import useSystemSounds from '../hooks/useSystemSounds';
 import { useConfig } from '../contexts/ConfigContext';
@@ -13,7 +13,7 @@ import { useShellSettings } from '../contexts/ShellSettingsContext';
 import { AppProvider } from '../contexts/AppContext';
 import { RunningAppsProvider } from '../contexts/RunningAppsContext';
 import { MessageBoxProvider } from '../contexts/MessageBoxContext';
-import { ThemeProvider } from '../contexts/ThemeContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { ContextMenu } from './components/ContextMenu';
 import DisplayFilterDefs from './components/DisplayFilterDefs';
 import FileUploadDialog from './FileUploadDialog';
@@ -61,6 +61,7 @@ import { DITHER_DEPTHS } from '../utils/colorDepthEffects';
 import { Container, PowerScene, ColorDitherOverlay, OffScreen } from './styles/desktopStyles';
 
 function WinXP() {
+  const { activeTheme, activeThemeId } = useTheme();
   const { state, dispatch, getFocusedAppId, getActiveAppIdForTaskbar } = useDesktopReducer();
   const { getValue } = useRegistry();
   const { explorer } = useShellSettings();
@@ -175,6 +176,20 @@ function WinXP() {
   // Determine if mobile based on viewport width
   const isMobile = width < 768;
   const wallpaperPath = getWallpaperPath(isMobile);
+  const shellThemeVars = useMemo(() => {
+    const colors = activeTheme?.colors || {};
+
+    return {
+      '--xp-surface': colors.surface || '#ece9d8',
+      '--xp-window-text': colors.windowText || '#000',
+      '--xp-menu-bg': colors.menuBackground || '#fff',
+      '--xp-menu-text': colors.menuText || '#000',
+      '--xp-highlight': colors.highlight || '#316ac5',
+      '--xp-highlight-text': colors.highlightText || '#fff',
+      '--xp-active-title': colors.activeTitle || '#0054e3',
+      '--xp-inactive-title': colors.inactiveTitle || '#7695d4',
+    };
+  }, [activeTheme]);
 
   // Icon manager hook
   const {
@@ -484,7 +499,6 @@ function WinXP() {
   }
 
   return (
-    <ThemeProvider>
     <AppProvider appSettings={appSettings} dispatch={dispatch} addAppAction={ADD_APP}>
       <MessageBoxProvider dispatch={dispatch} appSettings={appSettings} addAppAction={ADD_APP}>
       <RunningAppsProvider apps={state.apps} onEndTask={handleEndTask} onSwitchTo={handleSwitchToApp} showClippy={showClippy} onEndClippy={handleEndClippy}>
@@ -501,6 +515,10 @@ function WinXP() {
         $crtEnabled={crtEnabled}
         $colorDepth={colorDepth}
         $wallpaper={wallpaperPath}
+        data-xp-shell-root
+        data-theme-id={activeThemeId || activeTheme?.id || 'luna'}
+        data-theme-source={activeTheme?.source || 'builtin'}
+        style={shellThemeVars}
       >
         <DisplayFilterDefs />
         <PowerScene $powerState={state.powerState} data-desktop-area>
@@ -605,7 +623,6 @@ function WinXP() {
       </RunningAppsProvider>
       </MessageBoxProvider>
     </AppProvider>
-    </ThemeProvider>
   );
 }
 

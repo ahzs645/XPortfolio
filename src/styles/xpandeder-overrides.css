@@ -1,73 +1,13 @@
-/* Override xp.css fonts with font-display: swap for better mobile loading */
-@font-face {
-  font-family: "Pixelated MS Sans Serif";
-  src: url("xp.css/dist/ms_sans_serif.woff2") format("woff2"),
-       url("xp.css/dist/ms_sans_serif.woff") format("woff");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Pixelated MS Sans Serif";
-  src: url("xp.css/dist/ms_sans_serif_bold.woff2") format("woff2"),
-       url("xp.css/dist/ms_sans_serif_bold.woff") format("woff");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Franklin Gothic font for XP logo SVG */
-@font-face {
-  font-family: "FranklinGothic URW";
-  src: var(--font-franklin-gothic-medium-woff2) format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "FranklinGothicURW-Med";
-  src: var(--font-franklin-gothic-medium-woff2) format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Tahoma";
-  src: url("/fonts/Tahoma.ttf") format("truetype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Tahoma";
-  src: url("/fonts/Tahoma 8pt 11-2 Bold.ttf") format("truetype");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "MS Sans Serif";
-  src: url("/fonts/MSSansSerif 8pt.ttf") format("truetype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Lucida Console";
-  src: url("/fonts/lucon.woff") format("woff");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
 * {
   box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
 }
 
 body {
@@ -77,6 +17,9 @@ body {
   min-height: calc(var(--real-vh, 1vh) * 100);
   overflow: hidden;
   font-family: "Pixelated MS Sans Serif", "Noto Sans", Tahoma, Arial, sans-serif;
+  font-size: 11px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
@@ -85,17 +28,23 @@ body {
   height: calc(var(--real-vh, 1vh) * 100);
 }
 
-/* iOS dynamic viewport height support */
 @supports (height: 100dvh) {
   body {
     min-height: 100dvh;
   }
+
   #root {
     height: 100dvh;
   }
 }
 
-/* Fix xp.css double scrollbar buttons - show only single arrows */
+#webamp .window {
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+}
+
 ::-webkit-scrollbar-button:vertical:start:increment,
 ::-webkit-scrollbar-button:vertical:end:decrement,
 ::-webkit-scrollbar-button:horizontal:start:increment,
@@ -103,7 +52,6 @@ body {
   display: none;
 }
 
-/* Inactive window mask overlay - creates the faded title bar effect */
 .window-inactive-mask {
   background-color: rgba(255, 255, 255, 0.25);
   border-radius: 8px 8px 0 0;
@@ -117,26 +65,14 @@ body {
   z-index: 10;
 }
 
-/* Show the mask when window is inactive */
 .window.inactive .window-inactive-mask {
   display: block;
 }
 
-/* Inactive window title bar text - slightly faded */
 .window.inactive .title-bar-text {
   color: rgba(255, 255, 255, 0.85);
 }
 
-/* Inactive window border - slightly muted blue */
-.window.inactive {
-  box-shadow:
-    inset -1px -1px #0054e3,
-    inset 1px 1px #5c8dea,
-    inset -2px -2px #1c6cea,
-    inset 2px 2px #6fa5f3;
-}
-
-/* Inactive window buttons - faded/muted appearance */
 .window.inactive .title-bar-controls button {
   opacity: 0.7;
   filter: saturate(0.7);
@@ -147,11 +83,34 @@ body {
   filter: saturate(0.85);
 }
 
-/* ============================
-   Mobile Device Styles
-   ============================ */
+.xp-tooltip {
+  z-index: 99999;
+  pointer-events: none;
+  white-space: pre-line;
+}
 
-/* Prevent scrolling/bouncing on mobile */
+.xp-balloon {
+  background: #ffffe1;
+  box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.5);
+}
+
+.xp-balloon .balloon__close {
+  background: var(--xp-surface);
+  border: none;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px grey, inset 2px 2px #dfdfdf;
+}
+
+.xp-balloon .balloon__btn {
+  border: none;
+  border-radius: 0;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px grey, inset 2px 2px #dfdfdf;
+  background: var(--xp-surface);
+}
+
+.xp-balloon .balloon__btn:active {
+  box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px grey;
+}
+
 .mobile-device,
 .mobile-device body,
 .mobile-device #root {
@@ -163,7 +122,6 @@ body {
   overscroll-behavior: none !important;
 }
 
-/* Allow touch interactions on all interactive elements */
 .mobile-device button,
 .mobile-device a,
 .mobile-device input,
@@ -191,7 +149,6 @@ body {
   touch-action: manipulation !important;
 }
 
-/* Disable tap highlight and user select on mobile */
 .mobile-device * {
   -webkit-tap-highlight-color: transparent !important;
   -webkit-focus-ring-color: transparent !important;
@@ -202,7 +159,6 @@ body {
   -webkit-touch-callout: none !important;
 }
 
-/* Prevent image/canvas dragging and long-press callout on mobile */
 .mobile-device canvas,
 .mobile-device img,
 .mobile-device video {
@@ -210,13 +166,11 @@ body {
   -webkit-touch-callout: none !important;
 }
 
-/* Only block touch-action on canvas/images NOT inside interactive elements */
 .mobile-device canvas:not(button canvas):not([role="button"] canvas),
 .mobile-device video {
   touch-action: none !important;
 }
 
-/* Ensure images and elements inside buttons/toolbars are touchable */
 .mobile-device button img,
 .mobile-device [role="button"] img,
 .mobile-device [class*="toolbar"] img,
@@ -224,10 +178,9 @@ body {
 .mobile-device [class*="menu"] img,
 .mobile-device [class*="Menu"] img {
   touch-action: manipulation !important;
-  pointer-events: none !important; /* Let parent handle the touch */
+  pointer-events: none !important;
 }
 
-/* Mobile visibility utilities */
 .mobile-device .desktop-only {
   display: none !important;
 }
@@ -240,17 +193,14 @@ html:not(.mobile-device) .mobile-only {
   display: initial !important;
 }
 
-/* Hide specific items on mobile */
 .mobile-device .hide-mobile {
   display: none !important;
 }
 
-/* Show only on desktop */
 html:not(.mobile-device) .hide-desktop {
   display: none !important;
 }
 
-/* Mobile window sizing */
 .mobile-device .app-window,
 .mobile-device .window-body.iframe-container {
   max-height: calc(100vh - 40px);
@@ -261,13 +211,11 @@ html:not(.mobile-device) .hide-desktop {
   min-height: 0;
 }
 
-/* Mobile-optimized scrollbars - keep XP theming but slightly smaller */
 .mobile-device ::-webkit-scrollbar {
   width: 14px;
   height: 14px;
 }
 
-/* Keep the XP scrollbar buttons but make them proportional */
 .mobile-device ::-webkit-scrollbar-button:vertical:start,
 .mobile-device ::-webkit-scrollbar-button:vertical:end {
   height: 14px;
@@ -278,7 +226,6 @@ html:not(.mobile-device) .hide-desktop {
   width: 14px;
 }
 
-/* Firefox scrollbar handling */
 .firefox-browser * {
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
@@ -290,7 +237,6 @@ html:not(.mobile-device) .hide-desktop {
   width: 0 !important;
 }
 
-/* Screen reader only class */
 .sr-only {
   height: 1px !important;
   margin: -1px !important;

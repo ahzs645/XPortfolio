@@ -296,7 +296,7 @@ function FileChooser({
   return (
     <Dialog
       ref={dialogRef}
-      className="window"
+      className="window xp-file-chooser"
       style={dialogStyle}
       $isDragging={isDragging}
       $hasPosition={position.x !== null}
@@ -308,7 +308,7 @@ function FileChooser({
         </div>
       </div>
 
-        <Content>
+        <Content className="xp-file-chooser__content">
           <Sidebar>
             <SidebarLabel>Look in:</SidebarLabel>
             <QuickAccessList>
@@ -368,10 +368,11 @@ function FileChooser({
                   <EmptyMessage>This folder is empty.</EmptyMessage>
                 ) : (
                   filteredContents.map((item) => (
-                    <FileItem
+                  <FileItem
                       key={item.id}
                       $selected={selectedItems.includes(item.id)}
                       $dimmed={!isDesiredFile(item)}
+                      className={selectedItems.includes(item.id) ? 'xp-highlightable is-selected' : 'xp-highlightable'}
                       onClick={(e) => { e.stopPropagation(); handleItemClick(e, item); }}
                       onDoubleClick={() => !isMobile && handleItemDoubleClick(item)}
                       onTouchStart={(e) => handleItemTouchStart(e, item, handleItemDoubleClick)}
@@ -531,10 +532,12 @@ const QuickAccessItem = styled.div`
   padding: 8px 4px;
   border-radius: 4px;
   cursor: pointer;
-  background: ${({ $active }) => ($active ? 'rgba(200, 200, 200, 0.5)' : 'transparent')};
+  background: ${({ $active }) => ($active ? 'var(--xp-highlight, #316ac5)' : 'transparent')};
+  color: ${({ $active }) => ($active ? 'var(--xp-highlight-text, #fff)' : 'inherit')};
 
   &:hover {
-    background: rgba(200, 200, 200, 0.5);
+    background: var(--xp-highlight, #316ac5);
+    color: var(--xp-highlight-text, #fff);
   }
 `;
 
@@ -653,8 +656,8 @@ const FileName = styled.span`
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  background: ${({ $selected }) => ($selected ? '#0b61ff' : 'transparent')};
-  color: ${({ $selected }) => ($selected ? 'white' : '#000')};
+  background: ${({ $selected }) => ($selected ? 'var(--xp-highlight, #316ac5)' : 'transparent')};
+  color: ${({ $selected }) => ($selected ? 'var(--xp-highlight-text, #fff)' : '#000')};
   padding: 1px 2px;
 `;
 
@@ -758,21 +761,14 @@ const FileTypeInput = styled.input`
 
 const ActionButton = styled.button`
   width: 80px;
-  height: 24px;
+  height: 23px;
   font-size: 11px;
-  background: linear-gradient(#f3f3f3, #dcdcdc);
-  border: 1px solid #8a8a8a;
-  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #b5b5b5;
   cursor: pointer;
   flex-shrink: 0;
 
   &:disabled {
     opacity: 0.3;
     cursor: not-allowed;
-  }
-
-  &:active:not(:disabled) {
-    background: linear-gradient(#dcdcdc, #c2c2c2);
   }
 `;
 

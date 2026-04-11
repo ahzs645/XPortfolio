@@ -7,16 +7,11 @@ const TooltipContext = createContext(null);
 const VIEWPORT_PADDING = 4;
 
 const TooltipBox = styled.div`
+  &.tooltip {
+    font-family: "Pixelated MS Sans Serif", Tahoma, sans-serif;
+  }
+
   position: fixed;
-  background: #ffffe1;
-  border: 1px solid #000;
-  padding: 2px 5px;
-  font-family: Tahoma, 'Noto Sans', sans-serif;
-  font-size: 11px;
-  color: #000;
-  z-index: 99999;
-  pointer-events: none;
-  box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
   white-space: pre-line;
   visibility: ${({ $measured }) => ($measured ? 'visible' : 'hidden')};
 `;
@@ -73,7 +68,13 @@ function TooltipRenderer() {
   };
 
   return createPortal(
-    <TooltipBox ref={tooltipRef} style={style} $multiline={tooltip.multiline} $measured={measured}>
+    <TooltipBox
+      ref={tooltipRef}
+      className="tooltip xp-tooltip"
+      style={style}
+      $multiline={tooltip.multiline}
+      $measured={measured}
+    >
       {tooltip.text}
     </TooltipBox>,
     document.body

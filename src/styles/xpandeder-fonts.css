@@ -1,0 +1,65 @@
+@font-face {
+  font-family: "Pixelated MS Sans Serif";
+  src: url("../../external/XPandeder.css/dist/ms_sans_serif.woff2") format("woff2"),
+       url("../../external/XPandeder.css/dist/ms_sans_serif.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Pixelated MS Sans Serif";
+  src: url("../../external/XPandeder.css/dist/ms_sans_serif_bold.woff2") format("woff2"),
+       url("../../external/XPandeder.css/dist/ms_sans_serif_bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "FranklinGothic URW";
+  src: var(--font-franklin-gothic-medium-woff2) format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "FranklinGothicURW-Med";
+  src: var(--font-franklin-gothic-medium-woff2) format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Tahoma";
+  src: url("/fonts/Tahoma.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Tahoma";
+  src: url("/fonts/Tahoma 8pt 11-2 Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "MS Sans Serif";
+  src: url("/fonts/MSSansSerif 8pt.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Lucida Console";
+  src: url("/fonts/lucon.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

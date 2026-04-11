@@ -1,0 +1,98 @@
+:root {
+  --xp-surface: #ece9d8;
+  --xp-window-text: #000;
+  --xp-menu-bg: #fff;
+  --xp-menu-text: #000;
+  --xp-highlight: #316ac5;
+  --xp-highlight-text: #fff;
+  --xp-active-title: #0054e3;
+  --xp-inactive-title: #7695d4;
+}
+
+[data-xp-shell-root] {
+  color: var(--xp-window-text);
+}
+
+[data-xp-shell-root] .window,
+[data-xp-shell-root] .window-body,
+[data-xp-shell-root] .status-bar,
+[data-xp-shell-root] .status-bar-field,
+[data-xp-shell-root] .xp-shell-surface,
+[data-xp-shell-root] [role="tabpanel"],
+[data-xp-shell-root] fieldset,
+[data-xp-shell-root] legend,
+[data-xp-shell-root] .tooltip,
+[data-xp-shell-root] .xp-balloon,
+[data-xp-shell-root] .xp-volume-popup,
+[data-xp-shell-root] .xp-start-menu .start-menu-submenu,
+[data-xp-shell-root] .xp-start-menu .start-menu-submenu * {
+  color: var(--xp-window-text);
+}
+
+[data-xp-shell-root] .window:not(.frameless),
+[data-xp-shell-root] .window-body,
+[data-xp-shell-root] .xp-shell-surface,
+[data-xp-shell-root] [role="tabpanel"],
+[data-xp-shell-root] .xp-volume-popup {
+  background: var(--xp-surface);
+}
+
+[data-xp-shell-root] legend,
+[data-xp-shell-root] .menu__right,
+[data-xp-shell-root] .all-programs-menu,
+[data-xp-shell-root] .folder-submenu,
+[data-xp-shell-root] .recently-used-menu,
+[data-xp-shell-root] .installed-apps-menu {
+  background: var(--xp-menu-bg);
+  color: var(--xp-menu-text);
+}
+
+[data-xp-shell-root] .menu__item:hover,
+[data-xp-shell-root] .menu__item.active,
+[data-xp-shell-root] .all-programs-item:hover,
+[data-xp-shell-root] .folder-submenu-item:hover,
+[data-xp-shell-root] .recently-used-item:hover,
+[data-xp-shell-root] .installed-apps-item:hover,
+[data-xp-shell-root] .xp-highlightable:hover,
+[data-xp-shell-root] .xp-highlightable:focus-within,
+[data-xp-shell-root] .xp-highlightable.is-selected,
+[data-xp-shell-root] .tree-item-content.selected {
+  background: var(--xp-highlight);
+  color: var(--xp-highlight-text);
+}
+
+[data-xp-shell-root] .menu__item:hover *,
+[data-xp-shell-root] .menu__item.active *,
+[data-xp-shell-root] .all-programs-item:hover *,
+[data-xp-shell-root] .folder-submenu-item:hover *,
+[data-xp-shell-root] .xp-highlightable:hover *,
+[data-xp-shell-root] .xp-highlightable.is-selected *,
+[data-xp-shell-root] .tree-item-content.selected * {
+  color: inherit;
+}
+
+[data-xp-shell-root] .xp-search-panel {
+  background: linear-gradient(180deg, var(--xp-active-title), var(--xp-inactive-title));
+}
+
+[data-xp-shell-root] .xp-search-panel .xp-search-panel__balloon {
+  background: var(--xp-surface);
+  color: var(--xp-window-text);
+}
+
+[data-xp-shell-root] .xp-search-panel .xp-search-panel__title,
+[data-xp-shell-root] .xp-search-panel .xp-search-panel__section-title,
+[data-xp-shell-root] .xp-search-panel .xp-search-panel__option:hover,
+[data-xp-shell-root] .xp-search-panel .xp-search-panel__link:hover {
+  color: var(--xp-highlight);
+}
+
+[data-xp-shell-root] .xp-start-menu footer,
+[data-xp-shell-root] .xp-start-menu header {
+  color: var(--xp-highlight-text);
+}
+
+[data-xp-shell-root] .xp-tooltip,
+[data-xp-shell-root] .xp-balloon {
+  border-color: #000;
+}

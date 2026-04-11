@@ -222,12 +222,13 @@ function TaskbarProperties({ onClose, onMinimize }) {
   );
 }
 
-const WindowSurface = styled.div`
+const WindowSurface = styled.div.attrs({
+  className: 'xp-shell-surface',
+})`
   flex: 1;
   display: flex;
   flex-direction: column;
   position: relative;
-  background: linear-gradient(180deg, #f7f6f0 0%, #ece9d8 45%, #e2dfcf 100%);
   padding: 8px;
   gap: 10px;
   overflow: hidden;
@@ -258,61 +259,35 @@ const WindowSurface = styled.div`
 
 const TabsBar = styled.menu`
   margin: 0;
-  padding: 6px 6px 0 6px;
+  padding: 0 0 0 3px;
   display: flex;
-  gap: 2px;
-  border-radius: 4px 4px 0 0;
-  border-bottom: none;
+  gap: 0;
   margin-bottom: -1px;
 `;
 
 const TabButton = styled.button`
   min-width: 76px;
-  padding: 5px 10px 6px 10px;
-  font-size: 12px;
+  padding: 4px 10px 6px 10px;
+  font-size: 11px;
   font-family: "MS Sans Serif", "Tahoma", sans-serif;
-  border: 1px solid #91a7b4;
-  border-bottom: ${({ $active }) => ($active ? '1px solid #fbfbfc' : '1px solid #919b9c')};
-  border-radius: 3px 3px 0 0;
-  background: ${({ $active }) => ($active
-    ? 'linear-gradient(180deg, #fff, #fafaf9 26%, #f0f0ea 95%, #ecebe5)'
-    : 'linear-gradient(180deg, #f7f7f7, #ededeb 40%, #e7e7e0 95%, #e2e2d8)')};
-  color: ${({ $active }) => ($active ? '#000' : '#222')};
-  box-shadow: ${({ $active }) => ($active ? 'inset 0 2px #ffc73c, inset 0 1px 0 #fff' : 'none')};
-  position: relative;
-  top: ${({ $active }) => ($active ? '0' : '1px')};
-  margin-bottom: ${({ $active }) => ($active ? '-1px' : '0')};
   cursor: pointer;
-
-  &:hover {
-    border-top: 1px solid #e68b2c;
-    box-shadow: inset 0 2px #ffc73c;
-  }
 `;
 
 const TabPanel = styled.article`
   flex: 1;
   padding: 10px;
   overflow-y: auto;
-  background: #fbfbfc;
-  border: 1px solid #919b9c;
-  box-shadow: inset 1px 1px #fcfcfe, inset -1px -1px #fcfcfe, 1px 2px 2px 0 rgba(208, 206, 191, 0.75);
-  border-radius: 0 0 4px 4px;
   display: ${({ $active }) => ($active ? 'block' : 'none')};
 `;
 
 const Fieldset = styled.fieldset`
   margin: 0 0 10px 0;
   padding: 8px 10px 10px 10px;
-  border: 1px solid #0054e3;
-  border-radius: 3px;
 `;
 
 const Legend = styled.legend`
-  background: #fbfbfc;
   padding: 0 4px;
   font-size: 11px;
-  color: #0046d5;
 `;
 
 /* Taskbar Preview Styles */
@@ -669,18 +644,10 @@ const SideButton = styled.button`
   font-size: 11px;
   font-family: "MS Sans Serif", "Tahoma", sans-serif;
   min-width: 90px;
-  background: linear-gradient(180deg, #fff, #ecebe5 86%, #d8d0c4);
-  border: 1px solid #003c74;
-  border-radius: 3px;
   cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
-  color: ${({ disabled }) => (disabled ? '#808080' : '#000')};
 
   &:disabled {
     opacity: 0.6;
-  }
-
-  &:hover:not(:disabled) {
-    box-shadow: inset -1px 1px #fff0cf, inset 1px 2px #fdd889, inset -2px 2px #fbc761, inset 2px -2px #e5a01a;
   }
 `;
 
@@ -711,26 +678,17 @@ const Actions = styled.div`
   justify-content: flex-end;
   gap: 8px;
   padding-top: 8px;
-  border-top: 1px solid #c6c6c6;
-  background: #ece9d8;
 `;
 
 const ActionButton = styled.button`
   min-width: 72px;
-  padding: 6px 12px;
+  padding: 0 12px;
+  height: 23px;
   font-size: 11px;
-  background: linear-gradient(180deg, #fff, #ecebe5 86%, #d8d0c4);
-  border: 1px solid #003c74;
-  border-radius: 3px;
   cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
-  color: ${({ disabled }) => (disabled ? '#808080' : '#000')};
 
   &:disabled {
     opacity: 0.6;
-  }
-
-  &:active:not(:disabled) {
-    background: linear-gradient(180deg, #cdcac3, #e3e3db 8%, #e5e5de 94%, #f2f2f1);
   }
 `;
 

@@ -28,12 +28,11 @@ const fadeOut = keyframes`
 const BalloonFrame = styled.div`
   position: relative;
   width: ${({ $width = 240 }) => `${$width}px`};
-  background: #fffee8;
+  background: #ffffe1;
   border: 1px solid #000;
   border-radius: ${({ $radius = 6 }) => `${$radius}px`};
   padding: 10px;
-  box-shadow: none;
-  filter: drop-shadow(3px 3px 2px #00000099);
+  box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.5);
   ${({ $displayColorDepth }) => {
     const depthFilter = getColorDepthFilter($displayColorDepth);
     if (!depthFilter) {
@@ -41,7 +40,7 @@ const BalloonFrame = styled.div`
     }
 
     return css`
-      filter: ${depthFilter} drop-shadow(3px 3px 2px #00000099);
+      filter: ${depthFilter};
     `;
   }}
   font-size: 11px;
@@ -78,52 +77,37 @@ const BalloonFrame = styled.div`
     right: 5px;
     width: 16px;
     height: 16px;
-    background: #fffff7;
-    border: 1px solid #d0c9b6;
-    border-radius: 3px;
+    background: #ece9d8;
+    border: none;
     box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    box-shadow:
+      inset -1px -1px #0a0a0a,
+      inset 1px 1px #fff,
+      inset -2px -2px grey,
+      inset 2px 2px #dfdfdf;
 
     img {
       width: 16px;
       height: 16px;
-      filter: invert(70%) sepia(100%);
+      filter: none;
       user-drag: none;
       -webkit-user-drag: none;
     }
 
     &:hover {
-      border: 1px solid #fff;
-      box-shadow:
-        1px 1px 1px #b8b8a2,
-        -1px -1px 0px #b8b8a266,
-        inset -1px -1px 1px #b6700788,
-        inset 1px 1px 0 #ffad31;
-      background: radial-gradient(at 10% 10%, #ffffff66 0%, #ffffff00 33%),
-        radial-gradient(at 80% 80%, #ffdc18 0%, #ffdc1800 40%),
-        linear-gradient(#ffad31, #ffad31);
-
-      img {
-        filter: invert(0%) sepia(0%);
-      }
+      filter: brightness(1.03);
     }
 
     &:active {
-      border: 1px solid #fff;
       box-shadow:
-        1px 1px 1px #b8b8a2,
-        -1px -1px 0px #b8b8a266,
-        inset -1px -1px 1px #653c00;
-      background: radial-gradient(at 0% 0%, #8c5200 0%, #8c520000 33%),
-        radial-gradient(at 80% 80%, #eea600 0%, #eea60000 50%),
-        linear-gradient(#cc7900, #cc7900);
-
-      img {
-        filter: invert(25%) sepia(50%) saturate(1000%) hue-rotate(10deg);
-      }
+        inset -1px -1px #fff,
+        inset 1px 1px #0a0a0a,
+        inset -2px -2px #dfdfdf,
+        inset 2px 2px grey;
     }
   }
 
@@ -187,23 +171,26 @@ const BalloonFrame = styled.div`
     padding: 0 10px;
     font-family: Tahoma, 'Noto Sans', sans-serif;
     font-size: 11px;
-    border: 1px solid #7f9db9;
-    border-radius: 3px;
-    background: linear-gradient(to bottom, #ffffff 0%, #d6dff7 100%);
+    border: none;
+    border-radius: 0;
+    background: #ece9d8;
     box-shadow:
-      inset 1px 1px 0 #fff,
-      inset -1px -1px 0 #c3cad9;
+      inset -1px -1px #0a0a0a,
+      inset 1px 1px #fff,
+      inset -2px -2px grey,
+      inset 2px 2px #dfdfdf;
     cursor: pointer;
 
     &:hover {
-      background: linear-gradient(to bottom, #f5f7ff 0%, #cdd8f5 100%);
+      filter: brightness(1.03);
     }
 
     &:active {
-      background: linear-gradient(to bottom, #c0cdf0 0%, #dbe3f9 100%);
       box-shadow:
-        inset 1px 1px 0 #9aa9c2,
-        inset -1px -1px 0 #f5f7ff;
+        inset -1px -1px #fff,
+        inset 1px 1px #0a0a0a,
+        inset -2px -2px #dfdfdf,
+        inset 2px 2px grey;
     }
   }
 `;
@@ -254,9 +241,11 @@ export default function Balloon({
     };
   }
 
+  const combinedClassName = className ? `xp-balloon ${className}` : 'xp-balloon';
+
   const frame = (
     <BalloonFrame
-      className={className}
+      className={combinedClassName}
       $displayColorDepth={displayColorDepth}
       $width={width}
       $iconSize={iconSize}

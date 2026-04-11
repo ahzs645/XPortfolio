@@ -81,6 +81,7 @@ function Footer({
   const [showVolumePopup, setShowVolumePopup] = useState(false);
   const [showWindowOverflow, setShowWindowOverflow] = useState(false);
   const [windowOverflowPosition, setWindowOverflowPosition] = useState(null);
+  const [trayExpanded, setTrayExpanded] = useState(false);
   const menuRef = useRef(null);
   const startButtonRef = useRef(null);
   const welcomeIconRef = useRef(null);
@@ -138,6 +139,17 @@ function Footer({
   const handleVolumeChange = useCallback((e) => {
     setAudioSettings({ volume: parseInt(e.target.value, 10) });
   }, [setAudioSettings]);
+
+  const handleTrayToggle = useCallback(() => {
+    setTrayExpanded((prev) => {
+      const next = !prev;
+      if (!next) {
+        setShowVolumePopup(false);
+        setShowWelcomeBalloon(false);
+      }
+      return next;
+    });
+  }, []);
 
   const handleMuteToggle = useCallback(() => {
     setAudioSettings({ muted: !audio.muted });
@@ -474,11 +486,16 @@ function Footer({
   }, []);
 
   return (
-    <Container onMouseDown={_onMouseDown} onContextMenu={handleTaskbarContextMenu} $theme={activeTheme}>
-      <div className="footer__items left">
-        <div ref={menuRef} className="footer__start__menu">
-          {menuOn && <FooterMenu onClick={_onClickMenuItem} onLaunchInstalledApp={onLaunchInstalledApp} />}
-        </div>
+    <Container
+      className="desktop xp-taskbar-shell"
+      data-start-menu-open={menuOn ? 'true' : 'false'}
+      $theme={activeTheme}
+    >
+      <div ref={menuRef} className="footer__start__menu">
+        {menuOn && <FooterMenu onClick={_onClickMenuItem} onLaunchInstalledApp={onLaunchInstalledApp} />}
+      </div>
+
+      <div className="taskbar" onMouseDown={_onMouseDown} onContextMenu={handleTaskbarContextMenu}>
         {activeTheme.startButton?.type === 'sprite' ? (
           <SpriteStartButton
             ref={startButtonRef}
@@ -491,129 +508,163 @@ function Footer({
             $sprite={activeTheme.startButton}
           />
         ) : (
-          <StartButton
+          <DefaultStartButton
             ref={startButtonRef}
-            src={withBaseUrl('/start-button.webp')}
-            alt="start"
+            active={menuOn}
             onMouseDown={toggleMenu}
             onContextMenu={handleStartContextMenu}
-            $active={menuOn}
-            draggable={false}
           />
         )}
-        <QuickLaunch
-          enabled={taskbar.showQuickLaunch && !isMobile && !isMobileDevice()}
-          onClickMenuItem={_onClickMenuItem}
-          onMinimizeAll={onMinimizeAll}
-        />
-        {visibleTaskbarApps.map((app) => (
-          <FooterWindow
-            key={app.id}
-            id={app.id}
-            icon={app.header.icon}
-            title={app.header.title}
-            onMouseDown={onMouseDownApp}
-            isFocus={focusedAppId === app.id}
-          />
-        ))}
-        {hasWindowOverflow && (
-          <WindowOverflowAnchor ref={windowOverflowButtonRef}>
-            <WindowOverflowButton
-              type="button"
-              className={`footer__window-overflow ${hasFocusedOverflowWindow ? 'focus' : 'cover'}`}
-              onClick={handleWindowOverflowToggle}
-              title={`${overflowTaskbarApps.length} more open window${overflowTaskbarApps.length === 1 ? '' : 's'}`}
-              $theme={activeTheme}
-            >
-              <span aria-hidden="true">▲</span>
-            </WindowOverflowButton>
-            {isWindowOverflowOpen && windowOverflowPosition && createPortal(
-              <WindowOverflowMenu
-                ref={windowOverflowRef}
-                $colorDepth={colorDepth}
-                style={{
-                  left: windowOverflowPosition.left,
-                  bottom: windowOverflowPosition.bottom,
-                }}
-              >
-                {overflowTaskbarApps.map((app) => (
-                  <WindowOverflowItem
-                    key={app.id}
-                    type="button"
-                    className={focusedAppId === app.id ? 'focus' : ''}
-                    onClick={() => {
-                      onMouseDownApp(app.id);
-                      setShowWindowOverflow(false);
-                    }}
-                  >
-                    <img className="footer__icon" src={app.header.icon} alt={app.header.title} />
-                    <span>{app.header.title}</span>
-                  </WindowOverflowItem>
-                ))}
-              </WindowOverflowMenu>,
-              getXpPortalRoot()
-            )}
-          </WindowOverflowAnchor>
-        )}
-      </div>
 
-      <div className="footer__items right">
-        <TrayIcon
-          ref={welcomeIconRef}
-          src={withBaseUrl('/gui/taskbar/welcome.webp')}
-          alt="Welcome"
-          title="Welcome"
-          onClick={handleWelcomeClick}
-        />
-        {isMobile && clippyHiddenOnMobile && (
-          <TrayIcon
-            src={withBaseUrl('/icons/about.webp')}
-            alt="Clippy"
-            title="Show Clippy"
-            onClick={onShowClippy}
+        <div className="footer__quick-launch">
+          <QuickLaunch
+            enabled={taskbar.showQuickLaunch && !isMobile && !isMobileDevice()}
+            onClickMenuItem={_onClickMenuItem}
+            onMinimizeAll={onMinimizeAll}
           />
-        )}
-        {hasUpdate && (
-          <TrayIcon
-            ref={updateIconRef}
-            className="tray-icon--update"
-            src={withBaseUrl('/gui/taskbar/windows-update.png')}
-            alt="Windows Update"
-            title={updateTooltip}
-            onClick={() => window.dispatchEvent(new Event('xp:update-icon-click'))}
-          />
-        )}
-        <TrayIcon
-          src={withBaseUrl(crtEnabled ? '/gui/taskbar/crt.webp' : '/gui/taskbar/crt-off.webp')}
-          alt="CRT Effects"
-          title={crtEnabled ? 'CRT Effects: ON' : 'CRT Effects: OFF'}
-          onClick={onToggleCRT}
-        />
-        {!isMobile && (
-          <TrayIcon
-            src={withBaseUrl('/gui/taskbar/fullscreen.webp')}
-            alt="Fullscreen"
-            title="Toggle Fullscreen"
-            onClick={handleFullscreenClick}
-          />
-        )}
-        <TrayIcon
-          ref={volumeIconRef}
-          src={withBaseUrl('/gui/taskbar/speaker.png')}
-          alt="Volume"
-          title={audio.muted ? 'Volume: Muted' : `Volume: ${audio.volume}%`}
-          onClick={handleVolumeClick}
-          onDoubleClick={handleVolumeDoubleClick}
-        />
-        {taskbar.showClock && (
-          <div
-            className="footer__time"
-            onClick={() => onClickMenuItem('Date and Time Properties')}
-            title="Click to change date and time settings"
-          >
-            {time}
+        </div>
+
+        <div className="running-applications">
+          {visibleTaskbarApps.map((app) => (
+            <FooterWindow
+              key={app.id}
+              id={app.id}
+              icon={app.header.icon}
+              title={app.header.title}
+              onMouseDown={onMouseDownApp}
+              isFocus={focusedAppId === app.id}
+            />
+          ))}
+          {hasWindowOverflow && (
+            <WindowOverflowAnchor ref={windowOverflowButtonRef}>
+              <WindowOverflowButton
+                type="button"
+                className={`app-button footer__window-overflow ${hasFocusedOverflowWindow ? 'active focus' : 'cover'}`}
+                onClick={handleWindowOverflowToggle}
+                title={`${overflowTaskbarApps.length} more open window${overflowTaskbarApps.length === 1 ? '' : 's'}`}
+                $theme={activeTheme}
+              >
+                <span aria-hidden="true">▲</span>
+              </WindowOverflowButton>
+              {isWindowOverflowOpen && windowOverflowPosition && createPortal(
+                <WindowOverflowMenu
+                  ref={windowOverflowRef}
+                  $colorDepth={colorDepth}
+                  style={{
+                    left: windowOverflowPosition.left,
+                    bottom: windowOverflowPosition.bottom,
+                  }}
+                >
+                  {overflowTaskbarApps.map((app) => (
+                    <WindowOverflowItem
+                      key={app.id}
+                      type="button"
+                      className={focusedAppId === app.id ? 'focus' : ''}
+                      onClick={() => {
+                        onMouseDownApp(app.id);
+                        setShowWindowOverflow(false);
+                      }}
+                    >
+                      <img className="footer__icon" src={app.header.icon} alt={app.header.title} />
+                      <span>{app.header.title}</span>
+                    </WindowOverflowItem>
+                  ))}
+                </WindowOverflowMenu>,
+                getXpPortalRoot()
+              )}
+            </WindowOverflowAnchor>
+          )}
+        </div>
+
+        <div
+          className={`notification-tray ${trayExpanded ? 'is-expanded' : ''}`}
+          data-expanded={trayExpanded ? 'true' : 'false'}
+        >
+          <div className="external" />
+          <div className="internal">
+            {trayExpanded && (
+              <div className="icon-container">
+                <TrayIcon
+                  ref={welcomeIconRef}
+                  src={withBaseUrl('/gui/taskbar/welcome.webp')}
+                  alt="Welcome"
+                  title="Welcome"
+                  onClick={handleWelcomeClick}
+                />
+              </div>
+            )}
+            {trayExpanded && isMobile && clippyHiddenOnMobile && (
+              <div className="icon-container">
+                <TrayIcon
+                  src={withBaseUrl('/icons/about.webp')}
+                  alt="Clippy"
+                  title="Show Clippy"
+                  onClick={onShowClippy}
+                />
+              </div>
+            )}
+            {trayExpanded && hasUpdate && (
+              <div className="icon-container">
+                <TrayIcon
+                  ref={updateIconRef}
+                  className="tray-icon--update"
+                  src={withBaseUrl('/gui/taskbar/windows-update.png')}
+                  alt="Windows Update"
+                  title={updateTooltip}
+                  onClick={() => window.dispatchEvent(new Event('xp:update-icon-click'))}
+                />
+              </div>
+            )}
+            {trayExpanded && (
+              <div className="icon-container">
+                <TrayIcon
+                  src={withBaseUrl(crtEnabled ? '/gui/taskbar/crt.webp' : '/gui/taskbar/crt-off.webp')}
+                  alt="CRT Effects"
+                  title={crtEnabled ? 'CRT Effects: ON' : 'CRT Effects: OFF'}
+                  onClick={onToggleCRT}
+                />
+              </div>
+            )}
+            {trayExpanded && !isMobile && (
+              <div className="icon-container">
+                <TrayIcon
+                  src={withBaseUrl('/gui/taskbar/fullscreen.webp')}
+                  alt="Fullscreen"
+                  title="Toggle Fullscreen"
+                  onClick={handleFullscreenClick}
+                />
+              </div>
+            )}
+            {trayExpanded && (
+              <div className="icon-container">
+                <TrayIcon
+                  ref={volumeIconRef}
+                  src={withBaseUrl('/gui/taskbar/speaker.png')}
+                  alt="Volume"
+                  title={audio.muted ? 'Volume: Muted' : `Volume: ${audio.volume}%`}
+                  onClick={handleVolumeClick}
+                  onDoubleClick={handleVolumeDoubleClick}
+                />
+              </div>
+            )}
+            {taskbar.showClock && (
+              <div
+                className="clock footer__time"
+                onClick={() => onClickMenuItem('Date and Time Properties')}
+                title="Click to change date and time settings"
+              >
+                {time}
+              </div>
+            )}
           </div>
-        )}
+          <label aria-label="notif-expand">
+            <input
+              type="checkbox"
+              checked={trayExpanded}
+              onChange={handleTrayToggle}
+            />
+          </label>
+        </div>
       </div>
 
       {showVolumePopup && createPortal(
@@ -657,7 +708,7 @@ function Footer({
 
       {showWelcomeBalloon && createPortal(
         <WelcomeBalloon
-          className="welcome-balloon"
+          className="xp-balloon welcome-balloon"
           displayColorDepth={colorDepth}
           title="Welcome to XPortfolio"
           icon="/gui/taskbar/welcome.webp"
@@ -688,7 +739,7 @@ function Footer({
 
       {themeBalloon && createPortal(
         <ThemeBalloon
-          className="theme-balloon"
+          className="xp-balloon theme-balloon"
           displayColorDepth={colorDepth}
           title="A new skin has been installed."
           icon="/gui/taskbar/welcome.webp"
@@ -718,6 +769,29 @@ function Footer({
   );
 }
 
+const DefaultStartButton = React.forwardRef(function DefaultStartButton(
+  { active, onMouseDown, onContextMenu },
+  ref
+) {
+  return (
+    <DefaultStartButtonShell
+      ref={ref}
+      role="button"
+      tabIndex={0}
+      aria-label="Start"
+      className={`start-button start-button--image ${active ? 'active' : ''}`}
+      data-state={active ? 'active' : 'default'}
+      onMouseDown={onMouseDown}
+      onContextMenu={onContextMenu}
+    >
+      <label>
+        <input type="checkbox" name="start-menu-demo" aria-label="Toggle Start menu" checked={active} readOnly />
+        <img className="start-button-image" src={withBaseUrl('/start-button.webp')} width="94" height="30" alt="Start" />
+      </label>
+    </DefaultStartButtonShell>
+  );
+});
+
 function FooterWindow({ id, icon, title, onMouseDown, isFocus }) {
   function _onMouseDown() {
     onMouseDown(id);
@@ -725,7 +799,7 @@ function FooterWindow({ id, icon, title, onMouseDown, isFocus }) {
   return (
     <div
       onMouseDown={_onMouseDown}
-      className={`footer__window ${isFocus ? 'focus' : 'cover'}`}
+      className={`app-button footer__window ${isFocus ? 'active focus' : 'cover'}`}
     >
       <img className="footer__icon" src={icon} alt={title} />
       <div className="footer__text">{title}</div>
@@ -733,18 +807,8 @@ function FooterWindow({ id, icon, title, onMouseDown, isFocus }) {
   );
 }
 
-const StartButton = styled.img`
-  height: 30px;
-  cursor: pointer;
-  margin-right: 10px;
-
-  &:hover {
-    filter: brightness(1.05);
-  }
-
-  &:active {
-    filter: brightness(0.85);
-  }
+const DefaultStartButtonShell = styled.div`
+  flex: 0 0 auto;
 `;
 
 const SpriteStartButton = styled.div`
@@ -810,14 +874,13 @@ const ThemeBalloon = styled(Balloon)`
   z-index: 9999;
 `;
 
-const VolumePopup = styled.div`
+const VolumePopup = styled.div.attrs({
+  className: 'window xp-volume-popup xp-shell-surface',
+})`
   position: fixed;
   bottom: 34px;
   right: 80px;
   z-index: 10001;
-  background: #ece9d8;
-  border: 1px solid #888;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
   padding: 8px 16px;
   display: flex;
   flex-direction: column;
@@ -918,7 +981,7 @@ const WindowOverflowMenu = styled.div`
   min-width: 190px;
   max-width: 260px;
   padding: 2px;
-  background: #ece9d8;
+  background: var(--xp-menu-bg, #ece9d8);
   border: 1px solid #0a246a;
   box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.45);
   transform: translateX(-100%);
@@ -934,7 +997,7 @@ const WindowOverflowItem = styled.button`
   padding: 0 8px;
   border: none;
   background: transparent;
-  color: #000;
+  color: var(--xp-menu-text, #000);
   font-size: 11px;
   text-align: left;
   cursor: pointer;
@@ -951,49 +1014,76 @@ const WindowOverflowItem = styled.button`
 
   &:hover,
   &.focus {
-    background: linear-gradient(to bottom, #316ac5, #2459b3);
-    color: #fff;
+    background: var(--xp-highlight, #316ac5);
+    color: var(--xp-highlight-text, #fff);
   }
 `;
 
-const Container = styled.footer`
-  height: 30px;
-  background: ${({ $theme }) => resolveThemeBg($theme.taskbar.background)};
-  ${({ $theme }) => $theme.taskbar.backgroundRepeat ? `background-repeat: ${$theme.taskbar.backgroundRepeat};` : ''}
-  ${({ $theme }) => $theme.taskbar.backgroundSize ? `background-size: ${$theme.taskbar.backgroundSize};` : ''}
+const Container = styled.div`
   position: absolute;
   bottom: 0;
   right: 0;
   left: 0;
-  display: flex;
   z-index: 9998;
-
-  .footer__items.left {
-    height: 100%;
-    flex: 1;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-  }
-
-  .footer__items.right {
-    flex-shrink: 0;
-    background: ${({ $theme }) => resolveThemeBg($theme.tray.background)};
-    ${({ $theme }) => $theme.tray.backgroundSize ? `background-size: ${$theme.tray.backgroundSize};` : ''}
-    ${({ $theme }) => $theme.tray.backgroundRepeat ? `background-repeat: ${$theme.tray.backgroundRepeat};` : ''}
-    border-left: ${({ $theme }) => $theme.tray.borderLeft || 'none'};
-    box-shadow: ${({ $theme }) => $theme.tray.boxShadow || 'none'};
-    padding: ${({ $theme }) => $theme.tray.padding || '0 10px'};
-    margin-left: 10px;
-    display: flex;
-    align-items: center;
-  }
+  overflow: visible;
 
   .footer__start__menu {
     position: absolute;
     left: 0;
-    box-shadow: 2px 4px 2px rgba(0, 0, 0, 0.5);
-    bottom: 100%;
+    bottom: 0;
+    z-index: 1000;
+  }
+
+  .taskbar {
+    background: ${({ $theme }) => resolveThemeBg($theme.taskbar.background)};
+    ${({ $theme }) => $theme.taskbar.backgroundRepeat ? `background-repeat: ${$theme.taskbar.backgroundRepeat};` : ''}
+    ${({ $theme }) => $theme.taskbar.backgroundSize ? `background-size: ${$theme.taskbar.backgroundSize};` : ''}
+  }
+
+  .footer__quick-launch {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  .running-applications {
+    min-width: 0;
+    padding-right: 6px;
+  }
+
+  .notification-tray {
+    background: ${({ $theme }) => resolveThemeBg($theme.tray.background)};
+    ${({ $theme }) => $theme.tray.backgroundSize ? `background-size: ${$theme.tray.backgroundSize};` : ''}
+    ${({ $theme }) => $theme.tray.backgroundRepeat ? `background-repeat: ${$theme.tray.backgroundRepeat};` : ''}
+  }
+
+  .notification-tray .external {
+    background: ${({ $theme }) => resolveThemeBg($theme.taskbar.background)};
+    ${({ $theme }) => $theme.taskbar.backgroundRepeat ? `background-repeat: ${$theme.taskbar.backgroundRepeat};` : ''}
+    ${({ $theme }) => $theme.taskbar.backgroundSize ? `background-size: ${$theme.taskbar.backgroundSize};` : ''}
+  }
+
+  .notification-tray .internal {
+    border-left: ${({ $theme }) => $theme.tray.borderLeft || 'none'};
+    box-shadow: ${({ $theme }) => $theme.tray.boxShadow || 'none'};
+    padding: ${({ $theme }) => $theme.tray.padding || '0 10px'};
+    gap: 6px;
+  }
+
+  .notification-tray [aria-label='notif-expand'] input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
   }
 
   .footer__window {
@@ -1031,6 +1121,7 @@ const Container = styled.footer`
   .footer__window.cover {
     background: ${({ $theme }) => resolveThemeBg($theme.taskButton.cover.background)};
     box-shadow: ${({ $theme }) => $theme.taskButton.cover.boxShadow};
+    border-color: transparent;
   }
 
   .footer__window.cover:before {
@@ -1060,6 +1151,7 @@ const Container = styled.footer`
     background: ${({ $theme }) => resolveThemeBg($theme.taskButton.focus.background)};
     box-shadow: ${({ $theme }) => $theme.taskButton.focus.boxShadow};
     ${({ $theme }) => $theme.taskButton.focusTextColor ? `color: ${$theme.taskButton.focusTextColor};` : ''}
+    border-color: transparent;
   }
 
   .footer__window.focus:before {
@@ -1075,7 +1167,7 @@ const Container = styled.footer`
   }
 
   .footer__time {
-    margin: 0 5px;
+    margin: 0;
     color: ${({ $theme }) => $theme.tray.textColor || '#fff'};
     font-size: 11px;
     font-weight: lighter;

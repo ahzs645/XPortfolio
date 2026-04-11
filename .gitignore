@@ -2,6 +2,7 @@
 src/libs/.DS_Store
 /dist
 .version
+.playwright-mcp/
 
 # Node modules
 /node_modules

@@ -22,7 +22,7 @@ function FileUploadDialog({ files, onConfirm, onCancel, uploading, progress }) {
 
   return (
     <Overlay>
-      <Dialog className="window">
+      <Dialog className="window xp-file-upload-dialog">
         <div className="title-bar">
           <div className="title-bar-text">Copying</div>
           <div className="title-bar-controls">
@@ -30,7 +30,7 @@ function FileUploadDialog({ files, onConfirm, onCancel, uploading, progress }) {
           </div>
         </div>
 
-        <Content className="window-body">
+        <Content className="window-body xp-file-upload-dialog__content">
           <AnimationImage src={withBaseUrl('/gui/copying.gif')} alt="Copying animation" />
 
           <InfoText>
@@ -114,39 +114,10 @@ const StyledProgress = styled.progress`
 
 const CancelButton = styled.button`
   min-width: 75px;
-  padding: 4px 16px;
+  height: 23px;
+  padding: 0 16px;
   font-size: 11px;
-  background: linear-gradient(
-    180deg,
-    #fff 0%,
-    #f5f4f0 50%,
-    #e8e6df 100%
-  );
-  border: 1px solid #003c74;
-  border-radius: 3px;
   cursor: pointer;
-  color: #000;
-  box-shadow:
-    inset 0 1px 0 #fff,
-    0 1px 1px rgba(0, 0, 0, 0.1);
-
-  &:hover {
-    background: linear-gradient(
-      180deg,
-      #fff 0%,
-      #f9f8f5 50%,
-      #eceae3 100%
-    );
-  }
-
-  &:active {
-    background: linear-gradient(
-      180deg,
-      #e8e6df 0%,
-      #f0efe8 50%,
-      #f5f4f0 100%
-    );
-  }
 `;
 
 export default FileUploadDialog;

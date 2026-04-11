@@ -3,17 +3,16 @@ import styled from 'styled-components';
 import { useFileSystem, SYSTEM_IDS, XP_ICONS } from '../../../contexts/FileSystemContext';
 
 // Container
-const Container = styled.div`
+const Container = styled.div.attrs({ className: 'xp-shell-surface xp-folder-browser' })`
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #ece9d8;
   padding: 12px;
 `;
 
 const Description = styled.div`
   font-size: 11px;
-  color: #000;
+  color: var(--xp-window-text, #000);
   margin-bottom: 12px;
 `;
 
@@ -28,7 +27,8 @@ const TreeContainer = styled.div`
     border: 1px solid #7f9db9;
     padding: 2px 5px;
     margin: 0;
-    background: #fff;
+    background: var(--xp-menu-bg, #fff);
+    color: var(--xp-menu-text, #000);
     box-sizing: border-box;
     overflow: auto;
   }
@@ -46,8 +46,8 @@ const TreeContainer = styled.div`
     height: 9px;
     margin-right: 5px;
     border: 1px solid #808080;
-    background: #fff;
-    color: #000;
+    background: var(--xp-menu-bg, #fff);
+    color: var(--xp-menu-text, #000);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -59,8 +59,8 @@ const TreeContainer = styled.div`
   }
 
   .tree-item-content.selected {
-    background: #316ac5;
-    color: #fff;
+    background: var(--xp-highlight, #316ac5);
+    color: var(--xp-highlight-text, #fff);
   }
 
   .tree-item-content {
@@ -69,6 +69,15 @@ const TreeContainer = styled.div`
     padding: 1px 2px;
     cursor: pointer;
     user-select: none;
+  }
+
+  .tree-item-content:hover {
+    background: var(--xp-highlight, #316ac5);
+    color: var(--xp-highlight-text, #fff);
+  }
+
+  .tree-item-content:hover * {
+    color: inherit;
   }
 
 
@@ -252,7 +261,7 @@ function BrowseForFolder({ onClose, onSelect, title = 'Select the target of the 
       return (
         <li key={item.id}>
           <div
-            className={`tree-item-content ${isSelected ? 'selected' : ''}`}
+            className={`tree-item-content xp-highlightable ${isSelected ? 'selected is-selected' : ''}`}
             onClick={() => setSelectedId(item.id)}
             style={{ opacity: item.disabled ? 0.5 : 1 }}
           >
@@ -284,7 +293,7 @@ function BrowseForFolder({ onClose, onSelect, title = 'Select the target of the 
     return (
       <li key={item.id}>
         <div
-          className={`tree-item-content ${isSelected ? 'selected' : ''}`}
+          className={`tree-item-content xp-highlightable ${isSelected ? 'selected is-selected' : ''}`}
           onClick={() => setSelectedId(item.id)}
           style={{ opacity: item.disabled ? 0.5 : 1 }}
         >
