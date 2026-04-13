@@ -4,6 +4,7 @@ import { useUserSettings } from '../contexts/UserSettingsContext';
 import { DEFAULT_SOUND_SCHEME, SOUND_FILE_CATALOG, getEffectiveSoundSchemes } from '../utils/systemSounds';
 
 const DIRECT_SOUND_KEYS = {
+  login: 'login',
   notify: 'notify',
   minimize: 'minimize',
   restore: 'restore',

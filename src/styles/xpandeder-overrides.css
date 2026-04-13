@@ -16,7 +16,7 @@ body {
   min-height: 100vh;
   min-height: calc(var(--real-vh, 1vh) * 100);
   overflow: hidden;
-  font-family: "Pixelated MS Sans Serif", "Noto Sans", Tahoma, Arial, sans-serif;
+  font-family: Tahoma, "Noto Sans", Arial, sans-serif;
   font-size: 11px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -100,6 +100,19 @@ body {
   text-indent: 0;
 }
 
+[data-xp-shell-root] menu[role="tablist"]::after {
+  background: #919b9c;
+  bottom: 1px;
+  content: "";
+  display: block;
+  height: 1px;
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  z-index: 0;
+}
+
 [data-xp-shell-root] menu[role="tablist"] > button[role="tab"] {
   background: linear-gradient(180deg, #fff, #fafaf9 26%, #f0f0ea 95%, #ecebe5) !important;
   border-color: #91a7b4 !important;
@@ -142,14 +155,14 @@ body {
 
 [data-xp-shell-root] menu[role="tablist"] > button[role="tab"][aria-selected="true"]::after {
   background: #fcfcfe;
-  bottom: -1px;
+  bottom: -2px;
   content: "";
   display: block;
-  height: 2px;
-  left: 1px;
+  height: 3px;
+  left: -1px;
   pointer-events: none;
   position: absolute;
-  right: 1px;
+  right: -1px;
   z-index: 9;
 }
 
@@ -173,6 +186,7 @@ body {
 [data-xp-shell-root] [role="tabpanel"] {
   background: linear-gradient(180deg, #fcfcfe, #f4f3ee) !important;
   border: 1px solid #919b9c !important;
+  border-top: 0 !important;
   border-radius: 0 !important;
   box-shadow: inset 1px 1px #fcfcfe, inset -1px -1px #fcfcfe, 1px 2px 2px 0 rgba(208, 206, 191, 0.75) !important;
   clear: both;
@@ -195,28 +209,6 @@ body {
   z-index: 99999;
   pointer-events: none;
   white-space: pre-line;
-}
-
-.xp-balloon {
-  background: #ffffe1;
-  box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.5);
-}
-
-.xp-balloon .balloon__close {
-  background: var(--xp-surface);
-  border: none;
-  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px grey, inset 2px 2px #dfdfdf;
-}
-
-.xp-balloon .balloon__btn {
-  border: none;
-  border-radius: 0;
-  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px grey, inset 2px 2px #dfdfdf;
-  background: var(--xp-surface);
-}
-
-.xp-balloon .balloon__btn:active {
-  box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px grey;
 }
 
 .mobile-device,

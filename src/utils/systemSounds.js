@@ -10,6 +10,7 @@ export const SOUND_FILE_CATALOG = Object.freeze({
   hdw_fail: { key: 'hdw_fail', fileName: 'hdw_fail.wav', path: '/sounds/hdw_fail.wav' },
   hdw_insert: { key: 'hdw_insert', fileName: 'hdw_insert.wav', path: '/sounds/hdw_insert.wav' },
   hdw_remove: { key: 'hdw_remove', fileName: 'hdw_remove.wav', path: '/sounds/hdw_remove.wav' },
+  login: { key: 'login', fileName: 'login.wav', path: '/sounds/login.wav' },
   logoff: { key: 'logoff', fileName: 'logoff.wav', path: '/sounds/logoff.wav' },
   logon: { key: 'logon', fileName: 'logon.wav', path: '/sounds/logon.wav' },
   lowbatt: { key: 'lowbatt', fileName: 'lowbatt.wav', path: '/sounds/lowbatt.wav' },

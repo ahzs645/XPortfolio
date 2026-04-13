@@ -363,10 +363,14 @@ const ComboBoxWrapper = styled.div.attrs({
   position: relative;
   min-width: 0;
   width: 100%;
+  font-family: Tahoma, 'MS Sans Serif', sans-serif;
+  font-size: 11px;
 `;
 
 const ComboInput = styled.input`
   flex: 1;
+  font-family: inherit;
+  font-size: inherit;
   min-width: 0;
   z-index: 1;
 

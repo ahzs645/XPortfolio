@@ -57,6 +57,10 @@ function BootScreen({ bootState, onComplete }) {
     return undefined;
   }, [showLogin, showWelcome]);
 
+  useEffect(() => {
+    document.fonts?.load?.('500 48px "FranklinGothicURW-Med"');
+  }, []);
+
   /* eslint-disable react-hooks/set-state-in-effect -- boot sequence state transitions */
   useEffect(() => {
     // If coming from log off, skip boot animation and show login directly
@@ -1025,11 +1029,12 @@ const WelcomeMessage = styled.div`
 
 const WelcomeText = styled.span`
   color: white;
-  font-family: Tahoma, Arial, sans-serif;
+  font-family: "FranklinGothicURW-Med", "FranklinGothic URW", "Franklin Gothic Medium", Tahoma, Arial, sans-serif;
   font-size: 3rem;
   font-style: italic;
   font-weight: 700;
-  letter-spacing: 0.3px;
+  font-synthesis: weight style;
+  letter-spacing: 0;
   text-align: center;
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6), 0 1px 0 #36c;
   animation: ${fadeIn} 0.7s ease-in;

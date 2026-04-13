@@ -58,9 +58,13 @@ function StatusBar({ fields = [], showGrip = true }) {
 const StatusBarContainer = styled.div`
   display: flex;
   align-items: center;
+  background-color: #e9e9e9;
   height: 22px;
   min-height: 22px;
   max-height: 22px;
+  padding: 1px 3px;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 11px;
   user-select: none;
   box-sizing: border-box;
   flex-shrink: 0;
@@ -70,14 +74,21 @@ const StatusBarContainer = styled.div`
 
 const StatusBarField = styled.p`
   margin: 0;
+  padding: 0 6px;
+  border-right: 1px inset silver;
   height: 100%;
   display: flex;
   align-items: center;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: #000;
   box-sizing: border-box;
-  flex-grow: 1;
+
+  &:last-of-type {
+    border-right: none;
+    flex-grow: 1;
+  }
 `;
 
 const StatusBarGrip = styled.div`
