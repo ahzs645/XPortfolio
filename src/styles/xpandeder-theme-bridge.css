@@ -32,7 +32,6 @@
 [data-xp-shell-root] .window:not(.frameless),
 [data-xp-shell-root] .window-body,
 [data-xp-shell-root] .xp-shell-surface,
-[data-xp-shell-root] [role="tabpanel"],
 [data-xp-shell-root] .xp-volume-popup {
   background: var(--xp-surface);
 }

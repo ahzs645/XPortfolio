@@ -253,10 +253,11 @@ function Run({ onClose }) {
             Internet resource, and Windows will open it for you.
           </Description>
           <InputRow>
-            <Label>Open:</Label>
+            <Label htmlFor="run-command-input">Open:</Label>
             <ComboBoxWrapper>
               <ComboInput
                 ref={inputRef}
+                id="run-command-input"
                 type="text"
                 value={selectedCommand}
                 onChange={(e) => {
@@ -355,27 +356,18 @@ const Label = styled.label`
   white-space: nowrap;
 `;
 
-const ComboBoxWrapper = styled.div`
+const ComboBoxWrapper = styled.div.attrs({
+  className: 'combo-box',
+})`
   flex: 1;
   position: relative;
-  display: flex;
-  height: 21px;
+  min-width: 0;
+  width: 100%;
 `;
 
 const ComboInput = styled.input`
   flex: 1;
-  padding: 2px 4px;
-  border: none;
-  border-top: 1px solid #848484;
-  border-left: 1px solid #848484;
-  border-bottom: 1px solid #fff;
-  font-size: 11px;
-  font-family: 'Tahoma', 'MS Sans Serif', sans-serif;
   min-width: 0;
-  height: 100%;
-  box-sizing: border-box;
-  background: #fff;
-  box-shadow: inset 1px 1px 0 #c7c7c7;
   z-index: 1;
 
   &:focus {
@@ -384,41 +376,9 @@ const ComboInput = styled.input`
 `;
 
 const ComboArrowButton = styled.button`
-  width: 17px;
-  height: 100%;
-  border: none;
-  border-top: 1px solid #fff;
-  border-left: 1px solid #fff;
-  border-right: 1px solid #848484;
-  border-bottom: 1px solid #848484;
-  background: linear-gradient(180deg, #ece9d8 0%, #ece9d8 100%);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
   flex-shrink: 0;
-  box-sizing: border-box;
   position: relative;
   z-index: 1;
-
-  &::after {
-    content: '';
-    display: block;
-    width: 0;
-    height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 4px solid #000;
-  }
-
-  &:active {
-    border-top: 1px solid #848484;
-    border-left: 1px solid #848484;
-    border-right: 1px solid #fff;
-    border-bottom: 1px solid #fff;
-    background: #d6d2c2;
-  }
 `;
 
 const DropdownList = styled.div`

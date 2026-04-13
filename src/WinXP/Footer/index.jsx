@@ -485,6 +485,90 @@ function Footer({
     setStartContextMenu({ x: e.clientX, y: e.clientY });
   }, []);
 
+  const trayIcons = [
+    {
+      key: 'welcome',
+      element: (
+        <TrayIcon
+          ref={welcomeIconRef}
+          src={withBaseUrl('/gui/taskbar/welcome.webp')}
+          alt="Welcome"
+          title="Welcome"
+          onClick={handleWelcomeClick}
+        />
+      ),
+    },
+    ...(isMobile && clippyHiddenOnMobile
+      ? [{
+        key: 'clippy',
+        element: (
+          <TrayIcon
+            src={withBaseUrl('/icons/about.webp')}
+            alt="Clippy"
+            title="Show Clippy"
+            onClick={onShowClippy}
+          />
+        ),
+      }]
+      : []),
+    ...(hasUpdate
+      ? [{
+        key: 'update',
+        element: (
+          <TrayIcon
+            ref={updateIconRef}
+            className="tray-icon--update"
+            src={withBaseUrl('/gui/taskbar/windows-update.png')}
+            alt="Windows Update"
+            title={updateTooltip}
+            onClick={() => window.dispatchEvent(new Event('xp:update-icon-click'))}
+          />
+        ),
+      }]
+      : []),
+    {
+      key: 'crt',
+      element: (
+        <TrayIcon
+          src={withBaseUrl(crtEnabled ? '/gui/taskbar/crt.webp' : '/gui/taskbar/crt-off.webp')}
+          alt="CRT Effects"
+          title={crtEnabled ? 'CRT Effects: ON' : 'CRT Effects: OFF'}
+          onClick={onToggleCRT}
+        />
+      ),
+    },
+    ...(!isMobile
+      ? [{
+        key: 'fullscreen',
+        element: (
+          <TrayIcon
+            src={withBaseUrl('/gui/taskbar/fullscreen.webp')}
+            alt="Fullscreen"
+            title="Toggle Fullscreen"
+            onClick={handleFullscreenClick}
+          />
+        ),
+      }]
+      : []),
+    {
+      key: 'volume',
+      element: (
+        <TrayIcon
+          ref={volumeIconRef}
+          src={withBaseUrl('/gui/taskbar/speaker.png')}
+          alt="Volume"
+          title={audio.muted ? 'Volume: Muted' : `Volume: ${audio.volume}%`}
+          onClick={handleVolumeClick}
+          onDoubleClick={handleVolumeDoubleClick}
+        />
+      ),
+    },
+  ];
+  const trayExpandedWidth = useMemo(
+    () => `calc(77px + ${trayIcons.length * 22}px)`,
+    [trayIcons.length]
+  );
+
   return (
     <Container
       className="desktop xp-taskbar-shell"
@@ -579,74 +663,19 @@ function Footer({
         <div
           className={`notification-tray ${trayExpanded ? 'is-expanded' : ''}`}
           data-expanded={trayExpanded ? 'true' : 'false'}
+          style={{ '--xp-tray-expanded-width': trayExpandedWidth }}
         >
           <div className="external" />
           <div className="internal">
-            {trayExpanded && (
-              <div className="icon-container">
-                <TrayIcon
-                  ref={welcomeIconRef}
-                  src={withBaseUrl('/gui/taskbar/welcome.webp')}
-                  alt="Welcome"
-                  title="Welcome"
-                  onClick={handleWelcomeClick}
-                />
+            {trayIcons.map(({ key, element }) => (
+              <div
+                key={key}
+                className="icon-container"
+                aria-hidden={!trayExpanded}
+              >
+                {element}
               </div>
-            )}
-            {trayExpanded && isMobile && clippyHiddenOnMobile && (
-              <div className="icon-container">
-                <TrayIcon
-                  src={withBaseUrl('/icons/about.webp')}
-                  alt="Clippy"
-                  title="Show Clippy"
-                  onClick={onShowClippy}
-                />
-              </div>
-            )}
-            {trayExpanded && hasUpdate && (
-              <div className="icon-container">
-                <TrayIcon
-                  ref={updateIconRef}
-                  className="tray-icon--update"
-                  src={withBaseUrl('/gui/taskbar/windows-update.png')}
-                  alt="Windows Update"
-                  title={updateTooltip}
-                  onClick={() => window.dispatchEvent(new Event('xp:update-icon-click'))}
-                />
-              </div>
-            )}
-            {trayExpanded && (
-              <div className="icon-container">
-                <TrayIcon
-                  src={withBaseUrl(crtEnabled ? '/gui/taskbar/crt.webp' : '/gui/taskbar/crt-off.webp')}
-                  alt="CRT Effects"
-                  title={crtEnabled ? 'CRT Effects: ON' : 'CRT Effects: OFF'}
-                  onClick={onToggleCRT}
-                />
-              </div>
-            )}
-            {trayExpanded && !isMobile && (
-              <div className="icon-container">
-                <TrayIcon
-                  src={withBaseUrl('/gui/taskbar/fullscreen.webp')}
-                  alt="Fullscreen"
-                  title="Toggle Fullscreen"
-                  onClick={handleFullscreenClick}
-                />
-              </div>
-            )}
-            {trayExpanded && (
-              <div className="icon-container">
-                <TrayIcon
-                  ref={volumeIconRef}
-                  src={withBaseUrl('/gui/taskbar/speaker.png')}
-                  alt="Volume"
-                  title={audio.muted ? 'Volume: Muted' : `Volume: ${audio.volume}%`}
-                  onClick={handleVolumeClick}
-                  onDoubleClick={handleVolumeDoubleClick}
-                />
-              </div>
-            )}
+            ))}
             {taskbar.showClock && (
               <div
                 className="clock footer__time"
@@ -839,8 +868,9 @@ const TrayIcon = styled.img`
   width: 16px;
   height: 16px;
   cursor: pointer;
-  margin: 0 3px;
+  margin: 0 1px;
   opacity: 0.9;
+  transition: opacity 140ms ease, filter 140ms ease;
 
   &:hover {
     opacity: 1;
@@ -1065,10 +1095,13 @@ const Container = styled.div`
   }
 
   .notification-tray .internal {
+    display: flex;
+    align-items: center;
     border-left: ${({ $theme }) => $theme.tray.borderLeft || 'none'};
     box-shadow: ${({ $theme }) => $theme.tray.boxShadow || 'none'};
     padding: ${({ $theme }) => $theme.tray.padding || '0 10px'};
-    gap: 6px;
+    gap: 4px;
+    overflow: hidden;
   }
 
   .notification-tray [aria-label='notif-expand'] input {
@@ -1079,11 +1112,20 @@ const Container = styled.div`
     pointer-events: none;
   }
 
-  .icon-container {
+  .notification-tray .icon-container {
     display: flex;
     align-items: center;
     justify-content: center;
     flex: 0 0 auto;
+    width: 18px;
+    overflow: hidden;
+    opacity: 1;
+    transition: opacity 140ms ease;
+  }
+
+  .notification-tray[data-expanded='false'] .icon-container {
+    opacity: 0;
+    pointer-events: none;
   }
 
   .footer__window {
@@ -1172,6 +1214,13 @@ const Container = styled.div`
     font-size: 11px;
     font-weight: lighter;
     text-shadow: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .notification-tray .icon-container,
+    ${TrayIcon} {
+      transition: none;
+    }
   }
 `;
 

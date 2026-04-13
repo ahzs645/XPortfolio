@@ -171,8 +171,10 @@ function SoundsAndAudioDevices({ onClose, onMinimize }) {
               key={tab.id}
               type="button"
               role="tab"
-              aria-selected={activeTab === tab.id}
+              aria-selected={activeTab === tab.id ? 'true' : 'false'}
+              aria-controls={`tab-${tab.id}`}
               $active={activeTab === tab.id}
+              tabIndex={activeTab === tab.id ? 0 : -1}
               onClick={() => setActiveTab(tab.id)}
             >
               {tab.label}
@@ -180,7 +182,7 @@ function SoundsAndAudioDevices({ onClose, onMinimize }) {
           ))}
         </TabsBar>
 
-        <Panel>
+        <Panel role="tabpanel" id={`tab-${activeTab}`}>
           {activeTab === 'sounds' && (
             <SoundsTab>
               <Hero>

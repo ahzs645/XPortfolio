@@ -83,6 +83,82 @@ body {
   filter: saturate(0.85);
 }
 
+[data-xp-shell-root] section.tabs {
+  display: flex !important;
+  flex: 1 1 auto;
+  flex-direction: column !important;
+  min-height: 0;
+  overflow: visible !important;
+}
+
+[data-xp-shell-root] [role="tablist"] {
+  display: flex !important;
+  list-style-type: none;
+  margin: 0 0 -2px !important;
+  padding: 0 0 0 3px !important;
+  position: relative;
+  text-indent: 0;
+}
+
+[data-xp-shell-root] [role="tablist"] > button[role="tab"] {
+  background: linear-gradient(180deg, #fff, #fafaf9 26%, #f0f0ea 95%, #ecebe5) !important;
+  border: 1px solid #91a7b4 !important;
+  border-radius: 0 !important;
+  border-top-left-radius: 3px !important;
+  border-top-right-radius: 3px !important;
+  box-shadow: none !important;
+  color: #222 !important;
+  margin-bottom: 0 !important;
+  margin-left: -1px !important;
+  margin-right: 2px !important;
+  min-width: unset !important;
+  padding: 0 12px 3px !important;
+  position: relative !important;
+  text-decoration: none !important;
+  top: auto !important;
+  z-index: 1 !important;
+}
+
+[data-xp-shell-root] [role="tablist"] > button[role="tab"][aria-selected="true"] {
+  background: #fcfcfe !important;
+  border-bottom: 1px solid transparent !important;
+  border-color: #919b9c !important;
+  border-top: 1px solid #e68b2c !important;
+  box-shadow: inset 0 2px #ffc73c !important;
+  margin-bottom: 1px !important;
+  margin-left: -3px !important;
+  margin-right: -1px !important;
+  margin-top: -2px !important;
+  padding-bottom: 2px !important;
+  z-index: 8 !important;
+}
+
+[data-xp-shell-root] [role="tablist"] > button[role="tab"]:focus {
+  outline: 1px dotted #222;
+  outline-offset: -4px;
+}
+
+[data-xp-shell-root] [role="tabpanel"] {
+  background: linear-gradient(180deg, #fcfcfe, #f4f3ee) !important;
+  border: 1px solid #919b9c !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #fcfcfe, inset -1px -1px #fcfcfe, 1px 2px 2px 0 rgba(208, 206, 191, 0.75) !important;
+  clear: both;
+  margin-bottom: 9px !important;
+  min-height: 0;
+  padding: 14px !important;
+  position: relative;
+  z-index: 2;
+}
+
+[data-xp-shell-root] section.tabs > [role="tabpanel"] {
+  flex: 1 1 auto;
+}
+
+[data-xp-shell-root] [role="tabpanel"][hidden] {
+  display: none !important;
+}
+
 .xp-tooltip {
   z-index: 99999;
   pointer-events: none;

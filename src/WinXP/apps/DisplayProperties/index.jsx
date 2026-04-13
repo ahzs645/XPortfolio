@@ -1,6 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import styled from 'styled-components';
 import { ProgramLayout, FileChooser } from '../../../components';
 import { useUserSettings } from '../../../contexts/UserSettingsContext';
 import { useScreensaver } from '../../../contexts/ScreensaverContext';
@@ -14,6 +13,7 @@ import {
   getResolutionIndexForZoom,
 } from '../../../utils/displaySettings';
 import WindowsScreensaver from '../../../components/Screensavers/WindowsScreensaver';
+import './display-properties.css';
 
 // Base wallpapers - the custom one will have its name derived from config
 const BASE_WALLPAPERS = [
@@ -175,19 +175,23 @@ function NativePreviewScene({
   fontSize,
   wallpaperPath,
 }) {
-  const palette = getPreviewPalette(windowStyle, colorScheme);
   const isClassic = windowStyle === 'classic' || colorScheme === 'classic';
   const fontScale = PREVIEW_FONT_SCALES[fontSize] || 1;
   const wallpaperUrl = wallpaperPath ? withBaseUrl(wallpaperPath) : null;
 
   return (
-    <NativePreviewRoot
-      $scale={fontScale}
-      $classic={isClassic}
-      $palette={palette}
-      $wallpaper={wallpaperUrl}
+    <div
+      className="display-properties__theme-preview-root"
+      style={{
+        '--display-preview-scale': fontScale,
+        '--display-preview-root-bg': isClassic ? '#808080' : '#585768',
+        '--display-preview-desktop-bg': isClassic ? '#3a6ea5' : '#004e98',
+      }}
     >
-      <div className="display-preview__desktop">
+      <div
+        className="display-preview__desktop"
+        style={{ backgroundImage: wallpaperUrl ? `url(${wallpaperUrl})` : 'none' }}
+      >
         <div className={`display-preview__window ${isClassic ? 'window preview-classic-window' : 'window dialogbox'}`}>
           <div className="title-bar">
             <div className="window-inactive-mask" />
@@ -213,7 +217,7 @@ function NativePreviewScene({
           src={withBaseUrl('/icons/xp/RecycleBinfull.png')}
         />
       </div>
-    </NativePreviewRoot>
+    </div>
   );
 }
 
@@ -227,7 +231,20 @@ function AppearancePreviewScene({
   const fontScale = PREVIEW_FONT_SCALES[fontSize] || 1;
 
   return (
-    <AppearancePreviewRoot $classic={isClassic} $palette={palette} $scale={fontScale}>
+    <div
+      className="display-properties__appearance-preview-root"
+      style={{
+        '--appearance-preview-scale': fontScale,
+        '--appearance-preview-desktop-bg': isClassic ? '#d4d0c8' : '#004e98',
+        '--appearance-preview-inactive-opacity': isClassic ? 1 : 0.72,
+        '--appearance-preview-surface': palette.surface,
+        '--appearance-preview-button-border': isClassic ? '#404040' : palette.buttonBorder,
+        '--appearance-preview-button-radius': isClassic ? '0px' : '3px',
+        '--appearance-preview-button-bg': isClassic
+          ? 'linear-gradient(180deg, #ffffff, #d4d0c8)'
+          : `linear-gradient(180deg, ${palette.buttonTop}, ${palette.buttonBottom})`,
+      }}
+    >
       <div className="appearance-preview__desktop">
         <div className="appearance-preview__window appearance-preview__window--inactive window inactive">
           <div className="title-bar">
@@ -273,7 +290,7 @@ function AppearancePreviewScene({
           </div>
         </div>
       </div>
-    </AppearancePreviewRoot>
+    </div>
   );
 }
 
@@ -369,11 +386,15 @@ function DisplayProperties({ onClose, onMinimize }) {
   // Build wallpapers list with dynamic OS name for custom wallpaper
   const WALLPAPERS = useMemo(() => {
     const osName = getOSName();
-    return BASE_WALLPAPERS.map(w =>
-      w.id === 'custom' ? { ...w, name: osName } : w
-    );
+    return BASE_WALLPAPERS.map((wallpaper) => (
+      wallpaper.id === 'custom' ? { ...wallpaper, name: osName } : wallpaper
+    ));
   }, [getOSName]);
   const resolutionOptions = useMemo(() => getDisplayResolutionLabels(), []);
+  const shellStyles = useMemo(() => ({
+    '--display-monitor-url': `url(${withBaseUrl('/gui/display/monitor.png')})`,
+    '--display-settings-monitor-url': `url(${withBaseUrl('/gui/display/reference/displaysettings.png')})`,
+  }), []);
   const [selected, setSelected] = useState(currentDesktop);
   const [activeTab, setActiveTab] = useState('desktop');
   const applyToMobile = true;
@@ -383,7 +404,7 @@ function DisplayProperties({ onClose, onMinimize }) {
   const [theme, setTheme] = useState(() => {
     if (activeThemeId === 'luna') return 'xp';
     // Check if the active theme is an installed theme
-    const installed = installedThemes.find(t => t.id === activeThemeId);
+    const installed = installedThemes.find((installedTheme) => installedTheme.id === activeThemeId);
     if (installed) return installed.id;
     return 'xp';
   });
@@ -392,6 +413,8 @@ function DisplayProperties({ onClose, onMinimize }) {
   const [fontSize, setFontSize] = useState('normal');
   const [resolutionIndex, setResolutionIndex] = useState(() => getResolutionIndexForZoom(savedDisplayZoom));
   const [colorQuality, setColorQuality] = useState(savedColorDepth);
+  const activeScreensaver = SCREENSAVERS.find((item) => item.id === screensaverName);
+  const ActiveScreensaverComponent = activeScreensaver?.component;
   const hasPendingChanges = selected !== currentDesktop
     || DISPLAY_ZOOM_LEVELS[resolutionIndex] !== savedDisplayZoom
     || colorQuality !== savedColorDepth;
@@ -409,11 +432,6 @@ function DisplayProperties({ onClose, onMinimize }) {
     }
   };
 
-  const handleTabClick = (tab) => {
-    if (!tab.enabled) return;
-    setActiveTab(tab.id);
-  };
-
   const handleBrowseSelect = (file) => {
     if (file && file.data) {
       // Add to custom wallpapers list
@@ -422,7 +440,7 @@ function DisplayProperties({ onClose, onMinimize }) {
         name: file.name,
         path: file.data,
       };
-      setCustomWallpapers(prev => [...prev, newWallpaper]);
+      setCustomWallpapers((previous) => [...previous, newWallpaper]);
       setSelected(file.data);
     }
     setShowBrowse(false);
@@ -452,300 +470,383 @@ function DisplayProperties({ onClose, onMinimize }) {
       statusFields={null}
       showStatusBar={false}
     >
-      <WindowSurface>
-        <section className="tabs" aria-label="Display Properties Tabs">
-          <TabsBar role="tablist" aria-label="Display Properties">
+      <div className="display-properties xp-shell-surface" style={shellStyles}>
+        <section className="tabs">
+          <menu role="tablist" aria-label="Display Properties">
             {TABS.map((tab) => (
-              <TabButton
+              <button
                 key={tab.id}
+                type="button"
                 role="tab"
-                aria-selected={activeTab === tab.id}
+                aria-selected={activeTab === tab.id ? 'true' : 'false'}
                 aria-controls={`tab-${tab.id}`}
                 disabled={!tab.enabled}
-                $active={activeTab === tab.id}
-                onClick={() => handleTabClick(tab)}
+                tabIndex={activeTab === tab.id ? 0 : -1}
+                onClick={() => tab.enabled && setActiveTab(tab.id)}
               >
                 {tab.label}
-              </TabButton>
+              </button>
             ))}
-          </TabsBar>
+          </menu>
 
-          <TabPanel
+          <article
+            role="tabpanel"
+            id="tab-themes"
+            hidden={activeTab !== 'themes'}
+          >
+            <div className="display-properties__panel-content">
+              <p className="display-properties__description">
+                A theme is a background plus a set of sounds, icons, and other elements to help you personalize your computer with one click.
+              </p>
+
+              <div className="display-properties__stack">
+                <label className="display-properties__label" htmlFor="display-properties-theme">
+                  Theme:
+                </label>
+                <div className="display-properties__theme-selector-row">
+                  <select
+                    id="display-properties-theme"
+                    className="display-properties__select"
+                    value={theme}
+                    onChange={(event) => handleThemeChange(event.target.value)}
+                  >
+                    {THEMES.map((item) => (
+                      <option key={item.id} value={item.id}>{item.name}</option>
+                    ))}
+                    <option value="more-online" disabled>More themes online...</option>
+                    <option value="browse-theme" disabled>Browse...</option>
+                  </select>
+                  <button type="button" disabled>Save As...</button>
+                  <button type="button" disabled>Delete...</button>
+                </div>
+              </div>
+
+              <div className="display-properties__stack">
+                <span className="display-properties__label">Sample:</span>
+                <div className="display-properties__theme-preview-frame">
+                  <NativePreviewScene
+                    windowStyle={THEME_PRESETS[theme]?.windowStyle || 'xp'}
+                    colorScheme={THEME_PRESETS[theme]?.colorScheme || 'blue'}
+                    fontSize={fontSize}
+                    wallpaperPath={selected}
+                  />
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article
             role="tabpanel"
             id="tab-desktop"
             hidden={activeTab !== 'desktop'}
-            $active={activeTab === 'desktop'}
           >
-            <DesktopPane>
-              <DesktopMonitor>
-                <DesktopWallpaperPreview
+            <div className="display-properties__panel-content">
+              <div className="display-properties__monitor">
+                <div
+                  className="display-properties__monitor-screen"
                   style={{
                     backgroundImage: selected ? `url(${withBaseUrl(selected)})` : 'none',
-                    backgroundColor: selected ? 'transparent' : '#004e98'
+                    backgroundColor: selected ? 'transparent' : '#004e98',
                   }}
                 />
-              </DesktopMonitor>
+              </div>
 
-              <ControlLabel style={{ marginTop: 0 }}>Background:</ControlLabel>
-              <DesktopOptionsRow>
-                <DesktopListArea>
-                  <WallpaperSelect
-                    size={8}
-                    value={selected || ''}
-                    onChange={(e) => setSelected(e.target.value || null)}
-                  >
-                    <option value="">🚫 (None)</option>
-                    {WALLPAPERS.filter(w => w.path).map((item) => (
-                      <option key={item.id} value={item.path}>🖼️ {item.name}</option>
-                    ))}
-                    {customWallpapers.map((item) => (
-                      <option key={item.id} value={item.path}>🖼️ {item.name}</option>
-                    ))}
-                  </WallpaperSelect>
-                </DesktopListArea>
-
-                <DesktopSideControls>
-                  <SideButton type="button" onClick={() => setShowBrowse(true)}>
-                    Browse...
-                  </SideButton>
-                  <ControlLabel>Position:</ControlLabel>
-                  <SideSelect defaultValue="stretch" style={{ width: '100%' }}>
-                    <option value="center">Center</option>
-                    <option value="tile">Tile</option>
-                    <option value="stretch">Stretch</option>
-                  </SideSelect>
-                  <ControlLabel>Color:</ControlLabel>
-                  <ColorInput type="color" defaultValue="#004e98" />
-                </DesktopSideControls>
-              </DesktopOptionsRow>
-              <CustomizeButton type="button">Customize Desktop...</CustomizeButton>
-            </DesktopPane>
-          </TabPanel>
-
-          {TABS.filter(tab => tab.id !== 'desktop').map((tab) => (
-            <TabPanel
-              key={tab.id}
-              role="tabpanel"
-              id={`tab-${tab.id}`}
-              hidden={activeTab !== tab.id}
-              $active={activeTab === tab.id}
-            >
-              {tab.id === 'themes' && (
-                <ThemesPane>
-                  <ThemeDescription>
-                    A theme is a background plus a set of sounds, icons, and other elements to help you personalize your computer with one click.
-                  </ThemeDescription>
-                  <ThemeFieldLabel>Theme:</ThemeFieldLabel>
-                  <ThemeSelectorRow>
-                    <SideSelect
-                      value={theme}
-                      onChange={(e) => handleThemeChange(e.target.value)}
-                      style={{ flex: 1 }}
+              <div className="display-properties__stack">
+                <label className="display-properties__label" htmlFor="display-properties-wallpaper">
+                  Background:
+                </label>
+                <div className="display-properties__desktop-controls">
+                  <div className="display-properties__desktop-list">
+                    <select
+                      id="display-properties-wallpaper"
+                      className="display-properties__wallpaper-select"
+                      size={8}
+                      value={selected || ''}
+                      onChange={(event) => setSelected(event.target.value || null)}
                     >
-                      {THEMES.map(item => (
-                        <option key={item.id} value={item.id}>{item.name}</option>
+                      <option value="">🚫 (None)</option>
+                      {WALLPAPERS.filter((item) => item.path).map((item) => (
+                        <option key={item.id} value={item.path}>🖼️ {item.name}</option>
                       ))}
-                      <option value="more-online" disabled>More themes online...</option>
-                      <option value="browse-theme" disabled>Browse...</option>
-                    </SideSelect>
-                    <SideButton type="button" disabled $disabled>Save As...</SideButton>
-                    <SideButton type="button" disabled $disabled>Delete...</SideButton>
-                  </ThemeSelectorRow>
-                  <ThemeFieldLabel>Sample:</ThemeFieldLabel>
-                  <ThemePreview>
-                    <NativePreviewScene
-                      windowStyle={THEME_PRESETS[theme]?.windowStyle || 'xp'}
-                      colorScheme={THEME_PRESETS[theme]?.colorScheme || 'blue'}
-                      fontSize={fontSize}
-                      wallpaperPath={selected}
+                      {customWallpapers.map((item) => (
+                        <option key={item.id} value={item.path}>🖼️ {item.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="display-properties__stack display-properties__desktop-sidebar">
+                    <button type="button" onClick={() => setShowBrowse(true)}>
+                      Browse...
+                    </button>
+
+                    <label className="display-properties__label" htmlFor="display-properties-position">
+                      Position:
+                    </label>
+                    <select
+                      id="display-properties-position"
+                      className="display-properties__select"
+                      defaultValue="stretch"
+                    >
+                      <option value="center">Center</option>
+                      <option value="tile">Tile</option>
+                      <option value="stretch">Stretch</option>
+                    </select>
+
+                    <label className="display-properties__label" htmlFor="display-properties-color">
+                      Color:
+                    </label>
+                    <input
+                      id="display-properties-color"
+                      className="display-properties__color-input"
+                      type="color"
+                      defaultValue="#004e98"
                     />
-                  </ThemePreview>
-                </ThemesPane>
-              )}
+                  </div>
+                </div>
+              </div>
 
-              {tab.id === 'screensaver' && (
-                <ScreensaverPane>
-                  <ScreensaverMonitor>
-                    <ScreensaverMonitorFrame />
-                    {(() => {
-                      const screensaver = SCREENSAVERS.find(s => s.id === screensaverName);
-                      if (screensaver?.component) {
-                        const Component = screensaver.component;
-                        return (
-                          <ScreensaverComponentPreview>
-                            <Component />
-                          </ScreensaverComponentPreview>
-                        );
-                      }
-                      if (screensaver?.embed) {
-                        return (
-                          <ScreensaverIframe
-                            src={withBaseUrl(screensaver.embed)}
-                            title="Screensaver preview"
-                          />
-                        );
-                      }
-                      return (
-                        <ScreensaverPreviewImg
-                          style={{
-                            backgroundImage: `url(${withBaseUrl(screensaver?.preview || '/gui/display/sample.png')})`,
-                          }}
-                        />
-                      );
-                    })()}
-                  </ScreensaverMonitor>
+              <section className="field-row display-properties__panel-action">
+                <button type="button" disabled>Customize Desktop...</button>
+              </section>
+            </div>
+          </article>
 
-                  <Fieldset>
-                    <Legend>Screen saver</Legend>
-                    <ScreensaverRow>
-                      <SideSelect
-                        value={screensaverName}
-                        onChange={(e) => setScreensaverName(e.target.value)}
-                        style={{ flex: 1, minWidth: 0 }}
-                      >
-                        <option value="">(None)</option>
-                        {SCREENSAVERS.map((item) => (
-                          <option key={item.id} value={item.id}>{item.name}</option>
-                        ))}
-                      </SideSelect>
-                      <SideButton type="button" disabled $disabled style={{ flexShrink: 0 }}>Settings</SideButton>
-                      <SideButton type="button" onClick={previewScreensaver} style={{ flexShrink: 0 }}>
-                        Preview
-                      </SideButton>
-                    </ScreensaverRow>
-                    <FieldRow>
-                      <span>Wait:</span>
-                      <WaitInput
-                        type="number"
-                        min="1"
-                        max="60"
-                        value={waitMinutes}
-                        onChange={(e) => setWaitMinutes(Number(e.target.value) || 1)}
-                      />
-                      <span>minutes</span>
-                    </FieldRow>
-                  </Fieldset>
+          <article
+            role="tabpanel"
+            id="tab-screensaver"
+            hidden={activeTab !== 'screensaver'}
+          >
+            <div className="display-properties__panel-content">
+              <div className="display-properties__monitor">
+                {ActiveScreensaverComponent ? (
+                  <div className="display-properties__screensaver-component">
+                    <ActiveScreensaverComponent />
+                  </div>
+                ) : null}
 
-                  <Fieldset>
-                    <Legend>Monitor power</Legend>
-                    <MonitorPowerContent>
-                      <EnergyStarLogo src={withBaseUrl('/gui/display/energystar.png')} alt="Energy Star" />
-                      <MonitorPowerText>
-                        <p>To adjust monitor power settings and save energy, click Power.</p>
-                        <MonitorPowerButton>
-                          <SideButton type="button" disabled $disabled>Power...</SideButton>
-                        </MonitorPowerButton>
-                      </MonitorPowerText>
-                    </MonitorPowerContent>
-                  </Fieldset>
-                </ScreensaverPane>
-              )}
+                {activeScreensaver?.embed ? (
+                  <iframe
+                    className="display-properties__screensaver-frame"
+                    src={withBaseUrl(activeScreensaver.embed)}
+                    title="Screensaver preview"
+                  />
+                ) : null}
 
-              {tab.id === 'appearance' && (
-                <AppearancePane>
-                  <AppearancePreview>
-                    <AppearancePreviewScene
-                      windowStyle={windowStyle}
-                      colorScheme={colorScheme}
-                      fontSize={fontSize}
-                    />
-                  </AppearancePreview>
-                  <AppearanceControlsRow>
-                    <AppearanceSelects>
-                      <div>
-                        <ControlLabel>Windows and buttons:</ControlLabel>
-                        <SideSelect value={windowStyle} onChange={(e) => setWindowStyle(e.target.value)} style={{ width: '200px' }}>
-                          {WINDOW_STYLES.map(option => (
-                            <option key={option.id} value={option.id}>{option.label}</option>
-                          ))}
-                        </SideSelect>
-                      </div>
-                      <div>
-                        <ControlLabel>Color scheme:</ControlLabel>
-                        <SideSelect value={colorScheme} onChange={(e) => setColorScheme(e.target.value)} style={{ width: '200px' }}>
-                          {COLOR_SCHEMES.map(option => (
-                            <option key={option.id} value={option.id}>{option.label}</option>
-                          ))}
-                        </SideSelect>
-                      </div>
-                      <div>
-                        <ControlLabel>Font size:</ControlLabel>
-                        <SideSelect value={fontSize} onChange={(e) => setFontSize(e.target.value)} style={{ width: '200px' }}>
-                          {FONT_SIZES.map(option => (
-                            <option key={option.id} value={option.id}>{option.label}</option>
-                          ))}
-                        </SideSelect>
-                      </div>
-                    </AppearanceSelects>
-                    <AppearanceButtons>
-                      <SideButton type="button" disabled $disabled>Effects...</SideButton>
-                      <SideButton type="button" disabled $disabled>Advanced</SideButton>
-                    </AppearanceButtons>
-                  </AppearanceControlsRow>
-                </AppearancePane>
-              )}
+                {!ActiveScreensaverComponent && !activeScreensaver?.embed ? (
+                  <div
+                    className="display-properties__screensaver-image"
+                    style={{
+                      backgroundImage: `url(${withBaseUrl(activeScreensaver?.preview || '/gui/display/sample.png')})`,
+                    }}
+                  />
+                ) : null}
+              </div>
 
-              {tab.id === 'settings' && (
-                <SettingsPane>
-                  <SettingsMonitor>
-                    <SettingsMonitorImg src={withBaseUrl('/gui/display/reference/resolutionsetting.png')} alt="Resolution" />
-                  </SettingsMonitor>
-                  <SettingsDisplayInfo>Display:<br />Generic PnP Monitor on NVIDIA GeForce4 Ti 4600</SettingsDisplayInfo>
-                  <SettingsGroup>
-                    <Fieldset>
-                      <Legend>Screen resolution</Legend>
-                      <SliderLabels>
-                        <span>Less</span>
-                        <span>More</span>
-                      </SliderLabels>
-                      <ZoomSlider
-                        type="range"
-                        min="0"
-                        max="5"
-                        step="1"
-                        value={resolutionIndex}
-                        onChange={(e) => setResolutionIndex(Number(e.target.value))}
-                      />
-                      <ZoomLabel>{resolutionOptions[resolutionIndex]}</ZoomLabel>
-                    </Fieldset>
-                    <Fieldset>
-                      <Legend>Color quality</Legend>
-                      <SideSelect value={colorQuality} onChange={(e) => setColorQuality(e.target.value)} style={{ width: '100%' }}>
-                        <option value="2col">Monochrome</option>
-                        <option value="8col">8 Colors</option>
-                        <option value="8+col">8 Colors (Enhanced)</option>
-                        <option value="16col">16 Colors</option>
-                        <option value="16+col">16 Colors (Enhanced)</option>
-                        <option value="256col">256 Colors</option>
-                        <option value="256+col">256 Colors (Enhanced)</option>
-                        <option value="16bit">Medium (16 bit)</option>
-                        <option value="32">Highest (32 bit)</option>
-                      </SideSelect>
-                      <ColorStrip />
-                    </Fieldset>
-                  </SettingsGroup>
-                  <SettingsButtonRow>
-                    <SideButton type="button" disabled $disabled>Troubleshoot...</SideButton>
-                    <SideButton type="button" disabled $disabled>Advanced</SideButton>
-                  </SettingsButtonRow>
-                </SettingsPane>
-              )}
-            </TabPanel>
-          ))}
+              <fieldset>
+                <legend>Screen saver</legend>
+                <div className="field-row display-properties__screensaver-picker">
+                  <select
+                    id="display-properties-screensaver"
+                    className="display-properties__select"
+                    value={screensaverName}
+                    onChange={(event) => setScreensaverName(event.target.value)}
+                  >
+                    <option value="">(None)</option>
+                    {SCREENSAVERS.map((item) => (
+                      <option key={item.id} value={item.id}>{item.name}</option>
+                    ))}
+                  </select>
+                  <button type="button" disabled>Settings</button>
+                  <button type="button" onClick={previewScreensaver}>Preview</button>
+                </div>
+
+                <div className="field-row">
+                  <span>Wait:</span>
+                  <input
+                    className="display-properties__wait-input"
+                    type="number"
+                    min="1"
+                    max="60"
+                    value={waitMinutes}
+                    onChange={(event) => setWaitMinutes(Number(event.target.value) || 1)}
+                  />
+                  <span>minutes</span>
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend>Monitor power</legend>
+                <div className="display-properties__monitor-power">
+                  <img
+                    className="display-properties__monitor-power-logo"
+                    src={withBaseUrl('/gui/display/energystar.png')}
+                    alt="Energy Star"
+                  />
+                  <div className="display-properties__monitor-power-copy">
+                    <p>To adjust monitor power settings and save energy, click Power.</p>
+                    <button type="button" disabled>Power...</button>
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+          </article>
+
+          <article
+            role="tabpanel"
+            id="tab-appearance"
+            hidden={activeTab !== 'appearance'}
+          >
+            <div className="display-properties__panel-content display-properties__panel-content--appearance">
+              <div className="display-properties__appearance-preview-frame">
+                <AppearancePreviewScene
+                  windowStyle={windowStyle}
+                  colorScheme={colorScheme}
+                  fontSize={fontSize}
+                />
+              </div>
+
+              <div className="display-properties__appearance-controls">
+                <div className="display-properties__appearance-selects">
+                  <div className="display-properties__stack">
+                    <label className="display-properties__label" htmlFor="display-properties-window-style">
+                      Windows and buttons:
+                    </label>
+                    <select
+                      id="display-properties-window-style"
+                      className="display-properties__select"
+                      value={windowStyle}
+                      onChange={(event) => setWindowStyle(event.target.value)}
+                    >
+                      {WINDOW_STYLES.map((option) => (
+                        <option key={option.id} value={option.id}>{option.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="display-properties__stack">
+                    <label className="display-properties__label" htmlFor="display-properties-color-scheme">
+                      Color scheme:
+                    </label>
+                    <select
+                      id="display-properties-color-scheme"
+                      className="display-properties__select"
+                      value={colorScheme}
+                      onChange={(event) => setColorScheme(event.target.value)}
+                    >
+                      {COLOR_SCHEMES.map((option) => (
+                        <option key={option.id} value={option.id}>{option.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="display-properties__stack">
+                    <label className="display-properties__label" htmlFor="display-properties-font-size">
+                      Font size:
+                    </label>
+                    <select
+                      id="display-properties-font-size"
+                      className="display-properties__select"
+                      value={fontSize}
+                      onChange={(event) => setFontSize(event.target.value)}
+                    >
+                      {FONT_SIZES.map((option) => (
+                        <option key={option.id} value={option.id}>{option.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="display-properties__appearance-buttons">
+                  <button type="button" disabled>Effects...</button>
+                  <button type="button" disabled>Advanced</button>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article
+            role="tabpanel"
+            id="tab-settings"
+            hidden={activeTab !== 'settings'}
+          >
+            <div className="display-properties__panel-content">
+              <div className="display-properties__settings-monitor">
+                <img
+                  className="display-properties__settings-monitor-image"
+                  src={withBaseUrl('/gui/display/reference/resolutionsetting.png')}
+                  alt="Resolution"
+                />
+              </div>
+
+              <div className="display-properties__settings-info">
+                Display:
+                <br />
+                Generic PnP Monitor on NVIDIA GeForce4 Ti 4600
+              </div>
+
+              <div className="display-properties__settings-groups">
+                <fieldset>
+                  <legend>Screen resolution</legend>
+                  <div className="display-properties__slider-labels">
+                    <span>Less</span>
+                    <span>More</span>
+                  </div>
+                  <input
+                    className="display-properties__zoom-slider"
+                    type="range"
+                    min="0"
+                    max="5"
+                    step="1"
+                    value={resolutionIndex}
+                    onChange={(event) => setResolutionIndex(Number(event.target.value))}
+                  />
+                  <div className="display-properties__zoom-label">
+                    {resolutionOptions[resolutionIndex]}
+                  </div>
+                </fieldset>
+
+                <fieldset>
+                  <legend>Color quality</legend>
+                  <select
+                    id="display-properties-color-quality"
+                    className="display-properties__select"
+                    value={colorQuality}
+                    onChange={(event) => setColorQuality(event.target.value)}
+                  >
+                    <option value="2col">Monochrome</option>
+                    <option value="8col">8 Colors</option>
+                    <option value="8+col">8 Colors (Enhanced)</option>
+                    <option value="16col">16 Colors</option>
+                    <option value="16+col">16 Colors (Enhanced)</option>
+                    <option value="256col">256 Colors</option>
+                    <option value="256+col">256 Colors (Enhanced)</option>
+                    <option value="16bit">Medium (16 bit)</option>
+                    <option value="32">Highest (32 bit)</option>
+                  </select>
+                  <div className="display-properties__color-strip" />
+                </fieldset>
+              </div>
+
+              <section className="field-row display-properties__settings-button-row">
+                <button type="button" disabled>Troubleshoot...</button>
+                <button type="button" disabled>Advanced</button>
+              </section>
+            </div>
+          </article>
         </section>
 
-        <Actions>
-          <ActionButton onClick={() => applySelection()}>OK</ActionButton>
-          <ActionButton onClick={onClose}>Cancel</ActionButton>
-          <ActionButton
+        <section className="field-row display-properties__dialog-actions">
+          <button type="button" onClick={() => applySelection()}>OK</button>
+          <button type="button" onClick={onClose}>Cancel</button>
+          <button
+            type="button"
             onClick={() => applySelection({ shouldClose: false })}
             disabled={!hasPendingChanges}
           >
             Apply
-          </ActionButton>
-        </Actions>
-
-              </WindowSurface>
+          </button>
+        </section>
+      </div>
 
       {showBrowse && createPortal(
         <FileChooser
@@ -761,891 +862,5 @@ function DisplayProperties({ onClose, onMinimize }) {
     </ProgramLayout>
   );
 }
-
-const WindowSurface = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  background: linear-gradient(180deg, #f7f6f0 0%, #ece9d8 45%, #e2dfcf 100%);
-  padding: 8px;
-  gap: 10px;
-  overflow: hidden;
-  font-family: "MS Sans Serif", "Tahoma", sans-serif;
-
-  section.tabs {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    padding-top: 2px;
-  }
-`;
-
-const TabsBar = styled.menu`
-  margin: 0;
-  padding: 6px 6px 0 6px;
-  display: flex;
-  gap: 2px;
-  border-radius: 4px 4px 0 0;
-  border-bottom: none;
-  margin-bottom: -1px;
-`;
-
-const TabButton = styled.button`
-  min-width: 76px;
-  padding: 5px 10px 6px 10px;
-  font-size: 12px;
-  font-family: "MS Sans Serif", "Tahoma", sans-serif;
-  border: 1px solid #91a7b4;
-  border-bottom: ${({ $active }) => ($active ? '1px solid #fbfbfc' : '1px solid #919b9c')};
-  border-radius: 3px 3px 0 0;
-  background: ${({ $active }) => ($active
-    ? 'linear-gradient(180deg, #fff, #fafaf9 26%, #f0f0ea 95%, #ecebe5)'
-    : 'linear-gradient(180deg, #f7f7f7, #ededeb 40%, #e7e7e0 95%, #e2e2d8)')};
-  color: ${({ $active }) => ($active ? '#000' : '#222')};
-  box-shadow: ${({ $active }) => ($active ? 'inset 0 2px #ffc73c, inset 0 1px 0 #fff' : 'none')};
-  position: relative;
-  top: ${({ $active }) => ($active ? '0' : '1px')};
-  margin-bottom: ${({ $active }) => ($active ? '-1px' : '0')};
-  cursor: ${({ disabled }) => (disabled ? 'default' : 'pointer')};
-  opacity: ${({ disabled }) => (disabled ? 0.65 : 1)};
-
-  &:hover:not(:disabled) {
-    border-top: 1px solid #e68b2c;
-    box-shadow: inset 0 2px #ffc73c;
-  }
-`;
-
-const TabPanel = styled.article`
-  flex: 1;
-  padding: 10px;
-  overflow: hidden;
-  background: #fbfbfc;
-  border: 1px solid #919b9c;
-  border-top: 1px solid #919b9c;
-  box-shadow: inset 1px 1px #fcfcfe, inset -1px -1px #fcfcfe, 1px 2px 2px 0 rgba(208, 206, 191, 0.75);
-  border-radius: 0 0 4px 4px;
-  margin-top: 0;
-`;
-
-const DesktopPane = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  height: 100%;
-  overflow-y: auto;
-`;
-
-const DesktopMonitor = styled.div`
-  position: relative;
-  text-align: center;
-  width: 177px;
-  height: 159px;
-  margin: 0 auto;
-  background: url(${withBaseUrl('/gui/display/monitor.png')}) no-repeat center center;
-  background-size: contain;
-  flex-shrink: 0;
-`;
-
-const DesktopWallpaperPreview = styled.div`
-  position: absolute;
-  top: 15px;
-  left: 12px;
-  width: 152px;
-  height: 112px;
-  background-size: cover;
-  background-position: center;
-`;
-
-const DesktopOptionsRow = styled.div`
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  margin-bottom: 10px;
-`;
-
-const DesktopListArea = styled.div`
-  flex: 1;
-  min-width: 0;
-`;
-
-const WallpaperSelect = styled.select`
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  font-size: 12px;
-  height: 100px;
-`;
-
-const DesktopSideControls = styled.div``;
-
-const ColorInput = styled.input`
-  width: 100%;
-`;
-
-const PreviewArea = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(180deg, #ffffff 0%, #f8f8f4 100%);
-  border: 2px solid #716f64;
-  box-shadow: inset 1px 1px 0 #f1efe2, inset -1px -1px 0 #f1efe2;
-  padding: 10px;
-  min-height: 150px;
-`;
-
-const MonitorShell = styled.div`
-  position: relative;
-  width: 185px;
-  height: 163px;
-  overflow: hidden;
-  filter: drop-shadow(2px 3px 4px rgba(0, 0, 0, 0.25));
-`;
-
-const MonitorFrame = styled.div`
-  position: absolute;
-  inset: 0;
-  background: url(${withBaseUrl('/gui/display/monitor.png')}) no-repeat center center;
-  background-size: contain;
-`;
-
-const MonitorPreview = styled.div`
-  position: absolute;
-  top: 17px;
-  left: 16px;
-  width: 152px;
-  height: 112px;
-  background-size: cover;
-  background-position: center;
-  border: 1px solid #6f6f6f;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
-`;
-
-const ListArea = styled.div`
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  gap: 6px;
-  flex: 1;
-`;
-
-const Label = styled.div`
-  font-size: 13px;
-  font-weight: 500;
-`;
-
-const List = styled.div`
-  flex: 1;
-  border: 1px solid #7f9db9;
-  background: linear-gradient(180deg, #ffffff 0%, #f7f7f7 100%);
-  overflow-y: auto;
-  overflow-x: hidden;
-  box-shadow: inset 1px 1px 0 #dfe9f5, inset -1px -1px 0 #dfe9f5;
-  padding: 3px;
-  min-height: 120px;
-  max-height: 180px;
-`;
-
-const ListItem = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 3px 6px;
-  cursor: pointer;
-  background: ${({ $active }) => ($active ? '#316ac5' : 'transparent')};
-  color: ${({ $active }) => ($active ? '#fff' : '#000')};
-  font-size: 12px;
-  font-family: "MS Sans Serif", "Tahoma", sans-serif;
-  border-radius: 2px;
-
-  &:hover {
-    background: ${({ $active }) => ($active ? '#316ac5' : '#dbe9f6')};
-  }
-`;
-
-const WallpaperIcon = styled.img`
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-`;
-
-const MobileRow = styled.label`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  margin-top: 6px;
-`;
-
-const OptionsRow = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 190px;
-  gap: 12px;
-  align-items: start;
-  flex: 1;
-
-  @media (max-width: 760px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const SideControls = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-self: stretch;
-`;
-
-const SideRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-`;
-
-const SideLabel = styled.span`
-  font-size: 12px;
-  color: #000;
-`;
-
-const SideButton = styled.button`
-  padding: 4px 10px;
-  font-size: 11px;
-  font-family: "MS Sans Serif", "Tahoma", sans-serif;
-  min-width: 90px;
-  background: linear-gradient(180deg, #fff, #ecebe5 86%, #d8d0c4);
-  border: 1px solid #003c74;
-  border-radius: 3px;
-  box-shadow: none;
-  cursor: ${({ $disabled }) => ($disabled ? 'not-allowed' : 'pointer')};
-  color: ${({ $disabled }) => ($disabled ? '#666' : '#000')};
-  opacity: ${({ $disabled }) => ($disabled ? 0.6 : 1)};
-  pointer-events: ${({ $disabled }) => ($disabled ? 'none' : 'auto')};
-
-  &:hover:not(:disabled) {
-    box-shadow: inset -1px 1px #fff0cf, inset 1px 2px #fdd889, inset -2px 2px #fbc761, inset 2px -2px #e5a01a;
-  }
-`;
-
-const SideSelect = styled.select`
-  font-size: 12px;
-  font-family: "MS Sans Serif", "Tahoma", sans-serif;
-  min-width: 90px;
-  padding: 3px 4px;
-  border: 1px solid #7f9db9;
-  background-color: #fff;
-`;
-
-const ColorSwatch = styled.div`
-  width: 100px;
-  height: 24px;
-  border: 1px solid #7f9db9;
-  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #b5b5b5;
-  background: linear-gradient(90deg, #072c6c, #0a3f9a);
-`;
-
-const CustomizeButton = styled.button`
-  padding: 4px 10px;
-  font-size: 11px;
-  font-family: "MS Sans Serif", "Tahoma", sans-serif;
-  background: linear-gradient(180deg, #fff, #ecebe5 86%, #d8d0c4);
-  border: 1px solid #003c74;
-  border-radius: 3px;
-  cursor: not-allowed;
-  color: #666;
-  opacity: 0.6;
-  flex-shrink: 0;
-  align-self: flex-start;
-`;
-
-const Placeholder = styled.div`
-  font-size: 13px;
-  color: #555;
-`;
-
-const ScreensaverPane = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  height: 100%;
-  overflow-y: auto;
-`;
-
-const ScreensaverMonitor = styled.div`
-  position: relative;
-  text-align: center;
-  width: 177px;
-  height: 159px;
-  margin: 0 auto 10px auto;
-  background: url(${withBaseUrl('/gui/display/monitor.png')}) no-repeat center center;
-  background-size: contain;
-`;
-
-const ScreensaverMonitorFrame = styled.div`
-  position: absolute;
-  inset: 0;
-`;
-
-const ScreensaverIframe = styled.iframe`
-  position: absolute;
-  top: 15px;
-  left: 12px;
-  width: 152px;
-  height: 112px;
-  border: none;
-  background: #000;
-`;
-
-const ScreensaverPreviewImg = styled.div`
-  position: absolute;
-  top: 15px;
-  left: 12px;
-  width: 152px;
-  height: 112px;
-  background-size: cover;
-  background-position: center;
-  background-color: #000;
-`;
-
-const ScreensaverComponentPreview = styled.div`
-  position: absolute;
-  top: 15px;
-  left: 12px;
-  width: 152px;
-  height: 112px;
-  overflow: hidden;
-  background: #000;
-`;
-
-const ScreensaverRow = styled.div`
-  display: flex;
-  gap: 8px;
-`;
-
-const Fieldset = styled.fieldset`
-  margin: 0;
-  padding: 8px 10px 10px 10px;
-  border: 1px solid #919b9c;
-`;
-
-const Legend = styled.legend`
-  background: #fbfbfc;
-  padding: 0 4px;
-  font-size: 12px;
-  color: #003399;
-`;
-
-const FieldRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 8px;
-  font-size: 12px;
-`;
-
-const WaitRow = styled.div`
-  margin-top: 10px;
-  font-size: 12px;
-`;
-
-const GroupPane = styled.div`
-  padding: 8px;
-`;
-
-const MonitorPowerContent = styled.div`
-  display: flex;
-  align-items: flex-start;
-`;
-
-const EnergyStarLogo = styled.img`
-  width: auto;
-  height: auto;
-  max-width: 80px;
-  margin-right: 10px;
-  flex-shrink: 0;
-`;
-
-const MonitorPowerText = styled.div`
-  flex: 1;
-  text-align: left;
-  font-size: 12px;
-
-  p {
-    margin: 0 0 8px 0;
-  }
-`;
-
-const MonitorPowerButton = styled.div`
-  text-align: right;
-`;
-
-const ScreensaverControls = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-`;
-
-const GroupBox = styled.div`
-  border: 1px solid #b5b5b5;
-  background: #f6f6f6;
-  padding: 8px;
-  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #c6c6c6;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  border-radius: 3px;
-`;
-
-const GroupTitle = styled.div`
-  font-size: 12px;
-  font-weight: 700;
-  color: #1b59d7;
-  margin-bottom: 4px;
-`;
-
-const Row = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-`;
-
-const WaitInput = styled.input`
-  width: 50px;
-  padding: 2px 4px;
-  font-size: 12px;
-`;
-
-const CheckboxRow = styled.label`
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-`;
-
-const ThemesPane = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  height: 100%;
-  align-items: stretch;
-`;
-
-const ThemeDescription = styled.p`
-  margin: 0 0 2px 0;
-  font-size: 12px;
-  color: #333;
-  line-height: 1.25;
-`;
-
-const ThemeFieldLabel = styled.span`
-  font-size: 12px;
-  color: #000;
-`;
-
-const ThemeSelectorRow = styled.div`
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  gap: 6px;
-  align-items: center;
-`;
-
-const ThemePreview = styled.div`
-  border: 1px solid #7f9db9;
-  background: #d4d0c8;
-  box-shadow: inset 1px 1px 0 #ffffff;
-  min-height: 254px;
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
-  max-width: 100%;
-  width: 100%;
-  align-self: center;
-  font-family: "MS Sans Serif", "Tahoma", sans-serif;
-`;
-
-const NativePreviewRoot = styled.div`
-  flex: 1;
-  width: 100%;
-  min-height: 232px;
-  position: relative;
-  overflow: hidden;
-  border: 1px solid #7f7f7f;
-  box-shadow: inset 1px 1px 0 rgba(255,255,255,0.8), inset -1px -1px 0 rgba(0,0,0,0.25);
-  background: ${({ $classic }) => ($classic ? '#808080' : '#585768')};
-  font-size: ${({ $scale }) => `${11 * $scale}px`};
-
-  .display-preview__desktop {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    min-height: 232px;
-    background-color: ${({ $classic }) => ($classic ? '#3a6ea5' : '#004e98')};
-    background-image: ${({ $wallpaper }) => ($wallpaper ? `url(${$wallpaper})` : 'none')};
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-  }
-
-  .display-preview__window {
-    position: absolute;
-    top: 32px;
-    left: 30px;
-    width: 220px;
-    filter: drop-shadow(2px 3px 8px rgba(0, 0, 0, 0.2));
-  }
-
-  .display-preview__window.window {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .display-preview__window.preview-classic-window {
-    border-radius: 0;
-  }
-
-  .display-preview__window .title-bar {
-    height: 28px;
-    min-height: 28px;
-    padding: 0 3px;
-  }
-
-  .display-preview__window .title-bar-controls button {
-    min-width: 21px;
-    width: 21px;
-    padding: 0;
-    flex-shrink: 0;
-  }
-
-  .display-preview__window .window-body {
-    height: 96px;
-    margin: 0 3px 3px;
-    padding: 0;
-    background: #ffffff;
-    overflow: hidden;
-  }
-
-  .display-preview__scroll-body {
-    height: 100%;
-    padding: 4px 6px;
-    overflow-y: scroll;
-    scrollbar-gutter: stable;
-    background: #ffffff;
-    color: #000;
-    line-height: 1.2;
-  }
-
-  .display-preview__text {
-    margin-bottom: 0;
-  }
-
-  .display-preview__scroll-spacer {
-    height: 200px;
-  }
-
-  .display-preview__recycler {
-    position: absolute;
-    right: 20px;
-    bottom: 8px;
-    width: 32px;
-    height: 32px;
-    object-fit: contain;
-  }
-`;
-
-const AppearancePane = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  height: 100%;
-`;
-
-const AppearancePreview = styled.div`
-  border: 2px solid;
-  border-color: #716f64 #f1efe2 #f1efe2 #716f64;
-  background: #d4d0c8;
-  box-sizing: border-box;
-  overflow: hidden;
-  min-height: 254px;
-  display: flex;
-`;
-
-const AppearancePreviewRoot = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
-  width: 100%;
-  min-height: 250px;
-  background: #ece9d8;
-  border: 1px solid #7f9db9;
-  box-shadow: inset 1px 1px 0 #ffffff;
-  font-size: ${({ $scale }) => `${11 * $scale}px`};
-
-  .appearance-preview__desktop {
-    position: relative;
-    width: 411px;
-    height: 219px;
-    max-width: 100%;
-    overflow: hidden;
-    background: ${({ $classic }) => ($classic ? '#d4d0c8' : '#004e98')};
-    border: 1px solid #aca899;
-    flex-shrink: 0;
-  }
-
-  .appearance-preview__window,
-  .appearance-preview__dialog {
-    position: absolute;
-    filter: drop-shadow(2px 3px 6px rgba(0, 0, 0, 0.18));
-  }
-
-  .appearance-preview__window.window,
-  .appearance-preview__dialog.window {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .appearance-preview__window--inactive {
-    top: 10px;
-    left: 10px;
-    width: 371px;
-    height: 175px;
-    z-index: 1;
-  }
-
-  .appearance-preview__window--active {
-    top: 33px;
-    left: 14px;
-    width: 389px;
-    height: 157px;
-    z-index: 2;
-  }
-
-  .appearance-preview__dialog {
-    top: 133px;
-    left: 22px;
-    width: 239px;
-    height: 80px;
-    z-index: 3;
-  }
-
-  .appearance-preview__window .title-bar,
-  .appearance-preview__dialog .title-bar {
-    height: 28px;
-    min-height: 28px;
-    padding: 0 3px;
-    border-radius: 0;
-  }
-
-  .appearance-preview__window.inactive .title-bar {
-    opacity: ${({ $classic }) => ($classic ? 1 : 0.72)};
-  }
-
-  .appearance-preview__window .title-bar-controls button,
-  .appearance-preview__dialog .title-bar-controls button {
-    min-width: 21px;
-    width: 21px;
-    padding: 0;
-    flex-shrink: 0;
-  }
-
-  .appearance-preview__body {
-    background: ${({ $palette }) => $palette.surface};
-  }
-
-  .appearance-preview__body--inactive {
-    flex: 1;
-    margin: 0 3px 3px;
-  }
-
-  .appearance-preview__body--active {
-    flex: 1;
-    padding: 0;
-    overflow: hidden;
-    margin: 0 3px 3px;
-    background: #ffffff;
-  }
-
-  .appearance-preview__body--dialog {
-    flex: 1;
-    padding: 12px;
-    margin: 0 3px 3px;
-  }
-
-  .appearance-preview__text {
-    color: #000;
-    margin-bottom: 6px;
-  }
-
-  .appearance-preview__scroll-body {
-    height: 100%;
-    padding: 4px 6px;
-    overflow-y: scroll;
-    scrollbar-gutter: stable;
-    background: #ffffff;
-    color: #000;
-    line-height: 1.2;
-  }
-
-  .appearance-preview__scroll-spacer {
-    height: 200px;
-  }
-
-  .appearance-preview__dialog-button {
-    width: 76px;
-    height: 26px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #111;
-    border: 1px solid ${({ $classic, $palette }) => ($classic ? '#404040' : $palette.buttonBorder)};
-    border-radius: ${({ $classic }) => ($classic ? '0' : '3px')};
-    background: ${({ $classic, $palette }) => (
-      $classic
-        ? 'linear-gradient(180deg, #ffffff, #d4d0c8)'
-        : `linear-gradient(180deg, ${$palette.buttonTop}, ${$palette.buttonBottom})`
-    )};
-    box-shadow: inset 1px 1px 0 rgba(255,255,255,0.7);
-  }
-`;
-
-const AppearanceControlsRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: stretch;
-  gap: 16px;
-`;
-
-const AppearanceSelects = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-`;
-
-const AppearanceButtons = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 10px;
-`;
-
-const ControlLabel = styled.div`
-  margin-top: 10px;
-  margin-bottom: 4px;
-  font-size: 12px;
-
-  &:first-child {
-    margin-top: 0;
-  }
-`;
-
-const SettingsPane = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  height: 100%;
-  overflow-y: auto;
-`;
-
-const SettingsMonitor = styled.div`
-  position: relative;
-  text-align: center;
-  width: 177px;
-  height: 159px;
-  margin: 0 auto 10px auto;
-  background: url(${withBaseUrl('/gui/display/reference/displaysettings.png')}) no-repeat center center;
-  background-size: contain;
-`;
-
-const SettingsMonitorImg = styled.img`
-  position: absolute;
-  top: 15px;
-  left: 11px;
-  width: 152px;
-  height: 112px;
-`;
-
-const SettingsDisplayInfo = styled.div`
-  margin-bottom: 10px;
-  font-size: 12px;
-`;
-
-const SettingsGroup = styled.div`
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-
-  ${Fieldset} {
-    flex: 1;
-  }
-`;
-
-const SliderLabels = styled.div`
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  padding: 0 2px;
-`;
-
-const ZoomSlider = styled.input`
-  width: 100%;
-  padding: 4px 0;
-  margin: 0;
-`;
-
-const ZoomLabel = styled.div`
-  text-align: center;
-  font-size: 12px;
-`;
-
-const ColorStrip = styled.div`
-  height: 13px;
-  margin-top: 5px;
-  background: repeating-linear-gradient(
-    90deg,
-    #ff00bf 0px 1px, #ff0080 1px 3px, red 3px 5px, #ff6c00 5px 7px,
-    #ffac00 7px 10px, #ffd200 10px 12px, #ff0 12px 14px, #d9ff00 14px 16px,
-    #80ff00 16px 18px, #00ff00 18px 20px, #00ff80 20px 22px, #00ffd9 22px 24px,
-    #00ffff 24px 26px, #00d9ff 26px 28px, #0080ff 28px 30px, #0000ff 30px 32px,
-    #8000ff 32px 34px, #bf00ff 34px 36px, #ff00ff 36px 38px, #ff00bf 38px 51px
-  );
-  border: 1px solid;
-  border-color: #808080 #fff #fff #808080;
-`;
-
-const SettingsButtonRow = styled.div`
-  text-align: right;
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-`;
-
-const Actions = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  padding-top: 8px;
-  border-top: 1px solid #c6c6c6;
-  background: #ece9d8;
-`;
-
-const ActionButton = styled.button`
-  min-width: 72px;
-  padding: 6px 12px;
-  font-size: 11px;
-  background: linear-gradient(180deg, #fff, #ecebe5 86%, #d8d0c4);
-  border: 1px solid #003c74;
-  border-radius: 3px;
-  box-shadow: none;
-  cursor: pointer;
-
-  &:active {
-    background: linear-gradient(180deg, #cdcac3, #e3e3db 8%, #e5e5de 94%, #f2f2f1);
-  }
-`;
 
 export default DisplayProperties;

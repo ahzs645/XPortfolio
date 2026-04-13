@@ -63,8 +63,10 @@ function TaskbarProperties({ onClose, onMinimize }) {
               <TabButton
                 key={tab.id}
                 role="tab"
-                aria-selected={activeTab === tab.id}
+                aria-selected={activeTab === tab.id ? 'true' : 'false'}
+                aria-controls={`tab-${tab.id}`}
                 $active={activeTab === tab.id}
+                tabIndex={activeTab === tab.id ? 0 : -1}
                 onClick={() => setActiveTab(tab.id)}
               >
                 {tab.label}
@@ -72,7 +74,7 @@ function TaskbarProperties({ onClose, onMinimize }) {
             ))}
           </TabsBar>
 
-          <TabPanel $active={activeTab === 'taskbar'} hidden={activeTab !== 'taskbar'}>
+          <TabPanel role="tabpanel" id="tab-taskbar" $active={activeTab === 'taskbar'} hidden={activeTab !== 'taskbar'}>
             <Fieldset>
               <Legend>Taskbar appearance</Legend>
               <TaskbarPreviewContainer>
@@ -144,7 +146,7 @@ function TaskbarProperties({ onClose, onMinimize }) {
             </Fieldset>
           </TabPanel>
 
-          <TabPanel $active={activeTab === 'startmenu'} hidden={activeTab !== 'startmenu'}>
+          <TabPanel role="tabpanel" id="tab-startmenu" $active={activeTab === 'startmenu'} hidden={activeTab !== 'startmenu'}>
             <StartMenuContent>
               <StartMenuPreviewContainer>
                 <StartMenuPreviewDesktop>

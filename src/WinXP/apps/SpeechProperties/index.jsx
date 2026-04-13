@@ -98,10 +98,11 @@ function SpeechProperties({ onClose, onMinimize }) {
               <TabButton
                 key={tab.id}
                 role="tab"
-                aria-selected={activeTab === tab.id}
+                aria-selected={activeTab === tab.id ? 'true' : 'false'}
                 aria-controls={`tab-${tab.id}`}
                 disabled={!tab.enabled}
                 $active={activeTab === tab.id}
+                tabIndex={activeTab === tab.id ? 0 : -1}
                 onClick={() => tab.enabled && setActiveTab(tab.id)}
               >
                 {tab.label}

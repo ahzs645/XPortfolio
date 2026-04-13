@@ -142,15 +142,19 @@ function Properties({ onClose, itemId, itemData }) {
       <TabContainer>
         <menu role="tablist">
           <button
-            aria-selected={activeTab === 'General'}
+            role="tab"
+            aria-selected={activeTab === 'General' ? 'true' : 'false'}
             aria-controls="tab-general"
+            tabIndex={activeTab === 'General' ? 0 : -1}
             onClick={() => setActiveTab('General')}
           >
             General
           </button>
           <button
-            aria-selected={activeTab === 'Sharing'}
+            role="tab"
+            aria-selected={activeTab === 'Sharing' ? 'true' : 'false'}
             aria-controls="tab-sharing"
+            tabIndex={activeTab === 'Sharing' ? 0 : -1}
             onClick={() => setActiveTab('Sharing')}
           >
             Sharing

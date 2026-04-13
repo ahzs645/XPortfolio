@@ -62,11 +62,15 @@ function FolderOptions({ onClose }) {
     >
       <WindowSurface>
         <section className="tabs">
-          <TabsBar>
+          <TabsBar role="tablist" aria-label="Folder Options">
             {TABS.map((tab) => (
               <TabButton
                 key={tab.id}
+                role="tab"
+                aria-selected={activeTab === tab.id ? 'true' : 'false'}
+                aria-controls={`tab-${tab.id}`}
                 $active={activeTab === tab.id}
+                tabIndex={activeTab === tab.id ? 0 : -1}
                 onClick={() => setActiveTab(tab.id)}
               >
                 {tab.label}
@@ -74,7 +78,7 @@ function FolderOptions({ onClose }) {
             ))}
           </TabsBar>
 
-          <TabPanel $active={true}>
+          <TabPanel role="tabpanel" id={`tab-${activeTab}`} $active={true}>
             {activeTab === 'general' && (
               <GeneralTab>
                 <Grouper>

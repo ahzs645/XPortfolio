@@ -222,15 +222,19 @@ function DateTimeProperties({ onClose, onMinimize }) {
         <TabContainer>
           <menu role="tablist">
             <button
-              aria-selected={activeTab === 'datetime'}
+              role="tab"
+              aria-selected={activeTab === 'datetime' ? 'true' : 'false'}
               aria-controls="tab-datetime"
+              tabIndex={activeTab === 'datetime' ? 0 : -1}
               onClick={() => setActiveTab('datetime')}
             >
               Date &amp; Time
             </button>
             <button
-              aria-selected={activeTab === 'timezone'}
+              role="tab"
+              aria-selected={activeTab === 'timezone' ? 'true' : 'false'}
               aria-controls="tab-timezone"
+              tabIndex={activeTab === 'timezone' ? 0 : -1}
               onClick={() => setActiveTab('timezone')}
             >
               Time Zone

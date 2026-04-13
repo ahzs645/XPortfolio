@@ -259,35 +259,45 @@ function TaskManager() {
         <menu role="tablist">
           <button
             role="tab"
-            aria-selected={activeTab === 'applications'}
+            aria-selected={activeTab === 'applications' ? 'true' : 'false'}
+            aria-controls="tab-applications"
+            tabIndex={activeTab === 'applications' ? 0 : -1}
             onClick={() => setActiveTab('applications')}
           >
             Applications
           </button>
           <button
             role="tab"
-            aria-selected={activeTab === 'processes'}
+            aria-selected={activeTab === 'processes' ? 'true' : 'false'}
+            aria-controls="tab-processes"
+            tabIndex={activeTab === 'processes' ? 0 : -1}
             onClick={() => setActiveTab('processes')}
           >
             Processes
           </button>
           <button
             role="tab"
-            aria-selected={activeTab === 'performance'}
+            aria-selected={activeTab === 'performance' ? 'true' : 'false'}
+            aria-controls="tab-performance"
+            tabIndex={activeTab === 'performance' ? 0 : -1}
             onClick={() => setActiveTab('performance')}
           >
             Performance
           </button>
           <button
             role="tab"
-            aria-selected={activeTab === 'networking'}
+            aria-selected={activeTab === 'networking' ? 'true' : 'false'}
+            aria-controls="tab-networking"
+            tabIndex={activeTab === 'networking' ? 0 : -1}
             onClick={() => setActiveTab('networking')}
           >
             Networking
           </button>
           <button
             role="tab"
-            aria-selected={activeTab === 'users'}
+            aria-selected={activeTab === 'users' ? 'true' : 'false'}
+            aria-controls="tab-users"
+            tabIndex={activeTab === 'users' ? 0 : -1}
             onClick={() => setActiveTab('users')}
           >
             Users
@@ -295,7 +305,7 @@ function TaskManager() {
         </menu>
 
         {/* Applications Tab */}
-        <TabPanel role="tabpanel" hidden={activeTab !== 'applications'}>
+        <TabPanel role="tabpanel" id="tab-applications" hidden={activeTab !== 'applications'}>
           <ListContainer className="sunken-panel">
             <table>
               <thead>
@@ -338,7 +348,7 @@ function TaskManager() {
         </TabPanel>
 
         {/* Processes Tab */}
-        <TabPanel role="tabpanel" hidden={activeTab !== 'processes'}>
+        <TabPanel role="tabpanel" id="tab-processes" hidden={activeTab !== 'processes'}>
           <ListContainer className="sunken-panel">
             <table>
               <thead>
@@ -383,7 +393,7 @@ function TaskManager() {
         </TabPanel>
 
         {/* Performance Tab */}
-        <TabPanel role="tabpanel" hidden={activeTab !== 'performance'}>
+        <TabPanel role="tabpanel" id="tab-performance" hidden={activeTab !== 'performance'}>
           <PerformanceTab
             cpuUsagePercent={cpuUsagePercent}
             cpuTotalHistoryByCore={cpuHistory.totalByCore}
@@ -400,7 +410,7 @@ function TaskManager() {
         </TabPanel>
 
         {/* Networking Tab */}
-        <TabPanel role="tabpanel" hidden={activeTab !== 'networking'}>
+        <TabPanel role="tabpanel" id="tab-networking" hidden={activeTab !== 'networking'}>
           <NetworkingTab
             adapters={networkAdapters}
             historyByAdapter={networkHistoryByAdapter}
@@ -411,7 +421,7 @@ function TaskManager() {
         </TabPanel>
 
         {/* Users Tab */}
-        <TabPanel role="tabpanel" hidden={activeTab !== 'users'}>
+        <TabPanel role="tabpanel" id="tab-users" hidden={activeTab !== 'users'}>
           <ListContainer className="sunken-panel">
             <table>
               <thead>
