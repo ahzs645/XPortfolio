@@ -100,19 +100,6 @@ body {
   text-indent: 0;
 }
 
-[data-xp-shell-root] menu[role="tablist"]::after {
-  background: #919b9c;
-  bottom: 1px;
-  content: "";
-  display: block;
-  height: 1px;
-  left: 0;
-  pointer-events: none;
-  position: absolute;
-  right: 0;
-  z-index: 0;
-}
-
 [data-xp-shell-root] menu[role="tablist"] > button[role="tab"] {
   background: linear-gradient(180deg, #fff, #fafaf9 26%, #f0f0ea 95%, #ecebe5) !important;
   border-color: #91a7b4 !important;
@@ -153,6 +140,11 @@ body {
   z-index: 8 !important;
 }
 
+[data-xp-shell-root] menu[role="tablist"] > button[role="tab"][aria-selected="true"]:first-of-type {
+  border-left-color: #919b9c !important;
+  border-top-left-radius: 0 !important;
+}
+
 [data-xp-shell-root] menu[role="tablist"] > button[role="tab"][aria-selected="true"]::after {
   background: #fcfcfe;
   bottom: -2px;
@@ -166,18 +158,6 @@ body {
   z-index: 9;
 }
 
-[data-xp-shell-root] menu[role="tablist"] > button[role="tab"][aria-selected="true"]:first-of-type::before {
-  border-left: 1px solid #919b9c;
-  content: "";
-  display: block;
-  height: 2px;
-  left: -1px;
-  position: absolute;
-  top: 100%;
-  width: 0;
-  z-index: -1;
-}
-
 [data-xp-shell-root] menu[role="tablist"] > button[role="tab"]:focus {
   outline: 1px dotted #222;
   outline-offset: -4px;
@@ -186,7 +166,6 @@ body {
 [data-xp-shell-root] [role="tabpanel"] {
   background: linear-gradient(180deg, #fcfcfe, #f4f3ee) !important;
   border: 1px solid #919b9c !important;
-  border-top: 0 !important;
   border-radius: 0 !important;
   box-shadow: inset 1px 1px #fcfcfe, inset -1px -1px #fcfcfe, 1px 2px 2px 0 rgba(208, 206, 191, 0.75) !important;
   clear: both;
