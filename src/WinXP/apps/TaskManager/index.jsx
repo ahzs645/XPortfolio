@@ -472,36 +472,8 @@ const Container = styled.div`
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding: 8px;
+    padding: 8px 8px 0;
     min-height: 0;
-  }
-
-  section.tabs > menu[role="tablist"] {
-    margin: 0;
-    padding: 0 2px;
-    display: flex;
-    margin-bottom: -2px;
-    position: relative;
-    z-index: 1;
-  }
-
-  section.tabs > menu[role="tablist"] > button[role="tab"] {
-    padding: 4px 12px;
-    font-size: 11px;
-    font-family: inherit;
-    border: 1px solid #919b9c;
-    border-bottom: 1px solid #919b9c;
-    border-radius: 3px 3px 0 0;
-    background: linear-gradient(180deg, #fafafa 0%, #e9e8dd 100%);
-    margin-right: -1px;
-    position: relative;
-    cursor: pointer;
-  }
-
-  section.tabs > menu[role="tablist"] > button[role="tab"][aria-selected="true"] {
-    background: #f1efe2;
-    border-bottom-color: #f1efe2;
-    z-index: 2;
   }
 
   .status-bar {
@@ -531,10 +503,6 @@ const TabPanel = styled.article`
   flex: 1;
   display: ${({ hidden }) => (hidden ? 'none' : 'flex')};
   flex-direction: column;
-  padding: 10px;
-  background: #f1efe2;
-  border: 1px solid #919b9c;
-  border-radius: 0 3px 3px 3px;
   min-height: 0;
   overflow: hidden;
 `;

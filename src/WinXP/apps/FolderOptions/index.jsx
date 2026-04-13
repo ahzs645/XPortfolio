@@ -304,50 +304,14 @@ const WindowSurface = styled.div`
   }
 `;
 
-const TabsBar = styled.menu`
-  margin: 0;
-  padding: 6px 6px 0 6px;
-  display: flex;
-  gap: 2px;
-  border-radius: 4px 4px 0 0;
-  border-bottom: none;
-  margin-bottom: -1px;
-`;
+const TabsBar = styled.menu``;
 
-const TabButton = styled.button`
-  min-width: 76px;
-  padding: 5px 10px 6px 10px;
-  font-size: 12px;
-  font-family: "MS Sans Serif", "Tahoma", sans-serif;
-  border: 1px solid #91a7b4;
-  border-bottom: ${({ $active }) => ($active ? '1px solid #fbfbfc' : '1px solid #919b9c')};
-  border-radius: 3px 3px 0 0;
-  background: ${({ $active }) => ($active
-    ? 'linear-gradient(180deg, #fff, #fafaf9 26%, #f0f0ea 95%, #ecebe5)'
-    : 'linear-gradient(180deg, #f7f7f7, #ededeb 40%, #e7e7e0 95%, #e2e2d8)')};
-  color: ${({ $active }) => ($active ? '#000' : '#222')};
-  box-shadow: ${({ $active }) => ($active ? 'inset 0 2px #ffc73c, inset 0 1px 0 #fff' : 'none')};
-  position: relative;
-  top: ${({ $active }) => ($active ? '0' : '1px')};
-  margin-bottom: ${({ $active }) => ($active ? '-1px' : '0')};
-  cursor: pointer;
-
-  &:hover {
-    border-top: 1px solid #e68b2c;
-    box-shadow: inset 0 2px #ffc73c;
-  }
-`;
+const TabButton = styled.button``;
 
 const TabPanel = styled.article`
   flex: 1;
-  padding: 10px;
+  min-height: 0;
   overflow-y: auto;
-  background: #fbfbfc;
-  border: 1px solid #919b9c;
-  border-top: 1px solid #919b9c;
-  box-shadow: inset 1px 1px #fcfcfe, inset -1px -1px #fcfcfe, 1px 2px 2px 0 rgba(208, 206, 191, 0.75);
-  border-radius: 0 0 4px 4px;
-  margin-top: 0;
 `;
 
 const GeneralTab = styled.div`

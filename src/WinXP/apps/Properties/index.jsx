@@ -328,32 +328,11 @@ const TabContainer = styled.div`
   flex-direction: column;
   min-height: 0;
 
-  menu[role="tablist"] {
-    position: relative;
-    margin: 0;
-    padding: 0;
-    z-index: 2;
-
-    button {
-      position: relative;
-      margin-bottom: -2px;
-      margin-left: 0;
-      margin-right: 0;
-
-      &[aria-selected="true"] {
-        z-index: 3;
-        margin-left: 0;
-      }
-    }
-  }
-
   article[role="tabpanel"] {
     flex: 1;
-    padding: 12px;
+    min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
-    position: relative;
-    z-index: 1;
   }
 `;
 

@@ -259,27 +259,14 @@ const WindowSurface = styled.div.attrs({
   }
 `;
 
-const TabsBar = styled.menu`
-  margin: 0;
-  padding: 0 0 0 3px;
-  display: flex;
-  gap: 0;
-  margin-bottom: -1px;
-`;
+const TabsBar = styled.menu``;
 
-const TabButton = styled.button`
-  min-width: 76px;
-  padding: 4px 10px 6px 10px;
-  font-size: 11px;
-  font-family: "MS Sans Serif", "Tahoma", sans-serif;
-  cursor: pointer;
-`;
+const TabButton = styled.button``;
 
 const TabPanel = styled.article`
   flex: 1;
-  padding: 10px;
+  min-height: 0;
   overflow-y: auto;
-  display: ${({ $active }) => ($active ? 'block' : 'none')};
 `;
 
 const Fieldset = styled.fieldset`

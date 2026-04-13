@@ -8,6 +8,8 @@ import { withBaseUrl } from '../../utils/baseUrl';
 import cursorManager from '../../utils/cursorManager';
 
 function BootScreen({ bootState, onComplete }) {
+  const FALLBACK_WELCOME_DURATION_MS = 2000;
+  const WELCOME_COMPLETION_BUFFER_MS = 150;
   const [showLogin, setShowLogin] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
@@ -21,7 +23,7 @@ function BootScreen({ bootState, onComplete }) {
     isLoading: usersLoading,
     loginUser,
   } = useUserAccounts();
-  const { playLogin, prewarmBalloon } = useSystemSounds();
+  const { playLogin, prewarmBalloon, getSoundDurationMs } = useSystemSounds();
 
   const dynamicSvgUrl = getDynamicXPSvgUrl();
   const isLoading = configLoading || usersLoading || !dynamicSvgUrl;
@@ -114,6 +116,12 @@ function BootScreen({ bootState, onComplete }) {
       }
     }
 
+    const loginSoundDurationMs = await getSoundDurationMs('login', FALLBACK_WELCOME_DURATION_MS);
+    const welcomeDurationMs = Math.max(
+      FALLBACK_WELCOME_DURATION_MS,
+      loginSoundDurationMs + WELCOME_COMPLETION_BUFFER_MS
+    );
+
     // Don't hide login screen - just show welcome overlay on top
     setShowWelcome(true);
 
@@ -128,7 +136,7 @@ function BootScreen({ bootState, onComplete }) {
     // After welcome message, transition to desktop
     setTimeout(() => {
       onComplete();
-    }, 2000);
+    }, welcomeDurationMs);
   };
 
   const handleCancelPassword = () => {
@@ -445,6 +453,8 @@ const LoginScreen = styled.div`
   height: 100%;
   background-color: #002d99;
   color: #fff;
+  font-family: Tahoma, 'Noto Sans', sans-serif;
+  font-size: 11px;
   overflow: visible;
   z-index: 99999;
   animation: ${fadeIn} 0.3s ease-in;

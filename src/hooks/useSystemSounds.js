@@ -84,6 +84,10 @@ function useSystemSounds() {
     return activeScheme?.sounds?.[eventId] || '';
   }, [soundSettings]);
 
+  const getResolvedSoundKey = useCallback((soundName) => {
+    return DIRECT_SOUND_KEYS[soundName] || getSchemeSoundKey(SYSTEM_EVENTS[soundName]);
+  }, [getSchemeSoundKey]);
+
   const playByFileKey = useCallback((fileKey, volume = 1) => {
     if (!fileKey) return;
 
@@ -106,10 +110,54 @@ function useSystemSounds() {
     }
   }, []);
 
+  const getSoundDurationMs = useCallback((soundName, fallbackMs = 2000) => {
+    const fileKey = getResolvedSoundKey(soundName);
+    const sound = soundsRef.current[fileKey] || audioCache[fileKey];
+
+    if (!sound) {
+      return Promise.resolve(fallbackMs);
+    }
+
+    if (Number.isFinite(sound.duration) && sound.duration > 0) {
+      return Promise.resolve(Math.ceil(sound.duration * 1000));
+    }
+
+    return new Promise((resolve) => {
+      let settled = false;
+      let timeoutId = null;
+
+      const finalize = (durationMs) => {
+        if (settled) return;
+        settled = true;
+        if (timeoutId !== null) {
+          window.clearTimeout(timeoutId);
+        }
+        sound.removeEventListener('loadedmetadata', handleDurationReady);
+        sound.removeEventListener('canplaythrough', handleDurationReady);
+        resolve(durationMs);
+      };
+
+      const handleDurationReady = () => {
+        const durationMs = Number.isFinite(sound.duration) && sound.duration > 0
+          ? Math.ceil(sound.duration * 1000)
+          : fallbackMs;
+        finalize(durationMs);
+      };
+
+      sound.addEventListener('loadedmetadata', handleDurationReady);
+      sound.addEventListener('canplaythrough', handleDurationReady);
+      timeoutId = window.setTimeout(() => finalize(fallbackMs), 250);
+
+      if (sound.readyState >= 1) {
+        handleDurationReady();
+      }
+    });
+  }, [getResolvedSoundKey]);
+
   const playSound = useCallback((soundName, volume = 1) => {
-    const fileKey = DIRECT_SOUND_KEYS[soundName] || getSchemeSoundKey(SYSTEM_EVENTS[soundName]);
+    const fileKey = getResolvedSoundKey(soundName);
     playByFileKey(fileKey, volume);
-  }, [getSchemeSoundKey, playByFileKey]);
+  }, [getResolvedSoundKey, playByFileKey]);
 
   const playLogin = useCallback(() => {
     playSound('login');
@@ -182,6 +230,7 @@ function useSystemSounds() {
     prewarmBalloon,
     playSound,
     playByFileKey,
+    getSoundDurationMs,
     playShutdown,
     playError,
     playExclamation,

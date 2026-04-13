@@ -165,24 +165,24 @@ function SoundsAndAudioDevices({ onClose, onMinimize }) {
       showStatusBar={false}
     >
       <WindowSurface>
-        <TabsBar role="tablist" aria-label="Sounds and Audio Devices tabs">
-          {TABS.map((tab) => (
-            <TabButton
-              key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={activeTab === tab.id ? 'true' : 'false'}
-              aria-controls={`tab-${tab.id}`}
-              $active={activeTab === tab.id}
-              tabIndex={activeTab === tab.id ? 0 : -1}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.label}
-            </TabButton>
-          ))}
-        </TabsBar>
+        <section className="tabs">
+          <TabsBar role="tablist" aria-label="Sounds and Audio Devices tabs">
+            {TABS.map((tab) => (
+              <TabButton
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === tab.id ? 'true' : 'false'}
+                aria-controls={`tab-${tab.id}`}
+                tabIndex={activeTab === tab.id ? 0 : -1}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                {tab.label}
+              </TabButton>
+            ))}
+          </TabsBar>
 
-        <Panel role="tabpanel" id={`tab-${activeTab}`}>
+          <Panel role="tabpanel" id={`tab-${activeTab}`}>
           {activeTab === 'sounds' && (
             <SoundsTab>
               <Hero>
@@ -320,7 +320,8 @@ function SoundsAndAudioDevices({ onClose, onMinimize }) {
               </Fieldset>
             </InfoTab>
           )}
-        </Panel>
+          </Panel>
+        </section>
 
         <Actions>
           <ActionButton type="button" onClick={handleOk}>OK</ActionButton>
@@ -343,38 +344,24 @@ const WindowSurface = styled.div`
   background: linear-gradient(180deg, #f7f6f0 0%, #ece9d8 45%, #e2dfcf 100%);
   font-family: "MS Sans Serif", "Tahoma", sans-serif;
   overflow: hidden;
+
+  .tabs {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+  }
 `;
 
-const TabsBar = styled.div`
-  display: flex;
-  gap: 2px;
-  padding: 4px 4px 0;
-`;
+const TabsBar = styled.menu``;
 
-const TabButton = styled.button`
-  min-width: 86px;
-  padding: 5px 10px 6px;
-  border: 1px solid #91a7b4;
-  border-bottom: ${({ $active }) => ($active ? '1px solid #fbfbfc' : '1px solid #919b9c')};
-  border-radius: 3px 3px 0 0;
-  background: ${({ $active }) => ($active
-    ? 'linear-gradient(180deg, #fff, #fafaf9 26%, #f0f0ea 95%, #ecebe5)'
-    : 'linear-gradient(180deg, #f7f7f7, #ededeb 40%, #e7e7e0 95%, #e2e2d8)')};
-  box-shadow: ${({ $active }) => ($active ? 'inset 0 2px #ffc73c, inset 0 1px 0 #fff' : 'none')};
-  cursor: pointer;
-  font-size: 12px;
-  position: relative;
-  top: ${({ $active }) => ($active ? '0' : '1px')};
-`;
+const TabButton = styled.button``;
 
-const Panel = styled.div`
+const Panel = styled.article`
   display: flex;
   flex: 1;
   min-height: 0;
-  padding: 10px;
-  border: 1px solid #919b9c;
-  background: #fbfbfc;
-  box-shadow: inset 1px 1px #fff, inset -1px -1px #c7c1b7;
+  overflow: hidden;
 `;
 
 const SoundsTab = styled.div`
