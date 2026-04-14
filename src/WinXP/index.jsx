@@ -17,6 +17,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { ContextMenu } from './components/ContextMenu';
 import DisplayFilterDefs from './components/DisplayFilterDefs';
 import FileUploadDialog from './FileUploadDialog';
+import PwaLaunchHandler from './PwaLaunchHandler';
 import { useFileContextMenu, useBackgroundContextMenu } from './hooks/useFileContextMenu';
 
 // Import extracted hooks
@@ -502,6 +503,7 @@ function WinXP() {
     <AppProvider appSettings={appSettings} dispatch={dispatch} addAppAction={ADD_APP}>
       <MessageBoxProvider dispatch={dispatch} appSettings={appSettings} addAppAction={ADD_APP}>
       <RunningAppsProvider apps={state.apps} onEndTask={handleEndTask} onSwitchTo={handleSwitchToApp} showClippy={showClippy} onEndClippy={handleEndClippy}>
+      <PwaLaunchHandler />
       <Container
         ref={ref}
         onMouseUp={onMouseUpDesktop}
