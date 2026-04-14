@@ -12,7 +12,6 @@ import { TooltipProvider } from './contexts/TooltipContext';
 import { RegistryProvider } from './contexts/RegistryContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { UpdateToast } from './components/UpdateToast';
-import { OfflineToast } from './components/OfflineToast';
 import ErrorBoundary from './components/ErrorBoundary';
 import { initializeDeviceDetection } from './utils/deviceDetection';
 import { initPwaManager } from './utils/pwaManager';
@@ -40,7 +39,6 @@ function App() {
                             <WinXP />
                           </ErrorBoundary>
                           <UpdateToast />
-                          <OfflineToast />
                         </ThemeProvider>
                       </RegistryProvider>
                     </TooltipProvider>
