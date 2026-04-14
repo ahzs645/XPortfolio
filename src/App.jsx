@@ -14,11 +14,13 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { UpdateToast } from './components/UpdateToast';
 import ErrorBoundary from './components/ErrorBoundary';
 import { initializeDeviceDetection } from './utils/deviceDetection';
+import { initPwaManager } from './utils/pwaManager';
 
 function App() {
   // Initialize device detection early to add mobile-device class
   useEffect(() => {
     initializeDeviceDetection();
+    initPwaManager();
   }, []);
 
   return (

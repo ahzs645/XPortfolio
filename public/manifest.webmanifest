@@ -1,0 +1,69 @@
+{
+  "name": "XPortfolio",
+  "short_name": "XPortfolio",
+  "description": "Windows XP-themed portfolio experience.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#3a6ea5",
+  "theme_color": "#245edc",
+  "icons": [
+    {
+      "src": "favicon.webp",
+      "sizes": "any",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "favicon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "Windowsxp.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Open Resume",
+      "short_name": "Resume",
+      "description": "Open my CV as a PDF.",
+      "url": "./?app=Resume",
+      "icons": [
+        { "src": "icons/resume.webp", "sizes": "any", "type": "image/webp" }
+      ]
+    },
+    {
+      "name": "Projects",
+      "short_name": "Projects",
+      "description": "Browse my project portfolio.",
+      "url": "./?app=Projects",
+      "icons": [
+        { "src": "icons/projects.webp", "sizes": "any", "type": "image/webp" }
+      ]
+    },
+    {
+      "name": "About Me",
+      "short_name": "About",
+      "description": "A bit about who I am.",
+      "url": "./?app=About%20Me",
+      "icons": [
+        { "src": "icons/about.webp", "sizes": "any", "type": "image/webp" }
+      ]
+    },
+    {
+      "name": "Play Solitaire",
+      "short_name": "Solitaire",
+      "description": "Take a break with a quick game.",
+      "url": "./?app=Solitaire",
+      "icons": [
+        { "src": "icons/solitaire-icon.png", "sizes": "any", "type": "image/png" }
+      ]
+    }
+  ]
+}
