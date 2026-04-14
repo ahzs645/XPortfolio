@@ -1,0 +1,31 @@
+{
+  "name": "XPortfolio",
+  "short_name": "XPortfolio",
+  "description": "Windows XP-themed portfolio experience.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#3a6ea5",
+  "theme_color": "#245edc",
+  "icons": [
+    {
+      "src": "favicon.webp",
+      "sizes": "any",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "favicon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "Windowsxp.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
