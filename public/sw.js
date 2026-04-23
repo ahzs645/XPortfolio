@@ -94,11 +94,20 @@ async function trimCache(cacheName, maxEntries) {
   await Promise.all(removals.map((request) => cache.delete(request)));
 }
 
+function shouldCacheResponse(request, response) {
+  return Boolean(
+    response &&
+    response.ok &&
+    response.status === 200 &&
+    !request.headers.has('range')
+  );
+}
+
 async function networkFirst(request) {
   const cache = await caches.open(RUNTIME);
   try {
     const response = await fetch(request);
-    if (response && response.ok) {
+    if (shouldCacheResponse(request, response)) {
       cache.put(request, response.clone());
     }
     return response;
@@ -114,7 +123,7 @@ async function staleWhileRevalidate(request) {
   const cached = await cache.match(request);
   const networkPromise = fetch(request)
     .then((response) => {
-      if (response && response.ok) {
+      if (shouldCacheResponse(request, response)) {
         cache.put(request, response.clone()).then(() => trimCache(RUNTIME, RUNTIME_MAX_ENTRIES));
       }
       return response;

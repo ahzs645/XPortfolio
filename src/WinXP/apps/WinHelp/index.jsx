@@ -5,6 +5,29 @@ import { useApp } from '../../../contexts/AppContext';
 import { useFileSystem } from '../../../contexts/FileSystemContext';
 import { HlpParser } from '../../../lib/hlpParser';
 
+function dataUrlToArrayBuffer(dataUrl) {
+  const commaIndex = dataUrl.indexOf(',');
+  if (commaIndex === -1) {
+    throw new Error('Invalid data URL');
+  }
+
+  const metadata = dataUrl.slice(5, commaIndex);
+  const payload = dataUrl.slice(commaIndex + 1);
+
+  if (metadata.includes(';base64')) {
+    const binary = atob(payload);
+    const bytes = new Uint8Array(binary.length);
+
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index);
+    }
+
+    return bytes.buffer;
+  }
+
+  return new TextEncoder().encode(decodeURIComponent(payload)).buffer;
+}
+
 const MENUS = [
   {
     id: 'file',
@@ -80,8 +103,7 @@ export default function WinHelp({ onClose, filePath, fileContent }) {
           if (fileContent instanceof ArrayBuffer) {
             buffer = fileContent;
           } else if (typeof fileContent === 'string' && fileContent.startsWith('data:')) {
-            const response = await fetch(fileContent);
-            buffer = await response.arrayBuffer();
+            buffer = dataUrlToArrayBuffer(fileContent);
           }
         } else if (filePath) {
           // Try to load from virtual file system
@@ -89,8 +111,7 @@ export default function WinHelp({ onClose, filePath, fileContent }) {
           if (content instanceof ArrayBuffer) {
             buffer = content;
           } else if (typeof content === 'string' && content.startsWith('data:')) {
-            const response = await fetch(content);
-            buffer = await response.arrayBuffer();
+            buffer = dataUrlToArrayBuffer(content);
           }
         }
 
