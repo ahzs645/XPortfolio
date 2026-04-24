@@ -1698,8 +1698,12 @@ function readNullTerminatedString(cursor) {
 
 function sanitizeKeyword(keyword) {
   if (!keyword) return '';
-  const cleaned = keyword
-    .replace(/[\u0000-\u001f\u007f-\u009f]/g, '')
+  const cleaned = Array.from(keyword)
+    .filter((char) => {
+      const codePoint = char.codePointAt(0);
+      return codePoint > 0x1F && (codePoint < 0x7F || codePoint > 0x9F);
+    })
+    .join('')
     .replace(/\s+/g, ' ')
     .trim();
 

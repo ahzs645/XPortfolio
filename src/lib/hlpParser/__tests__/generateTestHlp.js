@@ -185,7 +185,6 @@ function buildTestHlp() {
   b.writeInt32(0);    // block size (patch)
   const topic1DataLen2Patch = b.getPos();
   b.writeInt32(0);    // data len 2 (patch)
-  const topic1PrevPatch = b.getPos();
   b.writeInt32(-1);   // prev
   const topic1NextPatch = b.getPos();
   b.writeInt32(-1);   // next (patch later)
@@ -298,7 +297,6 @@ function buildTestHlp() {
   b.writeInt32(0);
   const topic6PrevPatch = b.getPos();
   b.writeInt32(-1);
-  const topic6NextPatch = b.getPos();
   b.writeInt32(-1);
   b.writeInt32(22);   // data len 1 (21-byte header + 1 format byte)
   b.writeUint8(0x20);
