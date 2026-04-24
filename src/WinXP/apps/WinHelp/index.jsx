@@ -88,9 +88,11 @@ export default function WinHelp({ onClose, filePath, fileContent }) {
   const [history, setHistory] = useState([]);
   const [showIndex, setShowIndex] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [contentsWidth, setContentsWidth] = useState(260);
   const [error, setError] = useState(null);
   const contentRef = useRef(null);
   const fileInputRef = useRef(null);
+  const mainAreaRef = useRef(null);
 
   // Parse HLP file from props or file content
   useEffect(() => {
@@ -145,6 +147,8 @@ export default function WinHelp({ onClose, filePath, fileContent }) {
     return currentTopic.content;
   }, [currentTopic]);
 
+  const contentsItems = useMemo(() => buildContentsItems(helpData), [helpData]);
+
   const filteredKeywords = useMemo(() => {
     if (!helpData?.keywords) return [];
     if (!searchQuery) return helpData.keywords;
@@ -176,6 +180,27 @@ export default function WinHelp({ onClose, filePath, fileContent }) {
       contentRef.current.scrollTop = 0;
     }
   }, [currentTopicId]);
+
+  const handleResizerPointerDown = useCallback((event) => {
+    if (!mainAreaRef.current) return;
+
+    event.preventDefault();
+    const bounds = mainAreaRef.current.getBoundingClientRect();
+
+    const handlePointerMove = (moveEvent) => {
+      const nextWidth = moveEvent.clientX - bounds.left;
+      const maxWidth = Math.max(180, bounds.width - 260);
+      setContentsWidth(Math.min(maxWidth, Math.max(180, nextWidth)));
+    };
+
+    const handlePointerUp = () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+  }, []);
 
   const goBack = useCallback(() => {
     if (history.length > 0) {
@@ -256,36 +281,75 @@ export default function WinHelp({ onClose, filePath, fileContent }) {
         ))}
       </ToolbarRow>
 
-      <MainArea>
-        {showIndex && helpData && (
-          <SidePanel>
-            <SidePanelHeader>Index</SidePanelHeader>
-            <SearchInput
-              type="text"
-              placeholder="Type first few letters..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <KeywordList>
-              {filteredKeywords.map((kw, i) => (
-                <KeywordItem
-                  key={i}
-                  onClick={() => {
-                    const topicId = kw.topicId ?? findTopicIdByText(kw.keyword);
-                    if (topicId != null) {
-                      navigateToTopic(topicId);
-                    }
-                  }}
-                  $disabled={kw.topicId == null && findTopicIdByText(kw.keyword) == null}
+      <MainArea ref={mainAreaRef}>
+        {helpData && (
+          <>
+            <SidePanel $width={contentsWidth}>
+              <SidePanelHeader>
+                <PanelTab
+                  type="button"
+                  $active={!showIndex}
+                  onClick={() => setShowIndex(false)}
                 >
-                  {kw.keyword}
-                </KeywordItem>
-              ))}
-              {filteredKeywords.length === 0 && (
-                <NoResults>No keywords found</NoResults>
+                  Contents
+                </PanelTab>
+                <PanelTab
+                  type="button"
+                  $active={showIndex}
+                  onClick={() => setShowIndex(true)}
+                >
+                  Index
+                </PanelTab>
+              </SidePanelHeader>
+
+              {!showIndex ? (
+                <ContentsTree>
+                  {contentsItems.map((item) => (
+                    <ContentsTreeItem
+                      key={item.id}
+                      item={item}
+                      currentTopicId={currentTopicId}
+                      onNavigate={navigateToTopic}
+                    />
+                  ))}
+                </ContentsTree>
+              ) : (
+                <>
+                  <SearchInput
+                    type="text"
+                    placeholder="Type first few letters..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <KeywordList>
+                    {filteredKeywords.map((kw, i) => (
+                      <KeywordItem
+                        key={`${kw.keyword}-${i}`}
+                        onClick={() => {
+                          const topicId = kw.topicId ?? findTopicIdByText(kw.keyword);
+                          if (topicId != null) {
+                            navigateToTopic(topicId);
+                          }
+                        }}
+                        $disabled={kw.topicId == null && findTopicIdByText(kw.keyword) == null}
+                      >
+                        {kw.keyword}
+                      </KeywordItem>
+                    ))}
+                    {filteredKeywords.length === 0 && (
+                      <NoResults>No keywords found</NoResults>
+                    )}
+                  </KeywordList>
+                </>
               )}
-            </KeywordList>
-          </SidePanel>
+            </SidePanel>
+            <PaneResizer
+              role="separator"
+              aria-orientation="vertical"
+              aria-label="Resize contents pane"
+              onPointerDown={handleResizerPointerDown}
+            />
+          </>
         )}
 
         <ContentArea ref={contentRef}>
@@ -355,7 +419,7 @@ export default function WinHelp({ onClose, filePath, fileContent }) {
 
               {helpData.topics.length > 1 && currentTopicId === 0 && (
                 <TopicList>
-                  <TopicListTitle>Topics:</TopicListTitle>
+                  <TopicListTitle>Topics</TopicListTitle>
                   {helpData.topics.slice(1).map((topic) => (
                     <TopicLink
                       key={topic.id}
@@ -398,28 +462,33 @@ const Container = styled.div`
 const ToolbarRow = styled.div`
   display: flex;
   gap: 1px;
-  padding: 2px 4px;
-  background: #ece9d8;
-  border-bottom: 1px solid #aca899;
+  padding: 3px 5px;
+  background: linear-gradient(180deg, #f7f6ef 0%, #ece9d8 100%);
+  border-top: 1px solid #fff;
+  border-bottom: 1px solid #b8b4a5;
 `;
 
 const ToolbarButton = styled.button`
+  min-width: 56px;
+  height: 24px;
   padding: 2px 8px;
   font-size: 11px;
   font-family: Tahoma, sans-serif;
-  background: ${({ disabled }) => disabled ? '#ece9d8' : '#ece9d8'};
+  background: transparent;
   border: 1px solid transparent;
+  border-radius: 3px;
   cursor: ${({ disabled }) => disabled ? 'default' : 'pointer'};
   color: ${({ disabled }) => disabled ? '#aca899' : '#000'};
 
   &:hover:not(:disabled) {
-    border-color: #aca899;
-    background: #f1efe2;
+    border-color: #7da2ce;
+    background: linear-gradient(180deg, #fff 0%, #dcecff 100%);
   }
 
   &:active:not(:disabled) {
-    border-color: #aca899;
-    background: #ddd8c7;
+    border-color: #316ac5;
+    background: linear-gradient(180deg, #c9dfff 0%, #f5f9ff 100%);
+    box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.22);
   }
 `;
 
@@ -427,23 +496,52 @@ const MainArea = styled.div`
   flex: 1;
   display: flex;
   overflow: hidden;
+  min-height: 0;
+  padding: 3px;
+  background: #ece9d8;
 `;
 
 const SidePanel = styled.div`
-  width: 220px;
-  min-width: 220px;
+  width: ${({ $width }) => $width}px;
+  min-width: 180px;
+  max-width: calc(100% - 260px);
   border-right: 1px solid #aca899;
   display: flex;
   flex-direction: column;
   background: #fff;
+  box-shadow:
+    inset 1px 1px 0 #716f64,
+    inset -1px -1px 0 #fff;
+  margin: 1px 0 1px 1px;
+  overflow: hidden;
 `;
 
 const SidePanelHeader = styled.div`
-  padding: 4px 8px;
-  background: #ece9d8;
-  border-bottom: 1px solid #aca899;
+  display: flex;
+  gap: 1px;
+  padding: 3px 4px 0;
+  background: linear-gradient(180deg, #f8f7ef 0%, #ece9d8 100%);
+  border-bottom: 1px solid #b8b4a5;
   font-weight: bold;
   font-size: 11px;
+`;
+
+const PanelTab = styled.button`
+  height: 21px;
+  padding: 1px 10px;
+  border: 1px solid ${({ $active }) => $active ? '#919b9c' : '#c9c7ba'};
+  border-bottom-color: ${({ $active }) => $active ? '#fff' : '#aca899'};
+  background: ${({ $active }) => $active ? '#fff' : '#ece9d8'};
+  color: #000;
+  font: inherit;
+  font-weight: normal;
+  cursor: pointer;
+  transform: translateY(1px);
+
+  &:hover {
+    border-color: #7da2ce;
+    border-bottom-color: ${({ $active }) => $active ? '#fff' : '#7da2ce'};
+  }
 `;
 
 const SearchInput = styled.input`
@@ -457,7 +555,7 @@ const SearchInput = styled.input`
 const KeywordList = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 2px;
+  padding: 3px;
 `;
 
 const KeywordItem = styled.div`
@@ -493,6 +591,89 @@ const NoResults = styled.div`
   text-align: center;
 `;
 
+const ContentsTree = styled.ul`
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 4px 2px;
+  overflow: auto;
+  list-style: none;
+  background: #fff;
+`;
+
+const ContentsNode = styled.li`
+  display: block;
+  margin: 0;
+  padding: 0;
+  white-space: nowrap;
+`;
+
+const ContentsChildren = styled.ul`
+  margin: 0;
+  padding: 0;
+  list-style: none;
+`;
+
+const ContentsItem = styled.button`
+  width: 100%;
+  min-height: 20px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 3px 1px ${({ $depth }) => 4 + ($depth * 16)}px;
+  border: 0;
+  background: ${({ $selected }) => $selected ? '#316ac5' : 'transparent'};
+  color: ${({ $selected }) => $selected ? '#fff' : '#000'};
+  font-family: Tahoma, 'MS Sans Serif', sans-serif;
+  font-size: 11px;
+  line-height: 18px;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: ${({ $selected }) => $selected ? '#316ac5' : '#dcebff'};
+  }
+
+  &:focus-visible {
+    outline: 1px dotted ${({ $selected }) => $selected ? '#fff' : '#000'};
+    outline-offset: -2px;
+  }
+`;
+
+const TreeIcon = styled.span`
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  background-image: url(${({ $folder, $expanded }) => {
+    if ($folder) return $expanded ? '/icons/xp/FolderOpened.png' : '/icons/xp/FolderClosed.png';
+    return '/icons/xp/GenericTextDocument.png';
+  }});
+  background-size: 16px 16px;
+  background-repeat: no-repeat;
+  background-position: center;
+`;
+
+const ContentsLabel = styled.span`
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const PaneResizer = styled.div`
+  width: 4px;
+  flex: 0 0 4px;
+  margin: 1px 0;
+  cursor: ew-resize;
+  background: #ece9d8;
+  border-left: 1px solid #aca899;
+  border-right: 1px solid #fff;
+  box-sizing: border-box;
+  touch-action: none;
+
+  &:hover {
+    background: #dfe8f6;
+  }
+`;
+
 function normalizeLookupText(value) {
   if (!value) return '';
   return value
@@ -502,11 +683,86 @@ function normalizeLookupText(value) {
     .trim();
 }
 
+function buildContentsItems(helpData) {
+  if (!helpData?.topics?.length) return [];
+
+  const [firstTopic, ...restTopics] = helpData.topics;
+  const rootTitle = helpData.title || firstTopic?.title || 'Help Topics';
+
+  return [
+    {
+      id: 'root',
+      type: 'folder',
+      label: rootTitle,
+      expanded: true,
+      children: [
+        {
+          id: firstTopic.id,
+          type: 'page',
+          label: firstTopic.title || 'Welcome to Help',
+          topicId: firstTopic.id,
+        },
+        ...restTopics.map((topic) => ({
+          id: topic.id,
+          type: 'page',
+          label: topic.title || `Topic ${topic.id}`,
+          topicId: topic.id,
+        })),
+      ],
+    },
+  ];
+}
+
+function ContentsTreeItem({ item, currentTopicId, onNavigate, depth = 0 }) {
+  const [expanded, setExpanded] = useState(item.expanded ?? true);
+  const selected = item.topicId === currentTopicId;
+  const isFolder = item.type === 'folder';
+
+  return (
+    <ContentsNode>
+      <ContentsItem
+        type="button"
+        $depth={depth}
+        $selected={selected}
+        onClick={() => {
+          if (isFolder) {
+            setExpanded(value => !value);
+          } else {
+            onNavigate(item.topicId);
+          }
+        }}
+      >
+        <TreeIcon $folder={isFolder} $expanded={expanded} aria-hidden="true" />
+        <ContentsLabel>{item.label}</ContentsLabel>
+      </ContentsItem>
+      {isFolder && expanded && item.children?.length > 0 && (
+        <ContentsChildren>
+          {item.children.map((child) => (
+            <ContentsTreeItem
+              key={child.id}
+              item={child}
+              currentTopicId={currentTopicId}
+              onNavigate={onNavigate}
+              depth={depth + 1}
+            />
+          ))}
+        </ContentsChildren>
+      )}
+    </ContentsNode>
+  );
+}
+
 const ContentArea = styled.div`
   flex: 1;
+  min-width: 0;
   overflow-y: auto;
   background: #fff;
   padding: 12px 16px;
+  margin: 1px;
+  border: 1px solid #7f9db9;
+  box-shadow:
+    inset 1px 1px 0 #fff,
+    inset -1px -1px 0 #d6d6d6;
 `;
 
 const ErrorMessage = styled.div`
@@ -575,7 +831,7 @@ const OpenButton = styled.button`
 const HelpTitle = styled.h1`
   font-size: 16px;
   font-weight: bold;
-  color: #003399;
+  color: #0a246a;
   margin: 0 0 12px;
   padding-bottom: 8px;
   border-bottom: 1px solid #ccc;
@@ -588,7 +844,7 @@ const TopicContent = styled.div`
 const TopicTitle = styled.h2`
   font-size: 13px;
   font-weight: bold;
-  color: #003399;
+  color: #0a246a;
   margin: 0 0 8px;
 `;
 

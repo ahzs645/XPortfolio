@@ -17,6 +17,15 @@
  */
 import { BinaryReader } from './BinaryReader';
 import {
+  isPlausibleInternalFileName,
+  isPlausibleInternalFileOffset,
+  normalizeInternalFileName,
+  readDirectoryEntries,
+} from './btree';
+import { readOldPhrases, readNewPhrases } from './phrases';
+import { readKeywordTables } from './keywords';
+import { readInt32, readUint16, normalizeTopicOffset } from './binaryUtils';
+import {
   decompressLZ77,
   decompressPhrasesNibble,
   decompressPhrasesOld,
@@ -103,6 +112,10 @@ export class HlpParser {
     this.topicBlockSize = 4096;
     this.contextMap = new Map();
     this.titleOffsets = [];
+    this.fileEntries = [];
+    this.baggageFiles = [];
+    this.bitmapFiles = [];
+    this.auxiliaryFiles = [];
   }
 
   parse() {
@@ -112,9 +125,9 @@ export class HlpParser {
     this._readPhrases();
     this._readFonts();
     this._readContextMap();
+    this._readTitleOffsets();
     this._readTopics();
     this._readKeywords();
-    this._readTitleOffsets();
     this._resolveLinksAndKeywords();
 
     return {
@@ -124,6 +137,10 @@ export class HlpParser {
       fonts: this.fonts,
       keywords: this.keywords,
       version: this.version,
+      internalFiles: this.fileEntries,
+      baggageFiles: this.baggageFiles,
+      bitmapFiles: this.bitmapFiles,
+      auxiliaryFiles: this.auxiliaryFiles,
     };
   }
 
@@ -140,93 +157,41 @@ export class HlpParser {
   }
 
   _readDirectory() {
-    const r = this.reader;
-    // Read directory FILEHEADER
-    r.seek(this.directoryStart);
-    const reservedSpace = r.readInt32();
-    const usedSpace = r.readInt32();
-    const fileFlags = r.readUint8();
+    const entries = readDirectoryEntries(this.reader, this.directoryStart);
 
-    // Read BTREEHEADER
-    const btreeMagic = r.readUint16();
-    if (btreeMagic !== BTREE_MAGIC) {
-      throw new Error(`Invalid B+ tree magic: 0x${btreeMagic.toString(16)}`);
-    }
-
-    const btreeFlags = r.readUint16();
-    const pageSize = r.readUint16();
-    const structure = r.readFixedString(16);
-    r.skip(2); // must be zero
-    const pageSplits = r.readUint16();
-    const rootPage = r.readUint16();
-    r.skip(2); // must be -1
-    const totalPages = r.readUint16();
-    const nLevels = r.readUint16();
-    const totalEntries = r.readUint32();
-
-    const pagesStart = r.offset;
-    this._readBTreePages(pagesStart, rootPage, pageSize, nLevels, totalPages);
-  }
-
-  _readBTreePages(pagesStart, rootPage, pageSize, nLevels, totalPages) {
-    const r = this.reader;
-
-    // For leaf-only tree (nLevels=1), just read leaf pages via linked list
-    if (nLevels <= 1) {
-      this._readLeafPages(pagesStart, rootPage, pageSize);
-      return;
-    }
-
-    // Multi-level: find the leftmost leaf by descending through index pages
-    let currentPage = rootPage;
-    for (let level = nLevels; level > 1; level--) {
-      const pageOffset = pagesStart + currentPage * pageSize;
-      if (pageOffset + 6 > r.length) return;
-      r.seek(pageOffset);
-      r.skip(2); // unused
-      r.readUint16(); // nEntries
-      currentPage = r.readUint16(); // first child page
-    }
-
-    // Now read all leaf pages via linked list starting from leftmost
-    this._readLeafPages(pagesStart, currentPage, pageSize);
-  }
-
-  _readLeafPages(pagesStart, startPage, pageSize) {
-    const r = this.reader;
-    const visited = new Set();
-    let pageNum = startPage;
-
-    while (pageNum >= 0 && !visited.has(pageNum)) {
-      visited.add(pageNum);
-      const pageOffset = pagesStart + pageNum * pageSize;
-      const pageEnd = pageOffset + pageSize;
-
-      if (pageOffset + 6 > r.length) break;
-      r.seek(pageOffset);
-
-      r.skip(2); // previous page
-      const nextPage = r.readInt16();
-      const nEntries = r.readUint16();
-
-      for (let i = 0; i < nEntries; i++) {
-        if (r.offset + 5 > pageEnd || r.offset + 5 > r.length) break;
-        try {
-          const filename = r.readString();
-          if (r.offset + 4 > r.length) break;
-          const fileOffset = r.readInt32();
-          this.internalFiles.set(filename, fileOffset);
-        } catch {
-          break;
-        }
+    for (const entry of entries) {
+      if (
+        isPlausibleInternalFileName(entry.name) &&
+        isPlausibleInternalFileOffset(this.reader, entry.fileOffset)
+      ) {
+        this.internalFiles.set(entry.name, entry.fileOffset);
       }
-
-      pageNum = nextPage;
     }
+
+    this._catalogInternalFiles();
+  }
+
+  _catalogInternalFiles() {
+    this.fileEntries = [...this.internalFiles.entries()]
+      .map(([name, offset]) => ({ name, offset }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    this.baggageFiles = this.fileEntries
+      .filter((entry) => !entry.name.startsWith('|'))
+      .map((entry) => entry.name);
+
+    this.bitmapFiles = this.fileEntries
+      .filter((entry) => /^\|bm\d+$/i.test(entry.name))
+      .map((entry) => entry.name);
+
+    this.auxiliaryFiles = this.fileEntries
+      .filter((entry) => /^\|(CF\d+|CTXOMAP|KWMAP|Petra|TopicId)$/i.test(entry.name))
+      .map((entry) => entry.name);
   }
 
   _readInternalFile(name) {
-    const offset = this.internalFiles.get(name);
+    const normalizedName = normalizeInternalFileName(name);
+    const offset = this.internalFiles.get(normalizedName) ?? this.internalFiles.get(name);
     if (offset === undefined) return null;
 
     const r = this.reader;
@@ -302,122 +267,20 @@ export class HlpParser {
     const phrImage = this._readInternalFile('|PhrImage');
 
     if (phrIndex && phrImage) {
-      this._readNewPhrases(phrIndex, phrImage);
+      const result = readNewPhrases(phrIndex, phrImage);
+      this.phraseStyle = result.phraseStyle;
+      this.phrases = result.phrases;
+      this.phraseBuffers = result.phraseBuffers;
       return;
     }
 
     // Try old-style phrase table (|Phrases)
     const oldPhrases = this._readInternalFile('|Phrases');
     if (oldPhrases) {
-      this._readOldPhrases(oldPhrases);
-    }
-  }
-
-  _readOldPhrases(reader) {
-    const numPhrases = reader.readUint16();
-
-    // Detect HC31 format: has OneHundred (0x0100) + DecompressedSize (4 bytes)
-    const savedPos = reader.offset;
-    const possibleOneHundred = reader.readUint16();
-    let decompressedSizeHint = 0;
-    let isHC31 = false;
-
-    if (possibleOneHundred === 0x0100) {
-      decompressedSizeHint = reader.readUint32();
-      isHC31 = true;
-      // |Phrases with HC31 header uses old-style decompression (bytes 1-15 as phrase refs)
-      this.phraseStyle = 2;
-    } else {
-      reader.seek(savedPos);
-      // HC30 |Phrases: single-byte refs (bytes 1-15)
-      this.phraseStyle = 2;
-    }
-
-    // Read offset table: (numPhrases + 1) uint16 values
-    const offsets = [];
-    for (let i = 0; i <= numPhrases; i++) {
-      offsets.push(reader.readUint16());
-    }
-
-    const offsetTableSize = (numPhrases + 1) * 2;
-    const compressedData = reader.readBytes(reader.remaining);
-
-    let phraseData;
-    if (isHC31 && compressedData.length > 0) {
-      // HC31: phrase data is LZ77-compressed
-      // Offsets reference positions in [offsetTable | decompressedData]
-      // So decompressed size = decompressedSizeHint - offsetTableSize
-      const targetSize = decompressedSizeHint > offsetTableSize
-        ? decompressedSizeHint - offsetTableSize
-        : offsets[numPhrases] > offsetTableSize
-          ? offsets[numPhrases] - offsetTableSize
-          : compressedData.length * 4;
-      try {
-        phraseData = decompressLZ77(compressedData, targetSize);
-      } catch {
-        phraseData = compressedData;
-      }
-    } else {
-      phraseData = compressedData;
-    }
-
-    // Extract phrases using offsets
-    // For HC31, offsets are relative to start of offset table
-    // For HC30, offsets are relative to start of phrase data
-    const baseOffset = isHC31 ? offsetTableSize : 0;
-    const decoder = new TextDecoder('windows-1252');
-
-    for (let i = 0; i < numPhrases; i++) {
-      const start = offsets[i] - baseOffset;
-      const end = offsets[i + 1] - baseOffset;
-      if (start >= 0 && end > start && end <= phraseData.length) {
-        const bytes = phraseData.slice(start, end);
-        this.phrases.push(decoder.decode(bytes));
-        this.phraseBuffers.push(Array.from(bytes));
-      } else {
-        this.phrases.push('');
-        this.phraseBuffers.push([]);
-      }
-    }
-  }
-
-  _readNewPhrases(indexReader, imageReader) {
-    // Hall compression: |PhrIndex has count + offsets, |PhrImage has LZ77-compressed data
-    this.phraseStyle = 3; // new-style (Uncompress3)
-    const numPhrases = indexReader.readUint16();
-    indexReader.skip(2); // one-bits count (for Hall compression)
-
-    const offsets = [];
-    for (let i = 0; i <= numPhrases; i++) {
-      offsets.push(indexReader.readUint16());
-    }
-
-    // Decompress the image data
-    const compressedData = imageReader.readBytes(imageReader.remaining);
-    let phraseData;
-    try {
-      const totalSize = offsets[numPhrases] || 0;
-      if (totalSize > 0) {
-        phraseData = decompressLZ77(compressedData, totalSize);
-      } else {
-        phraseData = compressedData;
-      }
-    } catch {
-      phraseData = compressedData;
-    }
-
-    const decoder = new TextDecoder('windows-1252');
-    for (let i = 0; i < numPhrases; i++) {
-      const start = offsets[i];
-      const end = offsets[i + 1];
-      if (end > start && end <= phraseData.length) {
-        const bytes = phraseData.slice(start, end);
-        this.phrases.push(decoder.decode(bytes));
-        this.phraseBuffers.push(Array.from(bytes));
-      } else {
-        this.phrases.push('');
-        this.phraseBuffers.push([]);
-      }
+      const result = readOldPhrases(oldPhrases);
+      this.phraseStyle = result.phraseStyle;
+      this.phrases = result.phrases;
+      this.phraseBuffers = result.phraseBuffers;
     }
   }
 
@@ -869,11 +732,15 @@ export class HlpParser {
   }
 
   _parseTopicHeader(data, topicId, linkData1 = null, topicOffset = 0, topicLinkOffset = 0) {
+    const headerInfo = this._parseTopicHeaderInfo(linkData1);
+    const resolvedTopicOffset = headerInfo?.scroll ?? headerInfo?.nonScroll ?? topicOffset;
+    const titleFromTree = this._titleEntryForOffset(resolvedTopicOffset)?.title;
+
     if (!data || data.length < 1) {
       return {
         id: topicId,
-        title: `Topic ${topicId}`,
-        topicOffset,
+        title: titleFromTree || `Topic ${topicId}`,
+        topicOffset: resolvedTopicOffset,
         topicLinkOffset,
         content: [],
         links: [],
@@ -885,16 +752,36 @@ export class HlpParser {
     const decoder = new TextDecoder('windows-1252');
     let end = data.indexOf(0);
     if (end === -1) end = data.length;
-    const title = end > 0 ? decoder.decode(data.slice(0, end)).trim() : `Topic ${topicId}`;
+    const title = end > 0 ? decoder.decode(data.slice(0, end)).trim() : '';
 
     return {
       id: topicId,
-      title: title || `Topic ${topicId}`,
-      topicOffset,
+      title: title || titleFromTree || `Topic ${topicId}`,
+      topicOffset: resolvedTopicOffset,
       topicLinkOffset,
       content: [],
       links: [],
     };
+  }
+
+  _parseTopicHeaderInfo(linkData1) {
+    if (!linkData1 || linkData1.length < 12) {
+      return null;
+    }
+
+    try {
+      if (this.version >= 121 && linkData1.length >= 28) {
+        const nonScroll = normalizeTopicOffset(readInt32(linkData1, 16));
+        const scroll = normalizeTopicOffset(readInt32(linkData1, 20));
+        const nextTopic = normalizeTopicOffset(readInt32(linkData1, 24));
+        return { nonScroll, scroll, nextTopic };
+      }
+
+      const nextTopic = normalizeTopicOffset(readInt32(linkData1, 8));
+      return { nonScroll: null, scroll: null, nextTopic };
+    } catch {
+      return null;
+    }
   }
 
   _parseTopicText(linkData1, linkData2, recordType) {
@@ -1354,97 +1241,11 @@ export class HlpParser {
   }
 
   _readKeywords() {
-    // Try |KWBTREE
-    const kwbtree = this._readInternalFile('|KWBTREE');
-    const kwdata = this._readInternalFile('|KWDATA');
-    if (!kwbtree) return;
-
-    try {
-      const btreeMagic = kwbtree.readUint16();
-      if (btreeMagic !== BTREE_MAGIC) return;
-
-      kwbtree.skip(2); // flags
-      const pageSize = kwbtree.readUint16();
-      kwbtree.readFixedString(16); // structure
-      kwbtree.skip(2); // must be zero
-      kwbtree.skip(2); // page splits
-      const rootPage = kwbtree.readUint16();
-      kwbtree.skip(2); // must be -1
-      const totalPages = kwbtree.readUint16();
-      const nLevels = kwbtree.readUint16();
-      const totalEntries = kwbtree.readUint32();
-
-      const pagesStart = kwbtree.offset;
-      this._extractKeywordsFromPages(kwbtree, kwdata, pagesStart, rootPage, pageSize, nLevels);
-    } catch {
-      // Keywords are optional
-    }
-  }
-
-  _extractKeywordsFromPages(reader, kwdata, pagesStart, rootPage, pageSize, nLevels) {
-    const visitedPages = new Set();
-      const readPage = (pageNum, level) => {
-        if (pageNum < 0 || visitedPages.has(`${level}:${pageNum}`)) return;
-        visitedPages.add(`${level}:${pageNum}`);
-
-        const pageOffset = pagesStart + pageNum * pageSize;
-        const available = reader.length - pageOffset;
-        if (available < 4) return;
-        const page = new Uint8Array(reader.buffer, pageOffset, Math.min(pageSize, available));
-      const nEntries = readUint16(page, 2);
-
-      if (level > 0) {
-        let entryOffset = 4;
-        for (let index = 0; index < nEntries + 1 && entryOffset + 2 <= page.length; index += 1) {
-          const childPage = readUint16(page, entryOffset);
-          readPage(childPage, level - 1);
-          entryOffset += 2;
-          while (entryOffset < page.length && page[entryOffset] !== 0) {
-            entryOffset += 1;
-          }
-          entryOffset += 1;
-        }
-        return;
-      }
-
-      let entryOffset = 8;
-      for (let index = 0; index < nEntries && entryOffset < page.length; index += 1) {
-        const endOfKeyword = page.indexOf(0, entryOffset);
-        if (endOfKeyword === -1 || endOfKeyword + 7 > page.length) {
-          break;
-        }
-
-        const rawKeyword = new TextDecoder('windows-1252').decode(page.slice(entryOffset, endOfKeyword));
-        entryOffset = endOfKeyword + 1;
-
-        const keyword = sanitizeKeyword(rawKeyword);
-        const count = readUint16(page, entryOffset);
-        const kwdataOffset = readInt32(page, entryOffset + 2) >>> 0;
-        entryOffset += 6;
-
-        if (!keyword) continue;
-
-        const topicOffsets = [];
-        if (kwdata) {
-          try {
-            kwdata.seek(kwdataOffset);
-            for (let entryIndex = 0; entryIndex < count && kwdata.remaining >= 4; entryIndex += 1) {
-              topicOffsets.push(kwdata.readUint32());
-            }
-          } catch {
-            // Ignore malformed keyword offsets.
-          }
-        }
-
-        this.keywords.push({
-          keyword,
-          topicCount: count,
-          topicOffsets,
-        });
-      }
-    };
-
-    readPage(rootPage, Math.max(0, nLevels - 1));
+    this.keywords = readKeywordTables({
+      internalFiles: this.internalFiles,
+      readInternalFile: (name) => this._readInternalFile(name),
+      sanitizeKeyword,
+    });
   }
 
   _readTitleOffsets() {
@@ -1602,18 +1403,6 @@ export class HlpParser {
 
     this.keywords = dedupedKeywords;
   }
-}
-
-// Helper to read little-endian int32 from Uint8Array
-function readInt32(data, offset) {
-  return (data[offset] |
-    (data[offset + 1] << 8) |
-    (data[offset + 2] << 16) |
-    (data[offset + 3] << 24)) | 0;
-}
-
-function readUint16(data, offset) {
-  return (data[offset] | (data[offset + 1] << 8)) >>> 0;
 }
 
 function getLeWordValue(cursor) {
