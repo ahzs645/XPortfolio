@@ -1,49 +1,39 @@
 /**
  * LZ77 decompression for WinHelp files.
- * Ported from Wine's HLPFILE_UncompressLZ77 (winhlp32/hlpfile.c).
+ * Ported from winhelpcgi's iLZDecompress / Microsoft's WinHelp variant.
  *
- * Uses a 4096-byte ring buffer initialized with spaces (0x20).
- * Back-references use absolute ring buffer positions (val >> 4),
- * NOT relative offsets.
+ * Back-references are a distance backwards from the current output position:
+ *   len = ((byte2 & 0xF0) >> 4) + 3
+ *   distance = ((byte2 & 0x0F) << 8) + byte1 + 1
  */
 export function decompressLZ77(src, destSize) {
-  const WINDOW_SIZE = 0x1000; // 4096
-  const buf = new Uint8Array(WINDOW_SIZE);
-  buf.fill(0x20); // Ring buffer initialized with spaces
-
   const dest = new Uint8Array(destSize);
   let srcPos = 0;
-  let newpos = 0;
+  let destPos = 0;
 
-  while (srcPos < src.length && newpos < destSize) {
-    let b = src[srcPos++];
+  while (srcPos < src.length && destPos < destSize) {
+    const bitmap = src[srcPos++];
 
-    for (let i = 0; i < 8 && srcPos < src.length && newpos < destSize; i++) {
-      if (b & 1) {
-        // Back-reference: 16-bit value
+    for (let bit = 0; bit < 8 && srcPos < src.length && destPos < destSize; bit++) {
+      if (bitmap & (1 << bit)) {
         if (srcPos + 1 >= src.length) break;
-        const sh = src[srcPos] | (src[srcPos + 1] << 8);
-        srcPos += 2;
 
-        let len = (sh & 0x0F) + 3;
-        let offset = sh >> 4; // absolute ring buffer position (no +1!)
+        const byte1 = src[srcPos++];
+        const byte2 = src[srcPos++];
+        let length = ((byte2 & 0xf0) >> 4) + 3;
+        let distance = ((byte2 & 0x0f) << 8) + byte1 + 1;
+        let copyPos = destPos - distance;
 
-        while (len-- > 0 && newpos < destSize) {
-          dest[newpos] = buf[offset & 0xFFF];
-          buf[newpos & 0xFFF] = dest[newpos];
-          newpos++;
-          offset++;
+        while (length-- > 0 && destPos < destSize) {
+          dest[destPos++] = copyPos >= 0 ? dest[copyPos++] : 0x20;
         }
       } else {
-        // Literal byte
-        buf[newpos & 0xFFF] = src[srcPos];
-        dest[newpos++] = src[srcPos++];
+        dest[destPos++] = src[srcPos++];
       }
-      b >>= 1;
     }
   }
 
-  return dest.slice(0, newpos); // Only return actually-written bytes
+  return dest.slice(0, destPos);
 }
 
 /**
@@ -79,12 +69,73 @@ export function decompressPhrasesOld(data, phraseBuffers) {
 }
 
 /**
- * Decompress new-style phrases (HC31+, |Phrases with version >= 16).
- * Bytes with bit 0 set (odd) form a 2-byte phrase reference with the next byte.
- * Index = (byte1 + 256 * byte2 - 0x100) >> 1
- * Ported from Wine's HLPFILE_Uncompress3.
+ * Decompress Hall-compressed phrase references stored in newer help files.
+ * This follows winhelpcgi's nibble mode used when PhrIndex/PhrImage are present
+ * and the packed text stream is shorter than its expanded size.
+ */
+export function decompressPhrasesNibble(data, phraseBuffers) {
+  const result = [];
+  for (let i = 0; i < data.length; i++) {
+    const cur = data[i];
+
+    if (cur & 1) {
+      const opcode = cur & 0x0f;
+
+      if (opcode === 0x0f) {
+        const blockLength = ((cur & 0xf0) >> 4) + 1;
+        result.push(...new Uint8Array(blockLength));
+        continue;
+      }
+
+      if (opcode === 0x07) {
+        const blockLength = ((cur & 0xf0) >> 4) + 1;
+        result.push(...new Uint8Array(blockLength).fill(0x20));
+        continue;
+      }
+
+      if ((opcode === 0x03 || opcode === 0x0b) && i + 1 < data.length) {
+        const blockLength = ((cur & 0xf8) >> 3) + 1;
+        const end = Math.min(i + 1 + blockLength, data.length);
+        result.push(...data.slice(i + 1, end));
+        i += end - (i + 1);
+        continue;
+      }
+
+      if (
+        (opcode === 0x01 || opcode === 0x05 || opcode === 0x09 || opcode === 0x0d) &&
+        i + 1 < data.length
+      ) {
+        const byte1 = (cur & 0xfc) >> 2;
+        const byte2 = data[++i];
+        const phraseIdx = byte1 * 256 + byte2 + 128;
+        if (phraseIdx >= 0 && phraseIdx < phraseBuffers.length) {
+          result.push(...phraseBuffers[phraseIdx]);
+        }
+        continue;
+      }
+    }
+
+    const phraseIdx = cur >> 1;
+    if (phraseIdx >= 0 && phraseIdx < phraseBuffers.length) {
+      result.push(...phraseBuffers[phraseIdx]);
+    }
+  }
+  return new Uint8Array(result);
+}
+
+/**
+ * Phrase expansion for PhrIndex/PhrImage streams that are not using nibble mode.
+ * winhelpcgi applies the same legacy byte-pair phrase references here.
  */
 export function decompressPhrasesNew(data, phraseBuffers) {
+  return decompressPhrasesOld(data, phraseBuffers);
+}
+
+/**
+ * Phrase expansion used by Wine for some old/new phrase streams.
+ * Kept as a separate helper in case a file matches that encoding better.
+ */
+export function decompressPhrasesWine(data, phraseBuffers) {
   const result = [];
   for (let i = 0; i < data.length; i++) {
     const byte = data[i];
@@ -93,7 +144,7 @@ export function decompressPhrasesNew(data, phraseBuffers) {
       if (idx >= 0 && idx < phraseBuffers.length) {
         result.push(...phraseBuffers[idx]);
       }
-      i++; // skip second byte of pair
+      i++;
     } else {
       result.push(byte);
     }

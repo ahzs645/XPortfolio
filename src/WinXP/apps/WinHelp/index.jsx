@@ -136,6 +136,15 @@ export default function WinHelp({ onClose, filePath, fileContent }) {
     return helpData.topics[currentTopicId] || helpData.topics[0];
   }, [helpData, currentTopicId]);
 
+  const visibleTopicContent = useMemo(() => {
+    if (!currentTopic?.content?.length) return [];
+    const [firstItem, ...rest] = currentTopic.content;
+    if (normalizeLookupText(firstItem?.text) === normalizeLookupText(currentTopic.title)) {
+      return rest;
+    }
+    return currentTopic.content;
+  }, [currentTopic]);
+
   const filteredKeywords = useMemo(() => {
     if (!helpData?.keywords) return [];
     if (!searchQuery) return helpData.keywords;
@@ -143,7 +152,23 @@ export default function WinHelp({ onClose, filePath, fileContent }) {
     return helpData.keywords.filter(k => k.keyword.toLowerCase().includes(q));
   }, [helpData, searchQuery]);
 
+  const findTopicIdByText = useCallback((text) => {
+    if (!helpData?.topics?.length || !text) return null;
+    const normalized = normalizeLookupText(text);
+    if (!normalized) return null;
+
+    const exact = helpData.topics.find((topic) => normalizeLookupText(topic.title) === normalized);
+    if (exact) return exact.id;
+
+    const partial = helpData.topics.find((topic) => {
+      const title = normalizeLookupText(topic.title);
+      return title && (title.includes(normalized) || normalized.includes(title));
+    });
+    return partial?.id ?? null;
+  }, [helpData]);
+
   const navigateToTopic = useCallback((topicId) => {
+    if (topicId == null || topicId === currentTopicId) return;
     setHistory(prev => [...prev, currentTopicId]);
     setCurrentTopicId(topicId);
     setShowIndex(false);
@@ -245,7 +270,13 @@ export default function WinHelp({ onClose, filePath, fileContent }) {
               {filteredKeywords.map((kw, i) => (
                 <KeywordItem
                   key={i}
-                  onClick={() => navigateToTopic(Math.min(i, (helpData.topics.length || 1) - 1))}
+                  onClick={() => {
+                    const topicId = kw.topicId ?? findTopicIdByText(kw.keyword);
+                    if (topicId != null) {
+                      navigateToTopic(topicId);
+                    }
+                  }}
+                  $disabled={kw.topicId == null && findTopicIdByText(kw.keyword) == null}
                 >
                   {kw.keyword}
                 </KeywordItem>
@@ -292,12 +323,29 @@ export default function WinHelp({ onClose, filePath, fileContent }) {
                   {currentTopic.title && (
                     <TopicTitle>{currentTopic.title}</TopicTitle>
                   )}
-                  {currentTopic.content.map((item, i) => (
+                  {visibleTopicContent.map((item, i) => (
                     <TopicParagraph key={i}>
-                      {item.text}
+                      {item.segments?.length ? item.segments.map((segment, segmentIndex) => (
+                        segment.type === 'link' ? (
+                          <InlineTopicLink
+                            key={segmentIndex}
+                            onClick={() => {
+                              const topicId = segment.topicId ?? findTopicIdByText(segment.text);
+                              if (topicId != null) {
+                                navigateToTopic(topicId);
+                              }
+                            }}
+                            $disabled={segment.topicId == null && findTopicIdByText(segment.text) == null}
+                          >
+                            {segment.text}
+                          </InlineTopicLink>
+                        ) : (
+                          <span key={segmentIndex}>{segment.text}</span>
+                        )
+                      )) : item.text}
                     </TopicParagraph>
                   ))}
-                  {currentTopic.content.length === 0 && (
+                  {visibleTopicContent.length === 0 && (
                     <TopicParagraph>
                       <em>(This topic has no content)</em>
                     </TopicParagraph>
@@ -414,12 +462,27 @@ const KeywordList = styled.div`
 
 const KeywordItem = styled.div`
   padding: 2px 6px;
-  cursor: pointer;
+  cursor: ${({ $disabled }) => $disabled ? 'default' : 'pointer'};
   font-size: 11px;
+  color: ${({ $disabled }) => $disabled ? '#666' : 'inherit'};
 
   &:hover {
-    background: #316ac5;
-    color: #fff;
+    background: ${({ $disabled }) => $disabled ? 'transparent' : '#316ac5'};
+    color: ${({ $disabled }) => $disabled ? '#666' : '#fff'};
+  }
+`;
+
+const InlineTopicLink = styled.button`
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: ${({ $disabled }) => $disabled ? '#333' : '#003399'};
+  text-decoration: ${({ $disabled }) => $disabled ? 'none' : 'underline'};
+  cursor: ${({ $disabled }) => $disabled ? 'default' : 'pointer'};
+
+  &:hover {
+    color: ${({ $disabled }) => $disabled ? '#333' : '#cc0000'};
   }
 `;
 
@@ -429,6 +492,15 @@ const NoResults = styled.div`
   font-style: italic;
   text-align: center;
 `;
+
+function normalizeLookupText(value) {
+  if (!value) return '';
+  return value
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
 
 const ContentArea = styled.div`
   flex: 1;

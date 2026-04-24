@@ -16,7 +16,12 @@
  * - |Phrases: phrase compression table
  */
 import { BinaryReader } from './BinaryReader';
-import { decompressLZ77, decompressPhrasesOld, decompressPhrasesNew } from './decompress';
+import {
+  decompressLZ77,
+  decompressPhrasesNibble,
+  decompressPhrasesOld,
+  decompressPhrasesNew,
+} from './decompress';
 
 const HLP_MAGIC = 0x00035F3F;
 const BTREE_MAGIC = 0x293B;
@@ -41,6 +46,45 @@ const TL_TOPICTXT = 0x20;
 const TL_TABLE = 0x23;
 const TL_DISPLAY30 = 0x01;
 
+// Paragraph format flags
+const FORMATF_UNKNOWN0001 = 0x0001;
+const FORMATF_SB = 0x0002;
+const FORMATF_SA = 0x0004;
+const FORMATF_SL = 0x0008;
+const FORMATF_LEFT = 0x0010;
+const FORMATF_RIGHT = 0x0020;
+const FORMATF_LEFTFIRST = 0x0040;
+const FORMATF_BOX = 0x0100;
+const FORMATF_TABS = 0x0200;
+
+// Topic text command opcodes
+const CMD_FONT = 0x80;
+const CMD_LINE = 0x81;
+const CMD_PAR = 0x82;
+const CMD_TAB = 0x83;
+const CMD_BMC = 0x86;
+const CMD_BML = 0x87;
+const CMD_BMR = 0x88;
+const CMD_HOTSPOTEND = 0x89;
+const CMD_NON_BREAKABLE_SPACE = 0x8B;
+const CMD_POPUP30 = 0xE0;
+const CMD_JUMP30 = 0xE1;
+const CMD_POPUP = 0xE2;
+const CMD_JUMP = 0xE3;
+const CMD_POPUPHIDE = 0xE6;
+const CMD_JUMPHIDE = 0xE7;
+const CMD_MACRO = 0xC8;
+const CMD_MACROHIDE = 0xCC;
+const CMD_POPUPINTER = 0xEA;
+const CMD_SECONDWIN = 0xEB;
+const CMD_POPUPHIDEINTER = 0xEE;
+const CMD_JUMPHIDEINTER = 0xEF;
+const CMD_END = 0xFF;
+
+const SMT_BMX30 = 0x03;
+const SMT_EWX = 0x05;
+const SMT_BMX = 0x22;
+
 export class HlpParser {
   constructor(buffer) {
     this.reader = new BinaryReader(buffer);
@@ -57,6 +101,8 @@ export class HlpParser {
     this.phraseStyle = 0;    // 0=none, 2=old (HC30), 3=new (HC31+)
     this.keywords = [];
     this.topicBlockSize = 4096;
+    this.contextMap = new Map();
+    this.titleOffsets = [];
   }
 
   parse() {
@@ -65,8 +111,11 @@ export class HlpParser {
     this._readSystem();
     this._readPhrases();
     this._readFonts();
+    this._readContextMap();
     this._readTopics();
     this._readKeywords();
+    this._readTitleOffsets();
+    this._resolveLinksAndKeywords();
 
     return {
       title: this.title,
@@ -214,6 +263,12 @@ export class HlpParser {
       this.compressionType = 4; // LZ77 with 4k window
     } else if (flags & 0x0008) {
       this.compressionType = 8; // LZ77 with 2k window
+    }
+
+    if (minor <= 16 || (flags & 0x0008)) {
+      this.topicBlockSize = 2048;
+    } else {
+      this.topicBlockSize = 4096;
     }
 
     // Read SYSTEM records
@@ -480,6 +535,63 @@ export class HlpParser {
     }
   }
 
+  _readContextMap() {
+    const contextFileName = [...this.internalFiles.keys()].find((name) => name.includes('|CONTEXT'));
+    if (!contextFileName) return;
+
+    const context = this._readInternalFile(contextFileName);
+    if (!context) return;
+
+    try {
+      const magic = context.readUint16();
+      if (magic !== BTREE_MAGIC) return;
+
+      context.skip(2); // flags
+      const pageSize = context.readUint16();
+      context.readFixedString(16);
+      context.skip(2);
+      context.skip(2);
+      const rootPage = context.readUint16();
+      context.skip(2);
+      const totalPages = context.readUint16();
+      const nLevels = context.readUint16();
+      context.readUint32();
+
+      const pagesStart = context.offset;
+      const readPage = (pageNum, level) => {
+        if (pageNum < 0) return;
+        const pageOffset = pagesStart + pageNum * pageSize;
+        const available = context.length - pageOffset;
+        if (available < 4) return;
+
+        const page = new Uint8Array(context.buffer, pageOffset, Math.min(pageSize, available));
+        const nEntries = readUint16(page, 2);
+
+        if (level > 0) {
+          let offset = 4;
+          for (let index = 0; index < nEntries + 1 && offset + 6 <= page.length; index += 1) {
+            const childPage = readUint16(page, offset);
+            readPage(childPage, level - 1);
+            offset += 6;
+          }
+          return;
+        }
+
+        let offset = 8;
+        for (let index = 0; index < nEntries && offset + 8 <= page.length; index += 1) {
+          const hashValue = readInt32(page, offset) >>> 0;
+          const topicOffset = readInt32(page, offset + 4) >>> 0;
+          this.contextMap.set(hashValue, topicOffset);
+          offset += 8;
+        }
+      };
+
+      readPage(rootPage, Math.max(0, nLevels - 1));
+    } catch {
+      // Context map is optional.
+    }
+  }
+
   _readTopics() {
     const topicFile = this._readInternalFile('|TOPIC');
     if (!topicFile) return;
@@ -487,54 +599,178 @@ export class HlpParser {
     const topicData = topicFile.readBytes(topicFile.remaining);
     const blockSize = this.topicBlockSize;
     const isCompressed = this.compressionType !== 0;
-    const decompressTarget = 0x4000; // Max decompressed block size
+    const blockNoShift = this.version <= 116 ? 11 : 14;
+    const blockOffsetMask = (1 << blockNoShift) - 1;
+    const validRecordTypes = new Set([TL_DISPLAY30, TL_TOPICHDR, TL_TOPICTXT, TL_TABLE]);
 
-    // Step 1: Decompress each block separately and scan for valid TOPICLINK headers.
-    // Due to LZ77 decompression nuances, links may not be at the exact positions
-    // predicted by virtual addressing, so we scan for valid headers.
-    const VALID_RECTYPES = new Set([0x01, 0x02, 0x20, 0x23]);
+    let blockNumber = -1;
+    let decompressedBlock = new Uint8Array(0);
+    let decompressedSize = 0;
+    let currentBlockOffset = 0;
+    let nextTopicLink = 12;
+    let bytesRemainingInLink = 0;
+    let guard = 0;
+    let currentTopicOffset = 0;
 
-    let blockStart = 0;
-    while (blockStart + 12 <= topicData.length) {
-      const blockEnd = Math.min(blockStart + blockSize, topicData.length);
-      const payload = topicData.slice(blockStart + 12, blockEnd);
+    const loadBlock = () => {
+      blockNumber += 1;
+      if (blockNumber < 0) {
+        return false;
+      }
 
-      let blockData;
+      const absoluteOffset = blockNumber * blockSize;
+      if (absoluteOffset + 12 > topicData.length) {
+        return false;
+      }
+
+      const payloadEnd = Math.min(absoluteOffset + blockSize, topicData.length);
+      const payload = topicData.slice(absoluteOffset + 12, payloadEnd);
+
       if (isCompressed && payload.length > 0) {
         try {
-          blockData = decompressLZ77(payload, decompressTarget);
+          decompressedBlock = decompressLZ77(
+            payload,
+            Math.max(0xff00, payload.length * 8, blockSize * 8)
+          );
         } catch {
-          blockData = payload;
+          decompressedBlock = payload;
         }
       } else {
-        blockData = payload;
+        decompressedBlock = payload;
       }
 
-      // Scan for valid TOPICLINK headers within this decompressed block
-      let pos = 0;
-      let linksInBlock = 0;
-      while (pos + 21 <= blockData.length && linksInBlock < 5000) {
-        if (this._isValidTopicLink(blockData, pos, VALID_RECTYPES)) {
-          try {
-            const linkData = this._readTopicLink(blockData, pos, blockData.length);
-            if (linkData) {
-              if (linkData.topic) {
-                this.topics.push(linkData.topic);
-              }
-              // Advance past this link
-              const advance = readInt32(blockData, pos);
-              pos += Math.max(advance, 21);
-              linksInBlock++;
-              continue;
-            }
-          } catch {
-            // Skip this position on parse error
+      decompressedSize = decompressedBlock.length;
+      currentBlockOffset = 0;
+      return true;
+    };
+
+    const readTopicBytes = (length) => {
+      const output = new Uint8Array(length);
+      let written = 0;
+
+      while (written < length) {
+        if (
+          decompressedSize === currentBlockOffset ||
+          (!bytesRemainingInLink && (nextTopicLink >> blockNoShift) !== blockNumber)
+        ) {
+          if (!loadBlock()) {
+            break;
           }
         }
-        pos++;
+
+        if (!bytesRemainingInLink) {
+          const linkOffset = nextTopicLink & blockOffsetMask;
+          const linkPosition = linkOffset - 12;
+
+          if (linkPosition < 0 || linkPosition + 21 > decompressedBlock.length) {
+            break;
+          }
+
+          const blockLength = readInt32(decompressedBlock, linkPosition);
+          const nextBlock = readInt32(decompressedBlock, linkPosition + 12);
+
+          if (blockLength < 21) {
+            break;
+          }
+
+          nextTopicLink = this.version <= 116 ? nextTopicLink + nextBlock : nextBlock;
+          bytesRemainingInLink = blockLength;
+          currentBlockOffset = linkPosition;
+        }
+
+        if (currentBlockOffset >= decompressedBlock.length) {
+          break;
+        }
+
+        output[written++] = decompressedBlock[currentBlockOffset++];
+        bytesRemainingInLink -= 1;
       }
 
-      blockStart = blockEnd;
+      return output.slice(0, written);
+    };
+
+    while (guard < 50000) {
+      guard += 1;
+      const topicLinkOffset = nextTopicLink >>> 0;
+
+      const header = readTopicBytes(21);
+      if (header.length < 21) {
+        break;
+      }
+
+      const linkBlockSize = readInt32(header, 0);
+      const originalDataLen2 = readInt32(header, 4);
+      const nextBlock = readInt32(header, 12);
+      const dataLen1 = readInt32(header, 16);
+      const recordType = header[20];
+
+      if (
+        linkBlockSize < 21 ||
+        dataLen1 < 21 ||
+        dataLen1 > linkBlockSize ||
+        !validRecordTypes.has(recordType)
+      ) {
+        break;
+      }
+
+      const linkData1Length = dataLen1 - 21;
+      const linkData1 = linkData1Length > 0 ? readTopicBytes(linkData1Length) : new Uint8Array(0);
+
+      let currentDataLen2 = Math.max(0, originalDataLen2);
+      if (this.phraseStyle > 0) {
+        currentDataLen2 = Math.max(0, linkBlockSize - dataLen1);
+      }
+
+      let linkData2 = currentDataLen2 > 0 ? readTopicBytes(currentDataLen2) : new Uint8Array(0);
+      const textLength = originalDataLen2 > 0
+        ? Math.min(linkData2.length, originalDataLen2)
+        : linkData2.length;
+
+      if (textLength < linkData2.length) {
+        linkData2 = linkData2.slice(0, textLength);
+      }
+
+      if (linkData2.length > 0 && this.phraseStyle > 0 && this.phraseBuffers.length > 0) {
+        try {
+          if (this.phraseStyle === 2) {
+            linkData2 = decompressPhrasesOld(linkData2, this.phraseBuffers);
+          } else {
+            linkData2 = currentDataLen2 < originalDataLen2
+              ? decompressPhrasesNibble(linkData2, this.phraseBuffers)
+              : decompressPhrasesNew(linkData2, this.phraseBuffers);
+          }
+        } catch {
+          // Keep raw LinkData2 on phrase decoding failure.
+        }
+      }
+
+      if (recordType === TL_TOPICHDR) {
+        const topic = this._parseTopicHeader(linkData2, this.topics.length, linkData1, currentTopicOffset, topicLinkOffset);
+        if (topic) {
+          this.topics.push(topic);
+        }
+      } else if (recordType === TL_DISPLAY30 || recordType === TL_TOPICTXT || recordType === TL_TABLE) {
+        const parsedRecord = this._parseTopicText(linkData1, linkData2, recordType);
+        currentTopicOffset += Math.max(0, originalDataLen2);
+
+        if (this.topics.length > 0 && parsedRecord.content.length > 0) {
+          this.topics[this.topics.length - 1].content.push(...parsedRecord.content);
+          this.topics[this.topics.length - 1].links.push(...parsedRecord.links);
+        } else if (parsedRecord.content.length > 0) {
+          this.topics.push({
+            id: this.topics.length,
+            title: `Topic ${this.topics.length}`,
+            topicOffset: currentTopicOffset,
+            topicLinkOffset,
+            content: parsedRecord.content,
+            links: parsedRecord.links,
+          });
+        }
+      }
+
+      if (nextBlock === -1 || nextBlock === 0) {
+        break;
+      }
     }
 
     // Fallback if nothing parsed
@@ -610,9 +846,9 @@ export class HlpParser {
     }
 
     let topic = null;
-    if (recType === TL_TOPICHDR || recType === TL_DISPLAY30) {
+    if (recType === TL_TOPICHDR) {
       topic = this._parseTopicHeader(textData, this.topics.length);
-    } else if (recType === TL_TOPICTXT || recType === TL_TABLE) {
+    } else if (recType === TL_DISPLAY30 || recType === TL_TOPICTXT || recType === TL_TABLE) {
       const textContent = this._parseTopicText(textData);
       if (this.topics.length > 0 && textContent.length > 0) {
         this.topics[this.topics.length - 1].content.push(...textContent);
@@ -632,11 +868,13 @@ export class HlpParser {
     };
   }
 
-  _parseTopicHeader(data, topicId) {
+  _parseTopicHeader(data, topicId, linkData1 = null, topicOffset = 0, topicLinkOffset = 0) {
     if (!data || data.length < 1) {
       return {
         id: topicId,
         title: `Topic ${topicId}`,
+        topicOffset,
+        topicLinkOffset,
         content: [],
         links: [],
       };
@@ -652,30 +890,279 @@ export class HlpParser {
     return {
       id: topicId,
       title: title || `Topic ${topicId}`,
+      topicOffset,
+      topicLinkOffset,
       content: [],
       links: [],
     };
   }
 
-  _parseTopicText(data) {
-    if (!data || data.length < 1) return [];
+  _parseTopicText(linkData1, linkData2, recordType) {
+    if (!linkData2 || linkData2.length < 1) {
+      return { content: [], links: [] };
+    }
 
-    // LinkData2 for text records contains the text paragraphs
-    // (paragraph formatting is in LinkData1)
-    // For phrase-decompressed data, text may have inline format commands (0x80-0x8F)
+    const structured = this._extractStructuredTopicRecord(linkData1, linkData2, recordType);
+    if (structured.content.length > 0) {
+      return structured;
+    }
+
+    const fallbackText = this._extractTextFromLinkData2(linkData2);
+    const text = fallbackText.replace(/\r/g, '').trim();
+    if (!text) {
+      return { content: [], links: [] };
+    }
+
+    return {
+      content: text.split('\n').map((line) => line.trim()).filter(Boolean).map((line) => ({
+        type: 'text',
+        text: line,
+      })),
+      links: [],
+    };
+  }
+
+  _extractStructuredTopicRecord(linkData1, linkData2, recordType) {
+    if (!linkData1 || linkData1.length === 0) {
+      return { content: [], links: [] };
+    }
+
+    const formatCursor = { data: linkData1, offset: 0 };
+    const textCursor = { data: linkData2, offset: 0 };
     const content = [];
-    const text = this._extractTextFromLinkData2(data);
+    const links = [];
+    let segments = [];
+    let activeHotspot = null;
 
-    if (text.trim()) {
-      const paragraphs = text.split('\n');
-      for (const para of paragraphs) {
-        if (para.trim()) {
-          content.push({ type: 'text', text: para });
+    const flushParagraph = () => {
+      const text = segments.map((segment) => segment.text).join('');
+      if (text.trim()) {
+        content.push({
+          type: 'text',
+          text: text.replace(/\r/g, ''),
+          segments: segments.map((segment) => ({ ...segment })),
+        });
+      }
+      segments = [];
+    };
+
+    const appendSegment = (text, hotspot = activeHotspot) => {
+      if (!text) return;
+      const normalized = text.replace(/\r/g, '');
+      if (!normalized) return;
+
+      if (hotspot) {
+        const segment = {
+          type: 'link',
+          text: normalized,
+          hash: hotspot.hash ?? null,
+          hidden: !!hotspot.hidden,
+          topicId: hotspot.topicId ?? null,
+          targetText: hotspot.targetText ?? null,
+        };
+        segments.push(segment);
+        links.push(segment);
+      } else {
+        segments.push({ type: 'text', text: normalized });
+      }
+    };
+
+    try {
+      getLongValue(formatCursor);
+      if (recordType !== TL_DISPLAY30) {
+        getWordValue(formatCursor);
+      }
+
+      this._consumeParagraphHeader(formatCursor);
+
+      while (formatCursor.offset < formatCursor.data.length && formatCursor.data[formatCursor.offset] === 0) {
+        formatCursor.offset += 1;
+      }
+
+      while (formatCursor.offset < formatCursor.data.length) {
+        let option = formatCursor.data[formatCursor.offset++];
+        while (option === 0 && formatCursor.offset < formatCursor.data.length) {
+          option = formatCursor.data[formatCursor.offset++];
+        }
+
+        if (option === CMD_END) {
+          break;
+        }
+
+        appendSegment(readNullTerminatedString(textCursor));
+
+        switch (option) {
+          case CMD_LINE:
+          case CMD_PAR:
+            flushParagraph();
+            break;
+          case CMD_TAB:
+            appendSegment('\t');
+            break;
+          case CMD_NON_BREAKABLE_SPACE:
+            appendSegment(' ');
+            break;
+          case CMD_FONT:
+            formatCursor.offset = Math.min(formatCursor.data.length, formatCursor.offset + 2);
+            break;
+          case CMD_POPUP30:
+          case CMD_JUMP30:
+          case CMD_POPUP:
+          case CMD_JUMP:
+          case CMD_POPUPHIDE:
+          case CMD_JUMPHIDE:
+          case CMD_POPUPINTER:
+          case CMD_SECONDWIN:
+          case CMD_POPUPHIDEINTER:
+          case CMD_JUMPHIDEINTER:
+            activeHotspot = this._readHotspotTarget(formatCursor, option);
+            break;
+          case CMD_MACRO:
+          case CMD_MACROHIDE: {
+            const macroLength = getLeWordValue(formatCursor);
+            formatCursor.offset = Math.min(formatCursor.data.length, formatCursor.offset + macroLength);
+            break;
+          }
+          case CMD_BML:
+          case CMD_BMR:
+          case CMD_BMC: {
+            const inlineText = this._readBitmapCommandInlineText(formatCursor);
+            appendSegment(inlineText, null);
+            break;
+          }
+          case CMD_HOTSPOTEND:
+            activeHotspot = null;
+            break;
+          default:
+            break;
+        }
+      }
+
+      appendSegment(readNullTerminatedString(textCursor));
+      flushParagraph();
+
+      return { content, links };
+    } catch {
+      return { content: [], links: [] };
+    }
+  }
+
+  _consumeParagraphHeader(cursor) {
+    if (cursor.offset + 6 > cursor.data.length) {
+      return;
+    }
+
+    cursor.offset += 1; // Zero
+    cursor.offset += 1; // EightZeroSecond
+    getLeWordValue(cursor); // Zero2
+    const flags = getLeWordValue(cursor);
+
+    if (flags & FORMATF_UNKNOWN0001) {
+      getShortValue(cursor);
+      getShortValue(cursor);
+    }
+    if (flags & FORMATF_SB) getShortValue(cursor);
+    if (flags & FORMATF_SA) getShortValue(cursor);
+    if (flags & FORMATF_SL) getShortValue(cursor);
+    if (flags & FORMATF_LEFT) getShortValue(cursor);
+    if (flags & FORMATF_RIGHT) getShortValue(cursor);
+    if (flags & FORMATF_LEFTFIRST) getShortValue(cursor);
+    if (flags & FORMATF_BOX) {
+      cursor.offset = Math.min(cursor.data.length, cursor.offset + 3);
+    }
+    if (flags & FORMATF_TABS) {
+      if (cursor.offset < cursor.data.length) {
+        const tabCount = (cursor.data[cursor.offset++] & 0x7f) / 2;
+        for (let i = 0; i < tabCount && cursor.offset < cursor.data.length; i++) {
+          const tabPos = getWordValue(cursor);
+          if (tabPos & 0x8000) {
+            cursor.offset = Math.min(cursor.data.length, cursor.offset + 1);
+          }
         }
       }
     }
+  }
 
-    return content;
+  _readBitmapCommandInlineText(cursor) {
+    if (cursor.offset >= cursor.data.length) return;
+
+    const statementType = cursor.data[cursor.offset++];
+    const headerLength = getLongValue(cursor);
+    const privateStringBytes = statementType !== SMT_BMX30 ? getWordValue(cursor) : 0;
+    const withData = getLeWordValue(cursor);
+
+    if (!(withData && statementType === SMT_BMX)) {
+      getLeWordValue(cursor);
+    }
+
+    if ((statementType === SMT_BMX || statementType === SMT_BMX30) && withData) {
+      cursor.offset = Math.min(cursor.data.length, cursor.offset + Math.max(0, headerLength - 2));
+      return '';
+    }
+
+    if (statementType === SMT_EWX) {
+      cursor.offset = Math.min(cursor.data.length, cursor.offset + 1);
+      const start = cursor.offset;
+      const skipTo = cursor.data.indexOf(0, cursor.offset);
+      const end = skipTo === -1 ? cursor.data.length : skipTo;
+      const text = new TextDecoder('windows-1252').decode(cursor.data.slice(start, end));
+      cursor.offset = skipTo === -1 ? cursor.data.length : skipTo + 1;
+
+      if (text.startsWith('!')) {
+        return text.slice(1);
+      }
+
+      return text.startsWith('*') ? '' : text;
+    }
+
+    if (privateStringBytes > 0) {
+      cursor.offset = Math.min(cursor.data.length, cursor.offset + privateStringBytes);
+    }
+
+    return '';
+  }
+
+  _readHotspotTarget(cursor, option) {
+    let hidden = false;
+    let hash = null;
+
+    switch (option) {
+      case CMD_POPUPHIDE:
+      case CMD_JUMPHIDE:
+      case CMD_POPUPHIDEINTER:
+      case CMD_JUMPHIDEINTER:
+        hidden = true;
+        break;
+      default:
+        break;
+    }
+
+    if (
+      option === CMD_POPUPINTER ||
+      option === CMD_SECONDWIN ||
+      option === CMD_POPUPHIDEINTER ||
+      option === CMD_JUMPHIDEINTER
+    ) {
+      const entryBytes = getLeWordValue(cursor) + 2;
+      const endOffset = Math.min(cursor.data.length, cursor.offset + Math.max(0, entryBytes - 2));
+      if (cursor.offset < endOffset) {
+        cursor.offset += 1; // flags
+      }
+      if (cursor.offset + 4 <= endOffset) {
+        hash = getLeDWordValue(cursor) >>> 0;
+      } else {
+        cursor.offset = endOffset;
+      }
+      cursor.offset = endOffset;
+    } else if (cursor.offset + 4 <= cursor.data.length) {
+      hash = getLeDWordValue(cursor) >>> 0;
+    }
+
+    return {
+      hash,
+      hidden,
+      topicId: hash != null && this.contextMap.has(hash) ? this._topicIdForOffset(this.contextMap.get(hash)) : null,
+    };
   }
 
   /** Extract text from LinkData2 (no paragraph format header to skip) */
@@ -869,6 +1356,7 @@ export class HlpParser {
   _readKeywords() {
     // Try |KWBTREE
     const kwbtree = this._readInternalFile('|KWBTREE');
+    const kwdata = this._readInternalFile('|KWDATA');
     if (!kwbtree) return;
 
     try {
@@ -886,59 +1374,233 @@ export class HlpParser {
       const nLevels = kwbtree.readUint16();
       const totalEntries = kwbtree.readUint32();
 
-      // Simple extraction: just scan for readable strings
-      // Full B+ tree traversal is complex; extract keywords heuristically
       const pagesStart = kwbtree.offset;
-      this._extractKeywordsFromPages(kwbtree, pagesStart, rootPage, pageSize, nLevels);
+      this._extractKeywordsFromPages(kwbtree, kwdata, pagesStart, rootPage, pageSize, nLevels);
     } catch {
       // Keywords are optional
     }
   }
 
-  _extractKeywordsFromPages(reader, pagesStart, rootPage, pageSize, nLevels) {
-    // Simplified: read leaf pages for keywords
-    const readLeafPage = (pageNum) => {
-      try {
-        reader.seek(pagesStart + pageNum * pageSize);
-        reader.skip(2); // previous page
-        const nextPage = reader.readInt16();
-        const nEntries = reader.readUint16();
+  _extractKeywordsFromPages(reader, kwdata, pagesStart, rootPage, pageSize, nLevels) {
+    const visitedPages = new Set();
+      const readPage = (pageNum, level) => {
+        if (pageNum < 0 || visitedPages.has(`${level}:${pageNum}`)) return;
+        visitedPages.add(`${level}:${pageNum}`);
 
-        for (let i = 0; i < nEntries && reader.remaining > 6; i++) {
-          const keyword = reader.readString();
-          const count = reader.readUint16();
-          const kwdataOffset = reader.readUint32();
+        const pageOffset = pagesStart + pageNum * pageSize;
+        const available = reader.length - pageOffset;
+        if (available < 4) return;
+        const page = new Uint8Array(reader.buffer, pageOffset, Math.min(pageSize, available));
+      const nEntries = readUint16(page, 2);
 
-          if (keyword.trim()) {
-            this.keywords.push({
-              keyword,
-              topicCount: count,
-            });
+      if (level > 0) {
+        let entryOffset = 4;
+        for (let index = 0; index < nEntries + 1 && entryOffset + 2 <= page.length; index += 1) {
+          const childPage = readUint16(page, entryOffset);
+          readPage(childPage, level - 1);
+          entryOffset += 2;
+          while (entryOffset < page.length && page[entryOffset] !== 0) {
+            entryOffset += 1;
+          }
+          entryOffset += 1;
+        }
+        return;
+      }
+
+      let entryOffset = 8;
+      for (let index = 0; index < nEntries && entryOffset < page.length; index += 1) {
+        const endOfKeyword = page.indexOf(0, entryOffset);
+        if (endOfKeyword === -1 || endOfKeyword + 7 > page.length) {
+          break;
+        }
+
+        const rawKeyword = new TextDecoder('windows-1252').decode(page.slice(entryOffset, endOfKeyword));
+        entryOffset = endOfKeyword + 1;
+
+        const keyword = sanitizeKeyword(rawKeyword);
+        const count = readUint16(page, entryOffset);
+        const kwdataOffset = readInt32(page, entryOffset + 2) >>> 0;
+        entryOffset += 6;
+
+        if (!keyword) continue;
+
+        const topicOffsets = [];
+        if (kwdata) {
+          try {
+            kwdata.seek(kwdataOffset);
+            for (let entryIndex = 0; entryIndex < count && kwdata.remaining >= 4; entryIndex += 1) {
+              topicOffsets.push(kwdata.readUint32());
+            }
+          } catch {
+            // Ignore malformed keyword offsets.
           }
         }
 
-        if (nextPage >= 0) {
-          readLeafPage(nextPage);
-        }
-      } catch {
-        // End of pages
+        this.keywords.push({
+          keyword,
+          topicCount: count,
+          topicOffsets,
+        });
       }
     };
 
-    if (nLevels <= 1) {
-      readLeafPage(rootPage);
-    } else {
-      // For multi-level trees, find the first leaf page
-      try {
-        reader.seek(pagesStart + rootPage * pageSize);
-        reader.skip(2); // unused
-        const nEntries = reader.readUint16();
-        const firstChild = reader.readUint16();
-        readLeafPage(firstChild);
-      } catch {
-        readLeafPage(0);
+    readPage(rootPage, Math.max(0, nLevels - 1));
+  }
+
+  _readTitleOffsets() {
+    const ttl = this._readInternalFile('|TTLBTREE');
+    if (!ttl) return;
+
+    try {
+      const magic = ttl.readUint16();
+      if (magic !== BTREE_MAGIC) return;
+
+      ttl.skip(2);
+      const pageSize = ttl.readUint16();
+      ttl.readFixedString(16);
+      ttl.skip(2);
+      ttl.skip(2);
+      const rootPage = ttl.readUint16();
+      ttl.skip(2);
+      ttl.skip(2);
+      const nLevels = ttl.readUint16();
+      ttl.readUint32();
+
+      const pagesStart = ttl.offset;
+      const entries = [];
+
+      const readPage = (pageNum, level) => {
+        if (pageNum < 0) return;
+        const pageOffset = pagesStart + pageNum * pageSize;
+        const available = ttl.length - pageOffset;
+        if (available < 4) return;
+        const page = new Uint8Array(ttl.buffer, pageOffset, Math.min(pageSize, available));
+        const nEntries = readUint16(page, 2);
+
+        if (level > 0) {
+          let entryOffset = 4;
+          let selectedChild = null;
+          for (let index = 0; index < nEntries + 1 && entryOffset + 6 <= page.length; index += 1) {
+            const childPage = readUint16(page, entryOffset);
+            readPage(childPage, level - 1);
+            entryOffset += 6;
+          }
+          return;
+        }
+
+        let entryOffset = 8;
+        for (let index = 0; index < nEntries && entryOffset + 5 <= page.length; index += 1) {
+          const topicOffset = readInt32(page, entryOffset) >>> 0;
+          const titleEnd = page.indexOf(0, entryOffset + 4);
+          if (titleEnd === -1) break;
+          const title = new TextDecoder('windows-1252').decode(page.slice(entryOffset + 4, titleEnd)).trim();
+          if (title) {
+            entries.push({ topicOffset, title });
+          }
+          entryOffset = titleEnd + 1;
+        }
+      };
+
+      readPage(rootPage, Math.max(0, nLevels - 1));
+      this.titleOffsets = entries.sort((a, b) => a.topicOffset - b.topicOffset);
+    } catch {
+      // Title tree is optional.
+    }
+  }
+
+  _topicIdForOffset(topicOffset) {
+    if (topicOffset == null) return null;
+
+    const titleEntry = this._titleEntryForOffset(topicOffset);
+    if (titleEntry) {
+      const topicIdFromTitle = this._topicIdForTitle(titleEntry.title);
+      if (topicIdFromTitle != null) {
+        return topicIdFromTitle;
       }
     }
+
+    let bestTopic = null;
+    for (const topic of this.topics) {
+      if (topic.topicOffset == null) continue;
+      if (topic.topicOffset <= topicOffset && (!bestTopic || topic.topicOffset > bestTopic.topicOffset)) {
+        bestTopic = topic;
+      }
+    }
+
+    return bestTopic ? bestTopic.id : null;
+  }
+
+  _titleEntryForOffset(topicOffset) {
+    let bestEntry = null;
+    for (const entry of this.titleOffsets) {
+      if (entry.topicOffset <= topicOffset && (!bestEntry || entry.topicOffset > bestEntry.topicOffset)) {
+        bestEntry = entry;
+      }
+    }
+    return bestEntry;
+  }
+
+  _topicIdForTitle(title) {
+    const normalized = normalizeLookupText(title);
+    if (!normalized) return null;
+    const exact = this.topics.find((topic) => normalizeLookupText(topic.title) === normalized);
+    if (exact) return exact.id;
+    const partial = this.topics.find((topic) => {
+      const topicTitle = normalizeLookupText(topic.title);
+      return topicTitle && (topicTitle.includes(normalized) || normalized.includes(topicTitle));
+    });
+    return partial ? partial.id : null;
+  }
+
+  _resolveLinksAndKeywords() {
+    const normalizedTitles = new Map();
+    for (const topic of this.topics) {
+      const normalized = normalizeLookupText(topic.title);
+      if (!normalized) continue;
+      if (!normalizedTitles.has(normalized)) {
+        normalizedTitles.set(normalized, topic.id);
+      }
+    }
+
+    for (const topic of this.topics) {
+      for (const item of topic.content) {
+        if (!item.segments) continue;
+        for (const segment of item.segments) {
+          if (segment.type !== 'link') continue;
+          if (segment.topicId == null && segment.hash != null && this.contextMap.has(segment.hash)) {
+            segment.topicId = this._topicIdForOffset(this.contextMap.get(segment.hash));
+          }
+          if (segment.topicId == null) {
+            segment.topicId = resolveTopicByText(segment.text, this.topics, normalizedTitles);
+          }
+        }
+      }
+    }
+
+    const dedupedKeywords = [];
+    const seenKeywords = new Set();
+    for (const keyword of this.keywords) {
+      const normalizedKeyword = normalizeLookupText(keyword.keyword);
+      if (!normalizedKeyword || seenKeywords.has(normalizedKeyword)) {
+        continue;
+      }
+      seenKeywords.add(normalizedKeyword);
+
+      const topicIdFromOffsets = keyword.topicOffsets?.length
+        ? this._topicIdForOffset(keyword.topicOffsets[0])
+        : null;
+
+      const topicIdFromTitleOffsets = keyword.topicOffsets?.length
+        ? this._topicIdForTitle(this._titleEntryForOffset(keyword.topicOffsets[0])?.title)
+        : null;
+
+      dedupedKeywords.push({
+        ...keyword,
+        topicId: topicIdFromOffsets ?? topicIdFromTitleOffsets ?? resolveTopicByText(keyword.keyword, this.topics, normalizedTitles),
+      });
+    }
+
+    this.keywords = dedupedKeywords;
   }
 }
 
@@ -948,6 +1610,131 @@ function readInt32(data, offset) {
     (data[offset + 1] << 8) |
     (data[offset + 2] << 16) |
     (data[offset + 3] << 24)) | 0;
+}
+
+function readUint16(data, offset) {
+  return (data[offset] | (data[offset + 1] << 8)) >>> 0;
+}
+
+function getLeWordValue(cursor) {
+  if (cursor.offset + 2 > cursor.data.length) {
+    cursor.offset = cursor.data.length;
+    return 0;
+  }
+
+  const value = cursor.data[cursor.offset] | (cursor.data[cursor.offset + 1] << 8);
+  cursor.offset += 2;
+  return value;
+}
+
+function getLeDWordValue(cursor) {
+  if (cursor.offset + 4 > cursor.data.length) {
+    cursor.offset = cursor.data.length;
+    return 0;
+  }
+
+  const value = (
+    cursor.data[cursor.offset] |
+    (cursor.data[cursor.offset + 1] << 8) |
+    (cursor.data[cursor.offset + 2] << 16) |
+    (cursor.data[cursor.offset + 3] << 24)
+  ) >>> 0;
+  cursor.offset += 4;
+  return value;
+}
+
+function getShortValue(cursor) {
+  if (cursor.offset >= cursor.data.length) return 0;
+
+  let value = cursor.data[cursor.offset++];
+  if (value & 1) {
+    if (cursor.offset < cursor.data.length) {
+      value |= cursor.data[cursor.offset++] << 8;
+    }
+    value -= 0x8000;
+  } else {
+    value -= 0x80;
+  }
+
+  return value / 2;
+}
+
+function getWordValue(cursor) {
+  if (cursor.offset >= cursor.data.length) return 0;
+
+  let value = cursor.data[cursor.offset++];
+  if (value & 1) {
+    if (cursor.offset < cursor.data.length) {
+      value |= cursor.data[cursor.offset++] << 8;
+    }
+  }
+
+  return value / 2;
+}
+
+function getLongValue(cursor) {
+  const low = getLeWordValue(cursor);
+  if (!(low & 1)) {
+    return low - 0x8000;
+  }
+
+  const high = getLeWordValue(cursor);
+  return (low + high * 65536) - 0x80000000;
+}
+
+function readNullTerminatedString(cursor) {
+  if (cursor.offset >= cursor.data.length) return '';
+
+  const start = cursor.offset;
+  let end = start;
+  while (end < cursor.data.length && cursor.data[end] !== 0) {
+    end += 1;
+  }
+
+  const value = new TextDecoder('windows-1252').decode(cursor.data.slice(start, end));
+  cursor.offset = end < cursor.data.length ? end + 1 : end;
+  return value;
+}
+
+function sanitizeKeyword(keyword) {
+  if (!keyword) return '';
+  const cleaned = keyword
+    .replace(/[\u0000-\u001f\u007f-\u009f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!cleaned) return '';
+  if (!/[A-Za-z0-9]/.test(cleaned)) return '';
+  if (cleaned.length === 1 && !/[A-Za-z0-9]/.test(cleaned)) return '';
+
+  return cleaned;
+}
+
+function normalizeLookupText(value) {
+  if (!value) return '';
+  return value
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function resolveTopicByText(text, topics, normalizedTitles) {
+  const normalized = normalizeLookupText(text);
+  if (!normalized) return null;
+  if (normalizedTitles.has(normalized)) {
+    return normalizedTitles.get(normalized);
+  }
+
+  for (const topic of topics) {
+    const title = normalizeLookupText(topic.title);
+    if (!title) continue;
+    if (title.includes(normalized) || normalized.includes(title)) {
+      return topic.id;
+    }
+  }
+
+  return null;
 }
 
 export default HlpParser;

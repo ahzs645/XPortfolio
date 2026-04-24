@@ -183,8 +183,11 @@ function buildTestHlp() {
   const topic1Start = b.getPos();
   const topic1SizePatch = b.getPos();
   b.writeInt32(0);    // block size (patch)
-  b.writeInt32(0);    // data len 2
+  const topic1DataLen2Patch = b.getPos();
+  b.writeInt32(0);    // data len 2 (patch)
+  const topic1PrevPatch = b.getPos();
   b.writeInt32(-1);   // prev
+  const topic1NextPatch = b.getPos();
   b.writeInt32(-1);   // next (patch later)
   b.writeInt32(22);   // data len 1 (21-byte header + 1 format byte)
   b.writeUint8(0x02); // record type: topic header
@@ -197,13 +200,17 @@ function buildTestHlp() {
 
   const topic1End = b.getPos();
   b.patchInt32(topic1SizePatch, topic1End - topic1Start);
+  b.patchInt32(topic1DataLen2Patch, contentTitle.length + 1);
 
   // --- Topic Link 2: Text for contents topic ---
   const topic2Start = b.getPos();
   const topic2SizePatch = b.getPos();
   b.writeInt32(0);
+  const topic2DataLen2Patch = b.getPos();
   b.writeInt32(0);
+  const topic2PrevPatch = b.getPos();
   b.writeInt32(-1);
+  const topic2NextPatch = b.getPos();
   b.writeInt32(-1);
   b.writeInt32(22);   // data len 1 (21-byte header + 1 format byte)
   b.writeUint8(0x20); // record type: text (new style)
@@ -215,13 +222,17 @@ function buildTestHlp() {
 
   const topic2End = b.getPos();
   b.patchInt32(topic2SizePatch, topic2End - topic2Start);
+  b.patchInt32(topic2DataLen2Patch, text1.length + 1);
 
   // --- Topic Link 3: Header for "Usage" topic ---
   const topic3Start = b.getPos();
   const topic3SizePatch = b.getPos();
   b.writeInt32(0);
+  const topic3DataLen2Patch = b.getPos();
   b.writeInt32(0);
+  const topic3PrevPatch = b.getPos();
   b.writeInt32(-1);
+  const topic3NextPatch = b.getPos();
   b.writeInt32(-1);
   b.writeInt32(22);   // data len 1 (21-byte header + 1 format byte)
   b.writeUint8(0x02);
@@ -233,13 +244,17 @@ function buildTestHlp() {
 
   const topic3End = b.getPos();
   b.patchInt32(topic3SizePatch, topic3End - topic3Start);
+  b.patchInt32(topic3DataLen2Patch, usageTitle.length + 1);
 
   // --- Topic Link 4: Text for usage ---
   const topic4Start = b.getPos();
   const topic4SizePatch = b.getPos();
   b.writeInt32(0);
+  const topic4DataLen2Patch = b.getPos();
   b.writeInt32(0);
+  const topic4PrevPatch = b.getPos();
   b.writeInt32(-1);
+  const topic4NextPatch = b.getPos();
   b.writeInt32(-1);
   b.writeInt32(22);   // data len 1 (21-byte header + 1 format byte)
   b.writeUint8(0x20);
@@ -251,13 +266,17 @@ function buildTestHlp() {
 
   const topic4End = b.getPos();
   b.patchInt32(topic4SizePatch, topic4End - topic4Start);
+  b.patchInt32(topic4DataLen2Patch, text2.length + 1);
 
   // --- Topic Link 5: Header for "File Format" topic ---
   const topic5Start = b.getPos();
   const topic5SizePatch = b.getPos();
   b.writeInt32(0);
+  const topic5DataLen2Patch = b.getPos();
   b.writeInt32(0);
+  const topic5PrevPatch = b.getPos();
   b.writeInt32(-1);
+  const topic5NextPatch = b.getPos();
   b.writeInt32(-1);
   b.writeInt32(22);   // data len 1 (21-byte header + 1 format byte)
   b.writeUint8(0x02);
@@ -269,13 +288,17 @@ function buildTestHlp() {
 
   const topic5End = b.getPos();
   b.patchInt32(topic5SizePatch, topic5End - topic5Start);
+  b.patchInt32(topic5DataLen2Patch, fmtTitle.length + 1);
 
   // --- Topic Link 6: Text for file format ---
   const topic6Start = b.getPos();
   const topic6SizePatch = b.getPos();
   b.writeInt32(0);
+  const topic6DataLen2Patch = b.getPos();
   b.writeInt32(0);
+  const topic6PrevPatch = b.getPos();
   b.writeInt32(-1);
+  const topic6NextPatch = b.getPos();
   b.writeInt32(-1);
   b.writeInt32(22);   // data len 1 (21-byte header + 1 format byte)
   b.writeUint8(0x20);
@@ -287,6 +310,20 @@ function buildTestHlp() {
 
   const topic6End = b.getPos();
   b.patchInt32(topic6SizePatch, topic6End - topic6Start);
+  b.patchInt32(topic6DataLen2Patch, text3.length + 1);
+
+  const topicContentStart = topicOffset + 9;
+  const toTopicOffset = (absolutePos) => absolutePos - topicContentStart;
+  b.patchInt32(topic1NextPatch, toTopicOffset(topic2Start));
+  b.patchInt32(topic2PrevPatch, toTopicOffset(topic1Start));
+  b.patchInt32(topic2NextPatch, toTopicOffset(topic3Start));
+  b.patchInt32(topic3PrevPatch, toTopicOffset(topic2Start));
+  b.patchInt32(topic3NextPatch, toTopicOffset(topic4Start));
+  b.patchInt32(topic4PrevPatch, toTopicOffset(topic3Start));
+  b.patchInt32(topic4NextPatch, toTopicOffset(topic5Start));
+  b.patchInt32(topic5PrevPatch, toTopicOffset(topic4Start));
+  b.patchInt32(topic5NextPatch, toTopicOffset(topic6Start));
+  b.patchInt32(topic6PrevPatch, toTopicOffset(topic5Start));
 
   const topicEnd = b.getPos();
   const topicSize = topicEnd - topicOffset;
