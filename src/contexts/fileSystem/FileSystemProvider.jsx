@@ -59,17 +59,21 @@ export function FileSystemProvider({ children }) {
   useEffect(() => {
     if (configLoading || userLoading) return;
 
-    if (!activeUserId) {
-      setFileSystem(null);
-      setIsLoading(false);
-      return;
-    }
-
-    if (currentUserIdRef.current === activeUserId && fileSystem) {
-      return;
-    }
-
+    let isMounted = true;
     const loadFileSystem = async () => {
+      await Promise.resolve();
+      if (!isMounted) return;
+
+      if (!activeUserId) {
+        setFileSystem(null);
+        setIsLoading(false);
+        return;
+      }
+
+      if (currentUserIdRef.current === activeUserId && fileSystem) {
+        return;
+      }
+
       setIsLoading(true);
       const storageKey = getFileSystemKey(activeUserId);
 
@@ -104,17 +108,27 @@ export function FileSystemProvider({ children }) {
 
         await idb.set(storageKey, fs);
         currentUserIdRef.current = activeUserId;
-        setFileSystem(fs);
+        if (isMounted) {
+          setFileSystem(fs);
+        }
       } catch (error) {
         console.error('Failed to load file system:', error);
-        setFileSystem(createInitialFileSystem(desktopShortcuts, folderProjects, userName));
+        if (isMounted) {
+          setFileSystem(createInitialFileSystem(desktopShortcuts, folderProjects, userName));
+        }
         currentUserIdRef.current = activeUserId;
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     loadFileSystem();
+
+    return () => {
+      isMounted = false;
+    };
   }, [configLoading, userLoading, activeUserId, fileSystem, desktopShortcuts, folderProjects, userName]);
 
   // Track file system save errors for consumer visibility

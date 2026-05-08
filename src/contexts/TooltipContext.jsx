@@ -27,41 +27,54 @@ function TooltipRenderer() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [measured, setMeasured] = useState(false);
 
-  /* eslint-disable react-hooks/set-state-in-effect -- DOM measurement after layout */
   useLayoutEffect(() => {
     if (!tooltip.visible || !tooltip.text || !tooltipRef.current) {
-      setMeasured(false);
-      return;
+      const frameId = requestAnimationFrame(() => setMeasured(false));
+      return () => cancelAnimationFrame(frameId);
     }
 
-    const rect = tooltipRef.current.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
+    let frameId = null;
+    const measureTooltip = () => {
+      if (!tooltipRef.current) {
+        return;
+      }
 
-    let x = tooltip.x;
-    let y = tooltip.y;
+      const rect = tooltipRef.current.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
 
-    // Adjust horizontal position if tooltip goes off-screen
-    if (x + rect.width > viewportWidth - VIEWPORT_PADDING) {
-      x = viewportWidth - rect.width - VIEWPORT_PADDING;
-    }
-    if (x < VIEWPORT_PADDING) {
-      x = VIEWPORT_PADDING;
-    }
+      let x = tooltip.x;
+      let y = tooltip.y;
 
-    // Adjust vertical position if tooltip goes off-screen
-    if (y + rect.height > viewportHeight - VIEWPORT_PADDING) {
-      // Show tooltip above the cursor instead
-      y = tooltip.y - rect.height - 24;
-    }
-    if (y < VIEWPORT_PADDING) {
-      y = VIEWPORT_PADDING;
-    }
+      // Adjust horizontal position if tooltip goes off-screen
+      if (x + rect.width > viewportWidth - VIEWPORT_PADDING) {
+        x = viewportWidth - rect.width - VIEWPORT_PADDING;
+      }
+      if (x < VIEWPORT_PADDING) {
+        x = VIEWPORT_PADDING;
+      }
 
-    setPosition({ x, y });
-    setMeasured(true);
+      // Adjust vertical position if tooltip goes off-screen
+      if (y + rect.height > viewportHeight - VIEWPORT_PADDING) {
+        // Show tooltip above the cursor instead
+        y = tooltip.y - rect.height - 24;
+      }
+      if (y < VIEWPORT_PADDING) {
+        y = VIEWPORT_PADDING;
+      }
+
+      setPosition({ x, y });
+      setMeasured(true);
+    };
+
+    frameId = requestAnimationFrame(measureTooltip);
+
+    return () => {
+      if (frameId !== null) {
+        cancelAnimationFrame(frameId);
+      }
+    };
   }, [tooltip.visible, tooltip.text, tooltip.x, tooltip.y]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!tooltip.visible || !tooltip.text) {
     return null;

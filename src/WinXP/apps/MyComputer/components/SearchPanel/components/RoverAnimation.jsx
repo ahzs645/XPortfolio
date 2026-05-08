@@ -28,33 +28,49 @@ const RoverAnimation = forwardRef(({ character, onExitComplete, onShowComplete, 
   const needsShowAnimation = useRef(true);
 
   // Load animation data and sounds for the character
-  /* eslint-disable react-hooks/set-state-in-effect -- reset and load animation on character change */
   useEffect(() => {
     if (!character) return;
 
-    setAnimationData(null);
-    setSoundsData(null);
-    setPhase('loading');
-    needsShowAnimation.current = true; // Reset for new character
+    let isActive = true;
 
-    // Load animation data
-    fetch(character.dataUrl)
-      .then(res => res.json())
-      .then(data => {
-        setAnimationData(data);
-        setPhase('show');
-      })
-      .catch(err => {
-        console.error('Failed to load character animation data:', err);
-      });
+    const loadCharacter = async () => {
+      await Promise.resolve();
+      if (!isActive) return;
 
-    // Load sounds
-    fetch(character.soundsUrl)
-      .then(res => res.json())
-      .then(data => setSoundsData(data))
-      .catch(() => {}); // Sounds are optional
+      setAnimationData(null);
+      setSoundsData(null);
+      setPhase('loading');
+      needsShowAnimation.current = true; // Reset for new character
+
+      // Load animation data
+      fetch(character.dataUrl)
+        .then(res => res.json())
+        .then(data => {
+          if (!isActive) return;
+          setAnimationData(data);
+          setPhase('show');
+        })
+        .catch(err => {
+          console.error('Failed to load character animation data:', err);
+        });
+
+      // Load sounds
+      fetch(character.soundsUrl)
+        .then(res => res.json())
+        .then(data => {
+          if (isActive) {
+            setSoundsData(data);
+          }
+        })
+        .catch(() => {}); // Sounds are optional
+    };
+
+    loadCharacter();
+
+    return () => {
+      isActive = false;
+    };
   }, [character]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   const {
     spritePosition,
@@ -87,7 +103,6 @@ const RoverAnimation = forwardRef(({ character, onExitComplete, onShowComplete, 
   }, [play]);
 
   // Play Show animation when data is loaded
-  /* eslint-disable react-hooks/set-state-in-effect -- animation state machine transition */
   useEffect(() => {
     if (animationData && phase === 'show' && needsShowAnimation.current) {
       needsShowAnimation.current = false; // Only play once per character load
@@ -95,15 +110,16 @@ const RoverAnimation = forwardRef(({ character, onExitComplete, onShowComplete, 
         play('Show', handleAnimationComplete);
       } else {
         // No Show animation, go straight to Idle
-        setPhase('idle');
-        if (hasAnimation('Idle')) {
-          play('Idle', handleAnimationComplete);
-        }
-        onShowCompleteRef.current?.();
+        queueMicrotask(() => {
+          setPhase('idle');
+          if (hasAnimation('Idle')) {
+            play('Idle', handleAnimationComplete);
+          }
+          onShowCompleteRef.current?.();
+        });
       }
     }
   }, [animationData, phase, hasAnimation, play, handleAnimationComplete]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Play Idle animation after Show completes
   useEffect(() => {

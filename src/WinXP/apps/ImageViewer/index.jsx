@@ -58,6 +58,15 @@ function ImageViewer({ initialImages, initialImage }) {
     }
   }, []);
 
+  const resetTransformState = useCallback(() => {
+    setScale(1);
+    setRotation(0);
+    setFlipH(1);
+    setMode('fit');
+    setNaturalSize(null);
+    setLoading(true);
+  }, []);
+
   // Build the image list from props or projects.json
   useEffect(() => {
     let isMounted = true;
@@ -89,7 +98,7 @@ function ImageViewer({ initialImages, initialImage }) {
       if (isMounted) {
         setImages(imgs);
         setIndex(0);
-        setLoading(false);
+        setLoading(true);
         setNaturalSize(null);
       }
     })();
@@ -112,20 +121,11 @@ function ImageViewer({ initialImages, initialImage }) {
     return () => window.removeEventListener('resize', updateSize);
   }, []);
 
-  // Reset transforms when image changes
-  useEffect(() => {
-    setScale(1);
-    setRotation(0);
-    setFlipH(1);
-    setMode('fit');
-    setNaturalSize(null);
-    setLoading(true);
-  }, [index]);
-
   // Slideshow handler
   useEffect(() => {
     if (!slideshowActive || images.length < 2) return undefined;
     const step = async () => {
+      resetTransformState();
       setIndex((prev) => (prev + 1) % images.length);
     };
     slideshowRef.current = setInterval(step, 5000);
@@ -144,7 +144,7 @@ function ImageViewer({ initialImages, initialImage }) {
         document.exitFullscreen().catch(() => {});
       }
     };
-  }, [slideshowActive, images.length]);
+  }, [slideshowActive, images.length, resetTransformState]);
 
   const currentImage = images[index] || null;
 
@@ -180,7 +180,7 @@ function ImageViewer({ initialImages, initialImage }) {
     setLoading(false);
   };
 
-  const getFinalScaleForExport = useCallback(() => {
+  const getFinalScaleForExport = useCallback((exportScale = scale, exportMode = mode) => {
     if (!naturalSize) return 1;
     const iw = naturalSize.width || 1;
     const ih = naturalSize.height || 1;
@@ -189,17 +189,17 @@ function ImageViewer({ initialImages, initialImage }) {
     const cos = Math.abs(Math.cos(rad));
     const rotatedWidth = iw * cos + ih * sin;
     const rotatedHeight = iw * sin + ih * cos;
-    if (mode === 'fit') {
+    if (exportMode === 'fit') {
       const fitScale = Math.min(
         containerSize.width / rotatedWidth,
         containerSize.height / rotatedHeight
       );
-      return scale * fitScale;
+      return exportScale * fitScale;
     }
-    return scale;
+    return exportScale;
   }, [containerSize.height, containerSize.width, mode, naturalSize, rotation, scale]);
 
-  const getTransformedBlob = useCallback(() => {
+  const getTransformedBlob = useCallback((options = {}) => {
     return new Promise((resolve, reject) => {
       if (!naturalSize || !currentImage?.src) {
         reject(new Error('No image loaded'));
@@ -213,7 +213,7 @@ function ImageViewer({ initialImages, initialImage }) {
       const cos = Math.abs(Math.cos(rad));
       const rotatedWidth = iw * cos + ih * sin;
       const rotatedHeight = iw * sin + ih * cos;
-      const finalScale = getFinalScaleForExport();
+      const finalScale = getFinalScaleForExport(options.scale, options.mode);
       const canvasW = Math.max(1, Math.round(rotatedWidth * finalScale));
       const canvasH = Math.max(1, Math.round(rotatedHeight * finalScale));
       const canvas = document.createElement('canvas');
@@ -236,7 +236,7 @@ function ImageViewer({ initialImages, initialImage }) {
       img.onerror = () => reject(new Error('Failed to load image for export'));
       img.src = currentImage.src;
     });
-  }, [currentImage?.src, flipH, getFinalScaleForExport, naturalSize, rotation]);
+  }, [currentImage, flipH, getFinalScaleForExport, naturalSize, rotation]);
 
   const handlePrint = useCallback(async () => {
     try {
@@ -269,13 +269,7 @@ function ImageViewer({ initialImages, initialImage }) {
 
   const handleSave = useCallback(async () => {
     try {
-      const originalScale = scale;
-      const originalMode = mode;
-      setScale(1);
-      setMode('actual');
-      const blob = await getTransformedBlob();
-      setScale(originalScale);
-      setMode(originalMode);
+      const blob = await getTransformedBlob({ scale: 1, mode: 'actual' });
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -291,7 +285,7 @@ function ImageViewer({ initialImages, initialImage }) {
       console.error(err);
       alert('No image to save');
     }
-  }, [currentImage?.alt, getTransformedBlob, mode, scale]);
+  }, [currentImage, getTransformedBlob]);
 
   const toggleSlideshow = () => {
     setSlideshowActive((prev) => !prev);
@@ -305,7 +299,7 @@ function ImageViewer({ initialImages, initialImage }) {
     openApp('Paint', {
       imagePath: currentImage.src,
     });
-  }, [currentImage?.src, openApp]);
+  }, [currentImage, openApp]);
 
   const toggleZoomMode = () => {
     setMode((prev) => {
@@ -337,11 +331,13 @@ function ImageViewer({ initialImages, initialImage }) {
 
   const nextImage = () => {
     if (images.length < 2) return;
+    resetTransformState();
     setIndex((prev) => (prev + 1) % images.length);
   };
 
   const prevImage = () => {
     if (images.length < 2) return;
+    resetTransformState();
     setIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 

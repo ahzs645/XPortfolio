@@ -23,10 +23,10 @@ export function ContextMenu({
   const [adjustedPosition, setAdjustedPosition] = useState(() => toDisplayLayerPoint(position));
 
   // Adjust position to keep menu within viewport
-  /* eslint-disable react-hooks/set-state-in-effect -- DOM measurement after render */
   useEffect(() => {
     if (!menuRef.current || !position) return;
 
+    let frameId = null;
     const menu = menuRef.current;
     const rect = toDisplayLayerRect(menu.getBoundingClientRect());
     const viewport = getDisplayViewport();
@@ -45,13 +45,20 @@ export function ContextMenu({
       newY = Math.max(0, viewport.height - rect.height - 5);
     }
 
-    if (newX !== normalizedPosition.x || newY !== normalizedPosition.y) {
-      setAdjustedPosition({ x: newX, y: newY });
-    } else {
-      setAdjustedPosition(normalizedPosition);
-    }
+    frameId = requestAnimationFrame(() => {
+      if (newX !== normalizedPosition.x || newY !== normalizedPosition.y) {
+        setAdjustedPosition({ x: newX, y: newY });
+      } else {
+        setAdjustedPosition(normalizedPosition);
+      }
+    });
+
+    return () => {
+      if (frameId !== null) {
+        cancelAnimationFrame(frameId);
+      }
+    };
   }, [position]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!position || !items?.length) return null;
 

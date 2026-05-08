@@ -142,58 +142,78 @@ export function UserAccountsProvider({ children }) {
     // Wait for config to load first
     if (configLoading) return;
 
-    try {
-      const savedUsers = localStorage.getItem('userAccounts');
-      const savedActiveId = localStorage.getItem('activeUserId');
-      let parsedUsers = [];
+    let isMounted = true;
 
-      if (savedUsers) {
-        parsedUsers = JSON.parse(savedUsers);
-        setUsers(parsedUsers);
+    const loadUsers = async () => {
+      await Promise.resolve();
+      if (!isMounted) return;
 
-        // Check if there's a valid active user
-        if (savedActiveId && parsedUsers.find(u => u.id === savedActiveId)) {
-          setActiveUserId(savedActiveId);
+      try {
+        const savedUsers = localStorage.getItem('userAccounts');
+        const savedActiveId = localStorage.getItem('activeUserId');
+        let parsedUsers = [];
+
+        if (savedUsers) {
+          parsedUsers = JSON.parse(savedUsers);
+          setUsers(parsedUsers);
+
+          // Check if there's a valid active user
+          if (savedActiveId && parsedUsers.find(u => u.id === savedActiveId)) {
+            setActiveUserId(savedActiveId);
+          }
+        } else {
+          // Create default user on first run using config values
+          const defaultUser = createDefaultUser(
+            getUsername(),
+            getUserLoginIcon()
+          );
+          parsedUsers = [defaultUser];
+          setUsers(parsedUsers);
+          localStorage.setItem('userAccounts', JSON.stringify(parsedUsers));
         }
-      } else {
-        // Create default user on first run using config values
+
+        // Check for valid session to restore (only once)
+        if (!sessionChecked.current) {
+          sessionChecked.current = true;
+
+          if (isSessionValid()) {
+            const sessionUserId = localStorage.getItem(SESSION_KEYS.USER_ID);
+            const sessionUser = parsedUsers.find(u => u.id === sessionUserId);
+
+            if (sessionUser) {
+              console.log('[Session] Restoring session for user:', sessionUser.name);
+              setActiveUserId(sessionUserId);
+              setIsLoggedIn(true);
+              setSessionRestored(true);
+              // Update session timestamp to extend it
+              saveSession(sessionUserId);
+            } else {
+              // User no longer exists, clear session
+              clearSession();
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load user accounts:', err);
         const defaultUser = createDefaultUser(
           getUsername(),
           getUserLoginIcon()
         );
-        parsedUsers = [defaultUser];
-        setUsers(parsedUsers);
-        localStorage.setItem('userAccounts', JSON.stringify(parsedUsers));
-      }
-
-      // Check for valid session to restore (only once)
-      if (!sessionChecked.current) {
-        sessionChecked.current = true;
-
-        if (isSessionValid()) {
-          const sessionUserId = localStorage.getItem(SESSION_KEYS.USER_ID);
-          const sessionUser = parsedUsers.find(u => u.id === sessionUserId);
-
-          if (sessionUser) {
-            console.log('[Session] Restoring session for user:', sessionUser.name);
-            setActiveUserId(sessionUserId);
-            setIsLoggedIn(true);
-            setSessionRestored(true);
-            // Update session timestamp to extend it
-            saveSession(sessionUserId);
-          } else {
-            // User no longer exists, clear session
-            clearSession();
-          }
+        if (isMounted) {
+          setUsers([defaultUser]);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
         }
       }
-    } catch (err) {
-      console.error('Failed to load user accounts:', err);
-      const defaultUser = createDefaultUser(getUsername(), getUserLoginIcon());
-      setUsers([defaultUser]);
-    } finally {
-      setIsLoading(false);
-    }
+    };
+
+    loadUsers();
+
+    return () => {
+      isMounted = false;
+    };
   }, [configLoading, getUsername, getUserLoginIcon, isSessionValid, saveSession, clearSession]);
 
   // Persist users to localStorage
