@@ -91,15 +91,15 @@ jobs:
       # ============================================================================
 
       - name: Install main app dependencies
-        run: npm install
+        run: pnpm install --frozen-lockfile
 
       - name: Lint main app
-        run: npm run lint
+        run: pnpm run lint
 
       - name: Build main app
         env:
           VITE_BASE: /
-        run: npm run build
+        run: pnpm run build
 
       # ============================================================================
       # DEPLOY TO GITHUB PAGES
