@@ -2,6 +2,7 @@
  * Global Audio Manager
  * Controls master volume for ALL audio in the application
  */
+import { getIframeTargetOrigin } from './iframeMessaging';
 
 // Master volume state
 let masterVolume = (() => {
@@ -27,6 +28,19 @@ const audioElements = new Set();
 
 // Store original volumes for each audio element
 const originalVolumes = new WeakMap();
+
+function postVolumeToIframe(iframe) {
+  const targetOrigin = getIframeTargetOrigin(iframe);
+  if (!targetOrigin) {
+    return;
+  }
+
+  iframe.contentWindow?.postMessage({
+    type: 'xp:volume-change',
+    volume: masterVolume * 100,
+    muted: masterMuted
+  }, targetOrigin);
+}
 
 /**
  * Apply master volume to an audio/video element
@@ -212,11 +226,7 @@ function patchIframe(iframe) {
   } catch {
     // Cross-origin iframe - can't access, try messaging instead
     try {
-      iframe.contentWindow?.postMessage({
-        type: 'xp:volume-change',
-        volume: masterVolume * 100,
-        muted: masterMuted
-      }, '*');
+      postVolumeToIframe(iframe);
     } catch {
       // Silently fail
     }
@@ -229,11 +239,7 @@ function patchIframe(iframe) {
 function broadcastVolumeToIframes() {
   document.querySelectorAll('iframe').forEach(iframe => {
     try {
-      iframe.contentWindow?.postMessage({
-        type: 'xp:volume-change',
-        volume: masterVolume * 100,
-        muted: masterMuted
-      }, '*');
+      postVolumeToIframe(iframe);
     } catch {
       // Silently fail
     }

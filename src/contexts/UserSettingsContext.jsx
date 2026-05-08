@@ -21,8 +21,8 @@ function getStoredDisplayZoom() {
     if (Number.isFinite(parsedZoom) && parsedZoom > 0) {
       return parsedZoom;
     }
-  } catch {
-    // Ignore storage failures and use the runtime default.
+  } catch (err) {
+    console.warn('Failed to read display zoom setting', err);
   }
 
   return getDefaultDisplayZoom();
@@ -158,7 +158,8 @@ export function UserSettingsProvider({ children }) {
       try {
         const saved = localStorage.getItem('desktopIconPositions');
         return saved ? JSON.parse(saved) : {};
-      } catch {
+      } catch (err) {
+        console.warn('Failed to read desktop icon positions', err);
         return {};
       }
     }
@@ -191,8 +192,8 @@ export function UserSettingsProvider({ children }) {
             ...JSON.parse(saved),
           };
         }
-      } catch {
-        // Ignore storage failures and fall back to defaults.
+      } catch (err) {
+        console.warn('Failed to read sound settings', err);
       }
 
       return { ...DEFAULT_SOUND_SETTINGS };
@@ -254,7 +255,8 @@ export function UserSettingsProvider({ children }) {
       try {
         const saved = localStorage.getItem('windowSoundsEnabled');
         return saved === 'true';
-      } catch {
+      } catch (err) {
+        console.warn('Failed to read window sounds setting', err);
         return false;
       }
     }
@@ -279,7 +281,8 @@ export function UserSettingsProvider({ children }) {
   const [localColorDepth, setLocalColorDepth] = useState(() => {
     try {
       return localStorage.getItem('colorDepth') || '32';
-    } catch {
+    } catch (err) {
+      console.warn('Failed to read color depth setting', err);
       return '32';
     }
   });

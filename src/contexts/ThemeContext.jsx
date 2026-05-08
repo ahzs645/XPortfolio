@@ -11,7 +11,8 @@ function loadInstalledThemes() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY_INSTALLED);
     return stored ? JSON.parse(stored) : [];
-  } catch {
+  } catch (err) {
+    console.warn('Failed to read installed themes', err);
     return [];
   }
 }
@@ -19,15 +20,16 @@ function loadInstalledThemes() {
 function saveInstalledThemes(themes) {
   try {
     localStorage.setItem(STORAGE_KEY_INSTALLED, JSON.stringify(themes));
-  } catch {
-    // localStorage full or unavailable
+  } catch (err) {
+    console.warn('Failed to persist installed themes', err);
   }
 }
 
 function loadActiveThemeId() {
   try {
     return localStorage.getItem(STORAGE_KEY_ACTIVE) || 'luna';
-  } catch {
+  } catch (err) {
+    console.warn('Failed to read active theme', err);
     return 'luna';
   }
 }
@@ -35,8 +37,8 @@ function loadActiveThemeId() {
 function saveActiveThemeId(id) {
   try {
     localStorage.setItem(STORAGE_KEY_ACTIVE, id);
-  } catch {
-    // ignore
+  } catch (err) {
+    console.warn('Failed to persist active theme', err);
   }
 }
 

@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useCallback, useState } from 'react';
 import styled from 'styled-components';
 import { useInstalledApps } from '../../../contexts/InstalledAppsContext';
 import { useFileSystem } from '../../../contexts/FileSystemContext';
+import { getTargetOriginFromUrl } from '../../../utils/iframeMessaging';
 
 const Container = styled.div`
   position: relative;
@@ -160,17 +161,12 @@ function IframeApp({
   // Handle messages from the iframe
   const handleMessage = useCallback((event) => {
     // Verify origin if we have an app URL
-    if (appUrl) {
-      const appOrigin = new URL(appUrl).origin;
-      if (event.origin !== appOrigin) return;
-    }
+    const targetOrigin = getTargetOriginFromUrl(appUrl);
+    if (!targetOrigin || event.origin !== targetOrigin) return;
 
     const { type, action, data, requestId } = event.data || {};
     if (type !== 'xportfolio') return;
 
-    // Never use wildcard targetOrigin - require a known app URL
-    if (!appUrl) return;
-    const targetOrigin = new URL(appUrl).origin;
     const respond = (response) => {
       iframeRef.current?.contentWindow?.postMessage({
         type: 'xportfolio-response',
@@ -355,8 +351,8 @@ function IframeApp({
     setError(null);
 
     // Send init message to iframe - only with a known origin
-    if (appUrl) {
-      const initOrigin = new URL(appUrl).origin;
+    const initOrigin = getTargetOriginFromUrl(appUrl);
+    if (initOrigin) {
       iframeRef.current?.contentWindow?.postMessage({
         type: 'xportfolio-init',
         data: {

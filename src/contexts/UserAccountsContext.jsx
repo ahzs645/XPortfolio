@@ -199,14 +199,22 @@ export function UserAccountsProvider({ children }) {
   // Persist users to localStorage
   useEffect(() => {
     if (!isLoading && users.length > 0) {
-      localStorage.setItem('userAccounts', JSON.stringify(users));
+      try {
+        localStorage.setItem('userAccounts', JSON.stringify(users));
+      } catch (err) {
+        console.error('Failed to persist user accounts:', err);
+      }
     }
   }, [users, isLoading]);
 
   // Persist active user ID
   useEffect(() => {
     if (activeUserId) {
-      localStorage.setItem('activeUserId', activeUserId);
+      try {
+        localStorage.setItem('activeUserId', activeUserId);
+      } catch (err) {
+        console.error('Failed to persist active user ID:', err);
+      }
     }
   }, [activeUserId]);
 

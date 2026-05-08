@@ -1,3 +1,5 @@
+import { getIframeTargetOrigin } from './iframeMessaging';
+
 const CURSOR_STYLE_ID = 'xportfolio-xp-cursor-style';
 const CURSOR_PRELOAD_ATTR = 'data-xp-cursor-preload';
 const CURSOR_ASSET_URLS = [
@@ -155,10 +157,15 @@ function patchIframe(iframe) {
     applyModeToDocument(iframeDoc);
   } catch {
     try {
+      const targetOrigin = getIframeTargetOrigin(iframe);
+      if (!targetOrigin) {
+        return;
+      }
+
       iframe.contentWindow?.postMessage({
         type: 'xp:cursor-mode',
         mode: getActiveMode(),
-      }, '*');
+      }, targetOrigin);
     } catch {
       // Cross-origin iframe that does not accept postMessage cursor sync.
     }

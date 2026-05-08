@@ -22,13 +22,20 @@ pnpm dev
 Themes are selected via URL params:
 
 - Theme catalog: `/?catalog=1`
-- Windows XP portfolio: `/?theme=xp` (default)
+- Windows XP portfolio: `/?theme=luna` (default)
 - Minimal theme example: `/?theme=ansub-minimal`
 
 ## Add a new theme
 
-1. Create a React component under `src/portfolioThemes/themes/<YourTheme>/`.
-2. Register it in `src/portfolioThemes/portfolioThemes.js`.
+1. Create a theme definition under `src/WinXP/styles/themes/`.
+2. Register it in `src/WinXP/styles/themes/index.js`.
+
+## Project conventions
+
+- Use `pnpm` for dependency installation and script execution.
+- Prefer `styled-components` for new ordinary app UI.
+- First-party CSS imports are allowed for complex or ported app surfaces where preserving existing styles is lower risk.
+- Vendor CSS imports are allowed for third-party UI packages such as `react-pdf` and `@fortune-sheet/react`.
 
 ## Note on reuse
 

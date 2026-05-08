@@ -116,7 +116,7 @@ export function ConfigProvider({ children }) {
     const defaults = { desktop: null, mobile: null };
     if (typeof window === 'undefined') return defaults;
     try {
-      const saved = window.localStorage.getItem('wallpaperOverrides');
+      const saved = localStorage.getItem('wallpaperOverrides');
       return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
     } catch (err) {
       console.warn('Failed to read wallpaper overrides', err);
@@ -128,7 +128,7 @@ export function ConfigProvider({ children }) {
     const defaults = { name: 'windows', waitMinutes: 5, enabled: true };
     if (typeof window === 'undefined') return defaults;
     try {
-      const saved = window.localStorage.getItem('screensaverSettings');
+      const saved = localStorage.getItem('screensaverSettings');
       return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
     } catch (err) {
       console.warn('Failed to read screensaver settings', err);
@@ -180,7 +180,7 @@ export function ConfigProvider({ children }) {
   useEffect(() => {
     try {
       if (typeof window !== 'undefined') {
-        window.localStorage.setItem('wallpaperOverrides', JSON.stringify(wallpaperOverrides));
+        localStorage.setItem('wallpaperOverrides', JSON.stringify(wallpaperOverrides));
       }
     } catch (err) {
       console.warn('Failed to persist wallpaper overrides', err);
@@ -191,7 +191,7 @@ export function ConfigProvider({ children }) {
   useEffect(() => {
     try {
       if (typeof window !== 'undefined') {
-        window.localStorage.setItem('screensaverSettings', JSON.stringify(screensaverSettings));
+        localStorage.setItem('screensaverSettings', JSON.stringify(screensaverSettings));
       }
     } catch (err) {
       console.warn('Failed to persist screensaver settings', err);
@@ -483,6 +483,9 @@ export function ConfigProvider({ children }) {
 
         // Fetch the SVG file
         const response = await fetch(withBaseUrl('/xp.svg'));
+        if (!response.ok) {
+          throw new Error(`Failed to load XP SVG: ${response.status}`);
+        }
         let svgContent = await response.text();
 
         // Replace the name text content in the SVG

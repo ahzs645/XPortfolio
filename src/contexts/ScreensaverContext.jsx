@@ -11,14 +11,6 @@ const SCREENSAVER_COMPONENTS = {
   windows: WindowsScreensaver,
 };
 
-export function useScreensaver() {
-  const context = useContext(ScreensaverContext);
-  if (!context) {
-    throw new Error('useScreensaver must be used within a ScreensaverProvider');
-  }
-  return context;
-}
-
 const SCREENSAVER_EMBEDS = {
   pipes: '/screensavers/pipes/index.html',
   flowerbox: '/screensavers/flowerbox/index.html',
@@ -151,6 +143,14 @@ export function ScreensaverProvider({ children }) {
       )}
     </ScreensaverContext.Provider>
   );
+}
+
+export function useScreensaver() {
+  const context = useContext(ScreensaverContext);
+  if (!context) {
+    throw new Error('useScreensaver must be used within a ScreensaverProvider');
+  }
+  return context;
 }
 
 const ScreensaverOverlay = styled.div`
