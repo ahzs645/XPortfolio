@@ -567,7 +567,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     onCopy: withClose(handleCopy),
     onDelete: withClose(handleDelete),
     onRename: withClose(handleRename),
-    onProperties: withClose(() => console.log('Properties for', selectedItem?.name)),
+    onProperties: withClose(() => {}),
     onAddToArchive: withClose(handleAddToArchive),
     onExtractHere: withClose(handleExtractHere),
   });
@@ -627,7 +627,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
         if (isSearching) setSearchQuery('');
         break;
       default:
-        console.log('Toolbar action:', action);
+        break;
     }
   }, [goBack, goForward, goUp, isSearching, showClassicFolders]);
 
@@ -653,7 +653,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
       case 'sortByType': setSortBy('type'); break;
       case 'sortByModified': setSortBy('modified'); break;
       case 'folderOptions': openApp('Folder Options'); break;
-      default: console.log('Menu action:', action);
+      default: break;
     }
   }, [handleCreateFolder, handleDelete, handleCopy, handleCut, handlePaste, handleRename, selectAll, onClose, openApp]);
 
@@ -963,7 +963,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
                     </TaskPanel.Item>
                   </TaskPanel.Section>
                   <TaskPanel.Section title="Other Places">
-                    <TaskPanel.Item icon={XP_ICONS.folder} onClick={() => console.log('My Network Places')}>
+                    <TaskPanel.Item icon={XP_ICONS.folder} onClick={() => {}}>
                       My Network Places
                     </TaskPanel.Item>
                     <TaskPanel.Item icon={XP_ICONS.myDocuments} onClick={() => navigateTo(SYSTEM_IDS.MY_DOCUMENTS)}>
