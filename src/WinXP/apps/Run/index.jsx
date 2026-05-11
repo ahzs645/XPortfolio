@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import { useApp } from '../../../contexts/AppContext';
+import { appDataClient } from '../../../storage';
 
 const HISTORY_KEY = 'xp-run-history';
 const MAX_HISTORY = 10;
@@ -21,10 +22,14 @@ function saveToHistory(cmd) {
     const history = loadHistory().filter(h => h.toLowerCase() !== cmd.toLowerCase());
     history.unshift(cmd);
     if (history.length > MAX_HISTORY) history.length = MAX_HISTORY;
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    appDataClient.localSettings.set(HISTORY_KEY, JSON.stringify(history)).catch(() => {
+      // Ignore storage errors.
+    });
+    return history;
   } catch {
     // Ignore storage errors
   }
+  return loadHistory();
 }
 
 // Map common run commands to app names
@@ -114,7 +119,7 @@ const COMMAND_MAP = {
 function Run({ onClose }) {
   const [command, setCommand] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
-  const [history] = useState(loadHistory);
+  const [history, setHistory] = useState(loadHistory);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -126,6 +131,23 @@ function Run({ onClose }) {
   // Focus input on mount
   useEffect(() => {
     inputRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    appDataClient.localSettings.get(HISTORY_KEY)
+      .then((saved) => {
+        if (isMounted && saved) {
+          setHistory(JSON.parse(saved));
+        }
+      })
+      .catch(() => {
+        // Ignore storage errors.
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Close dropdown when clicking outside
@@ -150,7 +172,7 @@ function Run({ onClose }) {
     const normalizedCommand = trimmedCommand.toLowerCase();
 
     // Save to history before executing
-    saveToHistory(trimmedCommand);
+    setHistory(saveToHistory(trimmedCommand));
 
     // Check command map first
     const appName = COMMAND_MAP[normalizedCommand];

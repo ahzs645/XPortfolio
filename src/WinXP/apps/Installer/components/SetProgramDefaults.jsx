@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { appDataClient } from '../../../../storage';
 import { withBaseUrl } from '../../../../utils/baseUrl';
 import {
   ContentArea,
@@ -172,34 +173,32 @@ function SetProgramDefaults({ installedApps }) {
   const [fileAssociations, setFileAssociations] = useState({});
   const [showSaved, setShowSaved] = useState(false);
 
-  // Load saved defaults from localStorage
-  /* eslint-disable react-hooks/set-state-in-effect -- load persisted settings from localStorage */
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+    appDataClient.localSettings.get(STORAGE_KEY)
+      .then((saved) => {
       if (saved) {
         const parsed = JSON.parse(saved);
         setDefaults(parsed.defaults || {});
         setFileAssociations(parsed.fileAssociations || {});
       }
-    } catch (e) {
+      })
+      .catch((e) => {
       console.error('Failed to load program defaults:', e);
-    }
+      });
   }, []);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
-  // Save defaults to localStorage
   const saveDefaults = () => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    appDataClient.localSettings.set(STORAGE_KEY, JSON.stringify({
         defaults,
         fileAssociations,
-      }));
+    }))
+      .then(() => {
       setShowSaved(true);
       setTimeout(() => setShowSaved(false), 2000);
-    } catch (e) {
+      })
+      .catch((e) => {
       console.error('Failed to save program defaults:', e);
-    }
+      });
   };
 
   // Get available programs for a category

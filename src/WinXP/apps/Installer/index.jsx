@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useInstalledApps } from '../../../contexts/InstalledAppsContext';
 import { useApp } from '../../../contexts/AppContext';
 import { withBaseUrl } from '../../../utils/baseUrl';
@@ -17,7 +17,7 @@ import {
   CloseButton,
 } from './components';
 
-import { DISABLED_APPS_KEY, getDisabledApps } from './disabledApps';
+import { getDisabledApps, loadDisabledApps, saveDisabledApps } from './disabledApps';
 
 // Built-in programs that ship with XPortfolio
 const BUILTIN_PROGRAMS = [
@@ -212,13 +212,21 @@ function Installer({ onClose }) {
   const [disabledApps, setDisabledApps] = useState(() => getDisabledApps());
   const installedApps = getInstalledAppsList();
 
-  // Save disabled apps to localStorage
-  const saveDisabledApps = useCallback((apps) => {
-    try {
-      localStorage.setItem(DISABLED_APPS_KEY, JSON.stringify(apps));
-    } catch (e) {
-      console.error('Failed to save disabled apps:', e);
-    }
+  useEffect(() => {
+    let isMounted = true;
+    loadDisabledApps()
+      .then((apps) => {
+        if (isMounted) {
+          setDisabledApps(apps);
+        }
+      })
+      .catch((e) => {
+        console.error('Failed to load disabled apps:', e);
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Toggle app enabled/disabled state
@@ -227,10 +235,12 @@ function Installer({ onClose }) {
       const newDisabled = prev.includes(appKey)
         ? prev.filter(k => k !== appKey)
         : [...prev, appKey];
-      saveDisabledApps(newDisabled);
+      saveDisabledApps(newDisabled).catch((e) => {
+        console.error('Failed to save disabled apps:', e);
+      });
       return newDisabled;
     });
-  }, [saveDisabledApps]);
+  }, []);
 
   // Combine built-in and installed apps
   const allPrograms = useMemo(() => {

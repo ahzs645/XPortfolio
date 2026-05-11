@@ -47,6 +47,10 @@ export default defineConfig(({ mode }) => {
     esbuild: {
       drop: mode === 'production' ? ['console', 'debugger'] : [],
     },
+    test: {
+      include: ['src/**/*.{test,spec}.?(c|m)[jt]s?(x)'],
+      exclude: ['node_modules/**', 'dist/**', 'external/**', 'public/apps/**'],
+    },
     build: {
       rollupOptions: {
         output: {

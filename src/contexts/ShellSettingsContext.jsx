@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { appDataClient } from '../storage';
 
 const ShellSettingsContext = createContext(null);
 
@@ -134,42 +135,77 @@ function loadShellSettings() {
 }
 
 function persistShellSettings(settings) {
-  try {
-    localStorage.setItem(
-      STORAGE_KEYS.explorer.noExplorerSidebar,
-      String(settings.explorer.sidebarMode === 'classic')
-    );
-    localStorage.setItem(
-      STORAGE_KEYS.explorer.openFoldersInNewWindow,
-      String(settings.explorer.openFoldersInNewWindow)
-    );
-    localStorage.setItem(
-      STORAGE_KEYS.explorer.fullPathInTitle,
-      String(settings.explorer.fullPathInTitle)
-    );
-    localStorage.setItem(
-      STORAGE_KEYS.explorer.showHiddenContents,
-      String(settings.explorer.showHiddenContents)
-    );
-    localStorage.setItem(
-      STORAGE_KEYS.explorer.showFileExtensions,
-      String(settings.explorer.showFileExtensions)
-    );
-
-    localStorage.setItem(STORAGE_KEYS.taskbar.lockTaskbar, String(settings.taskbar.lockTaskbar));
-    localStorage.setItem(STORAGE_KEYS.taskbar.autoHide, String(settings.taskbar.autoHide));
-    localStorage.setItem(STORAGE_KEYS.taskbar.keepOnTop, String(settings.taskbar.keepOnTop));
-    localStorage.setItem(STORAGE_KEYS.taskbar.groupButtons, String(settings.taskbar.groupButtons));
-    localStorage.setItem(STORAGE_KEYS.taskbar.showQuickLaunch, JSON.stringify(settings.taskbar.showQuickLaunch));
-    localStorage.setItem(STORAGE_KEYS.taskbar.showClock, String(settings.taskbar.showClock));
-    localStorage.setItem(STORAGE_KEYS.taskbar.hideInactiveIcons, String(settings.taskbar.hideInactiveIcons));
-    localStorage.setItem(STORAGE_KEYS.taskbar.startMenuStyle, settings.taskbar.startMenuStyle);
-
-    localStorage.setItem(STORAGE_KEYS.audio.volume, String(settings.audio.volume));
-    localStorage.setItem(STORAGE_KEYS.audio.muted, JSON.stringify(settings.audio.muted));
-  } catch (error) {
+  appDataClient.localSettings.setMany({
+    [STORAGE_KEYS.explorer.noExplorerSidebar]: String(settings.explorer.sidebarMode === 'classic'),
+    [STORAGE_KEYS.explorer.openFoldersInNewWindow]: String(settings.explorer.openFoldersInNewWindow),
+    [STORAGE_KEYS.explorer.fullPathInTitle]: String(settings.explorer.fullPathInTitle),
+    [STORAGE_KEYS.explorer.showHiddenContents]: String(settings.explorer.showHiddenContents),
+    [STORAGE_KEYS.explorer.showFileExtensions]: String(settings.explorer.showFileExtensions),
+    [STORAGE_KEYS.taskbar.lockTaskbar]: String(settings.taskbar.lockTaskbar),
+    [STORAGE_KEYS.taskbar.autoHide]: String(settings.taskbar.autoHide),
+    [STORAGE_KEYS.taskbar.keepOnTop]: String(settings.taskbar.keepOnTop),
+    [STORAGE_KEYS.taskbar.groupButtons]: String(settings.taskbar.groupButtons),
+    [STORAGE_KEYS.taskbar.showQuickLaunch]: JSON.stringify(settings.taskbar.showQuickLaunch),
+    [STORAGE_KEYS.taskbar.showClock]: String(settings.taskbar.showClock),
+    [STORAGE_KEYS.taskbar.hideInactiveIcons]: String(settings.taskbar.hideInactiveIcons),
+    [STORAGE_KEYS.taskbar.startMenuStyle]: settings.taskbar.startMenuStyle,
+    [STORAGE_KEYS.audio.volume]: String(settings.audio.volume),
+    [STORAGE_KEYS.audio.muted]: JSON.stringify(settings.audio.muted),
+  }).catch((error) => {
     console.warn('Failed to persist shell settings:', error);
-  }
+  });
+}
+
+function readBooleanValue(saved, defaultValue) {
+  if (saved === null) return defaultValue;
+  return saved === 'true' || saved === '1' || saved === 'yes' || saved === 'on'
+    ? true
+    : saved === 'false' || saved === '0' || saved === 'no' || saved === 'off'
+    ? false
+    : JSON.parse(saved);
+}
+
+function buildShellSettingsFromStoredValues(values) {
+  const defaults = cloneDefaultSettings();
+
+  return {
+    explorer: {
+      sidebarMode: readBooleanValue(
+        values[STORAGE_KEYS.explorer.noExplorerSidebar] ?? null,
+        defaults.explorer.sidebarMode === 'classic'
+      ) ? 'classic' : 'show',
+      openFoldersInNewWindow: readBooleanValue(
+        values[STORAGE_KEYS.explorer.openFoldersInNewWindow] ?? null,
+        defaults.explorer.openFoldersInNewWindow
+      ),
+      fullPathInTitle: readBooleanValue(
+        values[STORAGE_KEYS.explorer.fullPathInTitle] ?? null,
+        defaults.explorer.fullPathInTitle
+      ),
+      showHiddenContents: readBooleanValue(
+        values[STORAGE_KEYS.explorer.showHiddenContents] ?? null,
+        defaults.explorer.showHiddenContents
+      ),
+      showFileExtensions: readBooleanValue(
+        values[STORAGE_KEYS.explorer.showFileExtensions] ?? null,
+        defaults.explorer.showFileExtensions
+      ),
+    },
+    taskbar: {
+      lockTaskbar: readBooleanValue(values[STORAGE_KEYS.taskbar.lockTaskbar] ?? null, defaults.taskbar.lockTaskbar),
+      autoHide: readBooleanValue(values[STORAGE_KEYS.taskbar.autoHide] ?? null, defaults.taskbar.autoHide),
+      keepOnTop: readBooleanValue(values[STORAGE_KEYS.taskbar.keepOnTop] ?? null, defaults.taskbar.keepOnTop),
+      groupButtons: readBooleanValue(values[STORAGE_KEYS.taskbar.groupButtons] ?? null, defaults.taskbar.groupButtons),
+      showQuickLaunch: readBooleanValue(values[STORAGE_KEYS.taskbar.showQuickLaunch] ?? null, defaults.taskbar.showQuickLaunch),
+      showClock: readBooleanValue(values[STORAGE_KEYS.taskbar.showClock] ?? null, defaults.taskbar.showClock),
+      hideInactiveIcons: readBooleanValue(values[STORAGE_KEYS.taskbar.hideInactiveIcons] ?? null, defaults.taskbar.hideInactiveIcons),
+      startMenuStyle: values[STORAGE_KEYS.taskbar.startMenuStyle] === 'classic' ? 'classic' : 'modern',
+    },
+    audio: {
+      volume: Math.max(0, Math.min(100, Number.parseInt(values[STORAGE_KEYS.audio.volume] ?? defaults.audio.volume, 10))),
+      muted: readBooleanValue(values[STORAGE_KEYS.audio.muted] ?? null, defaults.audio.muted),
+    },
+  };
 }
 
 function getSettingValue(settings, path) {
@@ -197,6 +233,29 @@ function setSettingValue(settings, path, value) {
 
 export function ShellSettingsProvider({ children }) {
   const [settings, setSettings] = useState(loadShellSettings);
+
+  useEffect(() => {
+    let isMounted = true;
+    const keys = [
+      ...Object.values(STORAGE_KEYS.explorer),
+      ...Object.values(STORAGE_KEYS.taskbar),
+      ...Object.values(STORAGE_KEYS.audio),
+    ];
+
+    appDataClient.localSettings.getMany(keys)
+      .then((values) => {
+        if (isMounted && Object.keys(values).length > 0) {
+          setSettings(buildShellSettingsFromStoredValues(values));
+        }
+      })
+      .catch((error) => {
+        console.warn('Failed to load shell settings:', error);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     persistShellSettings(settings);

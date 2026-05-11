@@ -11,6 +11,7 @@
     "build:all": "bash scripts/build-all.sh",
     "build:externals": "node scripts/build-externals.js",
     "lint": "eslint src --max-warnings=0",
+    "test": "vitest run",
     "preview": "vite preview",
     "version:bump": "node scripts/generate-build-version.js --bump"
   },
@@ -41,6 +42,7 @@
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
+    "fake-indexeddb": "^6.2.5",
     "globals": "^16.5.0",
     "vite": "^7.2.4",
     "vite-plugin-svgr": "^4.5.0",

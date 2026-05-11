@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
+import { appDataClient } from '../storage';
 import { BUILTIN_THEMES, BUILTIN_THEME_MAP } from '../WinXP/styles/themes';
 import { LUNA_THEME } from '../WinXP/styles/themes/luna';
 
@@ -18,11 +19,9 @@ function loadInstalledThemes() {
 }
 
 function saveInstalledThemes(themes) {
-  try {
-    localStorage.setItem(STORAGE_KEY_INSTALLED, JSON.stringify(themes));
-  } catch (err) {
+  appDataClient.localSettings.set(STORAGE_KEY_INSTALLED, JSON.stringify(themes)).catch((err) => {
     console.warn('Failed to persist installed themes', err);
-  }
+  });
 }
 
 function loadActiveThemeId() {
@@ -35,16 +34,40 @@ function loadActiveThemeId() {
 }
 
 function saveActiveThemeId(id) {
-  try {
-    localStorage.setItem(STORAGE_KEY_ACTIVE, id);
-  } catch (err) {
+  appDataClient.localSettings.set(STORAGE_KEY_ACTIVE, id).catch((err) => {
     console.warn('Failed to persist active theme', err);
-  }
+  });
 }
 
 export function ThemeProvider({ children }) {
   const [installedThemes, setInstalledThemes] = useState(loadInstalledThemes);
   const [activeThemeId, setActiveThemeIdState] = useState(loadActiveThemeId);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    Promise.all([
+      appDataClient.localSettings.get(STORAGE_KEY_INSTALLED),
+      appDataClient.localSettings.get(STORAGE_KEY_ACTIVE),
+    ]).then(([storedThemes, storedActiveTheme]) => {
+      if (!isMounted) {
+        return;
+      }
+
+      if (storedThemes) {
+        setInstalledThemes(JSON.parse(storedThemes));
+      }
+      if (storedActiveTheme) {
+        setActiveThemeIdState(storedActiveTheme);
+      }
+    }).catch((err) => {
+      console.warn('Failed to load theme settings', err);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Build combined theme map: builtins + installed
   const allThemes = useMemo(() => {

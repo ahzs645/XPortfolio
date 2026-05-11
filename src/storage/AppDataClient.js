@@ -26,7 +26,10 @@ function isLegacyFileSystemValue(value) {
     return false;
   }
 
-  if (value instanceof Blob || value instanceof File || value instanceof ArrayBuffer) {
+  const isBlob = typeof Blob !== 'undefined' && value instanceof Blob;
+  const isFile = typeof File !== 'undefined' && value instanceof File;
+  const isArrayBuffer = typeof ArrayBuffer !== 'undefined' && value instanceof ArrayBuffer;
+  if (isBlob || isFile || isArrayBuffer) {
     return false;
   }
 
@@ -36,6 +39,34 @@ function isLegacyFileSystemValue(value) {
     value['desktop-folder'] ||
     value['recycle-bin']
   );
+}
+
+function readLocalStorage(key) {
+  try {
+    return typeof localStorage === 'undefined' ? null : localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writeLocalStorage(key, value) {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(key, value);
+    }
+  } catch {
+    // Ignore unavailable browser storage.
+  }
+}
+
+function deleteLocalStorage(key) {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(key);
+    }
+  } catch {
+    // Ignore unavailable browser storage.
+  }
 }
 
 export function createDexieDataClient() {
@@ -147,7 +178,7 @@ export function createDexieDataClient() {
           return record.value;
         }
 
-        const value = localStorage.getItem(key);
+        const value = readLocalStorage(key);
         if (value !== null) {
           await client.localSettings.set(key, value);
         }
@@ -160,12 +191,12 @@ export function createDexieDataClient() {
           value,
           updatedAt: Date.now(),
         });
-        localStorage.setItem(key, value);
+        writeLocalStorage(key, value);
       },
 
       async delete(key) {
         await localDb.localSettings.delete(key);
-        localStorage.removeItem(key);
+        deleteLocalStorage(key);
       },
 
       async getMany(keys) {
@@ -228,7 +259,7 @@ export function createDexieDataClient() {
 
         await Promise.all(
           envelope.localSettings.map(({ key, value }) => {
-            localStorage.setItem(key, value);
+            writeLocalStorage(key, value);
             return Promise.resolve();
           })
         );

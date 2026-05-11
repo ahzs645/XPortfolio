@@ -29,8 +29,13 @@ const BACKUP_KEYS = [
   'xp-start-menu-style',
   'disabledApps',
   'programDefaults',
+  'xportfolio-program-defaults',
   'speechSettings',
   'fileTypeDefaults',
+  'xportfolio-disabled-apps',
+  'xp-active-theme',
+  'xp-installed-themes',
+  'xp-run-history',
   'qqpet_skip_login',
   // User session keys
   'xp_session_timestamp',
