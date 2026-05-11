@@ -4,7 +4,7 @@ import { useFileSystem } from '../../../contexts/FileSystemContext';
 import { useUserAccounts } from '../../../contexts/UserAccountsContext';
 import { useUserSettings } from '../../../contexts/UserSettingsContext';
 import { useMessageBox } from '../../../contexts/MessageBoxContext';
-import * as idb from 'idb-keyval';
+import { appDataClient } from '../../../storage';
 import { withBaseUrl } from '../../../utils/baseUrl';
 
 function SystemRecovery() {
@@ -41,9 +41,8 @@ function SystemRecovery() {
         resetSettings();
       }
 
-      // Clear user-specific storage key
-      const storageKey = activeUserId ? `fileSystem-${activeUserId}` : 'fileSystem';
-      await idb.del(storageKey);
+      // Clear persisted user-specific snapshot so reload rebuilds from defaults.
+      await appDataClient.fileSystems.delete(activeUserId);
 
       // Small delay to show loading state
       await new Promise(resolve => setTimeout(resolve, 1000));

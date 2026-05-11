@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import styled from 'styled-components';
+import { appDataClient, isValidExportEnvelope } from '../../../storage';
 import { withBaseUrl } from '../../../utils/baseUrl';
 
 // All localStorage keys used by the XP environment
@@ -217,23 +218,13 @@ function BackupWizard({ onClose }) {
   const [error, setError] = useState(null);
   const [itemsBackedUp, setItemsBackedUp] = useState([]);
 
-  // Collect all settings from localStorage
-  const collectBackupData = useCallback(() => {
-    const data = {
-      version: '1.0',
-      timestamp: new Date().toISOString(),
-      settings: {},
-    };
-
-    const backedUpItems = [];
-
-    BACKUP_KEYS.forEach(key => {
-      const value = localStorage.getItem(key);
-      if (value !== null) {
-        data.settings[key] = value;
-        backedUpItems.push(key);
-      }
-    });
+  const collectBackupData = useCallback(async () => {
+    const data = await appDataClient.backup.exportAll({ settingKeys: BACKUP_KEYS });
+    const backedUpItems = [
+      ...data.localSettings.map(({ key }) => key),
+      ...data.fileSystems.map(({ ownerId }) => `fileSystem:${ownerId}`),
+      ...data.fileContents.map(({ storageKey }) => `fileContent:${storageKey}`),
+    ];
 
     setItemsBackedUp(backedUpItems);
     return data;
@@ -262,7 +253,7 @@ function BackupWizard({ onClose }) {
     reader.onload = (event) => {
       try {
         const data = JSON.parse(event.target.result);
-        if (!data.version || !data.settings) {
+        if (!isValidExportEnvelope(data) && (!data.version || !data.settings)) {
           setError('Invalid backup file format.');
           return;
         }
@@ -274,17 +265,59 @@ function BackupWizard({ onClose }) {
     reader.readAsText(file);
   }, []);
 
-  // Restore settings from backup
-  const restoreFromBackup = useCallback((data) => {
+  const restoreFromBackup = useCallback(async (data) => {
+    if (isValidExportEnvelope(data)) {
+      await appDataClient.backup.importAll(data);
+      return [
+        ...data.localSettings.map(({ key }) => key),
+        ...data.fileSystems.map(({ ownerId }) => `fileSystem:${ownerId}`),
+        ...data.fileContents.map(({ storageKey }) => `fileContent:${storageKey}`),
+      ];
+    }
+
     const restoredItems = [];
-    Object.entries(data.settings).forEach(([key, value]) => {
-      localStorage.setItem(key, value);
+    await appDataClient.localSettings.setMany(data.settings);
+    Object.keys(data.settings).forEach((key) => {
       restoredItems.push(key);
     });
     return restoredItems;
   }, []);
 
-  const handleNext = () => {
+  const runBackup = useCallback(async () => {
+    const data = await collectBackupData();
+    setBackupData(data);
+    downloadBackup(data);
+  }, [collectBackupData, downloadBackup]);
+
+  const runRestore = useCallback(async () => {
+    const restored = await restoreFromBackup(restoreFile.data);
+    setItemsBackedUp(restored);
+  }, [restoreFile, restoreFromBackup]);
+
+  const runWithProgress = useCallback(async (operation, increment, intervalMs) => {
+    setIsRunning(true);
+    setProgress(0);
+
+    let currentProgress = 0;
+    const interval = setInterval(() => {
+      currentProgress = Math.min(95, currentProgress + increment);
+      setProgress(currentProgress);
+    }, intervalMs);
+
+    try {
+      await operation();
+      setProgress(100);
+      setStep(2);
+    } catch (err) {
+      console.error('Backup wizard operation failed:', err);
+      setError(err?.message || 'The operation failed. Please try again.');
+    } finally {
+      clearInterval(interval);
+      setIsRunning(false);
+    }
+  }, []);
+
+  const handleNext = async () => {
     setError(null);
 
     if (step === 1 && mode === 'restore' && !restoreFile) {
@@ -293,41 +326,10 @@ function BackupWizard({ onClose }) {
     }
 
     if (step === 1) {
-      // Start backup/restore
-      setIsRunning(true);
-      setProgress(0);
-
       if (mode === 'backup') {
-        // Simulate progress while collecting data
-        const interval = setInterval(() => {
-          setProgress(prev => {
-            if (prev >= 100) {
-              clearInterval(interval);
-              const data = collectBackupData();
-              setBackupData(data);
-              downloadBackup(data);
-              setIsRunning(false);
-              setStep(2);
-              return 100;
-            }
-            return prev + 10;
-          });
-        }, 100);
+        await runWithProgress(runBackup, 10, 100);
       } else {
-        // Restore from file
-        const interval = setInterval(() => {
-          setProgress(prev => {
-            if (prev >= 100) {
-              clearInterval(interval);
-              const restored = restoreFromBackup(restoreFile.data);
-              setItemsBackedUp(restored);
-              setIsRunning(false);
-              setStep(2);
-              return 100;
-            }
-            return prev + 8;
-          });
-        }, 120);
+        await runWithProgress(runRestore, 8, 120);
       }
     } else {
       setStep(step + 1);
@@ -424,8 +426,10 @@ function BackupWizard({ onClose }) {
                 {restoreFile && (
                   <BackupInfo style={{ marginTop: 10 }}>
                     <strong>Selected file:</strong> {restoreFile.file.name}<br />
-                    <strong>Backup date:</strong> {new Date(restoreFile.data.timestamp).toLocaleString()}<br />
-                    <strong>Items to restore:</strong> {Object.keys(restoreFile.data.settings).length}
+                    <strong>Backup date:</strong> {new Date(restoreFile.data.exportedAt || restoreFile.data.timestamp).toLocaleString()}<br />
+                    <strong>Items to restore:</strong> {isValidExportEnvelope(restoreFile.data)
+                      ? restoreFile.data.localSettings.length + restoreFile.data.fileSystems.length + restoreFile.data.fileContents.length
+                      : Object.keys(restoreFile.data.settings).length}
                   </BackupInfo>
                 )}
               </>

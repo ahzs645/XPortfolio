@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import styled from 'styled-components';
+import { appDataClient } from '../../storage';
 import { ContextMenu } from '../components/ContextMenu';
 
 const STORAGE_KEY = 'xp-quick-launch-items';
@@ -52,13 +53,30 @@ function QuickLaunch({
   const overflowRef = useRef(null);
   const containerRef = useRef(null);
 
-  // Persist items to localStorage
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    } catch (e) {
-      console.error('Failed to save Quick Launch items:', e);
-    }
+    let isMounted = true;
+
+    appDataClient.localSettings.get(STORAGE_KEY)
+      .then((saved) => {
+        if (!isMounted || !saved) {
+          return;
+        }
+        setItems(JSON.parse(saved));
+      })
+      .catch((e) => {
+        console.error('Failed to load Quick Launch items:', e);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    appDataClient.localSettings.set(STORAGE_KEY, JSON.stringify(items))
+      .catch((e) => {
+        console.error('Failed to save Quick Launch items:', e);
+      });
   }, [items]);
 
   // Close overflow when clicking outside

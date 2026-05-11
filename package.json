@@ -17,6 +17,7 @@
   "dependencies": {
     "@fortune-sheet/react": "^1.0.4",
     "@tinymce/tinymce-react": "^6.3.0",
+    "dexie": "^4.4.2",
     "docx": "^9.5.1",
     "dompurify": "^3.3.0",
     "idb-keyval": "^6.2.2",

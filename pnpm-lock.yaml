@@ -14,6 +14,9 @@ importers:
       '@tinymce/tinymce-react':
         specifier: ^6.3.0
         version: 6.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(tinymce@8.3.0)
+      dexie:
+        specifier: ^4.4.2
+        version: 4.4.2
       docx:
         specifier: ^9.5.1
         version: 9.5.1
@@ -1064,6 +1067,9 @@ packages:
   dequal@2.0.3:
     resolution: {integrity: sha512-0je+qPKHEMohvfRTCEo3CrPG6cAzAYgmzKyxRiYSSDkS6eGJdyVJm7WaYA5ECaAD9wLB2T4EEeymA5aFVcYXCA==}
     engines: {node: '>=6'}
+
+  dexie@4.4.2:
+    resolution: {integrity: sha512-zMtV8q79EFE5U8FKZvt0Y/77PCU/Hr/RDxv1EDeo228L+m/HTbeN2AjoQm674rhQCX8n3ljK87lajt7UQuZfvw==}
 
   dingbat-to-unicode@1.0.1:
     resolution: {integrity: sha512-98l0sW87ZT58pU4i61wa2OHwxbiYSbuxsCBozaVnYX2iCnr3bLM3fIes1/ej7h1YdOKuKt/MLs706TVnALA65w==}
@@ -3218,6 +3224,8 @@ snapshots:
       object-keys: 1.1.1
 
   dequal@2.0.3: {}
+
+  dexie@4.4.2: {}
 
   dingbat-to-unicode@1.0.1: {}
 

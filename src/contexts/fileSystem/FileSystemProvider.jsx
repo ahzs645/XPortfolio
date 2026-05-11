@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import * as idb from 'idb-keyval';
 import { useConfig } from '../ConfigContext';
 import { useUserAccounts } from '../UserAccountsContext';
+import { appDataClient } from '../../storage';
 import { SYSTEM_IDS } from './constants';
 import { buildDesktopShortcuts, DEFAULT_DESKTOP_PROGRAMS } from './desktopShortcuts';
 import { convertCvProjectToFolderProject } from './projectHelpers';
@@ -23,9 +23,6 @@ import { useFileSystemOperations } from './useFileSystemOperations';
 import { createVirtualFileSystemAdapter } from './virtualFileSystem';
 
 const FileSystemContext = createContext(null);
-
-// Helper to get storage key for a user's file system
-const getFileSystemKey = (userId) => userId ? `fileSystem-${userId}` : 'fileSystem';
 
 export function FileSystemProvider({ children }) {
   const { getDesktopPrograms, cvData, getUsername, isLoading: configLoading } = useConfig();
@@ -75,18 +72,16 @@ export function FileSystemProvider({ children }) {
       }
 
       setIsLoading(true);
-      const storageKey = getFileSystemKey(activeUserId);
-
       try {
-        let fs = await idb.get(storageKey);
+        let fs = await appDataClient.fileSystems.get(activeUserId);
 
-        // Migration: Check if there's an old global file system to migrate
-        if (!fs && activeUserId) {
-          const oldFs = await idb.get('fileSystem');
-          if (oldFs && !oldFs._migratedToPerUser) {
-            fs = { ...oldFs, _migratedToPerUser: true };
-            await idb.set('fileSystem', { ...oldFs, _migratedToPerUser: true });
-          }
+        if (!fs) {
+          fs = await appDataClient.fileSystems.importLegacy(activeUserId);
+        }
+
+        // Migration: Check if there's an old global file system to migrate.
+        if (!fs) {
+          fs = await appDataClient.fileSystems.importLegacyGlobalForUser(activeUserId);
         }
 
         if (!fs) {
@@ -106,7 +101,7 @@ export function FileSystemProvider({ children }) {
         ensureShellArtifacts(fs);
         ensureMetadataIcons(fs);
 
-        await idb.set(storageKey, fs);
+        await appDataClient.fileSystems.save(activeUserId, fs);
         currentUserIdRef.current = activeUserId;
         if (isMounted) {
           setFileSystem(fs);
@@ -137,8 +132,7 @@ export function FileSystemProvider({ children }) {
   // Save file system to IndexedDB whenever it changes
   useEffect(() => {
     if (fileSystem && !isLoading && activeUserId) {
-      const storageKey = getFileSystemKey(activeUserId);
-      idb.set(storageKey, fileSystem)
+      appDataClient.fileSystems.save(activeUserId, fileSystem)
         .then(() => setSaveError(null))
         .catch((err) => {
           console.error('Failed to save file system:', err);
@@ -148,7 +142,7 @@ export function FileSystemProvider({ children }) {
   }, [fileSystem, isLoading, activeUserId]);
 
   // CRUD operations (extracted to separate hook)
-  const operations = useFileSystemOperations(fileSystem, setFileSystem);
+  const operations = useFileSystemOperations(fileSystem, setFileSystem, appDataClient);
 
   const vfs = useMemo(() => createVirtualFileSystemAdapter({
     fileSystem,
@@ -215,9 +209,9 @@ export function FileSystemProvider({ children }) {
   // Reset file system to initial state
   const resetFileSystem = useCallback(async () => {
     const initial = createInitialFileSystem(desktopShortcuts, folderProjects, userName);
-    await idb.set('fileSystem', initial);
+    await appDataClient.fileSystems.save(activeUserId, initial);
     setFileSystem(initial);
-  }, [desktopShortcuts, folderProjects, userName]);
+  }, [activeUserId, desktopShortcuts, folderProjects, userName]);
 
   const value = {
     fileSystem,

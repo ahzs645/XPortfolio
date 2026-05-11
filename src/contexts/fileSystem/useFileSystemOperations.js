@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
-import * as idb from 'idb-keyval';
 import { v4 as uuidv4 } from 'uuid';
+import { appDataClient } from '../../storage';
 import { XP_ICONS, SYSTEM_IDS, fileIcons, PROTECTED_ITEMS } from './constants';
 
 // File utility helpers
@@ -90,7 +90,7 @@ const normalizeCreateFileArgs = (args) => {
  * Extracts all file system CRUD operations into a standalone hook.
  * Receives fileSystem state and setFileSystem setter from the provider.
  */
-export function useFileSystemOperations(fileSystem, setFileSystem) {
+export function useFileSystemOperations(fileSystem, setFileSystem, dataClient = appDataClient) {
   // Generate unique name if duplicate exists
   const generateUniqueName = useCallback((parentId, baseName, extension) => {
     if (!fileSystem || !fileSystem[parentId]) return baseName + extension;
@@ -194,7 +194,7 @@ export function useFileSystemOperations(fileSystem, setFileSystem) {
     }
 
     if (file) {
-      await idb.set(newItem.storageKey, file);
+      await dataClient.fileContents.set(newItem.storageKey, file);
     }
 
     setFileSystem(prev => ({
@@ -208,7 +208,7 @@ export function useFileSystemOperations(fileSystem, setFileSystem) {
     }));
 
     return id;
-  }, [fileSystem, generateUniqueName, setFileSystem]);
+  }, [dataClient, fileSystem, generateUniqueName, setFileSystem]);
 
   // Delete item
   const deleteItem = useCallback(async (id) => {
@@ -233,7 +233,7 @@ export function useFileSystemOperations(fileSystem, setFileSystem) {
     for (const itemId of toDelete) {
       const item = fileSystem[itemId];
       if (item?.storageKey) {
-        await idb.del(item.storageKey);
+        await dataClient.fileContents.delete(item.storageKey);
       }
     }
 
@@ -254,7 +254,7 @@ export function useFileSystemOperations(fileSystem, setFileSystem) {
     });
 
     return true;
-  }, [fileSystem, setFileSystem]);
+  }, [dataClient, fileSystem, setFileSystem]);
 
   // Move to recycle bin
   const moveToRecycleBin = useCallback((id) => {
@@ -344,10 +344,7 @@ export function useFileSystemOperations(fileSystem, setFileSystem) {
     };
 
     if (source.storageKey && newItem.storageKey) {
-      const fileData = await idb.get(source.storageKey);
-      if (fileData) {
-        await idb.set(newItem.storageKey, fileData);
-      }
+      await dataClient.fileContents.copy(source.storageKey, newItem.storageKey);
     }
 
     setFileSystem(prev => ({
@@ -368,7 +365,7 @@ export function useFileSystemOperations(fileSystem, setFileSystem) {
     }
 
     return newId;
-  }, [fileSystem, generateCopyName, setFileSystem]);
+  }, [dataClient, fileSystem, generateCopyName, setFileSystem]);
 
   // Rename item
   const renameItem = useCallback((id, newName) => {
@@ -441,14 +438,14 @@ export function useFileSystemOperations(fileSystem, setFileSystem) {
     const item = fileSystem[id];
 
     if (item.storageType === 'local' && item.storageKey) {
-      return await idb.get(item.storageKey);
+      return await dataClient.fileContents.get(item.storageKey);
     }
     if (item.storageType === 'remote' && item.url) {
       const response = await fetch(item.url);
       return await response.blob();
     }
     return null;
-  }, [fileSystem]);
+  }, [dataClient, fileSystem]);
 
   // Create a file with content (convenience wrapper)
   const createFile = useCallback(async (...args) => {
@@ -469,7 +466,7 @@ export function useFileSystemOperations(fileSystem, setFileSystem) {
     const baseName = getBasename(name);
     const storageKey = uuidv4();
 
-    await idb.set(storageKey, fileContent.data);
+    await dataClient.fileContents.set(storageKey, fileContent.data);
 
     let icon = XP_ICONS.default;
     const lowerExt = ext.toLowerCase();
@@ -538,7 +535,6 @@ export function useFileSystemOperations(fileSystem, setFileSystem) {
         contentType: fileContent.type,
         storageType: 'local',
         storageKey,
-        data: fileContent.data,
         dateCreated: now,
         dateModified: now,
       };
@@ -555,7 +551,7 @@ export function useFileSystemOperations(fileSystem, setFileSystem) {
     });
 
     return id;
-  }, [fileSystem, setFileSystem]);
+  }, [dataClient, fileSystem, setFileSystem]);
 
   // Save file content
   const saveFileContent = useCallback(async (id, content) => {
@@ -568,7 +564,7 @@ export function useFileSystemOperations(fileSystem, setFileSystem) {
       storageKey = uuidv4();
     }
 
-    await idb.set(storageKey, content);
+    await dataClient.fileContents.set(storageKey, content);
 
     setFileSystem(prev => ({
       ...prev,
@@ -583,7 +579,7 @@ export function useFileSystemOperations(fileSystem, setFileSystem) {
     }));
 
     return true;
-  }, [fileSystem, setFileSystem]);
+  }, [dataClient, fileSystem, setFileSystem]);
 
   // Get path string for an item
   const getPath = useCallback((id) => {
