@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { useUserAccounts } from './UserAccountsContext';
 import { useConfig } from './ConfigContext';
+import { appDataClient } from '../storage';
 import { getDefaultDisplayZoom } from '../utils/displaySettings';
 import { DEFAULT_SOUND_SETTINGS } from '../utils/systemSounds';
 
@@ -26,6 +27,16 @@ function getStoredDisplayZoom() {
   }
 
   return getDefaultDisplayZoom();
+}
+
+function readJsonSetting(key, defaultValue) {
+  try {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : defaultValue;
+  } catch (err) {
+    console.warn(`Failed to read ${key}`, err);
+    return defaultValue;
+  }
 }
 
 function applyDisplayZoomToDocument(zoom) {
@@ -90,6 +101,20 @@ export function UserSettingsProvider({ children }) {
 
   const currentUser = getCurrentUser();
   const userSettings = getCurrentUserSettings();
+  const [localDesktopIconPositions, setLocalDesktopIconPositions] = useState(() => (
+    readJsonSetting('desktopIconPositions', {})
+  ));
+  const [localSoundSettings, setLocalSoundSettings] = useState(() => ({
+    ...DEFAULT_SOUND_SETTINGS,
+    ...readJsonSetting('xpSoundSettings', {}),
+  }));
+  const [localWindowSoundsEnabled, setLocalWindowSoundsEnabledState] = useState(() => {
+    try {
+      return localStorage.getItem('windowSoundsEnabled') === 'true';
+    } catch {
+      return false;
+    }
+  });
 
   // Get wallpaper path - user setting takes priority over global
   const getWallpaperPath = useCallback((isMobile = false) => {
@@ -154,28 +179,19 @@ export function UserSettingsProvider({ children }) {
   // Get desktop icon positions - user-specific
   const getDesktopIconPositions = useCallback(() => {
     if (!isLoggedIn || !currentUser) {
-      // Fall back to global localStorage for non-logged-in state
-      try {
-        const saved = localStorage.getItem('desktopIconPositions');
-        return saved ? JSON.parse(saved) : {};
-      } catch (err) {
-        console.warn('Failed to read desktop icon positions', err);
-        return {};
-      }
+      return localDesktopIconPositions;
     }
 
     return userSettings?.desktopIconPositions || {};
-  }, [isLoggedIn, currentUser, userSettings]);
+  }, [isLoggedIn, currentUser, userSettings, localDesktopIconPositions]);
 
   // Set desktop icon positions - saves to user profile
   const setDesktopIconPositions = useCallback((positions) => {
     if (!isLoggedIn) {
-      // Save to global localStorage for non-logged-in state
-      try {
-        localStorage.setItem('desktopIconPositions', JSON.stringify(positions));
-      } catch (err) {
+      setLocalDesktopIconPositions(positions);
+      appDataClient.localSettings.set('desktopIconPositions', JSON.stringify(positions)).catch((err) => {
         console.warn('Failed to save desktop icon positions', err);
-      }
+      });
       return;
     }
 
@@ -184,19 +200,7 @@ export function UserSettingsProvider({ children }) {
 
   const getSoundSettings = useCallback(() => {
     if (!isLoggedIn || !currentUser) {
-      try {
-        const saved = localStorage.getItem('xpSoundSettings');
-        if (saved) {
-          return {
-            ...DEFAULT_SOUND_SETTINGS,
-            ...JSON.parse(saved),
-          };
-        }
-      } catch (err) {
-        console.warn('Failed to read sound settings', err);
-      }
-
-      return { ...DEFAULT_SOUND_SETTINGS };
+      return localSoundSettings;
     }
 
     return {
@@ -207,7 +211,7 @@ export function UserSettingsProvider({ children }) {
         ...(userSettings?.sound?.schemes || {}),
       },
     };
-  }, [currentUser, isLoggedIn, userSettings]);
+  }, [currentUser, isLoggedIn, userSettings, localSoundSettings]);
 
   const setSoundSettings = useCallback((updates) => {
     const current = getSoundSettings();
@@ -220,11 +224,10 @@ export function UserSettingsProvider({ children }) {
     };
 
     if (!isLoggedIn) {
-      try {
-        localStorage.setItem('xpSoundSettings', JSON.stringify(next));
-      } catch (err) {
+      setLocalSoundSettings(next);
+      appDataClient.localSettings.set('xpSoundSettings', JSON.stringify(next)).catch((err) => {
         console.warn('Failed to save sound settings', err);
-      }
+      });
       return;
     }
 
@@ -251,27 +254,18 @@ export function UserSettingsProvider({ children }) {
   // Get window sounds enabled setting - user-specific, defaults to false
   const getWindowSoundsEnabled = useCallback(() => {
     if (!isLoggedIn || !currentUser) {
-      // Fall back to localStorage for non-logged-in state
-      try {
-        const saved = localStorage.getItem('windowSoundsEnabled');
-        return saved === 'true';
-      } catch (err) {
-        console.warn('Failed to read window sounds setting', err);
-        return false;
-      }
+      return localWindowSoundsEnabled;
     }
     return userSettings?.windowSoundsEnabled || false;
-  }, [isLoggedIn, currentUser, userSettings]);
+  }, [isLoggedIn, currentUser, userSettings, localWindowSoundsEnabled]);
 
   // Set window sounds enabled - saves to user profile
   const setWindowSoundsEnabled = useCallback((enabled) => {
     if (!isLoggedIn) {
-      // Save to localStorage for non-logged-in state
-      try {
-        localStorage.setItem('windowSoundsEnabled', String(enabled));
-      } catch (err) {
+      setLocalWindowSoundsEnabledState(enabled);
+      appDataClient.localSettings.set('windowSoundsEnabled', String(enabled)).catch((err) => {
         console.warn('Failed to save window sounds setting', err);
-      }
+      });
       return;
     }
     updateCurrentUserSettings({ windowSoundsEnabled: enabled });
@@ -289,14 +283,54 @@ export function UserSettingsProvider({ children }) {
 
   const [localDisplayZoom, setLocalDisplayZoom] = useState(getStoredDisplayZoom);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    appDataClient.localSettings.getMany([
+      'desktopIconPositions',
+      'xpSoundSettings',
+      'windowSoundsEnabled',
+      'colorDepth',
+      'userPreferredZoom',
+    ]).then((values) => {
+      if (!isMounted) return;
+
+      if (values.desktopIconPositions) {
+        setLocalDesktopIconPositions(JSON.parse(values.desktopIconPositions));
+      }
+      if (values.xpSoundSettings) {
+        setLocalSoundSettings({
+          ...DEFAULT_SOUND_SETTINGS,
+          ...JSON.parse(values.xpSoundSettings),
+        });
+      }
+      if (values.windowSoundsEnabled !== undefined) {
+        setLocalWindowSoundsEnabledState(values.windowSoundsEnabled === 'true');
+      }
+      if (values.colorDepth) {
+        setLocalColorDepth(values.colorDepth);
+      }
+      if (values.userPreferredZoom) {
+        const parsedZoom = Number.parseInt(values.userPreferredZoom, 10);
+        if (Number.isFinite(parsedZoom) && parsedZoom > 0) {
+          setLocalDisplayZoom(parsedZoom);
+        }
+      }
+    }).catch((err) => {
+      console.warn('Failed to load user settings', err);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // Set color depth - saves to user profile or localStorage
   const setColorDepth = useCallback((depth) => {
     if (!isLoggedIn) {
-      try {
-        localStorage.setItem('colorDepth', depth);
-      } catch (err) {
+      appDataClient.localSettings.set('colorDepth', depth).catch((err) => {
         console.warn('Failed to save color depth setting', err);
-      }
+      });
       setLocalColorDepth(depth);
       return;
     }
@@ -318,11 +352,9 @@ export function UserSettingsProvider({ children }) {
       ? parsedZoom
       : getDefaultDisplayZoom();
 
-    try {
-      localStorage.setItem('userPreferredZoom', String(nextZoom));
-    } catch (err) {
+    appDataClient.localSettings.set('userPreferredZoom', String(nextZoom)).catch((err) => {
       console.warn('Failed to save display zoom setting', err);
-    }
+    });
 
     if (isLoggedIn) {
       updateCurrentUserSettings({ displayZoom: nextZoom });

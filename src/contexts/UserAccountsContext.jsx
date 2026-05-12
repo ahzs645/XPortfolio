@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { appDataClient } from '../storage';
 import { useConfig } from './ConfigContext';
 
 const UserAccountsContext = createContext(null);
@@ -94,13 +95,18 @@ export function UserAccountsProvider({ children }) {
   const sessionChecked = useRef(false);
 
   // Check if a session is valid (not expired)
-  const isSessionValid = useCallback(() => {
+  const isSessionValid = useCallback(async () => {
     if (SESSION_TIMEOUT_MS === 0) return false; // Session caching disabled
 
     try {
-      const timestamp = localStorage.getItem(SESSION_KEYS.TIMESTAMP);
-      const wasLoggedIn = localStorage.getItem(SESSION_KEYS.LOGGED_IN) === 'true';
-      const sessionUserId = localStorage.getItem(SESSION_KEYS.USER_ID);
+      const values = await appDataClient.localSettings.getMany([
+        SESSION_KEYS.TIMESTAMP,
+        SESSION_KEYS.LOGGED_IN,
+        SESSION_KEYS.USER_ID,
+      ]);
+      const timestamp = values[SESSION_KEYS.TIMESTAMP];
+      const wasLoggedIn = values[SESSION_KEYS.LOGGED_IN] === 'true';
+      const sessionUserId = values[SESSION_KEYS.USER_ID];
 
       if (!timestamp || !wasLoggedIn || !sessionUserId) return false;
 
@@ -117,24 +123,23 @@ export function UserAccountsProvider({ children }) {
 
   // Save session to localStorage
   const saveSession = useCallback((userId) => {
-    try {
-      localStorage.setItem(SESSION_KEYS.TIMESTAMP, Date.now().toString());
-      localStorage.setItem(SESSION_KEYS.USER_ID, userId);
-      localStorage.setItem(SESSION_KEYS.LOGGED_IN, 'true');
-    } catch (err) {
+    appDataClient.localSettings.setMany({
+      [SESSION_KEYS.TIMESTAMP]: Date.now().toString(),
+      [SESSION_KEYS.USER_ID]: userId,
+      [SESSION_KEYS.LOGGED_IN]: 'true',
+    }).catch((err) => {
       console.error('Failed to save session:', err);
-    }
+    });
   }, []);
 
-  // Clear session from localStorage
   const clearSession = useCallback(() => {
-    try {
-      localStorage.removeItem(SESSION_KEYS.TIMESTAMP);
-      localStorage.removeItem(SESSION_KEYS.USER_ID);
-      localStorage.removeItem(SESSION_KEYS.LOGGED_IN);
-    } catch (err) {
+    Promise.all([
+      appDataClient.localSettings.delete(SESSION_KEYS.TIMESTAMP),
+      appDataClient.localSettings.delete(SESSION_KEYS.USER_ID),
+      appDataClient.localSettings.delete(SESSION_KEYS.LOGGED_IN),
+    ]).catch((err) => {
       console.error('Failed to clear session:', err);
-    }
+    });
   }, []);
 
   // Load users from localStorage once config is ready
@@ -149,8 +154,9 @@ export function UserAccountsProvider({ children }) {
       if (!isMounted) return;
 
       try {
-        const savedUsers = localStorage.getItem('userAccounts');
-        const savedActiveId = localStorage.getItem('activeUserId');
+        const savedValues = await appDataClient.localSettings.getMany(['userAccounts', 'activeUserId']);
+        const savedUsers = savedValues.userAccounts;
+        const savedActiveId = savedValues.activeUserId;
         let parsedUsers = [];
 
         if (savedUsers) {
@@ -169,15 +175,15 @@ export function UserAccountsProvider({ children }) {
           );
           parsedUsers = [defaultUser];
           setUsers(parsedUsers);
-          localStorage.setItem('userAccounts', JSON.stringify(parsedUsers));
+          await appDataClient.localSettings.set('userAccounts', JSON.stringify(parsedUsers));
         }
 
         // Check for valid session to restore (only once)
         if (!sessionChecked.current) {
           sessionChecked.current = true;
 
-          if (isSessionValid()) {
-            const sessionUserId = localStorage.getItem(SESSION_KEYS.USER_ID);
+          if (await isSessionValid()) {
+            const sessionUserId = await appDataClient.localSettings.get(SESSION_KEYS.USER_ID);
             const sessionUser = parsedUsers.find(u => u.id === sessionUserId);
 
             if (sessionUser) {
@@ -219,22 +225,18 @@ export function UserAccountsProvider({ children }) {
   // Persist users to localStorage
   useEffect(() => {
     if (!isLoading && users.length > 0) {
-      try {
-        localStorage.setItem('userAccounts', JSON.stringify(users));
-      } catch (err) {
+      appDataClient.localSettings.set('userAccounts', JSON.stringify(users)).catch((err) => {
         console.error('Failed to persist user accounts:', err);
-      }
+      });
     }
   }, [users, isLoading]);
 
   // Persist active user ID
   useEffect(() => {
     if (activeUserId) {
-      try {
-        localStorage.setItem('activeUserId', activeUserId);
-      } catch (err) {
+      appDataClient.localSettings.set('activeUserId', activeUserId).catch((err) => {
         console.error('Failed to persist active user ID:', err);
-      }
+      });
     }
   }, [activeUserId]);
 

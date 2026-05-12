@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
+import { appDataClient } from '../storage';
 import { useShellSettings } from './ShellSettingsContext';
 
 const RegistryContext = createContext(null);
@@ -332,11 +333,9 @@ function loadRegistry() {
 }
 
 function saveRegistry(registry) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(registry));
-  } catch {
+  appDataClient.localSettings.set(STORAGE_KEY, JSON.stringify(registry)).catch(() => {
     // ignore
-  }
+  });
 }
 
 function navigateToKey(registry, path) {
@@ -487,6 +486,24 @@ export function RegistryProvider({ children }) {
   const { settings, setSetting, resetSetting, resetShellSettings } = useShellSettings();
   const [registryState, setRegistryState] = useState(() => mergeRegistryWithSchema(loadRegistry()));
   const registry = useMemo(() => normalizeRegistry(registryState, settings), [registryState, settings]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    appDataClient.localSettings.get(STORAGE_KEY)
+      .then((saved) => {
+        if (isMounted && saved) {
+          setRegistryState(mergeRegistryWithSchema(JSON.parse(saved)));
+        }
+      })
+      .catch(() => {
+        // ignore
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     saveRegistry(registry);

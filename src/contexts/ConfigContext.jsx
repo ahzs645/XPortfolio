@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import yaml from 'js-yaml';
 import { marked } from 'marked';
+import { appDataClient } from '../storage';
 import { withBaseUrl } from '../utils/baseUrl';
 
 const ConfigContext = createContext(null);
@@ -137,6 +138,35 @@ export function ConfigProvider({ children }) {
   });
 
   useEffect(() => {
+    let isMounted = true;
+
+    appDataClient.localSettings.getMany(['wallpaperOverrides', 'screensaverSettings'])
+      .then((values) => {
+        if (!isMounted) return;
+
+        if (values.wallpaperOverrides) {
+          setWallpaperOverrides((prev) => ({
+            ...prev,
+            ...JSON.parse(values.wallpaperOverrides),
+          }));
+        }
+        if (values.screensaverSettings) {
+          setScreensaverSettingsState((prev) => ({
+            ...prev,
+            ...JSON.parse(values.screensaverSettings),
+          }));
+        }
+      })
+      .catch((err) => {
+        console.warn('Failed to load persisted config settings', err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
     async function loadConfig() {
       try {
         // Load config.env
@@ -178,24 +208,16 @@ export function ConfigProvider({ children }) {
 
   // Persist wallpaper overrides
   useEffect(() => {
-    try {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('wallpaperOverrides', JSON.stringify(wallpaperOverrides));
-      }
-    } catch (err) {
+    appDataClient.localSettings.set('wallpaperOverrides', JSON.stringify(wallpaperOverrides)).catch((err) => {
       console.warn('Failed to persist wallpaper overrides', err);
-    }
+    });
   }, [wallpaperOverrides]);
 
   // Persist screensaver settings
   useEffect(() => {
-    try {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('screensaverSettings', JSON.stringify(screensaverSettings));
-      }
-    } catch (err) {
+    appDataClient.localSettings.set('screensaverSettings', JSON.stringify(screensaverSettings)).catch((err) => {
       console.warn('Failed to persist screensaver settings', err);
-    }
+    });
   }, [screensaverSettings]);
 
   // Get screensaver settings

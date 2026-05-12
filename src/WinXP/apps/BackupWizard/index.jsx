@@ -36,6 +36,13 @@ const BACKUP_KEYS = [
   'xp-active-theme',
   'xp-installed-themes',
   'xp-run-history',
+  'sessionTimestamp',
+  'sessionUserId',
+  'sessionLoggedIn',
+  'userPreferredZoom',
+  'xpSoundSettings',
+  'windowSoundsEnabled',
+  'colorDepth',
   'qqpet_skip_login',
   // User session keys
   'xp_session_timestamp',
