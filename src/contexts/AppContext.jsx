@@ -8,6 +8,7 @@ const AppContext = createContext(null);
 // Map user-friendly program names to appSettings keys
 const PROGRAM_NAME_TO_APP_KEY = {
   'Calculator': 'Calculator',
+  'Code Editor': 'Code Editor',
   'Internet Explorer': 'Internet Explorer',
   'Minesweeper': 'Minesweeper',
   'Notepad': 'Notepad',
@@ -57,6 +58,34 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
             header: {
               ...appSettings['Notepad'].header,
               title: `${name} - Notepad`,
+            },
+            injectProps: {
+              initialContent: textContent,
+              fileName: name,
+              fileId: fileItem.id,
+            },
+          },
+        });
+        return true;
+      }
+
+      case 'Code Editor': {
+        let textContent = fileItem.content || '';
+        if (!textContent && fileData) {
+          try {
+            const base64Data = fileData.split(',')[1] || fileData;
+            textContent = atob(base64Data);
+          } catch {
+            textContent = fileData;
+          }
+        }
+        dispatch({
+          type: addAppAction,
+          payload: {
+            ...appSettings['Code Editor'],
+            header: {
+              ...appSettings['Code Editor'].header,
+              title: `${name} - Code Editor`,
             },
             injectProps: {
               initialContent: textContent,
@@ -400,6 +429,7 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
   const value = {
     openFile,
     openApp,
+    openWithProgram,
   };
 
   return (

@@ -34,6 +34,18 @@ const BUILTIN_PROGRAMS = [
     size: 66560,
   },
   {
+    id: 'builtin-coder',
+    appKey: 'Code Editor',
+    name: 'Code Editor',
+    icon: '/apps/openlair-viewer/static/images/icon/coder.png',
+    description: 'Edit HTML, JavaScript, CSS, JSON, XML, and other source files.',
+    version: '5.1',
+    author: 'Microsoft Corporation',
+    category: 'Accessories',
+    isBuiltIn: true,
+    size: 147456,
+  },
+  {
     id: 'builtin-paint',
     appKey: 'Paint',
     name: 'Paint',

@@ -130,6 +130,25 @@ export function useFileHandler({
             }, 'Notepad'),
           });
           handled = true;
+        } else if (defaultProgram === 'Code Editor') {
+          let textContent = inlineContent || '';
+          if (!textContent) {
+            try {
+              const base64Data = fileData.split(',')[1] || fileData;
+              textContent = atob(base64Data);
+            } catch {
+              textContent = fileData;
+            }
+          }
+          dispatch({
+            type: ADD_APP,
+            payload: applyMobileSettings({
+              ...appSettings['Code Editor'],
+              header: { ...appSettings['Code Editor'].header, title: `${icon.title} - Code Editor` },
+              injectProps: { initialContent: textContent, fileName: icon.title, fileId: icon.id },
+            }, 'Code Editor'),
+          });
+          handled = true;
         } else if (defaultProgram === 'Image Viewer' || defaultProgram === 'Paint') {
           const viewerKey = defaultProgram === 'Paint' ? 'Paint' : 'Image Viewer';
           if (appSettings[viewerKey]) {

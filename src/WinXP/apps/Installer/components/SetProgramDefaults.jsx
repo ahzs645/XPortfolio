@@ -38,10 +38,10 @@ const PROGRAM_CATEGORIES = {
   },
   textEditor: {
     title: 'Text Editor',
-    icon: '/icons/xp/Notepad.png',
-    description: 'Choose the default program for text files',
-    fileTypes: ['.txt', '.log', '.md', '.json', '.js', '.jsx', '.ts', '.tsx', '.css', '.xml'],
-    builtIn: ['Notepad'],
+    icon: '/apps/openlair-viewer/static/images/icon/coder.png',
+    description: 'Choose the default program for text and code files',
+    fileTypes: ['.txt', '.log', '.md', '.ini', '.json', '.js', '.jsx', '.ts', '.tsx', '.css', '.xml', '.php'],
+    builtIn: ['Notepad', 'Code Editor', 'WordPad'],
   },
   mediaPlayer: {
     title: 'Media Player',
@@ -88,6 +88,7 @@ const FILE_TYPE_ICONS = {
   '.tsx': '/icons/xp/GenericTextDocument.png',
   '.css': '/icons/xp/GenericTextDocument.png',
   '.xml': '/icons/xp/GenericTextDocument.png',
+  '.php': '/apps/openlair-viewer/static/images/icon/coder.png',
   '.mp3': '/icons/xp/WindowsMediaPlayer9.png',
   '.wav': '/icons/xp/WindowsMediaPlayer9.png',
   '.ogg': '/icons/xp/WindowsMediaPlayer9.png',

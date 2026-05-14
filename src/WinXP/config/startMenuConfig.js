@@ -75,6 +75,13 @@ export const START_MENU_CATALOG = {
     title: 'Notepad',
     description: null,
   },
+  coder: {
+    type: 'program',
+    appKey: 'Code Editor',
+    icon: '/apps/openlair-viewer/static/images/icon/coder.png',
+    title: 'Code Editor',
+    description: 'Edit web and script files',
+  },
   displayProperties: {
     type: 'program',
     appKey: 'Display Properties',
@@ -490,7 +497,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Accessories',
     icon: '/icons/folder-icon.png',
-    items: ['calculator', 'characterMap', 'notepad', 'wordpad', 'microsoftWord', 'microsoftExcel', 'displayProperties', 'speechProperties', 'systemProperties', 'userAccounts', 'paint', 'cmd', 'imageViewer', 'installer', 'registryEditor', 'blueScreenOfDeath', 'systemTools'],
+    items: ['calculator', 'characterMap', 'notepad', 'coder', 'wordpad', 'microsoftWord', 'microsoftExcel', 'displayProperties', 'speechProperties', 'systemProperties', 'userAccounts', 'paint', 'cmd', 'imageViewer', 'installer', 'registryEditor', 'blueScreenOfDeath', 'systemTools'],
   },
   entertainment: {
     type: 'folder',

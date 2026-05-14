@@ -32,8 +32,29 @@ export function openFileWithApp({
 }) {
   const ext = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
 
+  const codeExtensions = ['.js', '.jsx', '.ts', '.tsx', '.css', '.json', '.xml', '.php'];
+
+  if ((inlineContent || !fileData) && codeExtensions.includes(ext) && appSettings['Code Editor']) {
+    dispatch({
+      type: addAppAction,
+      payload: {
+        ...appSettings['Code Editor'],
+        header: {
+          ...appSettings['Code Editor'].header,
+          title: `${fileName} - Code Editor`,
+        },
+        injectProps: {
+          initialContent: inlineContent || '',
+          fileName,
+          fileId,
+        },
+      },
+    });
+    return true;
+  }
+
   // For text files with inline content (like Project Info.txt)
-  const textExtensions = ['.txt', '.log', '.md', '.ini', '.json', '.js', '.jsx', '.ts', '.tsx', '.css'];
+  const textExtensions = ['.txt', '.log', '.md', '.ini'];
   if (inlineContent && textExtensions.includes(ext)) {
     dispatch({
       type: addAppAction,
@@ -106,6 +127,33 @@ export function openFileWithApp({
   // If no file data at this point, can't proceed
   if (!fileData) {
     return false;
+  }
+
+  if (codeExtensions.includes(ext) && appSettings['Code Editor']) {
+    let textContent = '';
+    try {
+      const base64Data = fileData.split(',')[1] || fileData;
+      textContent = atob(base64Data);
+    } catch {
+      textContent = fileData;
+    }
+
+    dispatch({
+      type: addAppAction,
+      payload: {
+        ...appSettings['Code Editor'],
+        header: {
+          ...appSettings['Code Editor'].header,
+          title: `${fileName} - Code Editor`,
+        },
+        injectProps: {
+          initialContent: textContent,
+          fileName,
+          fileId,
+        },
+      },
+    });
+    return true;
   }
 
   // For images

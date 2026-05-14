@@ -98,7 +98,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     resolveVfsPath,
   } = useFileSystem();
 
-  const { openFile, openApp } = useApp();
+  const { openFile, openApp, openWithProgram } = useApp();
   const { isFileDropUploadEnabled, isFileDropOverlayEnabled } = useConfig();
   const { explorer } = useShellSettings();
 
@@ -555,6 +555,147 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     }
   }, [selectedItem, selectedItems, getFileContent, fileSystem, currentFolder, createItem, createFile]);
 
+  const loadSelectedFileData = useCallback(async (item) => {
+    if (!item) return { fileData: null, inlineContent: '' };
+    if (item.data) return { fileData: item.data, inlineContent: item.content || '' };
+    if (item.content) return { fileData: null, inlineContent: item.content };
+    if (!item.storageKey && item.storageType !== 'local') return { fileData: null, inlineContent: '' };
+
+    const blob = await getFileContent(item.id);
+    if (!blob) return { fileData: null, inlineContent: '' };
+
+    const fileData = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(blob);
+    });
+
+    return { fileData, inlineContent: '' };
+  }, [getFileContent]);
+
+  const decodeTextData = useCallback((fileData, inlineContent = '') => {
+    if (inlineContent) return inlineContent;
+    if (!fileData) return '';
+    try {
+      const base64Data = fileData.split(',')[1] || fileData;
+      return atob(base64Data);
+    } catch {
+      return fileData;
+    }
+  }, []);
+
+  const handleOpenContainingFolder = useCallback(async () => {
+    if (!selectedItem?.parent) return;
+    navigateTo(selectedItem.parent);
+  }, [navigateTo, selectedItem]);
+
+  const handleOpenWith = useCallback(async () => {
+    if (!selectedItem || selectedItem.type !== 'file') return;
+    const { fileData, inlineContent } = await loadSelectedFileData(selectedItem);
+
+    openApp('Open With', {
+      fileName: selectedItem.name,
+      fileData,
+      fileId: selectedItem.id,
+      contentType: selectedItem.contentType || '',
+      inlineContent,
+      onOpenWithProgram: (params) => {
+        const opened = openWithProgram(
+          params.appName,
+          { ...selectedItem, name: params.fileName },
+          params.fileData
+        );
+        if (!opened && params.fileData) {
+          const link = document.createElement('a');
+          link.href = params.fileData;
+          link.download = params.fileName;
+          link.click();
+        }
+      },
+    });
+  }, [loadSelectedFileData, openApp, openWithProgram, selectedItem]);
+
+  const handleEditSelected = useCallback(async () => {
+    if (!selectedItem || selectedItem.type !== 'file') return;
+    const ext = selectedItem.name?.slice(selectedItem.name.lastIndexOf('.')).toLowerCase();
+    const { fileData, inlineContent } = await loadSelectedFileData(selectedItem);
+    const textContent = decodeTextData(fileData, inlineContent);
+
+    if (['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.tif', '.tiff'].includes(ext)) {
+      openApp('Paint', {
+        imagePath: fileData,
+        fileName: selectedItem.name,
+        fileId: selectedItem.id,
+      }, {
+        header: { title: `${selectedItem.name} - Paint` },
+      });
+      return;
+    }
+
+    if (ext === '.rtf') {
+      openApp('WordPad', {
+        initialContent: textContent,
+        fileName: selectedItem.name,
+        fileId: selectedItem.id,
+      }, {
+        header: { title: `${selectedItem.name} - WordPad` },
+      });
+      return;
+    }
+
+    if (['.html', '.htm', '.css', '.js', '.jsx', '.ts', '.tsx', '.json', '.xml', '.php'].includes(ext)) {
+      openApp('Code Editor', {
+        initialContent: textContent,
+        fileName: selectedItem.name,
+        fileId: selectedItem.id,
+      }, {
+        header: { title: `${selectedItem.name} - Code Editor` },
+      });
+      return;
+    }
+
+    openApp('Notepad', {
+      initialContent: textContent,
+      fileName: selectedItem.name,
+      fileId: selectedItem.id,
+    }, {
+      header: { title: `${selectedItem.name} - Notepad` },
+    });
+  }, [decodeTextData, loadSelectedFileData, openApp, selectedItem]);
+
+  const handlePreviewSelected = useCallback(async () => {
+    if (!selectedItem || selectedItem.type !== 'file') return;
+    const { fileData } = await loadSelectedFileData(selectedItem);
+    if (!fileData) return;
+
+    openApp('Image Viewer', {
+      initialImage: { src: fileData, title: selectedItem.name },
+    }, {
+      header: { title: `${selectedItem.name} - Windows Picture and Fax Viewer` },
+    });
+  }, [loadSelectedFileData, openApp, selectedItem]);
+
+  const handlePrintSelected = useCallback(async () => {
+    if (!selectedItem || selectedItem.type !== 'file') return;
+    const ext = selectedItem.name?.slice(selectedItem.name.lastIndexOf('.')).toLowerCase();
+    const { fileData, inlineContent } = await loadSelectedFileData(selectedItem);
+    const printWindow = window.open('', '', 'width=800,height=600');
+    if (!printWindow) return;
+
+    if (['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'].includes(ext) && fileData) {
+      printWindow.document.write(`<!doctype html><html><head><title>${selectedItem.name}</title></head><body style="margin:0"><img src="${fileData}" style="display:block;max-width:100%;height:auto"></body></html>`);
+    } else {
+      const escaped = decodeTextData(fileData, inlineContent)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+      printWindow.document.write(`<!doctype html><html><head><title>${selectedItem.name}</title></head><body><pre style="font:12px Consolas,monospace;white-space:pre-wrap;">${escaped}</pre></body></html>`);
+    }
+
+    printWindow.document.close();
+    printWindow.print();
+  }, [decodeTextData, loadSelectedFileData, selectedItem]);
+
   // Context menu items
   const itemMenuItems = useFileContextMenu({
     selectedItem: contextMenu?.isItem ? selectedItem : null,
@@ -563,6 +704,11 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     clipboardOp,
     onOpen: withClose(() => handleItemDoubleClick(selectedItem)),
     onExplore: withClose(() => handleItemDoubleClick(selectedItem)),
+    onOpenContainingFolder: withClose(handleOpenContainingFolder),
+    onOpenWith: withClose(handleOpenWith),
+    onPreview: withClose(handlePreviewSelected),
+    onEdit: withClose(handleEditSelected),
+    onPrint: withClose(handlePrintSelected),
     onCut: withClose(handleCut),
     onCopy: withClose(handleCopy),
     onDelete: withClose(handleDelete),

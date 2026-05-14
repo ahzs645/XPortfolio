@@ -477,7 +477,9 @@ export function useFileSystemOperations(fileSystem, setFileSystem, dataClient = 
       icon = XP_ICONS.rar;
     } else if (['.html', '.htm'].includes(lowerExt)) {
       icon = '/icons/xp/InternetExplorer6.png';
-    } else if (['.txt', '.log', '.md'].includes(lowerExt)) {
+    } else if (['.js', '.jsx', '.ts', '.tsx', '.css', '.json', '.xml', '.php'].includes(lowerExt)) {
+      icon = '/apps/openlair-viewer/static/images/icon/coder.png';
+    } else if (['.txt', '.log', '.md', '.ini'].includes(lowerExt)) {
       icon = XP_ICONS.notepad;
     } else if (['.ttf', '.otf', '.woff', '.woff2', '.fon'].includes(lowerExt)) {
       icon = '/icons/xp/font.png';

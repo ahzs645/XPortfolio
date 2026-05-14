@@ -1,6 +1,12 @@
 import { useMemo, useCallback } from 'react';
 import { XP_ICONS } from '../../contexts/FileSystemContext';
 
+const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.tif', '.tiff'];
+const TEXT_EXTENSIONS = ['.txt', '.log', '.md', '.ini'];
+const CODE_EXTENSIONS = ['.html', '.htm', '.css', '.js', '.jsx', '.ts', '.tsx', '.json', '.xml', '.php'];
+const RICH_TEXT_EXTENSIONS = ['.rtf'];
+const MEDIA_EXTENSIONS = ['.mp3', '.wav', '.wma', '.ogg', '.flac', '.aac', '.mp4', '.avi', '.mkv', '.mov', '.wmv', '.webm'];
+
 /**
  * Shared hook for generating file/folder context menu items
  * Used by both Desktop and File Explorer for consistent behavior
@@ -12,6 +18,11 @@ export function useFileContextMenu({
   // Available operations from FileSystemContext
   onOpen,
   onExplore,
+  onOpenContainingFolder,
+  onOpenWith,
+  onPreview,
+  onEdit,
+  onPrint,
   onCut,
   onCopy,
   onDelete,
@@ -265,8 +276,56 @@ export function useFileContextMenu({
 
       items.push({
         label: 'Open Containing Folder',
-        disabled: true,
+        onClick: onOpenContainingFolder,
+        disabled: !onOpenContainingFolder,
       });
+
+      items.push({
+        label: 'Open With...',
+        onClick: onOpenWith,
+        disabled: !onOpenWith,
+      });
+
+      if (IMAGE_EXTENSIONS.includes(extension)) {
+        items.push({ type: 'divider' });
+        items.push({
+          label: 'Preview',
+          onClick: onPreview || onOpen,
+          disabled: !(onPreview || onOpen),
+        });
+        items.push({
+          label: 'Edit',
+          onClick: onEdit,
+          disabled: !onEdit,
+        });
+        items.push({
+          label: 'Print',
+          onClick: onPrint,
+          disabled: !onPrint,
+        });
+      } else if (CODE_EXTENSIONS.includes(extension) || TEXT_EXTENSIONS.includes(extension) || RICH_TEXT_EXTENSIONS.includes(extension)) {
+        items.push({ type: 'divider' });
+        items.push({
+          label: CODE_EXTENSIONS.includes(extension) ? 'Edit Source' : 'Edit',
+          onClick: onEdit,
+          disabled: !onEdit,
+        });
+        items.push({
+          label: 'Print',
+          onClick: onPrint,
+          disabled: !onPrint,
+        });
+      } else if (MEDIA_EXTENSIONS.includes(extension)) {
+        items.push({ type: 'divider' });
+        items.push({
+          label: 'Play',
+          onClick: onOpen,
+        });
+        items.push({
+          label: 'Add to Playlist',
+          disabled: true,
+        });
+      }
 
       items.push({ type: 'divider' });
 
@@ -514,6 +573,7 @@ export function useFileContextMenu({
     return items;
   }, [
     selectedItem,
+    extension,
     isFolder,
     isFile,
     isArchive,
@@ -525,6 +585,11 @@ export function useFileContextMenu({
     isInStartup,
     onOpen,
     onExplore,
+    onOpenContainingFolder,
+    onOpenWith,
+    onPreview,
+    onEdit,
+    onPrint,
     onCut,
     onCopy,
     onDelete,

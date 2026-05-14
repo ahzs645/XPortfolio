@@ -7,6 +7,7 @@ const Contact = lazy(() => import('./Contact'));
 
 const Calculator = lazy(() => import('./Calculator'));
 const Notepad = lazy(() => import('./Notepad'));
+const Coder = lazy(() => import('./Coder'));
 const DisplayProperties = lazy(() => import('./DisplayProperties'));
 const DateTimeProperties = lazy(() => import('./DateTimeProperties'));
 const Minesweeper = lazy(() => import('./Minesweeper'));
@@ -89,6 +90,7 @@ const XP_ICONS = {
   notepad: '/icons/xp/Notepad.png',
   displayProperties: '/icons/xp/DisplayProperties.png',
   calculator: '/icons/xp/Calculator.png',
+  coder: '/apps/openlair-viewer/static/images/icon/coder.png',
   minesweeper: '/icons/xp/Minesweeper.png',
   paint: '/icons/xp/Paint.png',
   cmd: '/icons/xp/CommandPrompt.png',
@@ -135,6 +137,7 @@ export const appCategoryMap = {
   // Windows Accessories
   'Calculator': APP_CATEGORIES.ACCESSORY,
   'Notepad': APP_CATEGORIES.ACCESSORY,
+  'Code Editor': APP_CATEGORIES.ACCESSORY,
   'Paint': APP_CATEGORIES.ACCESSORY,
   'WordPad': APP_CATEGORIES.ACCESSORY,
   'Microsoft Word': APP_CATEGORIES.ACCESSORY,
@@ -260,6 +263,11 @@ export const desktopIconCatalog = {
     icon: XP_ICONS.notepad,
     title: 'Notepad',
     component: Notepad,
+  },
+  coder: {
+    icon: XP_ICONS.coder,
+    title: 'Code Editor',
+    component: Coder,
   },
   displayProperties: {
     icon: XP_ICONS.displayProperties,
@@ -512,6 +520,7 @@ const CATALOG_TO_APP_KEY = {
   contact: 'Contact',
   calculator: 'Calculator',
   notepad: 'Notepad',
+  coder: 'Code Editor',
   displayProperties: 'Display Properties',
   minesweeper: 'Minesweeper',
   solitaire: 'Solitaire',
@@ -727,6 +736,30 @@ export const appSettings = {
     defaultOffset: {
       x: 180,
       y: 80,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: true,
+  },
+  'Code Editor': {
+    header: {
+      icon: XP_ICONS.coder,
+      title: 'Untitled - Code Editor',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: Coder,
+    defaultSize: {
+      width: 720,
+      height: 500,
+    },
+    minSize: {
+      width: 420,
+      height: 300,
+    },
+    defaultOffset: {
+      x: 160,
+      y: 70,
     },
     resizable: true,
     minimized: false,
@@ -2275,6 +2308,7 @@ export {
   Contact,
   Calculator,
   Notepad,
+  Coder,
   DateTimeProperties,
   Minesweeper,
   Solitaire,

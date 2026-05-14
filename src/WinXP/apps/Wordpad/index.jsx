@@ -17,7 +17,7 @@ const FONT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72
   label: String(s),
 }));
 
-function Wordpad({ onClose, onMinimize, onMaximize }) {
+function Wordpad({ onClose, onMinimize, onMaximize, initialContent = '' }) {
   const editorRef = useRef(null);
   const [fontName, setFontName] = useState('Arial');
   const [fontSize, setFontSize] = useState('12');
@@ -126,9 +126,12 @@ function Wordpad({ onClose, onMinimize, onMaximize }) {
 
   useEffect(() => {
     if (editorRef.current) {
+      if (initialContent) {
+        editorRef.current.innerHTML = DOMPurify.sanitize(initialContent);
+      }
       editorRef.current.focus();
     }
-  }, []);
+  }, [initialContent]);
 
   // Handle toolbar button actions
   const handleToolbarAction = useCallback((action) => {

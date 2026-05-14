@@ -10,6 +10,7 @@ import { withBaseUrl } from '../../../utils/baseUrl';
 // Programs that can potentially open files
 const AVAILABLE_PROGRAMS = [
   { id: 'calculator', name: 'Calculator', icon: '/icons/xp/Calculator.png' },
+  { id: 'coder', name: 'Code Editor', icon: '/apps/openlair-viewer/static/images/icon/coder.png' },
   { id: 'internet', name: 'Internet Explorer', icon: '/icons/xp/InternetExplorer6.png' },
   { id: 'messenger', name: 'Windows Messenger', icon: '/icons/xp/messenger.png' },
   { id: 'minesweeper', name: 'Minesweeper', icon: '/icons/xp/Minesweeper.png' },
@@ -27,6 +28,7 @@ const AVAILABLE_PROGRAMS = [
 // Map program IDs to app names used in appSettings
 const PROGRAM_TO_APP = {
   calculator: 'Calculator',
+  coder: 'Code Editor',
   internet: 'Internet Explorer',
   messenger: 'Windows Messenger',
   minesweeper: 'Minesweeper',
@@ -67,12 +69,18 @@ const FILE_TYPE_RECOMMENDATIONS = {
   '.txt': ['notepad', 'wordpad'],
   '.log': ['notepad', 'wordpad'],
   '.md': ['notepad', 'wordpad'],
-  '.json': ['notepad'],
-  '.js': ['notepad'],
-  '.css': ['notepad'],
+  '.ini': ['notepad', 'coder'],
+  '.json': ['coder', 'notepad'],
+  '.js': ['coder', 'notepad'],
+  '.jsx': ['coder', 'notepad'],
+  '.ts': ['coder', 'notepad'],
+  '.tsx': ['coder', 'notepad'],
+  '.css': ['coder', 'notepad'],
+  '.xml': ['coder', 'notepad'],
+  '.php': ['coder', 'notepad'],
   // Web files
-  '.html': ['internet', 'notepad'],
-  '.htm': ['internet', 'notepad'],
+  '.html': ['internet', 'coder', 'notepad'],
+  '.htm': ['internet', 'coder', 'notepad'],
   '.url': ['internet'],
 };
 
