@@ -178,6 +178,12 @@ export const XBOX_THEME = {
     morePrograms: {
       image: `${BASE}/xbox_xp_start_moreprogs.png`,
     },
+    moreArrow: {
+      image: `${BASE}/xbox_xp_start_morearrow.png`,
+    },
+    menuItem: {
+      image: `${BASE}/xbox_xp_start_menuitem2.png`,
+    },
     logonButtons: {
       image: `${BASE}/xbox_xp_start_logicons.png`,
     },

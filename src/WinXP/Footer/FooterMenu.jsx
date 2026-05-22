@@ -1,9 +1,10 @@
 import React, { useLayoutEffect, useRef, useState } from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { useConfig } from '../../contexts/ConfigContext';
 import { useInstalledApps } from '../../contexts/InstalledAppsContext';
 import { useUserAccounts } from '../../contexts/UserAccountsContext';
 import { useStartMenu } from '../../contexts/StartMenuContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { isAppDisabled } from '../apps/Installer/disabledApps';
 import { withBaseUrl } from '../../utils/baseUrl';
 import {
@@ -548,7 +549,7 @@ function InstalledAppsMenu({ apps, onAppClick }) {
   );
 }
 
-export default styled(FooterMenu)`
+const StyledFooterMenu = styled(FooterMenu)`
   .start-menu-user-avatar {
     object-fit: cover;
     background: transparent;
@@ -622,4 +623,150 @@ export default styled(FooterMenu)`
     background: transparent;
     border: none;
   }
+
+  ${({ $theme }) => $theme?.startMenu?.type === 'image' && css`
+    width: 381px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+
+    .start-menu-header {
+      height: 72px;
+      padding: 8px 12px 10px 14px;
+      background-image: url(${withBaseUrl($theme.startMenu.top.image)});
+      background-repeat: no-repeat;
+      background-size: 100% 100%;
+      color: ${$theme.titleBar?.textColor || '#fff'};
+      text-shadow: ${$theme.titleBar?.textShadow || 'none'};
+    }
+
+    .start-menu-user-avatar {
+      width: 48px;
+      height: 48px;
+      padding: 3px;
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+      background:
+        ${$theme.startMenu.userPic?.image ? `url(${withBaseUrl($theme.startMenu.userPic.image)}) center / 100% 100% no-repeat,` : ''}
+        rgba(255, 255, 255, 0.14);
+    }
+
+    .start-menu-user-avatar + span {
+      color: inherit;
+      font-family: ${$theme.titleBar?.fontFamily || 'Tahoma, sans-serif'};
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .start-menu-body {
+      background: transparent;
+      display: grid;
+      grid-template-columns: 186px 195px;
+      min-height: 328px;
+      padding: 0;
+    }
+
+    .start-menu-orange-hr {
+      display: none;
+    }
+
+    .start-menu-left,
+    .start-menu-right {
+      min-width: 0;
+      padding-top: 9px;
+      background-repeat: repeat-y;
+      background-size: 100% auto;
+    }
+
+    .start-menu-left {
+      background-image: url(${withBaseUrl($theme.startMenu.left.image)});
+      padding-left: 7px;
+      padding-right: 7px;
+    }
+
+    .start-menu-right {
+      background-image: url(${withBaseUrl($theme.startMenu.right.image)});
+      padding-left: 8px;
+      padding-right: 8px;
+    }
+
+    .start-menu-item,
+    .start-menu-all-programs-button {
+      color: ${$theme.colors?.menuText || '#000'};
+      border-radius: 0;
+    }
+
+    .start-menu-item:hover,
+    .start-menu-item.active,
+    .start-menu-all-programs-button:hover,
+    .start-menu-all-programs-button.active {
+      background-color: ${$theme.colors?.highlight || 'rgb(112, 188, 31)'};
+      background-image: ${$theme.startMenu.menuItem?.image ? `url(${withBaseUrl($theme.startMenu.menuItem.image)})` : 'none'};
+      background-repeat: repeat-x;
+      background-size: auto 100%;
+      color: ${$theme.colors?.highlightText || '#000'};
+    }
+
+    .start-menu-item:hover .start-menu-item-text,
+    .start-menu-item:hover .start-menu-item-description,
+    .start-menu-item.active .start-menu-item-text,
+    .start-menu-item.active .start-menu-item-description,
+    .start-menu-all-programs-button:hover,
+    .start-menu-all-programs-button.active {
+      color: ${$theme.colors?.highlightText || '#000'};
+    }
+
+    .start-menu-separator {
+      background: rgba(70, 70, 70, 0.45);
+      box-shadow: 0 1px rgba(225, 225, 225, 0.35);
+    }
+
+    .start-menu-all-programs-button {
+      min-height: 18px;
+      background-image: ${$theme.startMenu.morePrograms?.image ? `url(${withBaseUrl($theme.startMenu.morePrograms.image)})` : 'none'};
+      background-repeat: no-repeat;
+      background-size: 100% 100%;
+      padding-right: 26px;
+    }
+
+    .start-menu-all-programs-arrow {
+      width: 18px;
+      height: 18px;
+      background-image: ${$theme.startMenu.moreArrow?.image ? `url(${withBaseUrl($theme.startMenu.moreArrow.image)})` : 'none'};
+      background-repeat: no-repeat;
+      background-size: auto 100%;
+    }
+
+    .start-menu-footer {
+      height: 41px;
+      background-image: url(${withBaseUrl($theme.startMenu.bottom.image)});
+      background-repeat: no-repeat;
+      background-size: 100% 100%;
+    }
+
+    .start-menu-turn-off-dialog {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      padding: 8px 12px;
+      color: ${$theme.titleBar?.textColor || '#fff'};
+    }
+
+    .start-menu-turn-off-dialog .turn-off-dialog-item {
+      color: inherit;
+      text-shadow: none;
+    }
+
+    .start-menu-turn-off-dialog .turn-off-dialog-item:hover,
+    .start-menu-turn-off-dialog .turn-off-dialog-item:focus-visible {
+      background: rgba(112, 188, 31, 0.28);
+    }
+  `}
 `;
+
+export default function ThemedFooterMenu(props) {
+  const { activeTheme } = useTheme();
+  return <StyledFooterMenu {...props} $theme={activeTheme} />;
+}

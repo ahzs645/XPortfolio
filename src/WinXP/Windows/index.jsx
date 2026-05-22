@@ -374,22 +374,21 @@ const WindowContainer = styled.div`
 
       const frameImg = tb.frameImage ? withBaseUrl(tb.frameImage) : '';
       const sideImg = wf?.sideImage ? withBaseUrl(wf.sideImage) : '';
-      const frameW = tb.frameWidth || 180;
-
       return `
         border-color: ${wf?.borderColor || '#646464'} !important;
         background-color: ${wf?.bodyBackground || '#b4b4b4'} !important;
 
         .title-bar {
-          background: url(${frameImg}) 0 0 / ${frameW}px auto no-repeat !important;
-          background-size: cover !important;
+          background-image: url(${frameImg}) !important;
+          background-position: left top !important;
+          background-repeat: no-repeat !important;
+          background-size: 200% 100% !important;
           height: ${tb.height || 28}px !important;
           min-height: ${tb.height || 28}px !important;
         }
 
         &.inactive .title-bar {
-          background-position: -${frameW}px 0 !important;
-          background-size: cover !important;
+          background-position: right top !important;
         }
 
         .title-bar-text {
