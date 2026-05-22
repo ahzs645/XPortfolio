@@ -2,7 +2,48 @@ import { useCallback } from 'react';
 import { ADD_APP } from '../constants/actions';
 import { getDefaultProgramForFile } from '../apps/Installer/components/SetProgramDefaults';
 import { openFileWithApp, downloadFile } from '../../utils/fileOpener';
+import { withBaseUrl } from '../../utils/baseUrl';
 import { useMobileAppLauncher } from './useMobileAppLauncher';
+
+async function fetchUrlAsDataUrl(url) {
+  const response = await fetch(withBaseUrl(url));
+  if (!response.ok) {
+    throw new Error(`Failed to load ${url}: ${response.status}`);
+  }
+
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function toDataUrl(content) {
+  if (typeof content === 'string') {
+    return content;
+  }
+
+  const blob = content instanceof Blob
+    ? content
+    : content instanceof ArrayBuffer || ArrayBuffer.isView(content)
+      ? new Blob([content])
+      : content?.data instanceof Blob
+        ? content.data
+        : null;
+
+  if (!blob) {
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
 
 /**
  * Hook for handling file/icon double-click operations
@@ -96,14 +137,19 @@ export function useFileHandler({
 
       if (!fileData && !inlineContent) {
         if (fileItem?.storageKey) {
-          const blob = await getFileContent(icon.id);
-          if (blob) {
-            // Convert blob to data URL
-            fileData = await new Promise((resolve) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(reader.result);
-              reader.readAsDataURL(blob);
-            });
+          fileData = await toDataUrl(await getFileContent(icon.id));
+        }
+      }
+
+      if (!fileData && !inlineContent && fileItem?.url) {
+        const extension = icon.title.substring(icon.title.lastIndexOf('.')).toLowerCase();
+        const urlBackedBinaryExtensions = ['.wba', '.wmz', '.zip', '.rar', '.7z', '.tar', '.gz'];
+
+        if (urlBackedBinaryExtensions.includes(extension)) {
+          try {
+            fileData = await fetchUrlAsDataUrl(fileItem.url);
+          } catch (err) {
+            console.error(`Failed to load ${icon.title}:`, err);
           }
         }
       }

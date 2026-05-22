@@ -185,7 +185,7 @@ export function openFileWithApp({
   }
 
   // For archive files
-  const archiveExtensions = ['.zip', '.rar', '.7z', '.tar', '.gz'];
+  const archiveExtensions = ['.zip', '.rar', '.7z', '.tar', '.gz', '.wmz'];
   if (archiveExtensions.includes(ext)) {
     dispatch({
       type: addAppAction,

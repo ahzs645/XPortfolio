@@ -2,6 +2,7 @@ import React, { createContext, useContext, useCallback } from 'react';
 import { useFileSystem } from './FileSystemContext';
 import { getDefaultProgramForFile } from '../WinXP/apps/Installer/components/SetProgramDefaults';
 import { openFileWithApp, downloadFile } from '../utils/fileOpener';
+import { withBaseUrl } from '../utils/baseUrl';
 
 const AppContext = createContext(null);
 
@@ -26,6 +27,46 @@ const PROGRAM_NAME_TO_APP_KEY = {
   'Microsoft Word': 'Microsoft Word',
   'Microsoft Excel': 'Microsoft Excel',
 };
+
+async function fetchUrlAsDataUrl(url) {
+  const response = await fetch(withBaseUrl(url));
+  if (!response.ok) {
+    throw new Error(`Failed to load ${url}: ${response.status}`);
+  }
+
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function toDataUrl(content) {
+  if (typeof content === 'string') {
+    return content;
+  }
+
+  const blob = content instanceof Blob
+    ? content
+    : content instanceof ArrayBuffer || ArrayBuffer.isView(content)
+      ? new Blob([content])
+      : content?.data instanceof Blob
+        ? content.data
+        : null;
+
+  if (!blob) {
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
 
 export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
   const { getFileContent } = useFileSystem();
@@ -335,19 +376,24 @@ export function AppProvider({ children, appSettings, dispatch, addAppAction }) {
 
     // Check for storageKey or storageType to load from IndexedDB
     if (!fileData && !inlineContent && (fileItem.storageKey || fileItem.storageType === 'local')) {
-      const blob = await getFileContent(fileItem.id);
-      if (blob) {
-        // Convert blob to data URL
-        fileData = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.readAsDataURL(blob);
-        });
-      }
+      fileData = await toDataUrl(await getFileContent(fileItem.id));
     }
 
     const name = fileItem.name || '';
     const contentType = fileItem.contentType || '';
+
+    if (!fileData && !inlineContent && fileItem.url) {
+      const extension = name.substring(name.lastIndexOf('.')).toLowerCase();
+      const urlBackedBinaryExtensions = ['.wba', '.wmz', '.zip', '.rar', '.7z', '.tar', '.gz'];
+
+      if (urlBackedBinaryExtensions.includes(extension)) {
+        try {
+          fileData = await fetchUrlAsDataUrl(fileItem.url);
+        } catch (err) {
+          console.error(`Failed to load ${name}:`, err);
+        }
+      }
+    }
 
     // Check for user-configured default program (skip for inline content files)
     if (!inlineContent && !fileItem.url) {

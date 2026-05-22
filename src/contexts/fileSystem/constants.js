@@ -39,6 +39,8 @@ export const fileIcons = {
   '.html': '/icons/xp/InternetExplorer6.png',
   '.htm': '/icons/xp/InternetExplorer6.png',
   '.url': '/icons/xp/InternetExplorer6.png',
+  '.wba': '/icons/xp/RAR.png',
+  '.wmz': '/icons/xp/RAR.png',
   '.lnk': '/icons/xp/Shortcutoverlay.png',
   '.ttf': '/icons/xp/font.png',
   '.otf': '/icons/xp/font.png',
