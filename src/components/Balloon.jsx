@@ -27,6 +27,7 @@ const fadeOut = keyframes`
 
 const BalloonFrame = styled.div`
   position: relative;
+  pointer-events: auto;
   width: ${({ $width = 240 }) => `${$width}px`};
   background: #fffee8;
   border: 1px solid #000;

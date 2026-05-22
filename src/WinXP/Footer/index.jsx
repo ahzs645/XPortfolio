@@ -469,6 +469,13 @@ function Footer({
     setThemeBalloon(null);
   }, [themeBalloon, setActiveTheme]);
 
+  const handleThemeBalloonClick = useCallback((e) => {
+    if (e.target.closest('button, a, input, select, textarea')) {
+      return;
+    }
+    handleThemeBalloonApply();
+  }, [handleThemeBalloonApply]);
+
   const handleTaskbarContextMenu = useCallback((e) => {
     // Only show context menu if clicking on the taskbar background, not on buttons
     if (
@@ -775,6 +782,7 @@ function Footer({
           iconAlt="WindowBlinds"
           width={300}
           animate
+          onClick={handleThemeBalloonClick}
           onClose={() => setThemeBalloon(null)}
         >
           <p className="balloon__text">
@@ -902,6 +910,7 @@ const ThemeBalloon = styled(Balloon)`
   bottom: 50px;
   right: 16px;
   z-index: 9999;
+  cursor: pointer;
 `;
 
 const VolumePopup = styled.div.attrs({
