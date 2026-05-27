@@ -80,6 +80,7 @@ const COMMAND_MAP = {
   'control.exe': 'My Computer',
   'sysdm.cpl': 'System Properties',
   'desk.cpl': 'Display Properties',
+  'themes.cpl': 'Theme Settings',
   'mmsys.cpl': 'Sounds and Audio Devices',
   'sndvol32': 'Volume Control',
   'sndvol32.exe': 'Volume Control',

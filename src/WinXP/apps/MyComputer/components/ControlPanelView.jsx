@@ -56,6 +56,13 @@ const CONTROL_PANEL_ITEMS = [
     action: 'Display Properties',
   },
   {
+    id: 'theme-settings',
+    name: 'Theme Settings',
+    icon: '/icons/xp/DisplayProperties.png',
+    description: 'Switch shell themes and remove installed themes.',
+    action: 'Theme Settings',
+  },
+  {
     id: 'folder-options',
     name: 'Folder Options',
     icon: '/icons/xp/FolderClosed.png',
@@ -182,8 +189,8 @@ const CONTROL_PANEL_CATEGORIES = [
     id: 'appearance',
     name: 'Appearance and Themes',
     icon: '/icons/xp/DisplayProperties.png',
-    description: 'Change the computer\'s appearance.',
-    action: 'Display Properties',
+    description: 'Change the computer\'s appearance and shell theme.',
+    action: 'Theme Settings',
   },
   {
     id: 'network',

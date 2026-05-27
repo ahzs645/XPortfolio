@@ -9,6 +9,7 @@ const Calculator = lazy(() => import('./Calculator'));
 const Notepad = lazy(() => import('./Notepad'));
 const Coder = lazy(() => import('./Coder'));
 const DisplayProperties = lazy(() => import('./DisplayProperties'));
+const ThemeManager = lazy(() => import('./ThemeManager'));
 const DateTimeProperties = lazy(() => import('./DateTimeProperties'));
 const Minesweeper = lazy(() => import('./Minesweeper'));
 const Solitaire = lazy(() => import('./Solitaire'));
@@ -170,6 +171,7 @@ export const appCategoryMap = {
   'Recycle Bin': APP_CATEGORIES.SYSTEM,
   'Control Panel': APP_CATEGORIES.SYSTEM,
   'Display Properties': APP_CATEGORIES.SYSTEM,
+  'Theme Settings': APP_CATEGORIES.SYSTEM,
   'Date/Time Properties': APP_CATEGORIES.SYSTEM,
   'Sounds and Audio Devices': APP_CATEGORIES.SYSTEM,
   'System Properties': APP_CATEGORIES.SYSTEM,
@@ -522,6 +524,7 @@ const CATALOG_TO_APP_KEY = {
   notepad: 'Notepad',
   coder: 'Code Editor',
   displayProperties: 'Display Properties',
+  themeSettings: 'Theme Settings',
   minesweeper: 'Minesweeper',
   solitaire: 'Solitaire',
   spiderSolitaire: 'Spider Solitaire',
@@ -780,6 +783,26 @@ export const appSettings = {
     defaultOffset: {
       x: 200,
       y: 100,
+    },
+    resizable: false,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'Theme Settings': {
+    header: {
+      icon: XP_ICONS.displayProperties,
+      title: 'Theme Settings',
+      buttons: ['minimize', 'close'],
+    },
+    component: ThemeManager,
+    defaultSize: {
+      width: 560,
+      height: 400,
+    },
+    defaultOffset: {
+      x: 230,
+      y: 110,
     },
     resizable: false,
     minimized: false,
@@ -2333,6 +2356,7 @@ export {
   Messenger,
   MSNMessenger,
   MSNMessengerConversation,
+  ThemeManager,
   SpeechProperties,
   SystemProperties,
   UserAccounts,

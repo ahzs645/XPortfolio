@@ -89,6 +89,13 @@ export const START_MENU_CATALOG = {
     title: 'Display Properties',
     description: 'Change desktop background',
   },
+  themeSettings: {
+    type: 'program',
+    appKey: 'Theme Settings',
+    icon: '/icons/xp/DisplayProperties.png',
+    title: 'Theme Settings',
+    description: 'Switch shell themes',
+  },
   minesweeper: {
     type: 'program',
     appKey: 'Minesweeper',
@@ -497,7 +504,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Accessories',
     icon: '/icons/folder-icon.png',
-    items: ['calculator', 'characterMap', 'notepad', 'coder', 'wordpad', 'microsoftWord', 'microsoftExcel', 'displayProperties', 'speechProperties', 'systemProperties', 'userAccounts', 'paint', 'cmd', 'imageViewer', 'installer', 'registryEditor', 'blueScreenOfDeath', 'systemTools'],
+    items: ['calculator', 'characterMap', 'notepad', 'coder', 'wordpad', 'microsoftWord', 'microsoftExcel', 'displayProperties', 'themeSettings', 'speechProperties', 'systemProperties', 'userAccounts', 'paint', 'cmd', 'imageViewer', 'installer', 'registryEditor', 'blueScreenOfDeath', 'systemTools'],
   },
   entertainment: {
     type: 'folder',

@@ -131,6 +131,19 @@ export function ThemeProvider({ children }) {
     return () => window.removeEventListener('xp:theme-install', handleInstall);
   }, [installTheme]);
 
+  // Listen for built-in theme activation events from shell file handlers.
+  useEffect(() => {
+    const handleActivate = (e) => {
+      const { themeId } = e.detail || {};
+      if (themeId && BUILTIN_THEME_MAP[themeId]) {
+        setActiveTheme(themeId);
+      }
+    };
+
+    window.addEventListener('xp:theme-activate', handleActivate);
+    return () => window.removeEventListener('xp:theme-activate', handleActivate);
+  }, [setActiveTheme]);
+
   // Listen for WBA file open requests (from fileOpener.js)
   useEffect(() => {
     const handleWbaRequest = async (e) => {

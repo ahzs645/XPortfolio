@@ -177,6 +177,13 @@ export function openFileWithApp({
   }
 
   // For WindowBlinds theme files (.wba)
+  if ((ext === '.wba' || ext === '.wmz') && fileName.toLowerCase().includes('xbox')) {
+    window.dispatchEvent(new CustomEvent('xp:theme-activate', {
+      detail: { themeId: 'xbox', fileName },
+    }));
+    return true;
+  }
+
   if (ext === '.wba') {
     window.dispatchEvent(new CustomEvent('xp:theme-install-request', {
       detail: { fileData, fileName },

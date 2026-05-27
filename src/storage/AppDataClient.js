@@ -69,27 +69,117 @@ function deleteLocalStorage(key) {
   }
 }
 
+function createFileSystemItemRecord(ownerId, item, fallbackUpdatedAt) {
+  return {
+    ownerId,
+    itemId: item.id,
+    parentId: item.parent || '',
+    type: item.type || '',
+    storageKey: item.storageKey || '',
+    updatedAt: item.dateModified || fallbackUpdatedAt,
+    item,
+  };
+}
+
+function fileSystemSnapshotFromItems(itemRecords) {
+  if (!itemRecords.length) {
+    return null;
+  }
+
+  return Object.fromEntries(
+    itemRecords
+      .filter((record) => record?.item?.id)
+      .map((record) => [record.item.id, record.item])
+  );
+}
+
+async function getFileSystemSnapshot(ownerId) {
+  const itemRecords = await localDb.fileSystemItems
+    .where('ownerId')
+    .equals(ownerId)
+    .toArray();
+
+  const snapshot = fileSystemSnapshotFromItems(itemRecords);
+  if (snapshot) {
+    return snapshot;
+  }
+
+  const legacyRecord = await localDb.fileSystems.get(ownerId);
+  if (legacyRecord?.snapshot) {
+    await saveFileSystemSnapshot(ownerId, legacyRecord.snapshot, legacyRecord.updatedAt);
+    return legacyRecord.snapshot;
+  }
+
+  return null;
+}
+
+async function saveFileSystemSnapshot(ownerId, snapshot, updatedAt = Date.now()) {
+  const itemRecords = Object.values(snapshot || {})
+    .filter((item) => item?.id)
+    .map((item) => createFileSystemItemRecord(ownerId, item, updatedAt));
+
+  await writeFileSystemSnapshotRecords(ownerId, itemRecords, updatedAt);
+}
+
+async function writeFileSystemSnapshotRecords(ownerId, itemRecords, updatedAt) {
+  await localDb.transaction('rw', localDb.fileSystems, localDb.fileSystemItems, async () => {
+    await localDb.fileSystemItems.where('ownerId').equals(ownerId).delete();
+    if (itemRecords.length > 0) {
+      await localDb.fileSystemItems.bulkPut(itemRecords);
+    }
+    await localDb.fileSystems.put({
+      ownerId,
+      updatedAt,
+    });
+  });
+}
+
+async function writeFileSystemSnapshotRecordsInCurrentTransaction(ownerId, snapshot, updatedAt = Date.now()) {
+  const itemRecords = Object.values(snapshot || {})
+    .filter((item) => item?.id)
+    .map((item) => createFileSystemItemRecord(ownerId, item, updatedAt));
+
+  await localDb.fileSystemItems.where('ownerId').equals(ownerId).delete();
+  if (itemRecords.length > 0) {
+    await localDb.fileSystemItems.bulkPut(itemRecords);
+  }
+  await localDb.fileSystems.put({
+    ownerId,
+    updatedAt,
+  });
+}
+
+async function getAllFileSystemSnapshots() {
+  const owners = await localDb.fileSystems.toArray();
+  const snapshots = await Promise.all(
+    owners.map(async ({ ownerId, updatedAt }) => {
+      const snapshot = await getFileSystemSnapshot(ownerId);
+      return snapshot ? { ownerId, snapshot, updatedAt } : null;
+    })
+  );
+
+  return snapshots.filter(Boolean);
+}
+
 export function createDexieDataClient() {
   const client = {
     fileSystems: {
       async get(userId) {
         const ownerId = getFileSystemOwnerId(userId);
-        const record = await localDb.fileSystems.get(ownerId);
-        return record?.snapshot || null;
+        return getFileSystemSnapshot(ownerId);
       },
 
       async save(userId, snapshot) {
         const ownerId = getFileSystemOwnerId(userId);
-        await localDb.fileSystems.put({
-          ownerId,
-          snapshot,
-          updatedAt: Date.now(),
-        });
+        await saveFileSystemSnapshot(ownerId, snapshot);
       },
 
       async delete(userId) {
         const ownerId = getFileSystemOwnerId(userId);
-        await localDb.fileSystems.delete(ownerId);
+        await localDb.transaction('rw', localDb.fileSystems, localDb.fileSystemItems, async () => {
+          await localDb.fileSystemItems.where('ownerId').equals(ownerId).delete();
+          await localDb.fileSystems.delete(ownerId);
+        });
         await legacyKeyval.del(getLegacyFileSystemKey(userId));
       },
 
@@ -178,6 +268,12 @@ export function createDexieDataClient() {
           return record.value;
         }
 
+        const legacyKeyvalValue = await legacyKeyval.get(key);
+        if (legacyKeyvalValue != null && !isLegacyFileSystemValue(legacyKeyvalValue)) {
+          await client.localSettings.set(key, legacyKeyvalValue);
+          return legacyKeyvalValue;
+        }
+
         const value = readLocalStorage(key);
         if (value !== null) {
           await client.localSettings.set(key, value);
@@ -224,7 +320,7 @@ export function createDexieDataClient() {
       async exportAll(options = {}) {
         const { settingKeys = [] } = options;
         const [fileSystems, fileContents, localSettings] = await Promise.all([
-          localDb.fileSystems.toArray(),
+          getAllFileSystemSnapshots(),
           localDb.fileContents.toArray(),
           settingKeys.length > 0
             ? client.localSettings.exportKeys(settingKeys)
@@ -245,14 +341,17 @@ export function createDexieDataClient() {
 
         const { replace = false } = options;
 
-        await localDb.transaction('rw', localDb.fileSystems, localDb.fileContents, localDb.localSettings, async () => {
+        await localDb.transaction('rw', localDb.fileSystems, localDb.fileSystemItems, localDb.fileContents, localDb.localSettings, async () => {
           if (replace) {
             await localDb.fileSystems.clear();
+            await localDb.fileSystemItems.clear();
             await localDb.fileContents.clear();
             await localDb.localSettings.clear();
           }
 
-          await localDb.fileSystems.bulkPut(envelope.fileSystems);
+          for (const record of envelope.fileSystems) {
+            await writeFileSystemSnapshotRecordsInCurrentTransaction(record.ownerId, record.snapshot, record.updatedAt);
+          }
           await localDb.fileContents.bulkPut(envelope.fileContents);
           await localDb.localSettings.bulkPut(envelope.localSettings);
         });
@@ -268,8 +367,9 @@ export function createDexieDataClient() {
 
     maintenance: {
       async clearAll() {
-        await localDb.transaction('rw', localDb.fileSystems, localDb.fileContents, localDb.localSettings, localDb.meta, async () => {
+        await localDb.transaction('rw', localDb.fileSystems, localDb.fileSystemItems, localDb.fileContents, localDb.localSettings, localDb.meta, async () => {
           await localDb.fileSystems.clear();
+          await localDb.fileSystemItems.clear();
           await localDb.fileContents.clear();
           await localDb.localSettings.clear();
           await localDb.meta.clear();

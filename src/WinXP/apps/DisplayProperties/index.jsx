@@ -52,6 +52,7 @@ const TABS = [
 
 const BUILTIN_THEMES = [
   { id: 'xp', name: 'Windows XP', themeId: 'luna' },
+  { id: 'xbox', name: 'Official Xbox WindowBlinds', themeId: 'xbox' },
   { id: 'silver', name: 'Windows XP (Silver)', themeId: 'luna' },
   { id: 'olive', name: 'Windows XP (Olive)', themeId: 'luna' },
   { id: 'classic', name: 'Windows Classic', themeId: 'luna' },
@@ -403,6 +404,7 @@ function DisplayProperties({ onClose, onMinimize }) {
   // Map active shell theme back to the theme dropdown value
   const [theme, setTheme] = useState(() => {
     if (activeThemeId === 'luna') return 'xp';
+    if (activeThemeId === 'xbox') return 'xbox';
     // Check if the active theme is an installed theme
     const installed = installedThemes.find((installedTheme) => installedTheme.id === activeThemeId);
     if (installed) return installed.id;

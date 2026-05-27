@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import * as idb from 'idb-keyval';
 import { v4 as uuidv4 } from 'uuid';
+import { appDataClient } from '../storage';
 import { EXTERNAL_PROJECTS, DEFAULT_PROJECT_ICON } from '../WinXP/config/externalProjects';
 import { APPLETS, getAppletUrl, DEFAULT_APPLET_ICON } from '../WinXP/config/applets';
 
@@ -196,11 +196,12 @@ export function InstalledAppsProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
   const launchCallbackRef = useRef(null);
 
-  // Load installed apps from IndexedDB on mount
+  // Load installed apps through the app data adapter on mount.
   useEffect(() => {
     const loadInstalledApps = async () => {
       try {
-        const apps = await idb.get(INSTALLED_APPS_KEY);
+        const storedApps = await appDataClient.localSettings.get(INSTALLED_APPS_KEY);
+        const apps = typeof storedApps === 'string' ? JSON.parse(storedApps) : storedApps;
         if (apps) {
           setInstalledApps(apps);
         }
@@ -213,10 +214,10 @@ export function InstalledAppsProvider({ children }) {
     loadInstalledApps();
   }, []);
 
-  // Save installed apps to IndexedDB whenever they change
+  // Save installed apps through the app data adapter whenever they change.
   useEffect(() => {
     if (!isLoading) {
-      idb.set(INSTALLED_APPS_KEY, installedApps).catch(console.error);
+      appDataClient.localSettings.set(INSTALLED_APPS_KEY, installedApps).catch(console.error);
     }
   }, [installedApps, isLoading]);
 
