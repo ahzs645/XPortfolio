@@ -9,8 +9,11 @@ import {
   getFileSystemItemDisplayName,
 } from '../../contexts/FileSystemContext';
 import { useShellSettings } from '../../contexts/ShellSettingsContext';
+import { useConfig } from '../../contexts/ConfigContext';
 import { isMobileDevice } from '../../utils/deviceDetection';
 import { withBaseUrl } from '../../utils/baseUrl';
+import { truncateFilename } from '../../utils/filenameUtils';
+import { preloadImages } from '../../utils/imagePreloader';
 
 const DOUBLE_TAP_DELAY = 400; // ms for double-tap detection
 
@@ -44,6 +47,7 @@ function FileChooser({
 }) {
   const { fileSystem, getFolderContents, getPath, getFileContent } = useFileSystem();
   const { explorer } = useShellSettings();
+  const { isImagePreloadEnabled } = useConfig();
   // null = My Computer view
   const [currentFolder, setCurrentFolder] = useState(SYSTEM_IDS.DESKTOP);
   const [selectedItems, setSelectedItems] = useState([]);
@@ -85,6 +89,29 @@ function FileChooser({
     if (!fileTypes || fileTypes.length === 0) return true;
     return fileTypes.includes(item.contentType);
   });
+
+  useEffect(() => {
+    if (!isOpen || !isImagePreloadEnabled()) return;
+
+    preloadImages([
+      ...QUICK_ACCESS.map((item) => item.icon),
+      ...MY_COMPUTER_FOLDERS.map((item) => item.icon),
+      ...MY_COMPUTER_DRIVES.map((item) => item.icon),
+      '/gui/toolbar/back.webp',
+      '/gui/toolbar/forward.webp',
+      '/gui/toolbar/up.webp',
+      isMyComputer ? XP_ICONS.myComputer : resolveFileSystemItemIcon(currentFolderData, {
+        folderIcon: XP_ICONS.folder,
+        driveIcon: XP_ICONS.localDisk,
+        fileIcon: XP_ICONS.file,
+      }),
+      ...filteredContents.map((item) => resolveFileSystemItemIcon(item, {
+        folderIcon: XP_ICONS.folder,
+        driveIcon: XP_ICONS.localDisk,
+        fileIcon: XP_ICONS.file,
+      })),
+    ]);
+  }, [currentFolderData, filteredContents, isImagePreloadEnabled, isMyComputer, isOpen]);
 
   const isDesiredFile = useCallback((item) => {
     if (item.type === 'folder' || item.type === 'drive') return true;
@@ -385,10 +412,12 @@ function FileChooser({
                         })}
                         alt=""
                       />
-                      <FileName $selected={selectedItems.includes(item.id)}>
-                        {getFileSystemItemDisplayName(item, {
+                      <FileName $selected={selectedItems.includes(item.id)} title={getFileSystemItemDisplayName(item, {
+                        showFileExtensions: explorer.showFileExtensions,
+                      })}>
+                        {truncateFilename(getFileSystemItemDisplayName(item, {
                           showFileExtensions: explorer.showFileExtensions,
-                        })}
+                        }), { maxLength: 18, extensionParts: 2 })}
                       </FileName>
                     </FileItem>
                   ))

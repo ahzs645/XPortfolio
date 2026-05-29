@@ -10,10 +10,12 @@ import { withBaseUrl } from '../../utils/baseUrl';
 import useSystemSounds from '../../hooks/useSystemSounds';
 import { useShellSettings } from '../../contexts/ShellSettingsContext';
 import { useUserSettings } from '../../contexts/UserSettingsContext';
+import { useConfig } from '../../contexts/ConfigContext';
 import { getColorDepthFilter } from '../../utils/colorDepthEffects';
 import { getDisplayViewport, toDisplayLayerRect } from '../../utils/displayCoordinates';
 import { getXpPortalRoot } from '../../utils/portalRoot';
 import { useTheme } from '../../contexts/ThemeContext';
+import { preloadImages } from '../../utils/imagePreloader';
 
 /**
  * Process a CSS background value that may contain url() paths needing base URL prefix.
@@ -67,6 +69,7 @@ function Footer({
   onShowClippy,
 }) {
   const { playStart } = useSystemSounds();
+  const { isImagePreloadEnabled } = useConfig();
   const { windowSoundsEnabled, colorDepth } = useUserSettings();
   const { taskbar, audio, setTaskbarSettings, setAudioSettings } = useShellSettings();
   const { activeTheme, setActiveTheme } = useTheme();
@@ -101,6 +104,25 @@ function Footer({
   const hasWindowOverflow = overflowTaskbarApps.length > 0;
   const hasFocusedOverflowWindow = overflowTaskbarApps.some((app) => app.id === focusedAppId);
   const isWindowOverflowOpen = showWindowOverflow && hasWindowOverflow;
+
+  useEffect(() => {
+    if (!isImagePreloadEnabled()) return;
+    preloadImages([
+      '/gui/taskbar/welcome.webp',
+      '/icons/about.webp',
+      '/gui/taskbar/windows-update.png',
+      '/gui/taskbar/crt.webp',
+      '/gui/taskbar/crt-off.webp',
+      '/gui/taskbar/fullscreen.webp',
+      '/gui/taskbar/speaker.png',
+      ...taskbarApps.map((app) => app.header?.icon).filter(Boolean),
+    ]);
+  }, [isImagePreloadEnabled, taskbarApps]);
+
+  useEffect(() => {
+    if (!isWindowOverflowOpen || !isImagePreloadEnabled()) return;
+    preloadImages(overflowTaskbarApps.map((app) => app.header?.icon).filter(Boolean));
+  }, [isImagePreloadEnabled, isWindowOverflowOpen, overflowTaskbarApps]);
 
   const handleVolumeClick = useCallback(() => {
     setShowVolumePopup(prev => !prev);

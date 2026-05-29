@@ -5,6 +5,7 @@ import { useConfig } from '../../contexts/ConfigContext';
 import { useUserAccounts } from '../../contexts/UserAccountsContext';
 import useSystemSounds from '../../hooks/useSystemSounds';
 import { withBaseUrl } from '../../utils/baseUrl';
+import { addImagePreloadLinks } from '../../utils/imagePreloader';
 import cursorManager from '../../utils/cursorManager';
 
 function BootScreen({ bootState, onComplete }) {
@@ -17,7 +18,7 @@ function BootScreen({ bootState, onComplete }) {
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState(null);
 
-  const { isLoading: configLoading, getUsername, getProfession, getUserLoginIcon, getDynamicXPSvgUrl } = useConfig();
+  const { isLoading: configLoading, getUsername, getProfession, getUserLoginIcon, getDynamicXPSvgUrl, isImagePreloadEnabled } = useConfig();
   const {
     users,
     isLoading: usersLoading,
@@ -33,6 +34,17 @@ function BootScreen({ bootState, onComplete }) {
   const userName = selectedUser?.name || getUsername();
   const userTitle = selectedUser ? (selectedUser.accountType === 'admin' ? 'Computer Administrator' : 'Limited Account') : getProfession();
   const userIcon = selectedUser?.picture || getUserLoginIcon();
+  const bootUserIcon = withBaseUrl(userIcon);
+
+  useEffect(() => {
+    if (!dynamicSvgUrl || !isImagePreloadEnabled()) return;
+
+    return addImagePreloadLinks([
+      dynamicSvgUrl,
+      bootUserIcon,
+      withBaseUrl('/boot-wordmark.webp'),
+    ]);
+  }, [bootUserIcon, dynamicSvgUrl, isImagePreloadEnabled]);
 
   // Auto-select user if only one exists
   /* eslint-disable react-hooks/set-state-in-effect -- one-time auto-select */
@@ -322,6 +334,13 @@ function BootScreen({ bootState, onComplete }) {
           <LoadingBox />
           <LoadingBox />
         </LoadingBoxes>
+        <BootUserTile aria-hidden="true">
+          <BootUserIcon src={bootUserIcon} alt="" />
+          <BootUserDetails>
+            <BootUserName>{userName}</BootUserName>
+            <BootUserStatus>Loading personal settings...</BootUserStatus>
+          </BootUserDetails>
+        </BootUserTile>
       </BootContent>
       <BootBottomLeft>
         <span>For the best experience</span>
@@ -406,6 +425,61 @@ const LoadingBox = styled.div`
     #2838c7 100%
   );
   animation: ${loader} 2s linear infinite;
+`;
+
+const BootUserTile = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 236px;
+  margin-top: 26px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgba(20, 42, 118, 0.78), rgba(2, 12, 45, 0.72));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 10px 24px rgba(0, 0, 0, 0.28);
+  color: #fff;
+  font-family: Tahoma, Arial, sans-serif;
+
+  .mobile-device & {
+    min-width: 220px;
+    margin-top: 20px;
+    padding: 7px 10px;
+  }
+`;
+
+const BootUserIcon = styled.img`
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  object-fit: cover;
+  border: 2px solid #fff;
+  border-radius: 4px;
+  background: #587cdb;
+`;
+
+const BootUserDetails = styled.div`
+  min-width: 0;
+  text-align: left;
+`;
+
+const BootUserName = styled.div`
+  max-width: 170px;
+  overflow: hidden;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const BootUserStatus = styled.div`
+  margin-top: 2px;
+  color: #c8d8ff;
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
 `;
 
 const BootBottomLeft = styled.div`

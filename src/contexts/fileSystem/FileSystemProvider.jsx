@@ -227,6 +227,7 @@ export function FileSystemProvider({ children }) {
     restoreFromRecycleBin: operations.restoreFromRecycleBin,
     renameItem: operations.renameItem,
     moveItem: operations.moveItem,
+    cloneItem: operations.cloneItem,
     copy,
     cut,
     paste,

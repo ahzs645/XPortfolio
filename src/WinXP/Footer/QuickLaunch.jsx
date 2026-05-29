@@ -97,7 +97,7 @@ function QuickLaunch({
     if (item.action === 'show-desktop') {
       onMinimizeAll?.();
     } else if (item.url) {
-      onClickMenuItem?.('Internet Explorer', { startUrl: item.url });
+      onClickMenuItem?.('Internet Explorer', { initialUrl: item.url });
     } else if (item.path) {
       // For file system items, open with My Computer
       onClickMenuItem?.('My Computer', { startPath: item.path });

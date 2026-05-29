@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import styled, { css } from 'styled-components';
 import { useConfig } from '../../contexts/ConfigContext';
 import { useInstalledApps } from '../../contexts/InstalledAppsContext';
@@ -7,6 +7,7 @@ import { useStartMenu } from '../../contexts/StartMenuContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { isAppDisabled } from '../apps/Installer/disabledApps';
 import { withBaseUrl } from '../../utils/baseUrl';
+import { preloadImages } from '../../utils/imagePreloader';
 import {
   START_MENU_CATALOG,
   PINNED_LEFT,
@@ -39,12 +40,28 @@ const RECENTLY_USED_ITEMS = [
   { key: 'copilot', title: 'GitHub Copilot', icon: '/icons/vanity/copilot.webp', disabled: true },
 ];
 
+function collectMenuIcons(items, icons = []) {
+  items.forEach((item) => {
+    if (!item || item.type === 'separator') return;
+    if (item.icon) icons.push(item.icon);
+
+    if (item.type === 'folder' && Array.isArray(item.items)) {
+      const folderItems = item.items
+        .map((itemKey) => getMenuItemOrFolder(itemKey))
+        .filter(Boolean);
+      collectMenuIcons(folderItems, icons);
+    }
+  });
+
+  return icons;
+}
+
 function FooterMenu({ className, onClick, onLaunchInstalledApp }) {
   const [showAllPrograms, setShowAllPrograms] = useState(false);
   const [activeFolder, setActiveFolder] = useState(null);
   const [showRecentlyUsed, setShowRecentlyUsed] = useState(false);
   const [showInstalledApps, setShowInstalledApps] = useState(false);
-  const { getUsername, getStartMenuIcon } = useConfig();
+  const { getUsername, getStartMenuIcon, isImagePreloadEnabled } = useConfig();
   const { getInstalledAppsList } = useInstalledApps();
   const { getCurrentUser, isLoggedIn } = useUserAccounts();
   const { menuItems: dynamicMenuItems } = useStartMenu();
@@ -106,6 +123,28 @@ function FooterMenu({ className, onClick, onLaunchInstalledApp }) {
     ...getMenuItem(key),
   }))).filter((item) => item.type && isItemEnabled(item));
 
+  const startMenuIconPaths = useMemo(() => {
+    const installedAppIcons = installedApps.map((app) => app.icon || '/icons/xp/Programs.png');
+
+    return [
+      userPicture,
+      '/icons/xp/Programs.png',
+      '/icons/recently-used.webp',
+      '/icons/shutdown.webp',
+      '/icons/logoff.webp',
+      ...collectMenuIcons(leftItems),
+      ...collectMenuIcons(rightItems),
+      ...collectMenuIcons(allProgramsItems),
+      ...RECENTLY_USED_ITEMS.map((item) => item.icon),
+      ...installedAppIcons,
+    ];
+  }, [allProgramsItems, installedApps, leftItems, rightItems, userPicture]);
+
+  useEffect(() => {
+    if (!isImagePreloadEnabled()) return;
+    preloadImages(startMenuIconPaths);
+  }, [isImagePreloadEnabled, startMenuIconPaths]);
+
   const rootClassName = className ? `${className} start-menu xp-start-menu` : 'start-menu xp-start-menu';
 
   return (
@@ -154,6 +193,7 @@ function FooterMenu({ className, onClick, onLaunchInstalledApp }) {
                 activeFolder={activeFolder}
                 onItemClick={handleItemClick}
                 onFolderHover={(folder) => setActiveFolder(folder?.key || null)}
+                isImagePreloadEnabled={isImagePreloadEnabled}
               />
             )}
           </div>
@@ -252,7 +292,7 @@ function MenuItem({ item, onClick, emphasize = false, withArrow = false }) {
   );
 }
 
-function AllProgramsMenu({ items, activeFolder, onItemClick, onFolderHover }) {
+function AllProgramsMenu({ items, activeFolder, onItemClick, onFolderHover, isImagePreloadEnabled }) {
   return (
     <div className="start-menu-submenu all-programs-menu">
       <div className="start-menu-submenu-sidebar" />
@@ -284,6 +324,7 @@ function AllProgramsMenu({ items, activeFolder, onItemClick, onFolderHover }) {
                 onHover={() => onFolderHover(item)}
                 onLeave={() => onFolderHover(null)}
                 onItemClick={onItemClick}
+                isImagePreloadEnabled={isImagePreloadEnabled}
               />
             );
           }
@@ -306,11 +347,18 @@ function AllProgramsMenu({ items, activeFolder, onItemClick, onFolderHover }) {
   );
 }
 
-function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemClick }) {
+function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemClick, isImagePreloadEnabled }) {
   const itemRef = useRef(null);
   const submenuRef = useRef(null);
   const [submenuOffset, setSubmenuOffset] = useState(0);
   const [activeSubfolder, setActiveSubfolder] = useState(null);
+
+  function handleHover() {
+    if (isImagePreloadEnabled('eager')) {
+      preloadImages(collectMenuIcons(folderItems));
+    }
+    onHover();
+  }
 
   /* eslint-disable react-hooks/set-state-in-effect -- reset on close + DOM measurement */
   useLayoutEffect(() => {
@@ -353,7 +401,7 @@ function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemC
   return (
     <div
       className={`start-menu-submenu-item start-menu-submenu-item--folder ${isOpen ? 'is-open' : ''}`}
-      onMouseEnter={onHover}
+      onMouseEnter={handleHover}
       onMouseLeave={onLeave}
       ref={itemRef}
       role="menuitem"
@@ -397,6 +445,7 @@ function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemC
                     onHover={() => setActiveSubfolder(item.key)}
                     onLeave={() => setActiveSubfolder(null)}
                     onItemClick={onItemClick}
+                    isImagePreloadEnabled={isImagePreloadEnabled}
                   />
                 );
               }
@@ -421,10 +470,17 @@ function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemC
   );
 }
 
-function NestedFolderItem({ folder, isOpen, folderItems, onHover, onLeave, onItemClick }) {
+function NestedFolderItem({ folder, isOpen, folderItems, onHover, onLeave, onItemClick, isImagePreloadEnabled }) {
   const itemRef = useRef(null);
   const submenuRef = useRef(null);
   const [submenuOffset, setSubmenuOffset] = useState(0);
+
+  function handleHover() {
+    if (isImagePreloadEnabled('eager')) {
+      preloadImages(collectMenuIcons(folderItems));
+    }
+    onHover();
+  }
 
   /* eslint-disable react-hooks/set-state-in-effect -- reset on close + DOM measurement */
   useLayoutEffect(() => {
@@ -466,7 +522,7 @@ function NestedFolderItem({ folder, isOpen, folderItems, onHover, onLeave, onIte
   return (
     <div
       className={`start-menu-submenu-item nested-folder ${isOpen ? 'is-open' : ''}`}
-      onMouseEnter={onHover}
+      onMouseEnter={handleHover}
       onMouseLeave={onLeave}
       ref={itemRef}
       role="menuitem"

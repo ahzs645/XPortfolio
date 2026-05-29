@@ -4,6 +4,8 @@ import { isMobileDevice } from '../../utils/deviceDetection';
 import { withBaseUrl } from '../../utils/baseUrl';
 import { useFileSystem } from '../../contexts/FileSystemContext';
 import { useTooltip } from '../../contexts/TooltipContext';
+import { useConfig } from '../../contexts/ConfigContext';
+import { preloadImages } from '../../utils/imagePreloader';
 
 // Different drag thresholds for desktop vs mobile
 const DRAG_THRESHOLD_DESKTOP = 4;
@@ -58,6 +60,7 @@ function Icons({
 
   // Tooltip support
   const { getPath } = useFileSystem();
+  const { isImagePreloadEnabled } = useConfig();
   const { tooltip, showTooltip, hideTooltip, updatePosition } = useTooltip();
   const CURSOR_OFFSET_X = 12;
   const CURSOR_OFFSET_Y = 20;
@@ -116,6 +119,11 @@ function Icons({
   const dragThreshold = isMobile ? DRAG_THRESHOLD_MOBILE : DRAG_THRESHOLD_DESKTOP;
 
   // Update icon rectangles for selection detection
+  useEffect(() => {
+    if (!isImagePreloadEnabled()) return;
+    preloadImages(icons.map((icon) => icon.icon).filter(Boolean));
+  }, [icons, isImagePreloadEnabled]);
+
   useEffect(() => {
     const rects = icons.map((icon, i) => {
       const ref = iconRefs.current[i];

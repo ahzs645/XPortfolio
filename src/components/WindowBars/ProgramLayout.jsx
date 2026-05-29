@@ -1,9 +1,17 @@
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import styled from 'styled-components';
 import MenuBar from './MenuBar';
 import Toolbar from './Toolbar';
 import AddressBar from './AddressBar';
 import StatusBar from './StatusBar';
+import { useConfig } from '../../contexts/ConfigContext';
+import { preloadImages } from '../../utils/imagePreloader';
+
+function collectToolbarIcons(items = []) {
+  return items
+    .map((item) => item?.icon)
+    .filter((icon) => typeof icon === 'string');
+}
 
 /**
  * ProgramLayout Component - Complete Windows XP program layout with all bars
@@ -124,12 +132,24 @@ function ProgramLayout({
   showAddressBar,
   showStatusBar,
 }) {
+  const { isImagePreloadEnabled } = useConfig();
   // Determine visibility (default: show if data provided, unless explicitly overridden)
   const shouldShowMenuBar = showMenuBar ?? (menus && menus.length > 0);
   const shouldShowSingleToolbar = showToolbar ?? (toolbarItems && toolbarItems.length > 0);
   const shouldShowMultipleToolbars = toolbars && toolbars.length > 0;
   const shouldShowAddressBar = showAddressBar ?? Boolean(addressTitle);
   const shouldShowStatusBar = showStatusBar ?? Boolean(statusFields);
+  const layoutImagePaths = useMemo(() => [
+    menuLogo,
+    addressIcon,
+    ...collectToolbarIcons(toolbarItems),
+    ...(toolbars || []).flatMap((toolbar) => collectToolbarIcons(toolbar.items)),
+  ].filter(Boolean), [addressIcon, menuLogo, toolbarItems, toolbars]);
+
+  useEffect(() => {
+    if (!isImagePreloadEnabled()) return;
+    preloadImages(layoutImagePaths);
+  }, [isImagePreloadEnabled, layoutImagePaths]);
 
   // Handler for toolbar actions that includes toolbar id for multiple toolbars
   const handleToolbarAction = (action, toolbarId) => {

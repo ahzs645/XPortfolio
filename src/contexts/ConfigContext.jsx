@@ -3,6 +3,7 @@ import yaml from 'js-yaml';
 import { marked } from 'marked';
 import { appDataClient } from '../storage';
 import { withBaseUrl } from '../utils/baseUrl';
+import { setImagePreloadMode } from '../utils/imagePreloader';
 
 const ConfigContext = createContext(null);
 
@@ -62,6 +63,7 @@ function getDefaultConfig() {
     DESKTOP_PROGRAMS: 'myComputer,recycleBin,about,resume,projects,contact,calculator,minesweeper',
 
     // Feature toggles
+    IMAGE_PRELOAD_MODE: 'balanced',
     SHOW_SOCIAL_IN_START_MENU: true,
     SHOW_SOCIAL_IN_ABOUT: true,
     SHOW_SKILLS_IN_ABOUT: false,
@@ -136,6 +138,12 @@ export function ConfigProvider({ children }) {
       return defaults;
     }
   });
+
+  useEffect(() => {
+    if (!config) return;
+    const mode = String(config.IMAGE_PRELOAD_MODE || 'balanced').toLowerCase();
+    setImagePreloadMode(['off', 'balanced', 'eager'].includes(mode) ? mode : 'balanced');
+  }, [config]);
 
   useEffect(() => {
     let isMounted = true;
@@ -366,6 +374,19 @@ export function ConfigProvider({ children }) {
   // Check if feature is enabled
   const isFeatureEnabled = (feature) => {
     return config?.[feature] === true;
+  };
+
+  const getImagePreloadMode = () => {
+    const mode = String(config?.IMAGE_PRELOAD_MODE || 'balanced').toLowerCase();
+    if (['off', 'balanced', 'eager'].includes(mode)) return mode;
+    return 'balanced';
+  };
+
+  const isImagePreloadEnabled = (level = 'balanced') => {
+    const mode = getImagePreloadMode();
+    if (mode === 'off') return false;
+    if (level === 'eager') return mode === 'eager';
+    return true;
   };
 
   // Get start menu user icon path
@@ -704,6 +725,8 @@ export function ConfigProvider({ children }) {
     isFileDropOverlayEnabled,
     // Feature checks
     isFeatureEnabled,
+    getImagePreloadMode,
+    isImagePreloadEnabled,
   };
 
   return (

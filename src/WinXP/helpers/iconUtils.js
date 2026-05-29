@@ -3,6 +3,7 @@ import {
   resolveFileSystemItemIcon,
   getFileSystemItemDisplayName,
 } from '../../contexts/FileSystemContext';
+import { truncateFilename } from '../../utils/filenameUtils';
 
 // Get icon for a file item - dynamically compute from extension
 const getItemIcon = (item) => {
@@ -119,7 +120,10 @@ export const convertToDesktopIcons = (
       }
     }
 
-    const displayTitle = getFileSystemItemDisplayName(item, { showFileExtensions });
+    const displayTitle = truncateFilename(
+      getFileSystemItemDisplayName(item, { showFileExtensions }),
+      { maxLength: 18, extensionParts: 2 }
+    );
 
     return {
       id: item.id,

@@ -8,6 +8,7 @@ import {
 } from '../../../../contexts/FileSystemContext';
 import { getFileType, formatFileSize, formatDate, calculateFolderSize } from '../utils';
 import { withBaseUrl } from '../../../../utils/baseUrl';
+import { truncateFilename } from '../../../../utils/filenameUtils';
 
 // Get icon for item - dynamically compute from extension, falling back to stored icon
 const getItemIcon = (item) => {
@@ -45,7 +46,10 @@ export function IconItem({
   itemRef,
   showFileExtensions = true,
 }) {
-  const displayName = getFileSystemItemDisplayName(item, { showFileExtensions });
+  const displayName = truncateFilename(getFileSystemItemDisplayName(item, { showFileExtensions }), {
+    maxLength: 18,
+    extensionParts: 2,
+  });
 
   return (
     <IconItemContainer
@@ -117,7 +121,10 @@ export function ListItem({
   itemRef,
   showFileExtensions = true,
 }) {
-  const displayName = getFileSystemItemDisplayName(item, { showFileExtensions });
+  const displayName = truncateFilename(getFileSystemItemDisplayName(item, { showFileExtensions }), {
+    maxLength: 28,
+    extensionParts: 2,
+  });
 
   return (
     <ListItemContainer
@@ -272,7 +279,10 @@ export function ThumbnailItem({
   itemRef,
   showFileExtensions = true,
 }) {
-  const displayName = getFileSystemItemDisplayName(item, { showFileExtensions });
+  const displayName = truncateFilename(getFileSystemItemDisplayName(item, { showFileExtensions }), {
+    maxLength: 22,
+    extensionParts: 2,
+  });
 
   return (
     <ThumbnailItemContainer
@@ -344,7 +354,10 @@ export function TileItem({
   itemRef,
   showFileExtensions = true,
 }) {
-  const displayName = getFileSystemItemDisplayName(item, { showFileExtensions });
+  const displayName = truncateFilename(getFileSystemItemDisplayName(item, { showFileExtensions }), {
+    maxLength: 28,
+    extensionParts: 2,
+  });
 
   return (
     <TileItemContainer

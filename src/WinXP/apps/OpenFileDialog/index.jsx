@@ -10,6 +10,7 @@ import {
 } from '../../../contexts/FileSystemContext';
 import { useShellSettings } from '../../../contexts/ShellSettingsContext';
 import { withBaseUrl } from '../../../utils/baseUrl';
+import { truncateFilename } from '../../../utils/filenameUtils';
 
 // Container
 const Container = styled.div`
@@ -449,9 +450,13 @@ function OpenFileDialog({
                 onDoubleClick={() => handleItemDoubleClick(item)}
               >
                 <img src={withBaseUrl(getFileIcon(item))} alt="" />
-                <span>{getFileSystemItemDisplayName(item, {
+                <span title={getFileSystemItemDisplayName(item, {
                   showFileExtensions: explorer.showFileExtensions,
-                })}</span>
+                })}>
+                  {truncateFilename(getFileSystemItemDisplayName(item, {
+                    showFileExtensions: explorer.showFileExtensions,
+                  }), { maxLength: 18, extensionParts: 2 })}
+                </span>
               </FileItem>
             ))}
           </FileList>

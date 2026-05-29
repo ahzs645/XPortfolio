@@ -5,6 +5,7 @@ import { withBaseUrl } from '../../../utils/baseUrl';
 
 // Special URL for home page
 const HOME_PAGE = 'about:home';
+const DEFAULT_HOME_URL = 'https://portfolio.ahmadjalil.com';
 
 // Helper function to process URLs for iframe embedding
 // Adds ?igu=1 to Google URLs to bypass X-Frame-Options restrictions
@@ -208,7 +209,7 @@ function WelcomePage({ onNavigate }) {
 
 function InternetExplorer({ onClose, onMinimize, onMaximize, isFocus, initialUrl, filePath }) {
   // Determine starting URL - use initialUrl if provided, otherwise home page
-  const startUrl = initialUrl || HOME_PAGE;
+  const startUrl = initialUrl || DEFAULT_HOME_URL;
   // Store file path mapping for blob URLs
   const [filePathMap] = useState(() => {
     const map = {};
@@ -274,7 +275,7 @@ function InternetExplorer({ onClose, onMinimize, onMaximize, isFocus, initialUrl
     }
   }, []);
 
-  const goHome = () => navigateToUrl(HOME_PAGE);
+  const goHome = () => navigateToUrl(DEFAULT_HOME_URL);
 
   // eslint-disable-next-line react-hooks/preserve-manual-memoization -- reads history+historyIndex from closure to slice/push; refactoring to functional updates would split coordinated state
   const navigateToUrl = useCallback((url) => {

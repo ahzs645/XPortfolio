@@ -30,13 +30,166 @@ function clampPercent(value) {
   return Math.max(0, Math.min(100, value));
 }
 
+function stablePid(seed, base = 2200) {
+  const text = String(seed ?? '');
+  let hash = 0;
+  for (let i = 0; i < text.length; i += 1) {
+    hash = (hash * 31 + text.charCodeAt(i)) % 50000;
+  }
+  return base + hash;
+}
+
+function getProcessNameFromApp(app) {
+  const title = app.header?.title || '';
+  const componentName = app.component?.displayName || app.component?.name || '';
+  const source = `${title} ${componentName}`;
+  if (/notepad/i.test(source)) return 'notepad.exe';
+  if (/calculator/i.test(source)) return 'calc.exe';
+  if (/paint/i.test(source)) return 'mspaint.exe';
+  if (/internet explorer|iframe/i.test(source)) return 'iexplore.exe';
+  if (/media player/i.test(source)) return 'wmplayer.exe';
+  if (/command prompt|cmd/i.test(source)) return 'cmd.exe';
+  if (/my computer|control panel|explorer/i.test(source)) return 'explorer.exe';
+  if (/minesweeper/i.test(source)) return 'winmine.exe';
+  if (/solitaire/i.test(source)) return 'sol.exe';
+  if (/task manager/i.test(source)) return 'taskmgr.exe';
+  if (/adobe reader|pdf/i.test(source)) return 'AcroRd32.exe';
+  if (/outlook/i.test(source)) return 'msimn.exe';
+  if (/wordpad/i.test(source)) return 'wordpad.exe';
+  if (/word/i.test(source)) return 'winword.exe';
+  return 'app.exe';
+}
+
+function getProcessStatus(app) {
+  const title = app.header?.title || '';
+  if (/blue screen|not responding|error/i.test(title)) return 'Not Responding';
+  if (app.minimized) return 'Suspended';
+  return 'Running';
+}
+
+function buildProcessTree({ apps, showClippy, showAllProcesses }) {
+  const explorerPid = 1000;
+  const taskmgrPid = 1212;
+  const root = {
+    id: 'explorer-root',
+    name: 'explorer.exe',
+    pid: explorerPid,
+    parentPid: null,
+    appId: null,
+    user: 'Administrator',
+    cpu: '00',
+    memory: '18,944 K',
+    status: 'Running',
+    depth: 0,
+    branch: '',
+    protected: true,
+  };
+
+  const processes = [
+    root,
+    {
+      id: 'taskmgr',
+      name: 'taskmgr.exe',
+      pid: taskmgrPid,
+      parentPid: explorerPid,
+      appId: null,
+      user: 'Administrator',
+      cpu: '01',
+      memory: '12,608 K',
+      status: 'Running',
+      protected: true,
+    },
+  ];
+
+  if (showClippy) {
+    processes.push({
+      id: 'clippy',
+      name: 'clippy.exe',
+      pid: 1337,
+      parentPid: explorerPid,
+      appId: null,
+      user: 'Administrator',
+      cpu: '00',
+      memory: '5,184 K',
+      status: 'Running',
+    });
+  }
+
+  for (const app of apps) {
+    const imageName = getProcessNameFromApp(app);
+    const isDialog = /dialog|properties|options/i.test(app.header?.title || '');
+    const isIframe = imageName === 'iexplore.exe' || /iframe/i.test(app.component?.name || '');
+    const parentPid = isIframe ? explorerPid : explorerPid;
+    const pid = stablePid(`${app.id}:${imageName}`, 2600);
+    const memoryKb = 4200 + ((pid * 37) % 54000);
+    const cpu = app.minimized ? '00' : String((pid + app.id) % 7).padStart(2, '0');
+
+    processes.push({
+      id: app.id,
+      name: imageName,
+      title: app.header?.title,
+      pid,
+      parentPid,
+      appId: app.id,
+      user: showAllProcesses ? 'Administrator' : 'Administrator',
+      cpu,
+      memory: `${memoryKb.toLocaleString()} K`,
+      status: isDialog ? 'Running' : getProcessStatus(app),
+    });
+  }
+
+  return flattenProcessTree(processes, explorerPid);
+}
+
+function flattenProcessTree(processes, rootPid) {
+  const byParent = new Map();
+  for (const process of processes) {
+    const key = process.parentPid ?? 'root';
+    if (!byParent.has(key)) byParent.set(key, []);
+    byParent.get(key).push(process);
+  }
+
+  for (const children of byParent.values()) {
+    children.sort((a, b) => a.name.localeCompare(b.name) || a.pid - b.pid);
+  }
+
+  const result = [];
+  const visit = (process, depth = 0, isLast = true) => {
+    result.push({
+      ...process,
+      depth,
+      branch: depth === 0 ? '' : `${isLast ? '└' : '├'} `,
+    });
+
+    const children = byParent.get(process.pid) || [];
+    children.forEach((child, index) => visit(child, depth + 1, index === children.length - 1));
+  };
+
+  const root = processes.find(process => process.pid === rootPid);
+  if (root) visit(root, 0, true);
+  return result;
+}
+
+function getProcessDescendants(processes, parentPid) {
+  const descendants = [];
+  const visit = (pid) => {
+    for (const process of processes) {
+      if (process.parentPid === pid) {
+        descendants.push(process);
+        visit(process.pid);
+      }
+    }
+  };
+  visit(parentPid);
+  return descendants;
+}
+
 function TaskManager() {
   const { apps, onEndTask, onSwitchTo, showClippy, onEndClippy } = useRunningApps();
   const [activeTab, setActiveTab] = useState('applications');
   const [selectedAppId, setSelectedAppId] = useState(null);
   const [selectedProcess, setSelectedProcess] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
-  // processCount is derived below from allProcesses.length
   const [showAllProcesses, setShowAllProcesses] = useState(true);
 
   // Performance tab state
@@ -171,40 +324,13 @@ function TaskManager() {
     app.header && !app.header.invisible && !app.header.noFooterWindow
   );
 
-  // Generate fake processes from running apps
-  const processes = visibleApps.map((app) => ({
-    id: app.id,
-    name: getProcessName(app.header.title),
-    pid: 30000 + app.id,
-    user: 'Administrator',
-  }));
-
-  // Add taskmgr.exe and clippy
-  const allProcesses = [
-    { id: 'taskmgr', name: 'taskmgr.exe', pid: 31486, user: 'Administrator' },
-    ...(showClippy ? [{ id: 'clippy', name: 'clippy.exe', pid: 31337, user: 'Administrator' }] : []),
-    ...processes,
-  ];
+  const allProcesses = useMemo(() => buildProcessTree({
+    apps: visibleApps,
+    showClippy,
+    showAllProcesses,
+  }), [visibleApps, showClippy, showAllProcesses]);
 
   const processCount = allProcesses.length;
-
-  function getProcessName(title) {
-    // Convert window title to a fake process name
-    if (title.includes('Notepad')) return 'notepad.exe';
-    if (title.includes('Calculator')) return 'calc.exe';
-    if (title.includes('Paint')) return 'mspaint.exe';
-    if (title.includes('Internet Explorer')) return 'iexplore.exe';
-    if (title.includes('Media Player')) return 'wmplayer.exe';
-    if (title.includes('Command Prompt')) return 'cmd.exe';
-    if (title.includes('My Computer') || title.includes('Control Panel')) return 'explorer.exe';
-    if (title.includes('Minesweeper')) return 'winmine.exe';
-    if (title.includes('Solitaire')) return 'sol.exe';
-    if (title.includes('Task Manager')) return 'taskmgr.exe';
-    if (title.includes('Adobe Reader')) return 'AcroRd32.exe';
-    if (title.includes('Outlook')) return 'msimn.exe';
-    if (title.includes('WordPad')) return 'wordpad.exe';
-    return 'app.exe';
-  }
 
   const handleEndTask = () => {
     if (selectedAppId !== null && onEndTask) {
@@ -220,12 +346,38 @@ function TaskManager() {
   };
 
   const handleEndProcess = () => {
+    const proc = allProcesses.find((candidate) => candidate.id === selectedProcess);
+    if (!proc || proc.protected) return;
+
     if (selectedProcess === 'clippy' && onEndClippy) {
       onEndClippy();
       setSelectedProcess(null);
-    } else if (selectedProcess !== null && selectedProcess !== 'taskmgr') {
-      onEndTask(selectedProcess);
+    } else if (proc.appId != null) {
+      onEndTask(proc.appId);
       setSelectedProcess(null);
+    }
+  };
+
+  const handleEndProcessTree = () => {
+    const proc = allProcesses.find((candidate) => candidate.id === selectedProcess);
+    if (!proc || proc.protected) return;
+
+    const descendants = getProcessDescendants(allProcesses, proc.pid);
+    for (const child of [...descendants, proc]) {
+      if (child.protected) continue;
+      if (child.id === 'clippy' && onEndClippy) {
+        onEndClippy();
+      } else if (child.appId != null) {
+        onEndTask(child.appId);
+      }
+    }
+    setSelectedProcess(null);
+  };
+
+  const handleSwitchToProcess = () => {
+    const proc = allProcesses.find((candidate) => candidate.id === selectedProcess);
+    if (proc?.appId != null && onSwitchTo) {
+      onSwitchTo(proc.appId);
     }
   };
 
@@ -353,9 +505,12 @@ function TaskManager() {
             <table>
               <thead>
                 <tr>
-                  <th style={{ width: '50%' }}>Image Name</th>
-                  <th style={{ width: '20%', textAlign: 'right' }}>PID</th>
-                  <th style={{ width: '30%' }}>User Name</th>
+                  <th style={{ width: '34%' }}>Image Name</th>
+                  <th style={{ width: '12%', textAlign: 'right' }}>PID</th>
+                  <th style={{ width: '18%' }}>User Name</th>
+                  <th style={{ width: '10%', textAlign: 'right' }}>CPU</th>
+                  <th style={{ width: '14%', textAlign: 'right' }}>Mem Usage</th>
+                  <th style={{ width: '12%' }}>Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -364,10 +519,19 @@ function TaskManager() {
                     key={proc.id}
                     className={selectedProcess === proc.id ? 'highlighted' : ''}
                     onClick={() => handleProcessClick(proc.id)}
+                    onDoubleClick={() => proc.appId != null && onSwitchTo?.(proc.appId)}
                   >
-                    <td>{proc.name}</td>
+                    <td>
+                      <ProcessName $depth={proc.depth}>
+                        <ProcessBranch aria-hidden="true">{proc.branch}</ProcessBranch>
+                        {proc.name}
+                      </ProcessName>
+                    </td>
                     <td style={{ textAlign: 'right' }}>{proc.pid}</td>
                     <td>{proc.user}</td>
+                    <td style={{ textAlign: 'right' }}>{proc.cpu}</td>
+                    <td style={{ textAlign: 'right' }}>{proc.memory}</td>
+                    <td>{proc.status}</td>
                   </tr>
                 ))}
               </tbody>
@@ -385,9 +549,21 @@ function TaskManager() {
           <ButtonRow>
             <button
               onClick={handleEndProcess}
-              disabled={selectedProcess === null || selectedProcess === 'taskmgr'}
+              disabled={selectedProcess === null || allProcesses.find(proc => proc.id === selectedProcess)?.protected}
             >
               End Process
+            </button>
+            <button
+              onClick={handleEndProcessTree}
+              disabled={selectedProcess === null || allProcesses.find(proc => proc.id === selectedProcess)?.protected}
+            >
+              End Process Tree
+            </button>
+            <button
+              onClick={handleSwitchToProcess}
+              disabled={allProcesses.find(proc => proc.id === selectedProcess)?.appId == null}
+            >
+              Switch To
             </button>
           </ButtonRow>
         </TabPanel>
@@ -572,6 +748,24 @@ const IconCell = styled.div`
     width: 16px;
     height: 16px;
     flex-shrink: 0;
+  }
+`;
+
+const ProcessName = styled.div`
+  display: flex;
+  align-items: center;
+  padding-left: ${({ $depth }) => Math.max(0, $depth) * 12}px;
+  min-width: 0;
+`;
+
+const ProcessBranch = styled.span`
+  width: 14px;
+  flex-shrink: 0;
+  color: #666;
+  font-family: "Courier New", monospace;
+
+  tr.highlighted & {
+    color: #fff;
   }
 `;
 

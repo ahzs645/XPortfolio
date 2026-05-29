@@ -18,6 +18,11 @@ export {
   resolveFileSystemItemIcon,
 } from './iconResolver';
 export {
+  getFileTypeIcon,
+  getFileExtension,
+  EXTENSION_ICON_MAP,
+} from './fileTypeIcons';
+export {
   isShortcutItem,
   isHiddenFileSystemItem,
   filterVisibleFileSystemItems,

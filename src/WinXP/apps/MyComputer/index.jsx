@@ -95,6 +95,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     clipboardOp,
     getFileContent,
     moveItem,
+    cloneItem,
     resolveVfsPath,
   } = useFileSystem();
 
@@ -542,6 +543,51 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     }
   }, [selectedItems, fileSystem, getFileContent, createFile, currentFolder]);
 
+  const handleSendToCompressedFolder = useCallback(async () => {
+    if (selectedItems.length === 0) return;
+    try {
+      const { blob, filename } = await createArchive(fileSystem, selectedItems, getFileContent);
+      const dataUrl = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
+      const targetFolder = selectedItem?.parent || currentFolder || SYSTEM_IDS.MY_DOCUMENTS;
+      await createFile(targetFolder, filename, {
+        data: dataUrl,
+        size: blob.size,
+        type: 'application/zip',
+      });
+    } catch (error) {
+      console.error('Failed to create compressed folder:', error);
+    }
+  }, [selectedItems, fileSystem, getFileContent, selectedItem, currentFolder, createFile]);
+
+  const handleSendToDesktopShortcut = useCallback(async () => {
+    if (!selectedItem) return;
+    await createItem(SYSTEM_IDS.DESKTOP, selectedItem.name, 'shortcut', {
+      fsId: selectedItem.id,
+      target: selectedItem.target,
+      targetType: selectedItem.type,
+      icon: resolveFileSystemItemIcon(selectedItem, {
+        folderIcon: XP_ICONS.folder,
+        driveIcon: XP_ICONS.localDisk,
+        fileIcon: XP_ICONS.file,
+      }),
+      metadata: {
+        shortcutTo: selectedItem.id,
+      },
+    });
+  }, [createItem, selectedItem]);
+
+  const handleSendToMyDocuments = useCallback(async () => {
+    if (!cloneItem || selectedItems.length === 0) return;
+    for (const itemId of selectedItems) {
+      if (itemId === SYSTEM_IDS.MY_DOCUMENTS) continue;
+      await cloneItem(itemId, SYSTEM_IDS.MY_DOCUMENTS);
+    }
+  }, [cloneItem, selectedItems]);
+
   const handleExtractHere = useCallback(async () => {
     if (!selectedItem || selectedItems.length !== 1) return;
     try {
@@ -716,6 +762,9 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
     onProperties: withClose(() => {}),
     onAddToArchive: withClose(handleAddToArchive),
     onExtractHere: withClose(handleExtractHere),
+    onSendToDesktopShortcut: withClose(handleSendToDesktopShortcut),
+    onSendToMyDocuments: withClose(handleSendToMyDocuments),
+    onSendToCompressedFolder: withClose(handleSendToCompressedFolder),
   });
 
   const backgroundMenuItems = useBackgroundContextMenu({

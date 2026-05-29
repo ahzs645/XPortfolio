@@ -1,4 +1,5 @@
 import { XP_ICONS, fileIcons } from './constants';
+import { getFileTypeIcon } from './fileTypeIcons';
 
 export function getStoredItemIcon(item) {
   if (!item) {
@@ -48,5 +49,11 @@ export function resolveFileSystemItemIcon(
     return fileIcons[ext];
   }
 
-  return fileIcon;
+  return getFileTypeIcon({
+    name: item.name,
+    contentType: item.contentType,
+    mimeType: item.mimeType,
+    type: item.type,
+    id: item.id,
+  }) || fileIcon;
 }

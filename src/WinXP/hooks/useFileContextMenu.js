@@ -28,6 +28,9 @@ export function useFileContextMenu({
   onDelete,
   onRename,
   onProperties,
+  onSendToDesktopShortcut,
+  onSendToMyDocuments,
+  onSendToCompressedFolder,
 
   // Archive operations
   onAddToArchive,
@@ -195,11 +198,13 @@ export function useFileContextMenu({
       const sendToItems = [
         {
           label: 'Desktop (create shortcut)',
-          onClick: () => console.log('Send to: Desktop shortcut', selectedItem.name),
+          onClick: onSendToDesktopShortcut,
+          disabled: !onSendToDesktopShortcut,
         },
         {
           label: 'My Documents',
-          disabled: true,
+          onClick: onSendToMyDocuments,
+          disabled: !onSendToMyDocuments,
         },
         {
           label: '3½ Floppy (A:)',
@@ -212,7 +217,8 @@ export function useFileContextMenu({
         {
           label: 'Compressed (zipped) Folder',
           icon: XP_ICONS.zipFolder,
-          onClick: onAddToArchive,
+          onClick: onSendToCompressedFolder || onAddToArchive,
+          disabled: !(onSendToCompressedFolder || onAddToArchive),
         },
       ];
 
@@ -373,11 +379,13 @@ export function useFileContextMenu({
       const sendToItems = [
         {
           label: 'Desktop (create shortcut)',
-          onClick: () => console.log('Send to: Desktop shortcut', selectedItem.name),
+          onClick: onSendToDesktopShortcut,
+          disabled: !onSendToDesktopShortcut,
         },
         {
           label: 'My Documents',
-          disabled: true,
+          onClick: onSendToMyDocuments,
+          disabled: !onSendToMyDocuments,
         },
         {
           label: '3½ Floppy (A:)',
@@ -390,7 +398,8 @@ export function useFileContextMenu({
         {
           label: 'Compressed (zipped) Folder',
           icon: XP_ICONS.zipFolder,
-          onClick: onAddToArchive,
+          onClick: onSendToCompressedFolder || onAddToArchive,
+          disabled: !(onSendToCompressedFolder || onAddToArchive),
         },
       ];
 
@@ -514,12 +523,19 @@ export function useFileContextMenu({
     const sendToItems = [
       {
         label: 'Desktop (create shortcut)',
-        onClick: () => console.log('Send to: Desktop shortcut', selectedItem.name),
+        onClick: onSendToDesktopShortcut,
+        disabled: !onSendToDesktopShortcut,
+      },
+      {
+        label: 'My Documents',
+        onClick: onSendToMyDocuments,
+        disabled: !onSendToMyDocuments,
       },
       {
         label: 'Compressed (zipped) Folder',
         icon: XP_ICONS.zipFolder,
-        onClick: onAddToArchive,
+        onClick: onSendToCompressedFolder || onAddToArchive,
+        disabled: !(onSendToCompressedFolder || onAddToArchive),
       },
     ];
 
@@ -595,6 +611,9 @@ export function useFileContextMenu({
     onDelete,
     onRename,
     onProperties,
+    onSendToDesktopShortcut,
+    onSendToMyDocuments,
+    onSendToCompressedFolder,
     onAddToArchive,
     onExtractHere,
     onPinToStartMenu,
