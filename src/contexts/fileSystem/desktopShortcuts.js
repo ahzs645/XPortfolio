@@ -17,6 +17,8 @@ export const DESKTOP_SHORTCUT_CATALOG = {
   solitaire: { id: 'shortcut-solitaire', name: 'Solitaire.lnk', icon: '/icons/solitaire-icon.png', target: 'Solitaire', size: SHORTCUT_SIZE },
   spiderSolitaire: { id: 'shortcut-spider-solitaire', name: 'Spider Solitaire.lnk', icon: '/icons/spider-solitaire-icon.webp', target: 'Spider Solitaire', size: SHORTCUT_SIZE },
   pinball: { id: 'shortcut-pinball', name: '3D Pinball.lnk', icon: '/icons/pinball-icon.png', target: 'Pinball', size: SHORTCUT_SIZE },
+  doom: { id: 'shortcut-doom', name: 'Doom.lnk', icon: '/icons/games/doom.png', target: 'Doom', size: SHORTCUT_SIZE },
+  quake: { id: 'shortcut-quake', name: 'Quake.lnk', icon: '/icons/games/quake.ico', target: 'Quake', size: SHORTCUT_SIZE },
   soundRecorder: { id: 'shortcut-sound-recorder', name: 'Sound Recorder.lnk', icon: '/icons/xp/SoundRecorder.webp', target: 'Sound Recorder', size: SHORTCUT_SIZE },
   winamp: { id: 'shortcut-winamp', name: 'Winamp.lnk', icon: '/icons/winamp.png', target: 'Winamp', size: SHORTCUT_SIZE },
   displayProperties: { id: 'shortcut-display', name: 'Display Properties.lnk', icon: XP_ICONS.displayProperties, target: 'Display Properties', size: SHORTCUT_SIZE },
@@ -27,7 +29,7 @@ export const DESKTOP_SHORTCUT_CATALOG = {
 
 // Default desktop programs if not specified in config (excludes system icons like My Computer and Recycle Bin)
 // Note: 'projects' removed - now using Projects briefcase folder instead
-export const DEFAULT_DESKTOP_PROGRAMS = ['about', 'resume', 'contact', 'calculator', 'minesweeper', 'blueScreenOfDeath'];
+export const DEFAULT_DESKTOP_PROGRAMS = ['about', 'resume', 'contact', 'calculator', 'minesweeper', 'doom', 'quake', 'blueScreenOfDeath'];
 
 // Build desktop shortcuts array from program IDs
 export const buildDesktopShortcuts = (programIds) => {

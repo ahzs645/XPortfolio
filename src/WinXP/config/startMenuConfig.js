@@ -341,6 +341,20 @@ export const START_MENU_CATALOG = {
     title: 'World of Warcraft',
     description: 'Classic WoW login screen',
   },
+  doom: {
+    type: 'program',
+    appKey: 'Doom',
+    icon: '/icons/games/doom.png',
+    title: 'Doom',
+    description: null,
+  },
+  quake: {
+    type: 'program',
+    appKey: 'Quake',
+    icon: '/icons/games/quake.ico',
+    title: 'Quake',
+    description: null,
+  },
   runescape: {
     type: 'program',
     appKey: 'RuneScape Classic',
@@ -492,7 +506,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Games',
     icon: '/icons/folder-icon.png',
-    items: ['minesweeper', 'solitaire', 'spiderSolitaire', 'pinball', 'esheep', 'runescape', 'worldOfWarcraft', 'wizard101', 'legoIsland', 'diablo', 'starcraft', 'commandAndConquer', 'redAlert2', 'qqGames'],
+    items: ['minesweeper', 'solitaire', 'spiderSolitaire', 'pinball', 'esheep', 'doom', 'quake', 'runescape', 'worldOfWarcraft', 'wizard101', 'legoIsland', 'diablo', 'starcraft', 'commandAndConquer', 'redAlert2', 'qqGames'],
   },
   systemTools: {
     type: 'folder',

@@ -109,6 +109,9 @@ const ErrorOverlay = styled.div`
 function IframeApp({
   appId,
   url,
+  name,
+  icon,
+  allow,
   onClose,
   onMinimize,
   onMaximize,
@@ -128,6 +131,8 @@ function IframeApp({
 
   const app = appId ? getApp(appId) : null;
   const appUrl = url || app?.url;
+  const appName = name || app?.name || 'application';
+  const appIcon = icon || app?.icon || '/icons/xp/Programs.png';
 
   // Mark app as run
   useEffect(() => {
@@ -387,11 +392,11 @@ function IframeApp({
         <LoadingOverlay>
           <img
             className="loading-icon"
-            src={app?.icon || '/icons/xp/Programs.png'}
+            src={appIcon}
             alt=""
             onError={(e) => { e.target.src = '/icons/xp/Programs.png'; }}
           />
-          <span className="loading-text">Loading {app?.name || 'application'}...</span>
+          <span className="loading-text">Loading {appName}...</span>
           <progress max="100" value={loadProgress} />
           <span className="loading-url">{appUrl}</span>
         </LoadingOverlay>
@@ -411,8 +416,8 @@ function IframeApp({
         onLoad={handleLoad}
         onError={handleError}
         sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
-        allow="clipboard-read; clipboard-write"
-        title={app?.name || 'Web App'}
+        allow={allow || 'clipboard-read; clipboard-write'}
+        title={appName}
       />
     </Container>
   );

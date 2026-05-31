@@ -112,6 +112,8 @@ const XP_ICONS = {
   transferWizard: '/icons/xp/tray/migrate.png',
   flashPlayer: '/icons/flash/flash_player.png',
   worldOfWarcraft: '/icons/games/wow.webp',
+  doom: '/icons/games/doom.png',
+  quake: '/icons/games/quake.ico',
   microsoftWord: '/icons/xp/MSWord.png',
   microsoftExcel: '/icons/xp/MSExcel.gif',
 };
@@ -151,6 +153,8 @@ export const appCategoryMap = {
   'Spider Solitaire': APP_CATEGORIES.GAME,
   'Pinball': APP_CATEGORIES.GAME,
   'eSheep': APP_CATEGORIES.GAME,
+  'Doom': APP_CATEGORIES.GAME,
+  'Quake': APP_CATEGORIES.GAME,
 
   // Media
   'Windows Media Player': APP_CATEGORIES.MEDIA,
@@ -441,6 +445,16 @@ export const desktopIconCatalog = {
     title: 'World of Warcraft',
     component: WorldOfWarcraft,
   },
+  doom: {
+    icon: XP_ICONS.doom,
+    title: 'Doom',
+    component: IframeApp,
+  },
+  quake: {
+    icon: XP_ICONS.quake,
+    title: 'Quake',
+    component: IframeApp,
+  },
   runescape: {
     icon: '/icons/runescape-icon.png',
     title: 'RuneScape Classic',
@@ -558,6 +572,8 @@ const CATALOG_TO_APP_KEY = {
   transferWizard: 'Transfer Wizard',
   flashPlayer: 'Adobe Flash Player',
   worldOfWarcraft: 'World of Warcraft',
+  doom: 'Doom',
+  quake: 'Quake',
   runescape: 'RuneScape Classic',
   wizard101: 'Wizard101',
   legoIsland: 'LEGO Island',
@@ -1991,6 +2007,58 @@ export const appSettings = {
     defaultOffset: {
       x: 80,
       y: 30,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'Doom': {
+    header: {
+      icon: XP_ICONS.doom,
+      title: 'Doom',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: IframeApp,
+    injectProps: {
+      name: 'Doom',
+      icon: XP_ICONS.doom,
+      url: 'https://mrdoob.github.io/three-doom/',
+      allow: 'clipboard-read; clipboard-write; fullscreen; pointer-lock; gamepad',
+    },
+    defaultSize: {
+      width: 900,
+      height: 650,
+    },
+    defaultOffset: {
+      x: 80,
+      y: 30,
+    },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'Quake': {
+    header: {
+      icon: XP_ICONS.quake,
+      title: 'Quake',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: IframeApp,
+    injectProps: {
+      name: 'Quake',
+      icon: XP_ICONS.quake,
+      url: 'https://mrdoob.github.io/three-quake/',
+      allow: 'clipboard-read; clipboard-write; fullscreen; pointer-lock; gamepad',
+    },
+    defaultSize: {
+      width: 900,
+      height: 650,
+    },
+    defaultOffset: {
+      x: 100,
+      y: 40,
     },
     resizable: true,
     minimized: false,
