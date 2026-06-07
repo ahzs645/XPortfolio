@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import styled from 'styled-components';
 import { getDisplayViewport, toDisplayLayerPoint, toDisplayLayerRect } from '../../utils/displayCoordinates';
@@ -14,8 +14,8 @@ function collectContextMenuIcons(items = [], icons = []) {
   return icons;
 }
 
-const MENU_WIDTH = 210;
-const MENU_ITEM_HEIGHT = 22;
+const MENU_WIDTH = 200;
+const MENU_ITEM_HEIGHT = 24;
 const SUBMENU_OPEN_DELAY = 120;
 const SUBMENU_CLOSE_DELAY = 260;
 
@@ -28,17 +28,39 @@ export function ContextMenu({
 }) {
   const menuId = useId();
   const menuRef = useRef(null);
+  const itemRefs = useRef(new Map());
   const closeTimerRef = useRef(null);
   const openTimerRef = useRef(null);
   const mouseTrailRef = useRef([]);
   const [adjustedPosition, setAdjustedPosition] = useState(() => toDisplayLayerPoint(position));
   const [activePath, setActivePath] = useState([]);
+  // [0] highlights the first item on open; null === mouse took over (only :hover highlights).
   const [keyboardPath, setKeyboardPath] = useState([0]);
   const renderableItems = useMemo(() => getRenderableItems(items), [items]);
 
+  const registerItemRef = useCallback((key, node) => {
+    if (node) itemRefs.current.set(key, node);
+    else itemRefs.current.delete(key);
+  }, []);
+
+  // When the menu opens at a new location, reset navigation state so the first item
+  // is highlighted (like the real XP menu). Keyed on coordinates rather than the
+  // `position` object identity, which is recreated on every parent render. This is the
+  // recommended "adjust state during render" pattern (avoids an extra effect pass).
+  const positionKey = position ? `${position.x},${position.y}` : '';
+  const prevPositionKeyRef = useRef(positionKey);
+  if (prevPositionKeyRef.current !== positionKey) {
+    prevPositionKeyRef.current = positionKey;
+    setKeyboardPath([0]);
+    setActivePath([]);
+  }
+
+  // Drive the XPandeder :focus/:focus-within highlight to match keyboard navigation.
   useEffect(() => {
-    menuRef.current?.focus();
-  }, [position]);
+    if (keyboardPath === null) return;
+    const node = itemRefs.current.get(keyboardPath.join('-'));
+    node?.focus({ preventScroll: true });
+  }, [keyboardPath]);
 
   useEffect(() => {
     preloadImages(collectContextMenuIcons(items));
@@ -74,13 +96,22 @@ export function ContextMenu({
     clearTimeout(openTimerRef.current);
   }, []);
 
+  // Mouse takes over: relinquish keyboard focus so only the hovered item highlights.
+  const handlePointerEnterMenu = useCallback(() => {
+    setKeyboardPath((prev) => {
+      if (prev === null) return prev;
+      menuRef.current?.focus({ preventScroll: true });
+      return null;
+    });
+  }, []);
+
   if (!position || !items?.length) return null;
 
-  const updateActivePath = (path, hasSubmenu, event) => {
+  const updateActivePath = (path, hasItemSubmenu, event) => {
     clearTimeout(closeTimerRef.current);
     clearTimeout(openTimerRef.current);
 
-    if (hasSubmenu) {
+    if (hasItemSubmenu) {
       const delay = isPointerMovingTowardSubmenu(mouseTrailRef.current, event) ? 0 : SUBMENU_OPEN_DELAY;
       openTimerRef.current = setTimeout(() => setActivePath(path), delay);
       return;
@@ -101,8 +132,6 @@ export function ContextMenu({
 
   const handleKeyDown = (event) => {
     if (!renderableItems.length) return;
-    const context = getKeyboardContext(renderableItems, keyboardPath, activePath);
-    if (!context.items.length) return;
 
     if (event.key === 'Escape') {
       event.preventDefault();
@@ -110,13 +139,32 @@ export function ContextMenu({
       return;
     }
 
+    const navKeys = ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Enter', ' '];
+    if (!navKeys.includes(event.key)) return;
+
+    const justActivated = keyboardPath === null;
+    const basePath = keyboardPath ?? activePath ?? [];
+    const context = getKeyboardContext(renderableItems, basePath, activePath);
+    if (!context.items.length) return;
+
+    // First navigation keypress just highlights the first/last enabled item.
+    if (justActivated && event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
+      event.preventDefault();
+      const direction = event.key === 'ArrowUp' ? -1 : 1;
+      const startIndex = direction === 1
+        ? getNextEnabledIndex(context.items, -1, 1)
+        : getNextEnabledIndex(context.items, 0, -1);
+      setActivePath(context.parentPath);
+      setKeyboardPath([...context.parentPath, startIndex]);
+      return;
+    }
+
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
       const direction = event.key === 'ArrowDown' ? 1 : -1;
       const nextIndex = getNextEnabledIndex(context.items, context.index, direction);
-      const nextPath = [...context.parentPath, nextIndex];
-      setKeyboardPath(nextPath);
       setActivePath(context.parentPath);
+      setKeyboardPath([...context.parentPath, nextIndex]);
       return;
     }
 
@@ -126,9 +174,9 @@ export function ContextMenu({
     if (event.key === 'ArrowRight' && hasSubmenu(current)) {
       event.preventDefault();
       const nextIndex = getNextEnabledIndex(getRenderableItems(current.submenu), -1, 1);
-      const nextPath = [...context.parentPath, context.index, nextIndex];
-      setActivePath([...context.parentPath, context.index]);
-      setKeyboardPath(nextPath);
+      const parentPath = [...context.parentPath, context.index];
+      setActivePath(parentPath);
+      setKeyboardPath([...parentPath, nextIndex]);
       return;
     }
 
@@ -146,9 +194,9 @@ export function ContextMenu({
       event.preventDefault();
       if (hasSubmenu(current)) {
         const nextIndex = getNextEnabledIndex(getRenderableItems(current.submenu), -1, 1);
-        const nextPath = [...context.parentPath, context.index, nextIndex];
-        setActivePath([...context.parentPath, context.index]);
-        setKeyboardPath(nextPath);
+        const parentPath = [...context.parentPath, context.index];
+        setActivePath(parentPath);
+        setKeyboardPath([...parentPath, nextIndex]);
       } else {
         handleSelect(current);
       }
@@ -157,9 +205,9 @@ export function ContextMenu({
 
   const menuContent = (
     <Overlay style={getOverlayStyle(overlayType, zIndex)} onMouseDown={onClose}>
-      <MenuPanel
+      <MenuRoot
         ref={menuRef}
-        style={{ left: adjustedPosition.x, top: adjustedPosition.y, width: MENU_WIDTH }}
+        style={{ left: adjustedPosition.x, top: adjustedPosition.y }}
         onMouseDown={(e) => e.stopPropagation()}
         onContextMenu={(e) => e.preventDefault()}
         onKeyDown={handleKeyDown}
@@ -171,11 +219,12 @@ export function ContextMenu({
           path={[]}
           rootPosition={adjustedPosition}
           activePath={activePath}
-          keyboardPath={keyboardPath}
+          registerItemRef={registerItemRef}
           onHover={updateActivePath}
+          onPointerEnter={handlePointerEnterMenu}
           onSelect={handleSelect}
         />
-      </MenuPanel>
+      </MenuRoot>
     </Overlay>
   );
 
@@ -192,66 +241,85 @@ function MenuLevel({
   path,
   rootPosition,
   activePath,
-  keyboardPath,
+  registerItemRef,
   onHover,
+  onPointerEnter,
   onSelect,
+  style,
 }) {
   return (
-    <MenuList role="menu">
+    <ul role="menu" style={{ width: MENU_WIDTH, ...style }}>
       {items.map(({ item, hasDivider }, idx) => {
         const itemPath = [...path, idx];
         const itemPathKey = itemPath.join('-');
         const submenu = getRenderableItems(item.submenu);
         const itemHasSubmenu = !item.disabled && submenu.length > 0;
         const isActive = pathStartsWith(activePath, itemPath);
-        const isKeyboardActive = pathsEqual(keyboardPath, itemPath);
+        const isCheckable = item.checked !== undefined;
         const key = item.key || `${item.label || 'item'}-${itemPathKey}`;
+        const className = [item.bold && 'bold', hasDivider && 'has-divider']
+          .filter(Boolean)
+          .join(' ');
+        const checkId = `${menuId}-check-${itemPathKey}`;
 
         return (
-          <MenuItem
+          <li
             key={key}
             role="menuitem"
-            $disabled={item.disabled}
-            $bold={item.bold}
-            $divider={hasDivider}
-            $active={isActive || isKeyboardActive}
+            className={className || undefined}
+            tabIndex={item.disabled ? undefined : 0}
             aria-disabled={item.disabled ? 'true' : undefined}
             aria-haspopup={itemHasSubmenu ? 'true' : undefined}
-            onMouseEnter={(event) => onHover(itemPath, itemHasSubmenu, event)}
+            ref={(node) => registerItemRef(itemPathKey, node)}
+            onMouseEnter={(event) => {
+              onPointerEnter();
+              onHover(itemPath, itemHasSubmenu, event);
+            }}
             onClick={(event) => {
               event.stopPropagation();
               onSelect(item);
             }}
             title={item.title}
           >
-            <MenuItemContents>
-              <IconSlot>
-                {item.checked !== undefined
-                  ? renderCheckItem(item, `${menuId}-check-${itemPathKey}`)
-                  : renderIcon(item)}
-              </IconSlot>
-              <LabelText>{item.label}</LabelText>
-              {item.shortcut ? <ShortcutText>{item.shortcut}</ShortcutText> : null}
-              {itemHasSubmenu ? <SubmenuArrow aria-hidden="true">▶</SubmenuArrow> : null}
-            </MenuItemContents>
-            {itemHasSubmenu && isActive ? (
-              <SubmenuPanel style={getSubmenuStyle(itemPath, rootPosition, items.length, submenu.length)}>
-                <MenuLevel
-                  items={submenu}
-                  menuId={menuId}
-                  path={itemPath}
-                  rootPosition={rootPosition}
-                  activePath={activePath}
-                  keyboardPath={keyboardPath}
-                  onHover={onHover}
-                  onSelect={onSelect}
+            {isCheckable ? (
+              <>
+                <input
+                  id={checkId}
+                  type="checkbox"
+                  checked={Boolean(item.checked)}
+                  disabled={Boolean(item.disabled)}
+                  readOnly
+                  tabIndex={-1}
                 />
-              </SubmenuPanel>
+                <label htmlFor={checkId}>{item.label}</label>
+              </>
+            ) : (
+              <>
+                {typeof item.icon === 'string' ? (
+                  <img src={item.icon} alt="" width="16" height="16" />
+                ) : null}
+                {item.label}
+              </>
+            )}
+            {item.shortcut ? <span>{item.shortcut}</span> : null}
+            {itemHasSubmenu && isActive ? (
+              <MenuLevel
+                items={submenu}
+                menuId={menuId}
+                path={itemPath}
+                rootPosition={rootPosition}
+                activePath={activePath}
+                registerItemRef={registerItemRef}
+                onHover={onHover}
+                onPointerEnter={onPointerEnter}
+                onSelect={onSelect}
+                style={getSubmenuStyle(itemPath, rootPosition, submenu.length)}
+              />
             ) : null}
-          </MenuItem>
+          </li>
         );
       })}
-    </MenuList>
+    </ul>
   );
 }
 
@@ -302,23 +370,24 @@ function getNextEnabledIndex(items, currentIndex, direction) {
   return Math.max(0, currentIndex);
 }
 
-function getSubmenuStyle(path, rootPosition, siblingCount, itemCount) {
+function getSubmenuStyle(path, rootPosition, itemCount) {
   const viewport = getDisplayViewport();
   const depth = path.length;
   const estimatedHeight = Math.max(1, itemCount) * MENU_ITEM_HEIGHT + 8;
   const absoluteTop = rootPosition.y + path.reduce((sum, index) => sum + index * MENU_ITEM_HEIGHT, 0);
   const right = rootPosition.x + MENU_WIDTH * depth + MENU_WIDTH;
   const openLeft = right > viewport.width - 6;
-  const left = openLeft ? -MENU_WIDTH + 3 : MENU_WIDTH - 3;
   const overflowBottom = Math.max(0, absoluteTop + estimatedHeight - viewport.height + 6);
-  const top = -overflowBottom;
 
   return {
-    left,
-    top,
+    display: 'block',
+    position: 'absolute',
+    left: openLeft ? -MENU_WIDTH + 6 : 'calc(100% - 3px)',
+    top: -overflowBottom,
+    transform: 'none',
     width: MENU_WIDTH,
     maxHeight: Math.min(estimatedHeight, viewport.height - 12),
-    '--sibling-count': siblingCount,
+    overflowY: estimatedHeight > viewport.height - 12 ? 'auto' : 'visible',
   };
 }
 
@@ -342,35 +411,8 @@ function isPointerMovingTowardSubmenu(points, event) {
   return dx > 4 && dy < 42;
 }
 
-function pathsEqual(a = [], b = []) {
-  return a.length === b.length && a.every((value, index) => value === b[index]);
-}
-
 function pathStartsWith(path = [], prefix = []) {
   return prefix.length > 0 && prefix.every((value, index) => path[index] === value);
-}
-
-function renderCheckItem(item, id) {
-  return (
-    <input
-      id={id}
-      type="checkbox"
-      checked={Boolean(item.checked)}
-      disabled={Boolean(item.disabled)}
-      readOnly
-      tabIndex={-1}
-    />
-  );
-}
-
-function renderIcon(item) {
-  if (typeof item.icon === 'string') {
-    return <img src={item.icon} alt="" width="16" height="16" />;
-  }
-  if (item.icon) {
-    return <i aria-hidden="true">{item.icon}</i>;
-  }
-  return null;
 }
 
 function getOverlayStyle(overlayType, zIndex) {
@@ -387,88 +429,12 @@ function getOverlayStyle(overlayType, zIndex) {
 
 const Overlay = styled.div``;
 
-const MenuPanel = styled.div`
+const MenuRoot = styled.div`
   position: absolute;
-  color: var(--xp-menu-text, #000);
-  font-family: "Tahoma", "MS Sans Serif", Arial, sans-serif;
-  font-size: 11px;
   outline: none;
-`;
-
-const MenuList = styled.ul`
-  position: relative;
-  min-width: ${MENU_WIDTH}px;
-  margin: 0;
-  padding: 2px;
-  list-style: none;
-  background: var(--xp-menu-bg, #fff);
-  border: 1px solid #7f9db9;
-  box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.35);
-`;
-
-const MenuItem = styled.li`
-  position: relative;
-  min-height: ${MENU_ITEM_HEIGHT}px;
-  color: ${({ $disabled }) => ($disabled ? '#808080' : 'inherit')};
-  cursor: ${({ $disabled }) => ($disabled ? 'default' : 'pointer')};
-  font-weight: ${({ $bold }) => ($bold ? 'bold' : 'normal')};
-  border-bottom: ${({ $divider }) => ($divider ? '1px solid #d4d0c8' : '0')};
-  padding-bottom: ${({ $divider }) => ($divider ? '2px' : '0')};
-  margin-bottom: ${({ $divider }) => ($divider ? '2px' : '0')};
-
-  ${({ $active, $disabled }) => $active && !$disabled ? `
-    background: #316ac5;
-    color: #fff;
-  ` : ''}
-`;
-
-const MenuItemContents = styled.div`
-  display: grid;
-  grid-template-columns: 22px minmax(0, 1fr) auto 12px;
-  align-items: center;
-  min-height: ${MENU_ITEM_HEIGHT}px;
-  padding: 0 5px 0 2px;
-`;
-
-const IconSlot = styled.span`
-  width: 18px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  img {
-    width: 16px;
-    height: 16px;
-    object-fit: contain;
-  }
-
-  input {
-    width: 13px;
-    height: 13px;
-    margin: 0;
-  }
-`;
-
-const LabelText = styled.span`
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`;
-
-const ShortcutText = styled.span`
-  margin-left: 18px;
-  white-space: nowrap;
-`;
-
-const SubmenuArrow = styled.span`
-  text-align: right;
-  font-size: 9px;
-`;
-
-const SubmenuPanel = styled.div`
-  position: absolute;
-  z-index: 1;
-  overflow: visible;
+  font-family: Arial, "MS Sans Serif", sans-serif;
+  font-size: 12px;
+  color: #222;
 `;
 
 export default ContextMenu;
