@@ -29,7 +29,7 @@ export const DESKTOP_SHORTCUT_CATALOG = {
 
 // Default desktop programs if not specified in config (excludes system icons like My Computer and Recycle Bin)
 // Note: 'projects' removed - now using Projects briefcase folder instead
-export const DEFAULT_DESKTOP_PROGRAMS = ['about', 'resume', 'contact', 'calculator', 'minesweeper', 'doom', 'quake', 'blueScreenOfDeath'];
+export const DEFAULT_DESKTOP_PROGRAMS = ['about', 'resume', 'contact', 'calculator', 'minesweeper', 'blueScreenOfDeath'];
 
 // Build desktop shortcuts array from program IDs
 export const buildDesktopShortcuts = (programIds) => {
