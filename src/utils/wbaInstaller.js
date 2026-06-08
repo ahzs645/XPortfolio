@@ -554,12 +554,11 @@ export async function parseWbaFile(fileData, opts = {}) {
   // Pick the main .uis (skins can ship several substyles).
   const uisFiles = filesWithExt(files, 'uis');
   let mainConfig = {};
-  let mainName = null;
   let bestScore = -Infinity;
   for (const name of uisFiles) {
     const cfg = await readIni(zip, name);
     const s = scoreMainConfig(cfg, name, archiveBase);
-    if (s > bestScore) { bestScore = s; mainConfig = cfg; mainName = name; }
+    if (s > bestScore) { bestScore = s; mainConfig = cfg; }
   }
 
   // Frame config: the .uis itself if it has [Borders]HorzFrame, else a .sss substyle.
