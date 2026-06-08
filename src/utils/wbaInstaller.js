@@ -1,65 +1,36 @@
 /**
- * WindowBlinds .wba theme file installer.
- * Parses a WBA archive (ZIP format), extracts INI config and BMP sprites,
- * converts BMPs to transparent PNGs, and produces a theme object.
+ * WindowBlinds .wba theme installer — generic mapper.
+ *
+ * A .wba is a ZIP holding INI config files (.uis main skin, optional .sss
+ * substyles, optional .xp XP taskbar/start-panel) plus BMP sprites. Stardock
+ * skins vary a lot: section/key casing differs, frames live in different files,
+ * some skins ship no .xp at all, file names use backslash paths and spaces.
+ *
+ * This parser maps any of them onto the theme object shape consumed by the
+ * shell (see src/WinXP/styles/themes/luna.js for the contract). It is
+ * deliberately defensive: everything is matched case-insensitively, missing
+ * pieces degrade gracefully, and only referenced BMPs are decoded.
  */
 import JSZip from 'jszip';
 
-/**
- * Convert a BMP image buffer to a transparent PNG data URL.
- * Replaces magenta (#FF00FF) pixels with full transparency.
- */
-async function bmpToTransparentPng(arrayBuffer, fileName) {
-  return new Promise((resolve, reject) => {
-    const blob = new Blob([arrayBuffer], { type: 'image/bmp' });
-    const url = URL.createObjectURL(blob);
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
-      URL.revokeObjectURL(url);
+/* ------------------------------------------------------------------ *
+ * INI parsing + case-insensitive access
+ * ------------------------------------------------------------------ */
 
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const { data } = imageData;
-      for (let i = 0; i < data.length; i += 4) {
-        // Magenta: R >= 250, G <= 5, B >= 250
-        if (data[i] >= 250 && data[i + 1] <= 5 && data[i + 2] >= 250) {
-          data[i + 3] = 0; // Set alpha to 0
-        }
-      }
-      ctx.putImageData(imageData, 0, 0);
-      resolve({
-        dataUrl: canvas.toDataURL('image/png'),
-        width: img.width,
-        height: img.height,
-      });
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error(`Failed to load BMP: ${fileName}`));
-    };
-    img.src = url;
-  });
-}
-
-/**
- * Simple INI parser for WindowBlinds .UIS / .sss / .xp files.
- */
 function parseIni(text) {
   const sections = {};
   let current = null;
+  // Normalise CRLF and lone-CR (old Mac) line endings.
+  const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
-  for (const rawLine of text.split(/\r?\n/)) {
+  for (const rawLine of normalized.split('\n')) {
     const line = rawLine.trim();
     if (!line || line.startsWith(';')) continue;
 
     const sectionMatch = line.match(/^\[(.+)\]$/);
     if (sectionMatch) {
       current = sectionMatch[1];
-      sections[current] = {};
+      if (!sections[current]) sections[current] = {};
       continue;
     }
 
@@ -75,351 +46,545 @@ function parseIni(text) {
   return sections;
 }
 
-/**
- * Extract a color value from INI "R G B" format.
- */
+/** Case-insensitive section lookup. Returns {} if absent. */
+function section(cfg, ...names) {
+  if (!cfg) return {};
+  const wanted = names.map((n) => n.toLowerCase());
+  for (const key of Object.keys(cfg)) {
+    if (wanted.includes(key.toLowerCase())) return cfg[key];
+  }
+  return {};
+}
+
+/** Case-insensitive key lookup within a section. */
+function val(sec, ...keys) {
+  if (!sec) return undefined;
+  const wanted = keys.map((k) => k.toLowerCase());
+  for (const key of Object.keys(sec)) {
+    if (wanted.includes(key.toLowerCase())) return sec[key];
+  }
+  return undefined;
+}
+
+/** Parse "R G B" INI colour triplets into an rgb() string. */
 function iniColor(str) {
   if (!str) return null;
   const parts = str.split(/\s+/).map(Number);
-  if (parts.length >= 3) {
+  if (parts.length >= 3 && parts.every((n) => !Number.isNaN(n))) {
     return `rgb(${parts[0]}, ${parts[1]}, ${parts[2]})`;
   }
   return null;
 }
 
-/**
- * Convert all BMP files in a ZIP to transparent PNGs.
- * Returns a map of filename -> { dataUrl, width, height }.
- */
-async function convertAllBmps(zip) {
-  const assets = {};
-  const bmpFiles = Object.keys(zip.files).filter(f => f.toLowerCase().endsWith('.bmp'));
+function toInt(str, fallback) {
+  const n = parseInt(str, 10);
+  return Number.isNaN(n) ? fallback : n;
+}
 
-  await Promise.all(bmpFiles.map(async (name) => {
+/* ------------------------------------------------------------------ *
+ * BMP -> canvas (magenta keyed to transparent) + frame composition
+ * ------------------------------------------------------------------ */
+
+/**
+ * Decode an image buffer into a canvas, keying magenta (#FF00FF) to transparent.
+ * Returns the canvas so callers can slice/recompose frames before exporting.
+ */
+async function bufferToCanvas(arrayBuffer, fileName, mime = 'image/bmp') {
+  return new Promise((resolve, reject) => {
+    const blob = new Blob([arrayBuffer], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+
+      try {
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const { data } = imageData;
+        for (let i = 0; i < data.length; i += 4) {
+          if (data[i] >= 250 && data[i + 1] <= 5 && data[i + 2] >= 250) {
+            data[i + 3] = 0;
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } catch {
+        // getImageData can throw on tainted canvases; keep the opaque draw.
+      }
+      resolve({ canvas, width: img.width, height: img.height });
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error(`Failed to load image: ${fileName}`));
+    };
+    img.src = url;
+  });
+}
+
+function canvasToDataUrl(canvas) {
+  return canvas.toDataURL('image/png');
+}
+
+/**
+ * Normalise a multi-frame title-bar bitmap into the 2-cell [active|inactive]
+ * horizontal strip the renderer expects (background-size:200% 100%, active=left).
+ *
+ * @param orientation 'horizontal' for UIS1 HorzFrame (frames side by side),
+ *                    'vertical' for classic Personality Top (frames stacked).
+ */
+function composeTwoFrameStrip(canvas, frameCount, orientation) {
+  const count = Math.max(1, frameCount);
+  const cellW = orientation === 'horizontal' ? Math.round(canvas.width / count) : canvas.width;
+  const cellH = orientation === 'vertical' ? Math.round(canvas.height / count) : canvas.height;
+
+  const out = document.createElement('canvas');
+  out.width = cellW * 2;
+  out.height = cellH;
+  const ctx = out.getContext('2d');
+
+  const drawCell = (frameIndex, destX) => {
+    const idx = Math.min(frameIndex, count - 1);
+    const srcX = orientation === 'horizontal' ? idx * cellW : 0;
+    const srcY = orientation === 'vertical' ? idx * cellH : 0;
+    ctx.drawImage(canvas, srcX, srcY, cellW, cellH, destX, 0, cellW, cellH);
+  };
+
+  drawCell(0, 0);       // active
+  drawCell(1, cellW);   // inactive (falls back to active when count === 1)
+
+  return { dataUrl: canvasToDataUrl(out), width: cellW, height: cellH };
+}
+
+/* ------------------------------------------------------------------ *
+ * ZIP helpers + asset resolution
+ * ------------------------------------------------------------------ */
+
+const isBackup = (name) => name.endsWith('~') || name.toLowerCase().endsWith('.bak');
+
+function listFiles(zip) {
+  return Object.keys(zip.files).filter((f) => !zip.files[f].dir && !isBackup(f));
+}
+
+function filesWithExt(files, ext) {
+  const suffix = `.${ext.toLowerCase()}`;
+  return files.filter((f) => f.toLowerCase().endsWith(suffix));
+}
+
+async function readIni(zip, name) {
+  return parseIni(await zip.files[name].async('string'));
+}
+
+/** Reduce an INI asset reference ("skin\\foo.bmp") to a lowercase basename key. */
+function assetKey(iniPath) {
+  if (!iniPath) return null;
+  return iniPath.replace(/\\/g, '/').split('/').pop().trim().toLowerCase();
+}
+
+function resolveAsset(assets, iniPath) {
+  const key = assetKey(iniPath);
+  return key ? assets[key] || null : null;
+}
+
+/** Collect every basename referenced as an image across the parsed configs. */
+function collectImageRefs(...configs) {
+  const refs = new Set();
+  for (const cfg of configs) {
+    if (!cfg) continue;
+    for (const sec of Object.values(cfg)) {
+      for (const value of Object.values(sec)) {
+        if (typeof value === 'string' && /\.(bmp|png|gif|jpg|jpeg)$/i.test(value.trim())) {
+          const key = assetKey(value);
+          if (key) refs.add(key);
+        }
+      }
+    }
+  }
+  return refs;
+}
+
+/** Decode only the referenced images. Returns { basename: {canvas,width,height,dataUrl} }. */
+async function convertReferenced(zip, refs) {
+  const assets = {};
+  const files = listFiles(zip);
+
+  await Promise.all(files.map(async (name) => {
+    const key = name.replace(/\\/g, '/').split('/').pop().toLowerCase();
+    if (!refs.has(key)) return;
+    const ext = key.slice(key.lastIndexOf('.') + 1);
+    const mime = ext === 'bmp' ? 'image/bmp'
+      : ext === 'png' ? 'image/png'
+      : ext === 'gif' ? 'image/gif'
+      : 'image/jpeg';
     try {
       const buf = await zip.files[name].async('arraybuffer');
-      const result = await bmpToTransparentPng(buf, name);
-      // Store with cleaned-up key (lowercase, no path prefix)
-      const key = name.replace(/\\/g, '/').split('/').pop().toLowerCase();
-      assets[key] = result;
+      const decoded = await bufferToCanvas(buf, name, mime);
+      decoded.dataUrl = canvasToDataUrl(decoded.canvas);
+      assets[key] = decoded;
     } catch (e) {
-      console.warn(`WBA: Failed to convert ${name}:`, e.message);
+      console.warn(`WBA: failed to convert ${name}:`, e.message);
     }
   }));
 
   return assets;
 }
 
-/**
- * Find and parse the main INI config from the WBA.
- * Tries .UIS first, then .sss files.
- */
-async function findMainConfig(zip) {
-  const files = Object.keys(zip.files);
+/* ------------------------------------------------------------------ *
+ * Config discovery
+ * ------------------------------------------------------------------ */
 
-  // Look for .UIS file (main skin config)
-  const uisFile = files.find(f => f.toLowerCase().endsWith('.uis'));
-  if (uisFile) {
-    const text = await zip.files[uisFile].async('string');
-    return parseIni(text);
-  }
-
-  // Fallback to .sss
-  const sssFile = files.find(f => f.toLowerCase().endsWith('.sss'));
-  if (sssFile) {
-    const text = await zip.files[sssFile].async('string');
-    return parseIni(text);
-  }
-
-  return null;
+/** Score a parsed .uis so we can pick the "main" one when a skin ships several. */
+function scoreMainConfig(cfg, name, archiveBase) {
+  let score = Object.keys(cfg).length * 0.1;
+  if (Object.keys(section(cfg, 'Personality')).length) score += 5;
+  if (Object.keys(section(cfg, 'Colours', 'Colors')).length) score += 5;
+  score += Object.keys(cfg).filter((k) => /^button\d+$/i.test(k)).length;
+  // Tiebreak: prefer a file whose name matches the archive name.
+  const base = name.replace(/\\/g, '/').split('/').pop().replace(/\.uis$/i, '').toLowerCase();
+  if (archiveBase && base.includes(archiveBase)) score += 0.5;
+  return score;
 }
 
-/**
- * Find and parse the XP taskbar/start menu config.
- */
-async function findXpConfig(zip) {
-  const files = Object.keys(zip.files);
-  const xpFile = files.find(f => f.toLowerCase().endsWith('.xp'));
-  if (xpFile) {
-    const text = await zip.files[xpFile].async('string');
-    return parseIni(text);
-  }
-  return null;
-}
+/* ------------------------------------------------------------------ *
+ * Theme building
+ * ------------------------------------------------------------------ */
 
-/**
- * Helper to resolve an asset reference from the INI (e.g. "xbox\\xbox_body_top.bmp")
- * to its converted PNG data URL.
- */
-function resolveAsset(assets, iniPath) {
-  if (!iniPath) return null;
-  const key = iniPath.replace(/\\/g, '/').split('/').pop().toLowerCase();
-  return assets[key] || null;
-}
-
-/**
- * Build a theme object from parsed INI config and converted assets.
- */
-function buildTheme(mainConfig, xpConfig, assets, skinName) {
-  const personality = mainConfig?.Personality || {};
-  const colours = mainConfig?.Colours || {};
-  const text = mainConfig?.Text || {};
-  const fonts = mainConfig?.Fonts || {};
-
-  // Generate a unique ID from the skin name
-  const id = (skinName || 'custom-theme')
+function slugId(name) {
+  return (name || 'custom-theme')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
+    .replace(/^-|-$/g, '') || 'custom-theme';
+}
 
-  const theme = {
-    id,
-    name: skinName || 'Custom WindowBlinds Theme',
-    source: 'installed',
-    taskbar: {},
-    tray: {},
-    taskButton: {},
-    startButton: { type: 'default' },
-    titleBar: { type: 'css' },
-    windowControls: { type: 'css' },
-    windowFrame: { type: 'css' },
-    startMenu: { type: 'css' },
-    colors: {},
+function buildColors(colours) {
+  return {
+    highlight: iniColor(val(colours, 'Hilight', 'Highlight')) || '#316ac5',
+    highlightText: iniColor(val(colours, 'HilightText', 'HighlightText')) || '#fff',
+    activeTitle: iniColor(val(colours, 'ActiveTitle')) || 'rgb(0, 84, 227)',
+    inactiveTitle: iniColor(val(colours, 'InactiveTitle')) || 'rgb(118, 149, 212)',
+    surface: iniColor(val(colours, 'Menu')) || '#ece9d8',
+    windowText: iniColor(val(colours, 'WindowText')) || '#000',
+    buttonFace: iniColor(val(colours, 'ButtonFace')) || '#ece9d8',
+    menuBackground: iniColor(val(colours, 'Menu')) || '#fff',
+    menuText: iniColor(val(colours, 'MenuText')) || '#000',
   };
+}
 
-  // === Taskbar ===
-  if (xpConfig) {
-    const tbHorz = xpConfig['Taskbar.Horz'] || {};
-    const tbImg = tbHorz.Image;
-    const tbAsset = resolveAsset(assets, tbImg);
-    if (tbAsset) {
-      theme.taskbar = {
-        background: `url(${tbAsset.dataUrl})`,
-        backgroundRepeat: 'repeat',
-        backgroundSize: 'auto 100%',
-      };
-    }
+/** Title bar: prefer UIS1 framed strip, else classic Personality, else CSS. */
+function buildTitleBar(mainConfig, frameConfig, assets, colours, fonts, textCfg) {
+  const personality = section(mainConfig, 'Personality');
 
-    // Tray
-    const trayHorz = xpConfig['Taskbar.TrayHorz'] || {};
-    const trayImg = trayHorz.Image;
-    const trayAsset = resolveAsset(assets, trayImg);
-    if (trayAsset) {
-      theme.tray = {
-        background: `url(${trayAsset.dataUrl})`,
-        backgroundSize: 'auto 100%',
-        backgroundRepeat: 'repeat-x',
-        borderLeft: 'none',
-        boxShadow: 'none',
-        textColor: iniColor(colours.TitleText) || '#000',
-        padding: '0 10px 0 21px',
-      };
-    }
-
-    // Start button
-    const startBtn = xpConfig['Taskbar.StartButton'] || {};
-    const startAsset = resolveAsset(assets, startBtn.Image);
-    if (startAsset) {
-      const stateCount = 5; // normal, hover, pressed, focusNormal, focusPressed
-      const stateWidth = Math.round(startAsset.width / stateCount);
-      theme.startButton = {
-        type: 'sprite',
-        spriteSheet: startAsset.dataUrl,
-        stateWidth,
-        stateHeight: startAsset.height,
-        states: { normal: 0, hover: 1, pressed: 2, focusNormal: 3, focusPressed: 4 },
-      };
-    }
-
-    // Task buttons
-    const taskBtnHorz = xpConfig['Taskbar.ButtonHorz'] || {};
-    const taskAsset = resolveAsset(assets, taskBtnHorz.Image);
-    if (taskAsset) {
-      const stateCount = 6;
-      const stateWidth = Math.round(taskAsset.width / stateCount);
-      theme.taskButton = {
-        type: 'sprite',
-        textColor: '#ddd',
-        focusTextColor: '#fff',
-        showTopHighlight: false,
-        cover: {
-          background: `url(${taskAsset.dataUrl}) 0px 0px / auto 100% no-repeat`,
-          boxShadow: 'none',
-        },
-        coverHover: {
-          background: `url(${taskAsset.dataUrl}) -${stateWidth}px 0px / auto 100% no-repeat`,
-        },
-        coverActive: {
-          background: `url(${taskAsset.dataUrl}) -${stateWidth * 2}px 0px / auto 100% no-repeat`,
-        },
-        focus: {
-          background: `url(${taskAsset.dataUrl}) -${stateWidth * 3}px 0px / auto 100% no-repeat`,
-          boxShadow: 'none',
-        },
-        focusHover: {
-          background: `url(${taskAsset.dataUrl}) -${stateWidth * 4}px 0px / auto 100% no-repeat`,
-        },
-        focusActive: {
-          background: `url(${taskAsset.dataUrl}) -${stateWidth * 5}px 0px / auto 100% no-repeat`,
-        },
-      };
-    }
-  }
-
-  // === Title bar ===
-  // Check for UIS1 (framed) style first, then classic Personality style
-  const borders = mainConfig?.Borders || {};
-  const horzFrame = borders.HorzFrame;
+  // UIS1 framed style — HorzFrame lives in [Borders] of the .uis or a substyle.
+  const borders = section(frameConfig, 'Borders');
+  const horzFrame = val(borders, 'HorzFrame');
   const frameAsset = resolveAsset(assets, horzFrame);
 
+  const fontFamily = val(fonts, 'Fontname') || 'Tahoma, sans-serif';
+  const fontSize = `${val(fonts, 'FontHeight') || 13}px`;
+  const use3D = val(textCfg, 'Use3DText') === '1';
+  const shadow = use3D
+    ? `${val(textCfg, 'ShadowOffset') || 1}px ${val(textCfg, 'ShadowOffset') || 1}px 0 rgb(${val(textCfg, 'ShadowTextR') || 0}, ${val(textCfg, 'ShadowTextG') || 0}, ${val(textCfg, 'ShadowTextB') || 0})`
+    : 'none';
+
   if (frameAsset) {
-    const frameCount = parseInt(borders.FrameCount || '2', 10);
-    const frameWidth = Math.round(frameAsset.width / frameCount);
-    theme.titleBar = {
-      type: 'image',
-      frameImage: frameAsset.dataUrl,
-      frameWidth,
-      frameHeight: frameAsset.height,
-      frameCount,
-      height: parseInt(mainConfig?.Metrics?.CaptionHeight || '28', 10),
-      textColor: iniColor(colours.ActiveTitle) || iniColor(`${personality.ActiveTextR || 220} ${personality.ActiveTextG || 220} ${personality.ActiveTextB || 220}`) || '#dcdcdc',
-      inactiveTextColor: iniColor(colours.InactiveTitle) || iniColor(`${personality.InactiveTextR || 180} ${personality.InactiveTextG || 180} ${personality.InactiveTextB || 180}`) || '#b4b4b4',
-      textShadow: text.Use3DText === '1' ? `${text.ShadowOffset || 1}px ${text.ShadowOffset || 1}px 0 rgb(${text.ShadowTextR || 0}, ${text.ShadowTextG || 0}, ${text.ShadowTextB || 0})` : 'none',
-      fontFamily: fonts.Fontname || 'Tahoma, sans-serif',
-      fontSize: `${fonts.FontHeight || 13}px`,
-      fontWeight: 'normal',
-    };
-  } else {
-    // Classic personality style with Top/Left/Right/Bottom BMPs
-    const topAsset = resolveAsset(assets, personality.Top);
-    if (topAsset) {
-      theme.titleBar = {
+    const frameCount = toInt(val(borders, 'FrameCount'), 2);
+    const strip = composeTwoFrameStrip(frameAsset.canvas, frameCount, 'horizontal');
+    return {
+      titleBar: {
         type: 'image',
-        frameImage: topAsset.dataUrl,
-        frameWidth: topAsset.width,
-        frameHeight: topAsset.height,
-        frameCount: 1,
-        height: parseInt(personality.TopTopHeight || '28', 10),
-        textColor: `rgb(${personality.ActiveTextR || 220}, ${personality.ActiveTextG || 220}, ${personality.ActiveTextB || 220})`,
-        inactiveTextColor: `rgb(${personality.InactiveTextR || 180}, ${personality.InactiveTextG || 180}, ${personality.InactiveTextB || 180})`,
-        textShadow: 'none',
-        fontFamily: fonts.Fontname || 'Tahoma, sans-serif',
-        fontSize: `${fonts.FontHeight || 13}px`,
+        frameImage: strip.dataUrl,
+        frameWidth: strip.width,
+        frameHeight: strip.height,
+        frameCount: 2,
+        height: toInt(val(section(mainConfig, 'Metrics'), 'CaptionHeight'), 28),
+        textColor: iniColor(val(colours, 'ActiveTitle')) || 'rgb(220, 220, 220)',
+        inactiveTextColor: iniColor(val(colours, 'InactiveTitle')) || 'rgb(180, 180, 180)',
+        textShadow: shadow,
+        fontFamily,
+        fontSize,
         fontWeight: 'normal',
-      };
-    }
-  }
-
-  // Window frame sides
-  const vertFrame = borders.VertFrame;
-  const vertAsset = resolveAsset(assets, vertFrame);
-  if (vertAsset) {
-    theme.windowFrame = {
-      type: 'image',
-      sideImage: vertAsset.dataUrl,
-      sideWidth: Math.round(vertAsset.width / 2),
-      bodyBackground: iniColor(colours.Menu) || '#b4b4b4',
-      borderColor: iniColor(colours.WindowFrame) || '#646464',
+      },
+      vertFrame: val(borders, 'VertFrame'),
     };
   }
 
-  // === Window controls ===
-  // Look for button images (UIS1 or standard)
+  // Classic Personality style — Top/Left/Right/Bottom BMPs with stacked frames.
+  const topAsset = resolveAsset(assets, val(personality, 'Top'));
+  if (topAsset) {
+    const frameCount = toInt(val(personality, 'TopFrame'), 2);
+    const strip = composeTwoFrameStrip(topAsset.canvas, frameCount, 'vertical');
+    const aR = val(personality, 'ActiveTextR');
+    const iR = val(personality, 'InactiveTextR');
+    return {
+      titleBar: {
+        type: 'image',
+        frameImage: strip.dataUrl,
+        frameWidth: strip.width,
+        frameHeight: strip.height,
+        frameCount: 2,
+        height: toInt(val(personality, 'TopTopHeight'), 28),
+        textColor: iniColor(val(colours, 'ActiveTitle'))
+          || (aR != null ? `rgb(${aR}, ${val(personality, 'ActiveTextG') || 255}, ${val(personality, 'ActiveTextB') || 255})` : 'rgb(255, 255, 255)'),
+        inactiveTextColor: iniColor(val(colours, 'InactiveTitle'))
+          || (iR != null ? `rgb(${iR}, ${val(personality, 'InactiveTextG') || 0}, ${val(personality, 'InactiveTextB') || 0})` : 'rgb(180, 180, 180)'),
+        textShadow: shadow,
+        fontFamily,
+        fontSize,
+        fontWeight: 'normal',
+      },
+      vertFrame: null, // classic Left/Right are separate; rely on borderColor instead
+    };
+  }
+
+  return { titleBar: { type: 'css' }, vertFrame: null };
+}
+
+/** Window control buttons from [Button0..N] (Action: 0=close, 23=min, 22=max/restore). */
+function buildWindowControls(mainConfig, assets) {
   const buttons = [];
-  for (let i = 0; i < 8; i++) {
-    const btn = mainConfig?.[`Button${i}`];
-    if (btn) buttons.push(btn);
+  for (const key of Object.keys(mainConfig)) {
+    if (/^button\d+$/i.test(key)) buttons.push(mainConfig[key]);
   }
+  if (!buttons.length) return { type: 'css' };
 
-  const closeBtn = buttons.find(b => b.Action === '0');
-  const maxBtn = buttons.find(b => b.Action === '22' && b.Visibility === '3');
-  const restoreBtn = buttons.find(b => b.Action === '22' && b.Visibility === '4');
-  const minBtn = buttons.find(b => b.Action === '23');
+  const byAction = (action) => buttons.filter((b) => val(b, 'Action') === action);
+  const closeBtn = byAction('0')[0];
+  const minBtn = byAction('23')[0];
+  const maxButtons = byAction('22');
+  // Visibility 3 = maximize, 4 = restore; many skins omit Visibility entirely.
+  const maxBtn = maxButtons.find((b) => val(b, 'Visibility') === '3') || maxButtons[0];
+  const restoreBtn = maxButtons.find((b) => val(b, 'Visibility') === '4') || maxButtons[1];
 
-  if (closeBtn || minBtn || maxBtn) {
-    const closeAsset = resolveAsset(assets, closeBtn?.ButtonImage);
-    const minAsset = resolveAsset(assets, minBtn?.ButtonImage);
-    const maxAsset = resolveAsset(assets, maxBtn?.ButtonImage);
-    const restoreAsset = resolveAsset(assets, restoreBtn?.ButtonImage);
+  const closeAsset = resolveAsset(assets, val(closeBtn, 'ButtonImage'));
+  const minAsset = resolveAsset(assets, val(minBtn, 'ButtonImage'));
+  const maxAsset = resolveAsset(assets, val(maxBtn, 'ButtonImage'));
+  const restoreAsset = resolveAsset(assets, val(restoreBtn, 'ButtonImage'));
 
-    if (closeAsset || minAsset || maxAsset) {
-      const makeSprite = (asset) => {
-        if (!asset) return { spriteSheet: '', stateWidth: 19, stateHeight: 17 };
-        const stateCount = 3; // normal, hover, pressed
-        return {
-          spriteSheet: asset.dataUrl,
-          stateWidth: Math.round(asset.width / stateCount),
-          stateHeight: asset.height,
-        };
-      };
+  if (!closeAsset && !minAsset && !maxAsset) return { type: 'css' };
 
-      theme.windowControls = {
-        type: 'sprite',
-        close: makeSprite(closeAsset),
-        minimize: makeSprite(minAsset),
-        maximize: makeSprite(maxAsset),
-        restore: makeSprite(restoreAsset || maxAsset),
-      };
-    }
-  }
-
-  // === Colors ===
-  theme.colors = {
-    highlight: iniColor(colours.Hilight) || '#316ac5',
-    highlightText: iniColor(colours.HilightText) || '#fff',
-    activeTitle: iniColor(colours.ActiveTitle) || 'rgb(0, 84, 227)',
-    inactiveTitle: iniColor(colours.InactiveTitle) || 'rgb(118, 149, 212)',
-    surface: iniColor(colours.Menu) || '#ece9d8',
-    windowText: iniColor(colours.WindowText) || '#000',
-    buttonFace: iniColor(colours.ButtonFace) || '#ece9d8',
-    menuBackground: iniColor(colours.Menu) || '#fff',
-    menuText: iniColor(colours.MenuText) || '#000',
+  // Each button image is a horizontal sprite of states (normal/hover/pressed).
+  const sprite = (asset) => {
+    if (!asset) return { spriteSheet: '', stateWidth: 19, stateHeight: 17 };
+    return {
+      spriteSheet: asset.dataUrl,
+      stateWidth: Math.round(asset.width / 3),
+      stateHeight: asset.height,
+    };
   };
 
-  // === Wallpaper ===
-  const wallpaperAsset = resolveAsset(assets, personality.Wallpaper);
-  if (wallpaperAsset) {
-    theme.wallpaper = wallpaperAsset.dataUrl;
+  return {
+    type: 'sprite',
+    close: sprite(closeAsset),
+    minimize: sprite(minAsset),
+    maximize: sprite(maxAsset),
+    restore: sprite(restoreAsset || maxAsset),
+  };
+}
+
+/** Taskbar / tray / start button / task buttons from the .xp config (if present). */
+function buildTaskbar(xpConfig, mainConfig, assets, colours) {
+  const out = { taskbar: {}, tray: {}, taskButton: {}, startButton: { type: 'default' } };
+
+  const taskbarImg = resolveAsset(assets, val(section(xpConfig, 'Taskbar.Horz'), 'Image'));
+  if (taskbarImg) {
+    out.taskbar = {
+      background: `url(${taskbarImg.dataUrl})`,
+      backgroundRepeat: 'repeat',
+      backgroundSize: 'auto 100%',
+    };
   }
+
+  const trayImg = resolveAsset(assets, val(section(xpConfig, 'Taskbar.TrayHorz'), 'Image'));
+  if (trayImg) {
+    out.tray = {
+      background: `url(${trayImg.dataUrl})`,
+      backgroundSize: 'auto 100%',
+      backgroundRepeat: 'repeat-x',
+      borderLeft: 'none',
+      boxShadow: 'none',
+      textColor: iniColor(val(colours, 'TitleText')) || '#000',
+      padding: '0 10px 0 21px',
+    };
+  }
+
+  // Start button: .xp Taskbar.StartButton, else classic [StartButton] in the .uis.
+  const startImg = resolveAsset(assets, val(section(xpConfig, 'Taskbar.StartButton'), 'Image'))
+    || resolveAsset(assets, val(section(mainConfig, 'StartButton'), 'Image', 'Bitmap'));
+  if (startImg) {
+    const stateCount = 5; // XP start-button template: normal/hover/pressed/focus/focusPressed
+    out.startButton = {
+      type: 'sprite',
+      spriteSheet: startImg.dataUrl,
+      stateWidth: Math.round(startImg.width / stateCount),
+      stateHeight: startImg.height,
+      states: { normal: 0, hover: 1, pressed: 2, focusNormal: 3, focusPressed: 4 },
+    };
+  }
+
+  const taskImg = resolveAsset(assets, val(section(xpConfig, 'Taskbar.ButtonHorz'), 'Image'));
+  if (taskImg) {
+    const states = 6;
+    const w = Math.round(taskImg.width / states);
+    const slice = (i) => `url(${taskImg.dataUrl}) -${w * i}px 0px / auto 100% no-repeat`;
+    out.taskButton = {
+      type: 'sprite',
+      textColor: '#ddd',
+      focusTextColor: '#fff',
+      showTopHighlight: false,
+      cover: { background: slice(0), boxShadow: 'none' },
+      coverHover: { background: slice(1) },
+      coverActive: { background: slice(2) },
+      focus: { background: slice(3), boxShadow: 'none' },
+      focusHover: { background: slice(4) },
+      focusActive: { background: slice(5) },
+    };
+  }
+
+  return out;
+}
+
+/** Start menu from StartPanel.* sections. Needs top/left/right/bottom to render. */
+function buildStartMenu(xpConfig, assets) {
+  const img = (sec, ...keys) => {
+    const a = resolveAsset(assets, val(section(xpConfig, sec), ...keys));
+    return a ? a.dataUrl : null;
+  };
+
+  const top = img('StartPanel.UserPane');
+  const left = img('StartPanel.ProgList');
+  const right = img('StartPanel.PlacesList');
+  const bottom = img('StartPanel.BottomBar');
+
+  if (!top || !left || !right || !bottom) return { type: 'css' };
+
+  const menu = {
+    type: 'image',
+    top: { image: top },
+    left: { image: left },
+    right: { image: right },
+    bottom: { image: bottom },
+  };
+  const userPic = img('StartPanel.UserPicture');
+  const menuItem = img('StartPanel.MenuItem');
+  const morePrograms = img('StartPanel.MorePrograms');
+  const moreArrow = img('StartPanel.MoreProgramsArrow');
+  if (userPic) menu.userPic = { image: userPic };
+  if (menuItem) menu.menuItem = { image: menuItem };
+  if (morePrograms) menu.morePrograms = { image: morePrograms };
+  if (moreArrow) menu.moreArrow = { image: moreArrow };
+  return menu;
+}
+
+function buildTheme({ mainConfig, frameConfig, xpConfig, assets, skinName }) {
+  const colours = section(mainConfig, 'Colours', 'Colors');
+  const fonts = section(mainConfig, 'Fonts');
+  const textCfg = section(mainConfig, 'Text');
+  const personality = section(mainConfig, 'Personality');
+
+  const { titleBar, vertFrame } = buildTitleBar(mainConfig, frameConfig, assets, colours, fonts, textCfg);
+  const tb = buildTaskbar(xpConfig, mainConfig, assets, colours);
+
+  // Window frame: UIS1 vertical side strip, else solid border from colours.
+  let windowFrame = { type: 'css' };
+  if (titleBar.type === 'image') {
+    const vertAsset = resolveAsset(assets, vertFrame);
+    windowFrame = {
+      type: 'image',
+      bodyBackground: iniColor(val(colours, 'Menu')) || '#b4b4b4',
+      borderColor: iniColor(val(colours, 'WindowFrame', 'ActiveBorder')) || '#646464',
+    };
+    if (vertAsset) {
+      windowFrame.sideImage = vertAsset.dataUrl;
+      windowFrame.sideWidth = Math.max(2, Math.round(vertAsset.width / 2));
+    }
+  }
+
+  const theme = {
+    id: slugId(skinName),
+    name: skinName || 'Custom WindowBlinds Theme',
+    source: 'installed',
+    taskbar: tb.taskbar,
+    tray: tb.tray,
+    taskButton: tb.taskButton,
+    startButton: tb.startButton,
+    titleBar,
+    windowControls: buildWindowControls(mainConfig, assets),
+    windowFrame,
+    startMenu: buildStartMenu(xpConfig, assets),
+    colors: buildColors(colours),
+  };
+
+  const wallpaper = resolveAsset(assets, val(personality, 'Wallpaper'));
+  if (wallpaper) theme.wallpaper = wallpaper.dataUrl;
 
   return theme;
 }
 
-/**
- * Parse and install a .wba theme file.
- * @param {ArrayBuffer|Blob|string} fileData - The WBA file data (base64 data URL, Blob, or ArrayBuffer)
- * @returns {Promise<Object>} The installed theme object
- */
-export async function parseWbaFile(fileData) {
-  let zipData = fileData;
+/* ------------------------------------------------------------------ *
+ * Public entry
+ * ------------------------------------------------------------------ */
 
-  // Handle base64 data URL
+function toZipData(fileData) {
   if (typeof fileData === 'string' && fileData.includes(',')) {
     const base64 = fileData.split(',')[1];
     const binary = atob(base64);
     const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes.buffer;
+  }
+  return fileData;
+}
+
+/**
+ * Parse a .wba file into a theme object.
+ * @param {ArrayBuffer|Blob|string} fileData base64 data URL, Blob, or ArrayBuffer
+ * @param {Object} [opts]
+ * @param {string} [opts.archiveName] original filename, used to pick the main .uis
+ * @returns {Promise<Object>} the theme object
+ */
+export async function parseWbaFile(fileData, opts = {}) {
+  const zip = await JSZip.loadAsync(toZipData(fileData));
+  const files = listFiles(zip);
+
+  const archiveBase = (opts.archiveName || '')
+    .replace(/\\/g, '/').split('/').pop().replace(/\.wba$/i, '').toLowerCase() || null;
+
+  // Pick the main .uis (skins can ship several substyles).
+  const uisFiles = filesWithExt(files, 'uis');
+  let mainConfig = {};
+  let mainName = null;
+  let bestScore = -Infinity;
+  for (const name of uisFiles) {
+    const cfg = await readIni(zip, name);
+    const s = scoreMainConfig(cfg, name, archiveBase);
+    if (s > bestScore) { bestScore = s; mainConfig = cfg; mainName = name; }
+  }
+
+  // Frame config: the .uis itself if it has [Borders]HorzFrame, else a .sss substyle.
+  let frameConfig = null;
+  if (val(section(mainConfig, 'Borders'), 'HorzFrame')) {
+    frameConfig = mainConfig;
+  } else {
+    for (const name of filesWithExt(files, 'sss')) {
+      const cfg = await readIni(zip, name);
+      if (val(section(cfg, 'Borders'), 'HorzFrame')) { frameConfig = cfg; break; }
     }
-    zipData = bytes.buffer;
   }
 
-  const zip = await JSZip.loadAsync(zipData);
+  // XP taskbar / start-panel config (optional).
+  const xpName = filesWithExt(files, 'xp')[0];
+  const xpConfig = xpName ? await readIni(zip, xpName) : null;
 
-  // Find skin name from .ssd file or .UIS header
-  let skinName = 'Custom Theme';
-  const mainConfig = await findMainConfig(zip);
-  if (mainConfig?.TitlebarSkin?.SkinName) {
-    skinName = mainConfig.TitlebarSkin.SkinName;
-  }
+  // Skin name from [TitlebarSkin] of any config.
+  const skinName = val(section(mainConfig, 'TitlebarSkin'), 'SkinName')
+    || (frameConfig && val(section(frameConfig, 'TitlebarSkin'), 'SkinName'))
+    || archiveBase
+    || 'Custom Theme';
 
-  const xpConfig = await findXpConfig(zip);
+  const refs = collectImageRefs(mainConfig, frameConfig, xpConfig);
+  const assets = await convertReferenced(zip, refs);
 
-  // Convert all BMPs to PNGs
-  const assets = await convertAllBmps(zip);
-
-  // Build the theme
-  const theme = buildTheme(mainConfig, xpConfig, assets, skinName);
-
-  return theme;
+  return buildTheme({ mainConfig, frameConfig, xpConfig, assets, skinName });
 }

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { withBaseUrl } from '../../../utils/baseUrl';
@@ -9,9 +9,35 @@ function ThemeManager({ onClose, onMinimize }) {
     builtinThemes,
     installedThemes,
     setActiveTheme,
+    installTheme,
     uninstallTheme,
   } = useTheme();
   const [selectedThemeId, setSelectedThemeId] = useState(activeThemeId || 'luna');
+  const [status, setStatus] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const handleOpenClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = ''; // allow re-selecting the same file
+    if (!file) return;
+
+    setStatus({ kind: 'busy', message: `Opening ${file.name}...` });
+    try {
+      const buffer = await file.arrayBuffer();
+      const { parseWbaFile } = await import('../../../utils/wbaInstaller');
+      const theme = await parseWbaFile(buffer, { archiveName: file.name });
+      installTheme(theme);
+      setSelectedThemeId(theme.id);
+      setStatus({ kind: 'ok', message: `Added "${theme.name}". Click Apply to use it.` });
+    } catch (err) {
+      console.error('Failed to open theme:', err);
+      setStatus({ kind: 'error', message: `Could not read ${file.name}. Is it a WindowBlinds .wba file?` });
+    }
+  };
 
   const themes = useMemo(() => [
     ...builtinThemes.map((theme) => ({ ...theme, sourceLabel: 'Built-in', removable: false })),
@@ -43,7 +69,7 @@ function ThemeManager({ onClose, onMinimize }) {
         <Icon src="/icons/xp/DisplayProperties.png" alt="" />
         <div>
           <Title>Theme Settings</Title>
-          <Description>Choose a shell theme or remove installed WindowBlinds themes.</Description>
+          <Description>Choose a theme, or open a WindowBlinds (.wba) file to add your own.</Description>
         </div>
       </Header>
 
@@ -103,7 +129,19 @@ function ThemeManager({ onClose, onMinimize }) {
         </DetailsPanel>
       </Content>
 
+      {status && <StatusBar $kind={status.kind}>{status.message}</StatusBar>}
+
       <ButtonRow>
+        <button type="button" onClick={handleOpenClick}>
+          Open theme...
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".wba"
+          onChange={handleFileChange}
+          style={{ display: 'none' }}
+        />
         <button type="button" onClick={handleApply} disabled={!selectedTheme || isSelectedActive}>
           Apply
         </button>
@@ -321,6 +359,14 @@ const DetailRow = styled.div`
 
 const DetailLabel = styled.span`
   font-weight: 700;
+`;
+
+const StatusBar = styled.div`
+  padding: 4px 8px;
+  border: 1px solid #7f9db9;
+  background: #fff;
+  font-size: 11px;
+  color: ${({ $kind }) => ($kind === 'error' ? '#a00' : $kind === 'ok' ? '#0a6b0a' : '#333')};
 `;
 
 const ButtonRow = styled.footer`

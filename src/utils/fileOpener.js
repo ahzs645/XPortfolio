@@ -176,14 +176,7 @@ export function openFileWithApp({
     return true;
   }
 
-  // For WindowBlinds theme files (.wba)
-  if ((ext === '.wba' || ext === '.wmz') && fileName.toLowerCase().includes('xbox')) {
-    window.dispatchEvent(new CustomEvent('xp:theme-activate', {
-      detail: { themeId: 'xbox', fileName },
-    }));
-    return true;
-  }
-
+  // For WindowBlinds theme files (.wba): parse + install via the generic mapper.
   if (ext === '.wba') {
     window.dispatchEvent(new CustomEvent('xp:theme-install-request', {
       detail: { fileData, fileName },
