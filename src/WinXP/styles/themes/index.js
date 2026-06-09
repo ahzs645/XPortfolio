@@ -1,32 +1,24 @@
 /**
  * Theme registry.
  *
- * Luna (the native XP look) is the only hand-written theme. Every other
- * built-in is a real WindowBlinds .wba parsed at runtime by wbaInstaller.js —
- * the same path used when a user opens a .wba themselves. Add a skin by
- * dropping its .wba in public/themes/<id>/ and adding a manifest entry here.
+ * Luna (the native XP look) is the only built-in theme. WindowBlinds (.wba)
+ * skins are user-provided: open one via the Theme Manager's "Open theme..."
+ * action (or by opening a .wba file in the shell) and it's parsed at runtime
+ * by wbaInstaller.js and added to the list — nothing is bundled in the repo.
+ *
+ * To ship a skin as a built-in instead, drop its .wba in public/themes/<id>/
+ * and add a manifest entry below; ThemeContext fetches + parses each at load.
  */
 import { LUNA_THEME } from './luna';
 
 /**
- * Bundled WindowBlinds skins shipped as built-in themes.
- * `id` is stable (used by DisplayProperties / saved settings); the parser's
- * derived id is overridden with this. `wallpaperOverride` lets a bundled theme
- * point at a static wallpaper file instead of a multi-MB parsed data URL.
+ * Bundled WindowBlinds skins shipped as built-in themes (none by default).
+ * Entry shape: { id, name, url, wallpaperOverride? }. `id` is stable (used by
+ * DisplayProperties / saved settings) and overrides the parser-derived id;
+ * `wallpaperOverride` points at a static wallpaper file instead of a parsed
+ * data URL.
  */
-export const BUNDLED_WBA_THEMES = [
-  {
-    id: 'xbox',
-    name: 'Official Xbox WindowBlinds',
-    url: '/themes/xbox/xbox.wba',
-    wallpaperOverride: '/themes/xbox/xbox_wallpaper.webp',
-  },
-  { id: 'santa', name: 'SantaXP', url: '/themes/santa/santa.wba' },
-  { id: 'liquidhf', name: 'Liquid HF', url: '/themes/liquidhf/liquidhf.wba' },
-  { id: 'lunarbase', name: 'Lunar Base', url: '/themes/lunarbase/lunar_base.wba' },
-  { id: 'solar', name: 'Solar', url: '/themes/solar/solarwb2.wba' },
-  { id: 'stronghold', name: 'Stronghold XP', url: '/themes/stronghold/strongholdxp.wba' },
-];
+export const BUNDLED_WBA_THEMES = [];
 
 /** Synchronously-available built-in themes (Luna only; .wba themes load async). */
 export const BUILTIN_THEMES = [LUNA_THEME];

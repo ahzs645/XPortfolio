@@ -188,13 +188,6 @@ const REFERENCE_FILE_SPECS = [
     content: '[Theme]\nDisplayName=Windows Classic\n',
   },
   {
-    path: 'C:/WINDOWS/Resources/Themes/xbox.wba',
-    icon: XP_ICONS.rar,
-    url: '/themes/xbox/xbox.wba',
-    contentType: 'application/x-windowblinds',
-    size: 2341499,
-  },
-  {
     path: 'C:/WINDOWS/SoftwareDistribution/ReportingEvents.log',
     icon: DEFAULT_TEXT_ICON,
     contentType: 'text/plain',
