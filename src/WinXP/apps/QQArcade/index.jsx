@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { withBaseUrl } from '../../../utils/baseUrl';
+import useLoadingCursor from '../../hooks/useLoadingCursor';
 
 const Container = styled.div`
   width: 100%;
@@ -18,51 +19,12 @@ const AppFrame = styled.iframe`
   border: none;
 `;
 
-const LoadingOverlay = styled.div`
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-  color: white;
-  gap: 16px;
-
-  .spinner {
-    width: 50px;
-    height: 50px;
-    border: 4px solid rgba(255,255,255,0.2);
-    border-top-color: #00d4ff;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-
-  .loading-text {
-    font-size: 18px;
-    font-weight: bold;
-    background: linear-gradient(90deg, #00d4ff, #7b2cbf);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-`;
-
 function QQArcade() {
   const [isLoading, setIsLoading] = useState(true);
+  useLoadingCursor(isLoading);
 
   return (
     <Container>
-      {isLoading && (
-        <LoadingOverlay>
-          <div className="spinner" />
-          <span className="loading-text">QQ Games Arcade</span>
-        </LoadingOverlay>
-      )}
       <AppFrame
         src={withBaseUrl('/games/QQArcade/index.html')}
         onLoad={() => setIsLoading(false)}

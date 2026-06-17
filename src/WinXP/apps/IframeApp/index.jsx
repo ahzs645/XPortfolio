@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { useInstalledApps } from '../../../contexts/InstalledAppsContext';
 import { useFileSystem } from '../../../contexts/FileSystemContext';
 import { getTargetOriginFromUrl } from '../../../utils/iframeMessaging';
+import useLoadingCursor from '../../hooks/useLoadingCursor';
 
 const Container = styled.div`
   position: relative;
@@ -19,49 +20,6 @@ const AppFrame = styled.iframe`
   width: 100%;
   border: none;
   background: #fff;
-`;
-
-const LoadingOverlay = styled.div`
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(to bottom, #fff 0%, #ece9d8 100%);
-  font-family: 'Trebuchet MS', Tahoma, sans-serif;
-  font-size: 11px;
-  color: #333;
-  gap: 12px;
-
-  .loading-icon {
-    width: 48px;
-    height: 48px;
-    object-fit: contain;
-    animation: pulse 1.5s ease-in-out infinite;
-  }
-
-  .loading-text {
-    color: #333;
-  }
-
-  .loading-url {
-    color: #666;
-    font-size: 10px;
-    max-width: 80%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  progress {
-    width: 200px;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.7; transform: scale(0.95); }
-  }
 `;
 
 const ErrorOverlay = styled.div`
@@ -110,7 +68,6 @@ function IframeApp({
   appId,
   url,
   name,
-  icon,
   allow,
   onClose,
   onMinimize,
@@ -120,7 +77,6 @@ function IframeApp({
   const iframeRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [loadProgress, setLoadProgress] = useState(0);
   const { markAppRun, getApp } = useInstalledApps();
   const {
     createFile,
@@ -129,10 +85,12 @@ function IframeApp({
     SYSTEM_IDS,
   } = useFileSystem();
 
+  // Show the wait cursor while the iframe loads instead of a loading screen
+  useLoadingCursor(isLoading);
+
   const app = appId ? getApp(appId) : null;
   const appUrl = url || app?.url;
   const appName = name || app?.name || 'application';
-  const appIcon = icon || app?.icon || '/icons/xp/Programs.png';
 
   // Mark app as run
   useEffect(() => {
@@ -140,28 +98,6 @@ function IframeApp({
       markAppRun(appId);
     }
   }, [appId, markAppRun]);
-
-  // Animate progress bar while loading
-  /* eslint-disable react-hooks/set-state-in-effect -- progress bar sync */
-  useEffect(() => {
-    if (!isLoading) {
-      setLoadProgress(100);
-      return;
-    }
-
-    setLoadProgress(0);
-    const interval = setInterval(() => {
-      setLoadProgress((prev) => {
-        // Slow down as we approach 90% (never reach 100 until actually loaded)
-        if (prev >= 90) return prev;
-        const increment = Math.max(1, Math.floor((90 - prev) / 10));
-        return Math.min(90, prev + increment);
-      });
-    }, 150);
-
-    return () => clearInterval(interval);
-  }, [isLoading]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Handle messages from the iframe
   const handleMessage = useCallback((event) => {
@@ -388,20 +324,6 @@ function IframeApp({
 
   return (
     <Container>
-      {isLoading && (
-        <LoadingOverlay>
-          <img
-            className="loading-icon"
-            src={appIcon}
-            alt=""
-            onError={(e) => { e.target.src = '/icons/xp/Programs.png'; }}
-          />
-          <span className="loading-text">Loading {appName}...</span>
-          <progress max="100" value={loadProgress} />
-          <span className="loading-url">{appUrl}</span>
-        </LoadingOverlay>
-      )}
-
       {error && (
         <ErrorOverlay>
           <h3>Error</h3>

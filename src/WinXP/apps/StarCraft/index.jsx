@@ -1,18 +1,15 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import useLoadingCursor from '../../hooks/useLoadingCursor';
 
 function StarCraft() {
   const [isLoading, setIsLoading] = useState(true);
+  useLoadingCursor(isLoading);
 
   const gameSrc = 'https://projects.ahmadjalil.com/StarCraft/';
 
   return (
     <Container>
-      {isLoading && (
-        <LoadingOverlay>
-          <LoadingText>Loading StarCraft...</LoadingText>
-        </LoadingOverlay>
-      )}
       <GameFrame
         src={gameSrc}
         title="StarCraft"
@@ -32,28 +29,6 @@ const Container = styled.div`
   background: #000;
   position: relative;
   touch-action: none;
-`;
-
-const LoadingOverlay = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 50%, #0a1a2a 100%);
-  z-index: 10;
-`;
-
-const LoadingText = styled.div`
-  color: #00bfff;
-  font-size: 24px;
-  font-weight: bold;
-  text-shadow: 0 0 10px rgba(0, 191, 255, 0.5);
-  margin-bottom: 10px;
 `;
 
 const GameFrame = styled.iframe`
