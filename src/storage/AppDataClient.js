@@ -374,6 +374,15 @@ export function createDexieDataClient() {
           await localDb.localSettings.clear();
           await localDb.meta.clear();
         });
+        // Also clear the legacy idb-keyval store so a full reset leaves no
+        // stale pre-migration data behind. Clearing the contents (rather than
+        // deleting the database) avoids the blocked-delete problem that occurs
+        // while connections are still open.
+        try {
+          await legacyKeyval.clear();
+        } catch {
+          // idb-keyval store may not exist; ignore.
+        }
       },
 
       async importLegacyFileContents() {
