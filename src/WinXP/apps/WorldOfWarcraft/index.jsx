@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { withBaseUrl } from '../../../utils/baseUrl';
+import useLoadingCursor from '../../hooks/useLoadingCursor';
 
 const Container = styled.div`
   width: 100%;
@@ -34,46 +35,9 @@ const IframeOverlay = styled.div`
   display: ${props => props.$visible ? 'block' : 'none'};
 `;
 
-const LoadingOverlay = styled.div`
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-  font-family: 'Trebuchet MS', Tahoma, sans-serif;
-  color: #ffd700;
-  gap: 16px;
-  z-index: 10;
-
-  .loading-icon {
-    width: 80px;
-    height: 80px;
-    animation: pulse 1.5s ease-in-out infinite;
-    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
-  }
-
-  .loading-text {
-    font-size: 20px;
-    font-weight: bold;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-  }
-
-  .loading-subtitle {
-    font-size: 12px;
-    color: #87CEEB;
-    opacity: 0.9;
-  }
-
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.05); opacity: 0.8; }
-  }
-`;
-
 function WorldOfWarcraft({ onClose, isFocus }) {
   const [isLoading, setIsLoading] = useState(true);
+  useLoadingCursor(isLoading);
 
   // Listen for close message from iframe
   const handleMessage = useCallback((event) => {
@@ -92,18 +56,6 @@ function WorldOfWarcraft({ onClose, isFocus }) {
 
   return (
     <Container>
-      {isLoading && (
-        <LoadingOverlay>
-          <img
-            className="loading-icon"
-            src={withBaseUrl('/icons/games/wow.webp')}
-            alt="World of Warcraft"
-            onError={(e) => { e.target.style.display = 'none'; }}
-          />
-          <span className="loading-text">World of Warcraft</span>
-          <span className="loading-subtitle">Loading Azeroth...</span>
-        </LoadingOverlay>
-      )}
       <IframeContainer>
         <AppFrame
           src={withBaseUrl('/apps/wow/wow.html')}
