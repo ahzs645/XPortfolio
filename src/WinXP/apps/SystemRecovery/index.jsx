@@ -83,21 +83,21 @@ function SystemRecovery() {
     setLoadingMessage('Resetting entire computer...');
 
     try {
+      // Clear all persisted app data (Dexie tables + legacy idb-keyval store).
+      //
+      // We intentionally do NOT call indexedDB.deleteDatabase here: the app
+      // keeps an open Dexie connection, so deleting the database is blocked
+      // until that connection closes. The delete then races the next page
+      // load's reopen, which can hang or throw and leave a blank screen.
+      // clearAll() empties the tables in place while the connection stays
+      // valid, so the app reopens cleanly on reload and rebuilds defaults.
+      await appDataClient.maintenance.clearAll();
+
       // Clear localStorage
       localStorage.clear();
 
       // Clear sessionStorage
       sessionStorage.clear();
-
-      // Clear IndexedDB databases
-      if (indexedDB.databases) {
-        const databases = await indexedDB.databases();
-        for (const db of databases) {
-          if (db.name) {
-            indexedDB.deleteDatabase(db.name);
-          }
-        }
-      }
 
       // Clear caches
       if ('caches' in window) {
