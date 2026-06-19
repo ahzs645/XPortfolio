@@ -70,6 +70,16 @@
   color: inherit;
 }
 
+/* Start-menu submenu items: the `.start-menu-submenu *` rule above paints all
+   submenu text --xp-menu-text, which beats the item's inherited hover colour,
+   so the label never flipped to white on hover/focus. Re-assert the highlight
+   text colour on the hovered/focused item's own label spans. Scoped with `>`
+   so it never leaks into an open nested submenu (white-on-white). */
+[data-xp-shell-root] .xp-start-menu .start-menu-submenu-item:hover > span,
+[data-xp-shell-root] .xp-start-menu .start-menu-submenu-item:focus-visible > span {
+  color: var(--xp-highlight-text);
+}
+
 [data-xp-shell-root] .xp-search-panel {
   background: linear-gradient(180deg, var(--xp-active-title), var(--xp-inactive-title));
 }

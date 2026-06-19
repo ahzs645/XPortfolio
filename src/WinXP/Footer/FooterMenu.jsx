@@ -8,6 +8,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { isAppDisabled } from '../apps/Installer/disabledApps';
 import { withBaseUrl } from '../../utils/baseUrl';
 import { preloadImages } from '../../utils/imagePreloader';
+import { positionFlyout } from '../../../external/XPandeder.css/js/xp-start-menu.js';
 import {
   START_MENU_CATALOG,
   PINNED_LEFT,
@@ -350,7 +351,6 @@ function AllProgramsMenu({ items, activeFolder, onItemClick, onFolderHover, isIm
 function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemClick, isImagePreloadEnabled }) {
   const itemRef = useRef(null);
   const submenuRef = useRef(null);
-  const [submenuOffset, setSubmenuOffset] = useState(0);
   const [activeSubfolder, setActiveSubfolder] = useState(null);
 
   function handleHover() {
@@ -360,34 +360,14 @@ function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemC
     onHover();
   }
 
-  /* eslint-disable react-hooks/set-state-in-effect -- reset on close + DOM measurement */
+  /* eslint-disable react-hooks/set-state-in-effect -- reset active subfolder on close */
   useLayoutEffect(() => {
     if (!isOpen) {
-      setSubmenuOffset(0);
       setActiveSubfolder(null);
       return;
     }
 
-    const repositionSubmenu = () => {
-      if (!submenuRef.current || !itemRef.current) return;
-
-      const submenuRect = submenuRef.current.getBoundingClientRect();
-      const itemRect = itemRef.current.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      const padding = 8;
-
-      let desiredTop = itemRect.top;
-
-      if (desiredTop + submenuRect.height + padding > viewportHeight) {
-        desiredTop = viewportHeight - submenuRect.height - padding;
-      }
-
-      if (desiredTop < padding) {
-        desiredTop = padding;
-      }
-
-      setSubmenuOffset(desiredTop - itemRect.top);
-    };
+    const repositionSubmenu = () => positionFlyout(submenuRef.current, itemRef.current);
 
     repositionSubmenu();
     window.addEventListener('resize', repositionSubmenu);
@@ -415,8 +395,8 @@ function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemC
           className="start-menu-submenu folder-submenu"
           onMouseEnter={onHover}
           ref={submenuRef}
-          style={{ transform: `translateY(${submenuOffset}px)` }}
         >
+          <div className="start-menu-submenu-sidebar" aria-hidden="true" />
           <div className="start-menu-submenu-items" role="menu" aria-label={folder.title}>
             {folderItems.map((item) => {
               if (item.type === 'separator') {
@@ -473,7 +453,6 @@ function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemC
 function NestedFolderItem({ folder, isOpen, folderItems, onHover, onLeave, onItemClick, isImagePreloadEnabled }) {
   const itemRef = useRef(null);
   const submenuRef = useRef(null);
-  const [submenuOffset, setSubmenuOffset] = useState(0);
 
   function handleHover() {
     if (isImagePreloadEnabled('eager')) {
@@ -482,33 +461,10 @@ function NestedFolderItem({ folder, isOpen, folderItems, onHover, onLeave, onIte
     onHover();
   }
 
-  /* eslint-disable react-hooks/set-state-in-effect -- reset on close + DOM measurement */
   useLayoutEffect(() => {
-    if (!isOpen) {
-      setSubmenuOffset(0);
-      return;
-    }
+    if (!isOpen) return;
 
-    const repositionSubmenu = () => {
-      if (!submenuRef.current || !itemRef.current) return;
-
-      const submenuRect = submenuRef.current.getBoundingClientRect();
-      const itemRect = itemRef.current.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      const padding = 8;
-
-      let desiredTop = itemRect.top;
-
-      if (desiredTop + submenuRect.height + padding > viewportHeight) {
-        desiredTop = viewportHeight - submenuRect.height - padding;
-      }
-
-      if (desiredTop < padding) {
-        desiredTop = padding;
-      }
-
-      setSubmenuOffset(desiredTop - itemRect.top);
-    };
+    const repositionSubmenu = () => positionFlyout(submenuRef.current, itemRef.current);
 
     repositionSubmenu();
     window.addEventListener('resize', repositionSubmenu);
@@ -517,7 +473,6 @@ function NestedFolderItem({ folder, isOpen, folderItems, onHover, onLeave, onIte
       window.removeEventListener('resize', repositionSubmenu);
     };
   }, [isOpen, folderItems.length]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   return (
     <div
@@ -536,8 +491,8 @@ function NestedFolderItem({ folder, isOpen, folderItems, onHover, onLeave, onIte
           className="start-menu-submenu nested-submenu"
           onMouseEnter={onHover}
           ref={submenuRef}
-          style={{ transform: `translateY(${submenuOffset}px)` }}
         >
+          <div className="start-menu-submenu-sidebar" aria-hidden="true" />
           <div className="start-menu-submenu-items" role="menu" aria-label={folder.title}>
             {folderItems.map((item) => (
               <div
