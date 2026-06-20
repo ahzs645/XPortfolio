@@ -40,4 +40,13 @@ export default {
   categories: {
     "Command & Conquer": "game"
   },
+  startMenu: {
+    "commandAndConquer": {
+    type: 'program',
+    appKey: 'Command & Conquer',
+    icon: '/icons/games/command-and-conquer.ico',
+    title: 'Command & Conquer',
+    description: 'Classic real-time strategy',
+  },
+  },
 };

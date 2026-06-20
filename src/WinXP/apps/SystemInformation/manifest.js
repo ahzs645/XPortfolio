@@ -40,4 +40,13 @@ export default {
   categories: {
     "System Information": "system"
   },
+  startMenu: {
+    "systemInformation": {
+    type: 'program',
+    appKey: 'System Information',
+    icon: '/icons/xp/system.png',
+    title: 'System Information',
+    description: 'View system configuration',
+  },
+  },
 };

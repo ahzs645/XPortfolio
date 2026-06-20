@@ -40,4 +40,13 @@ export default {
   categories: {
     "Red Alert 2": "game"
   },
+  startMenu: {
+    "redAlert2": {
+    type: 'program',
+    appKey: 'Red Alert 2',
+    icon: '/icons/games/red-alert2.png',
+    title: 'C&C: Red Alert 2',
+    description: 'HTML5 port - Work in progress',
+  },
+  },
 };

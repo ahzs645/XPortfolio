@@ -61,4 +61,13 @@ export default {
     "Add or Remove Programs": "system",
     "App Installer": "system"
   },
+  startMenu: {
+    "installer": {
+    type: 'program',
+    appKey: 'App Installer',
+    icon: '/icons/xp/Programs.png',
+    title: 'App Installer',
+    description: 'Install web apps',
+  },
+  },
 };

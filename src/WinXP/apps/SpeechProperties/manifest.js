@@ -40,4 +40,13 @@ export default {
   categories: {
     "Speech Properties": "system"
   },
+  startMenu: {
+    "speechProperties": {
+    type: 'program',
+    appKey: 'Speech Properties',
+    icon: '/icons/xp/speech.png',
+    title: 'Speech Properties',
+    description: 'Text-to-speech settings',
+  },
+  },
 };

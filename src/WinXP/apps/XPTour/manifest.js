@@ -45,4 +45,13 @@ export default {
   categories: {
     "Windows XP Tour": "system"
   },
+  startMenu: {
+    "tour": {
+    type: 'program',
+    appKey: 'Windows XP Tour',
+    icon: '/icons/xp/tray/xptour.png',
+    title: 'Tour Windows XP',
+    description: 'Take a tour of Windows XP',
+  },
+  },
 };

@@ -46,6 +46,9 @@ const EXTRA_CATEGORIES = {
 export const appSettings = {};
 export const desktopIconCatalog = {};
 export const appCategoryMap = {};
+// Per-app Start Menu entry definitions (icon/title/description). Placement
+// (order, folder membership, pins) stays curated in config/startMenuConfig.js.
+export const startMenuEntries = {};
 const CATALOG_TO_APP_KEY = {};
 
 for (const mod of Object.values(manifestModules)) {
@@ -55,6 +58,7 @@ for (const mod of Object.values(manifestModules)) {
   Object.assign(desktopIconCatalog, manifest.icons);
   Object.assign(CATALOG_TO_APP_KEY, manifest.catalogTargets);
   Object.assign(appCategoryMap, manifest.categories);
+  Object.assign(startMenuEntries, manifest.startMenu);
 }
 Object.assign(CATALOG_TO_APP_KEY, EXTRA_CATALOG_TARGETS);
 Object.assign(appCategoryMap, EXTRA_CATEGORIES);

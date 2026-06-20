@@ -40,4 +40,13 @@ export default {
   categories: {
     "World of Warcraft": "game"
   },
+  startMenu: {
+    "worldOfWarcraft": {
+    type: 'program',
+    appKey: 'World of Warcraft',
+    icon: '/icons/games/wow.webp',
+    title: 'World of Warcraft',
+    description: 'Classic WoW login screen',
+  },
+  },
 };

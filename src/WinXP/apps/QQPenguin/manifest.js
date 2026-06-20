@@ -40,4 +40,13 @@ export default {
   categories: {
     "QQ Penguin": "game"
   },
+  startMenu: {
+    "qqPenguin": {
+    type: 'program',
+    appKey: 'QQ Penguin',
+    icon: '/icons/qqpet.ico',
+    title: 'QQ Pet',
+    description: 'Virtual pet app',
+  },
+  },
 };

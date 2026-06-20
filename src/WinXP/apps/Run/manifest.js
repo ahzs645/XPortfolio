@@ -25,6 +25,7 @@ export default {
     minimized: false,
     maximized: false,
     multiInstance: false,
+    mobileFullscreen: false,
   },
   },
   icons: {
@@ -33,5 +34,14 @@ export default {
   catalogTargets: {},
   categories: {
     "Run": "utility"
+  },
+  startMenu: {
+    "run": {
+    type: 'program',
+    appKey: 'Run',
+    icon: '/icons/luna/run.png',
+    title: 'Run...',
+    description: 'Open a program or file',
+  },
   },
 };

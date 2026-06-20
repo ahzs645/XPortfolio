@@ -41,4 +41,13 @@ export default {
   categories: {
     "Pinball": "game"
   },
+  startMenu: {
+    "pinball": {
+    type: 'program',
+    appKey: 'Pinball',
+    icon: '/icons/pinball-icon.png',
+    title: '3D Pinball',
+    description: null,
+  },
+  },
 };

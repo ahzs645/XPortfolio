@@ -34,4 +34,13 @@ export default {
   categories: {
     "Theme Settings": "system"
   },
+  startMenu: {
+    "themeSettings": {
+    type: 'program',
+    appKey: 'Theme Settings',
+    icon: '/icons/xp/DisplayProperties.png',
+    title: 'Theme Settings',
+    description: 'Switch shell themes',
+  },
+  },
 };

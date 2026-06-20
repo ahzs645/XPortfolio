@@ -99,4 +99,20 @@ export default {
     "Doom": "game",
     "Quake": "game"
   },
+  startMenu: {
+    "doom": {
+    type: 'program',
+    appKey: 'Doom',
+    icon: '/icons/games/doom.png',
+    title: 'Doom',
+    description: null,
+  },
+    "quake": {
+    type: 'program',
+    appKey: 'Quake',
+    icon: '/icons/games/quake.ico',
+    title: 'Quake',
+    description: null,
+  },
+  },
 };

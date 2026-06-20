@@ -40,4 +40,13 @@ export default {
   categories: {
     "System Properties": "system"
   },
+  startMenu: {
+    "systemProperties": {
+    type: 'program',
+    appKey: 'System Properties',
+    icon: '/icons/xp/system.png',
+    title: 'System Properties',
+    description: 'View system information',
+  },
+  },
 };

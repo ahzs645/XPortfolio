@@ -41,4 +41,13 @@ export default {
   categories: {
     "Blue Screen of Death": "game"
   },
+  startMenu: {
+    "blueScreenOfDeath": {
+    type: 'program',
+    appKey: 'Blue Screen of Death',
+    icon: '/icons/luna/dialog_error.png',
+    title: 'Blue Screen of Death',
+    description: 'Trigger a fake crash and reboot',
+  },
+  },
 };

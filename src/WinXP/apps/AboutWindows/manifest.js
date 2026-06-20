@@ -34,4 +34,13 @@ export default {
   categories: {
     "About Windows": "system"
   },
+  startMenu: {
+    "aboutWindows": {
+    type: 'program',
+    appKey: 'About Windows',
+    icon: '/icons/xp/system.png',
+    title: 'About Windows',
+    description: 'Display Windows version information',
+  },
+  },
 };

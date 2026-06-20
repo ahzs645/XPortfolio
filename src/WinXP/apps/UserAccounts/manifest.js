@@ -40,4 +40,13 @@ export default {
   categories: {
     "User Accounts": "system"
   },
+  startMenu: {
+    "userAccounts": {
+    type: 'program',
+    appKey: 'User Accounts',
+    icon: '/icons/xp/UserAccounts.png',
+    title: 'User Accounts',
+    description: 'Manage user accounts',
+  },
+  },
 };

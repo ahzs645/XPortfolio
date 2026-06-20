@@ -40,4 +40,13 @@ export default {
   categories: {
     "Transfer Wizard": "system"
   },
+  startMenu: {
+    "transferWizard": {
+    type: 'program',
+    appKey: 'Transfer Wizard',
+    icon: '/icons/xp/tray/migrate.png',
+    title: 'Files and Settings Transfer Wizard',
+    description: 'Transfer your environment',
+  },
+  },
 };

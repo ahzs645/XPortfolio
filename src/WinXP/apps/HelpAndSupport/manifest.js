@@ -40,4 +40,13 @@ export default {
   categories: {
     "Help and Support": "system"
   },
+  startMenu: {
+    "help": {
+    type: 'program',
+    appKey: 'Help and Support',
+    icon: '/icons/help.png',
+    title: 'Help and Support',
+    description: null,
+  },
+  },
 };

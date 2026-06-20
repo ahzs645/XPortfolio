@@ -40,4 +40,13 @@ export default {
   categories: {
     "Backup Wizard": "system"
   },
+  startMenu: {
+    "backupWizard": {
+    type: 'program',
+    appKey: 'Backup Wizard',
+    icon: '/icons/xp/tray/backup.png',
+    title: 'Backup',
+    description: 'Backup or restore files',
+  },
+  },
 };

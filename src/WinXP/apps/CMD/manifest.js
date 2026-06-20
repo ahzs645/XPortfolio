@@ -60,4 +60,13 @@ export default {
   categories: {
     "Command Prompt": "accessory"
   },
+  startMenu: {
+    "cmd": {
+    type: 'program',
+    appKey: 'Command Prompt',
+    icon: '/icons/cmd.png',
+    title: 'Command Prompt',
+    description: null,
+  },
+  },
 };

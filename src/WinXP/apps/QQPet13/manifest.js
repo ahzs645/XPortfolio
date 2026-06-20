@@ -40,4 +40,13 @@ export default {
   categories: {
     "QQ Pet 13": "game"
   },
+  startMenu: {
+    "qqPet13": {
+    type: 'program',
+    appKey: 'QQ Pet 13',
+    icon: '/games/QQPet13/logo.png',
+    title: 'QQ Pet 13',
+    description: 'HTML5 virtual pet',
+  },
+  },
 };

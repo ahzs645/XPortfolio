@@ -40,4 +40,13 @@ export default {
   categories: {
     "My Computer": "system"
   },
+  startMenu: {
+    "myComputer": {
+    type: 'program',
+    appKey: 'My Computer',
+    icon: '/icons/xp/MyComputer.png',
+    title: 'My Computer',
+    description: null,
+  },
+  },
 };

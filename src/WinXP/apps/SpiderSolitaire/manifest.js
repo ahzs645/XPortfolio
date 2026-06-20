@@ -40,4 +40,13 @@ export default {
   categories: {
     "Spider Solitaire": "game"
   },
+  startMenu: {
+    "spiderSolitaire": {
+    type: 'program',
+    appKey: 'Spider Solitaire',
+    icon: '/icons/spider-solitaire-icon.webp',
+    title: 'Spider Solitaire',
+    description: null,
+  },
+  },
 };

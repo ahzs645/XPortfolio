@@ -40,4 +40,13 @@ export default {
   categories: {
     "LEGO Island": "game"
   },
+  startMenu: {
+    "legoIsland": {
+    type: 'program',
+    appKey: 'LEGO Island',
+    icon: '/icons/games/lego-island.webp',
+    title: 'LEGO Island',
+    description: 'Classic LEGO adventure game',
+  },
+  },
 };

@@ -38,4 +38,13 @@ export default {
   categories: {
     "Microsoft Excel": "accessory"
   },
+  startMenu: {
+    "microsoftExcel": {
+    type: 'program',
+    appKey: 'Microsoft Excel',
+    icon: '/icons/xp/MSExcel.gif',
+    title: 'Microsoft Excel',
+    description: 'Spreadsheet editor',
+  },
+  },
 };

@@ -40,4 +40,13 @@ export default {
   categories: {
     "Sounds and Audio Devices": "system"
   },
+  startMenu: {
+    "soundsAndAudioDevices": {
+    type: 'program',
+    appKey: 'Sounds and Audio Devices',
+    icon: '/icons/xp/tray/sound.png',
+    title: 'Sounds and Audio Devices',
+    description: 'Sound schemes and audio settings',
+  },
+  },
 };

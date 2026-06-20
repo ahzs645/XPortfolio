@@ -40,4 +40,13 @@ export default {
   categories: {
     "Internet Explorer": "internet"
   },
+  startMenu: {
+    "internetExplorer": {
+    type: 'program',
+    appKey: 'Internet Explorer',
+    icon: '/icons/xp/InternetExplorer6.png',
+    title: 'Internet Explorer',
+    description: 'Browse the web',
+  },
+  },
 };

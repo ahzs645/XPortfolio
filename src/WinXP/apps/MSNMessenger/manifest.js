@@ -71,4 +71,13 @@ export default {
   categories: {
     "MSN Messenger": "internet"
   },
+  startMenu: {
+    "msnMessenger": {
+    type: 'program',
+    appKey: 'MSN Messenger',
+    icon: '/icons/xp/messenger.png',
+    title: 'MSN Messenger',
+    description: 'Chat with Chatango',
+  },
+  },
 };

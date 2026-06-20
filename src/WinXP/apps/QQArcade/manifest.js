@@ -40,4 +40,13 @@ export default {
   categories: {
     "QQ Arcade": "game"
   },
+  startMenu: {
+    "qqArcade": {
+    type: 'program',
+    appKey: 'QQ Arcade',
+    icon: '/games/QQArcade/icon.png',
+    title: 'QQ Arcade',
+    description: '29 classic mini-games',
+  },
+  },
 };

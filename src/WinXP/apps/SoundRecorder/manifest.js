@@ -40,4 +40,13 @@ export default {
   categories: {
     "Sound Recorder": "media"
   },
+  startMenu: {
+    "soundRecorder": {
+    type: 'program',
+    appKey: 'Sound Recorder',
+    icon: '/icons/xp/SoundRecorder.webp',
+    title: 'Sound Recorder',
+    description: null,
+  },
+  },
 };

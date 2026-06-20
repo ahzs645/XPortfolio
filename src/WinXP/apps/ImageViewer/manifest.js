@@ -40,4 +40,13 @@ export default {
   categories: {
     "Image Viewer": "media"
   },
+  startMenu: {
+    "imageViewer": {
+    type: 'program',
+    appKey: 'Image Viewer',
+    icon: '/apps/openlair-viewer/static/images/icon/viewer.png',
+    title: 'Windows Picture and Fax Viewer',
+    description: 'View images and photos',
+  },
+  },
 };

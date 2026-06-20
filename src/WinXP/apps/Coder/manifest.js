@@ -44,4 +44,13 @@ export default {
   categories: {
     "Code Editor": "accessory"
   },
+  startMenu: {
+    "coder": {
+    type: 'program',
+    appKey: 'Code Editor',
+    icon: '/apps/openlair-viewer/static/images/icon/coder.png',
+    title: 'Code Editor',
+    description: 'Edit web and script files',
+  },
+  },
 };

@@ -34,4 +34,13 @@ export default {
   categories: {
     "Disk Defragmenter": "system"
   },
+  startMenu: {
+    "diskDefrag": {
+    type: 'program',
+    appKey: 'Disk Defragmenter',
+    icon: '/icons/xp/DiskDefrag.png',
+    title: 'Disk Defragmenter',
+    description: 'Defragment your hard drive',
+  },
+  },
 };

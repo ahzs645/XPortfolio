@@ -65,4 +65,20 @@ export default {
     "Resume": "portfolio",
     "Adobe Reader": "utility"
   },
+  startMenu: {
+    "resume": {
+    type: 'program',
+    appKey: 'Resume',
+    icon: '/icons/pdf/PDF.ico',
+    title: 'My Resume',
+    description: 'View my CV',
+  },
+    "adobeReader": {
+    type: 'program',
+    appKey: 'Adobe Reader',
+    icon: '/icons/pdf/acroaum_grp107_lang1033.ico',
+    title: 'Adobe Reader',
+    description: 'View PDF files',
+  },
+  },
 };

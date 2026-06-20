@@ -40,4 +40,13 @@ export default {
   categories: {
     "About Me": "portfolio"
   },
+  startMenu: {
+    "about": {
+    type: 'program',
+    appKey: 'About Me',
+    icon: '/icons/about.webp',
+    title: 'About Me',
+    description: null,
+  },
+  },
 };

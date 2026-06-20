@@ -38,4 +38,13 @@ export default {
   categories: {
     "Character Map": "accessory"
   },
+  startMenu: {
+    "characterMap": {
+    type: 'program',
+    appKey: 'Character Map',
+    icon: '/icons/xp/font.png',
+    title: 'Character Map',
+    description: 'View and copy special characters',
+  },
+  },
 };

@@ -35,4 +35,13 @@ export default {
   categories: {
     "eSheep": "game"
   },
+  startMenu: {
+    "esheep": {
+    type: 'program',
+    appKey: 'eSheep',
+    icon: '/icons/esheep.png',
+    title: 'eSheep',
+    description: null,
+  },
+  },
 };

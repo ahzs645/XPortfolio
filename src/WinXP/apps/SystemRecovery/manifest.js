@@ -34,4 +34,13 @@ export default {
   categories: {
     "System Recovery": "system"
   },
+  startMenu: {
+    "systemRecovery": {
+    type: 'program',
+    appKey: 'System Recovery',
+    icon: '/icons/xp/Recovery.png',
+    title: 'System Recovery',
+    description: 'Reset all settings',
+  },
+  },
 };

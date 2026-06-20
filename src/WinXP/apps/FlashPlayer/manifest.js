@@ -40,4 +40,13 @@ export default {
   categories: {
     "Adobe Flash Player": "media"
   },
+  startMenu: {
+    "flashPlayer": {
+    type: 'program',
+    appKey: 'Adobe Flash Player',
+    icon: '/icons/flash/flash_player.png',
+    title: 'Adobe Flash Player',
+    description: 'Play Flash content with Ruffle',
+  },
+  },
 };

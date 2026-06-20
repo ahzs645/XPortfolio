@@ -40,4 +40,13 @@ export default {
   categories: {
     "Diablo": "game"
   },
+  startMenu: {
+    "diablo": {
+    type: 'program',
+    appKey: 'Diablo',
+    icon: '/icons/games/diablo.png',
+    title: 'Diablo',
+    description: 'Blizzard action RPG',
+  },
+  },
 };

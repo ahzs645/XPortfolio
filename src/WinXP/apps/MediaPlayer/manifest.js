@@ -62,4 +62,13 @@ export default {
   categories: {
     "Windows Media Player": "media"
   },
+  startMenu: {
+    "mediaPlayer": {
+    type: 'program',
+    appKey: 'Windows Media Player',
+    icon: '/icons/media-player.png',
+    title: 'Windows Media Player',
+    description: null,
+  },
+  },
 };

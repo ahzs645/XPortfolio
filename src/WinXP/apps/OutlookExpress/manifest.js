@@ -40,4 +40,13 @@ export default {
   categories: {
     "Outlook Express": "internet"
   },
+  startMenu: {
+    "outlookExpress": {
+    type: 'program',
+    appKey: 'Outlook Express',
+    icon: '/icons/outlook/outlook.png',
+    title: 'Outlook Express',
+    description: 'Read email messages',
+  },
+  },
 };

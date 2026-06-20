@@ -38,4 +38,13 @@ export default {
   categories: {
     "Microsoft Word": "accessory"
   },
+  startMenu: {
+    "microsoftWord": {
+    type: 'program',
+    appKey: 'Microsoft Word',
+    icon: '/icons/xp/MSWord.png',
+    title: 'Microsoft Word',
+    description: 'Word processor',
+  },
+  },
 };

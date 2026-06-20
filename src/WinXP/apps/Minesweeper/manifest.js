@@ -25,6 +25,7 @@ export default {
     minimized: false,
     maximized: false,
     multiInstance: true,
+    mobileFullscreen: false,
   },
   },
   icons: {
@@ -39,5 +40,14 @@ export default {
   },
   categories: {
     "Minesweeper": "game"
+  },
+  startMenu: {
+    "minesweeper": {
+    type: 'program',
+    appKey: 'Minesweeper',
+    icon: '/icons/xp/Minesweeper.png',
+    title: 'Minesweeper',
+    description: null,
+  },
   },
 };

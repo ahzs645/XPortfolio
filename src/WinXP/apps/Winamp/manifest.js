@@ -25,6 +25,7 @@ export default {
     minimized: false,
     maximized: false,
     multiInstance: false,
+    mobileFullscreen: false,
   },
   },
   icons: {
@@ -39,5 +40,14 @@ export default {
   },
   categories: {
     "Winamp": "media"
+  },
+  startMenu: {
+    "winamp": {
+    type: 'program',
+    appKey: 'Winamp',
+    icon: '/icons/winamp.png',
+    title: 'Winamp',
+    description: null,
+  },
   },
 };

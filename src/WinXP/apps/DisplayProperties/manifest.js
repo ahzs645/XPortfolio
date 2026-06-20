@@ -40,4 +40,13 @@ export default {
   categories: {
     "Display Properties": "system"
   },
+  startMenu: {
+    "displayProperties": {
+    type: 'program',
+    appKey: 'Display Properties',
+    icon: '/icons/xp/DisplayProperties.png',
+    title: 'Display Properties',
+    description: 'Change desktop background',
+  },
+  },
 };

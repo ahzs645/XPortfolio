@@ -25,6 +25,7 @@ export default {
     minimized: false,
     maximized: false,
     multiInstance: true,
+    mobileFullscreen: false,
   },
   },
   icons: {

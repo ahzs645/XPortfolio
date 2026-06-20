@@ -103,4 +103,13 @@ export default {
   categories: {
     "Registry Editor": "system"
   },
+  startMenu: {
+    "registryEditor": {
+    type: 'program',
+    appKey: 'Registry Editor',
+    icon: '/icons/luna/regedit.ico',
+    title: 'Registry Editor',
+    description: 'Edit the Windows registry',
+  },
+  },
 };

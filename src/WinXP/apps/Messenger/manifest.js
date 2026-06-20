@@ -40,4 +40,13 @@ export default {
   categories: {
     "Windows Messenger": "internet"
   },
+  startMenu: {
+    "messenger": {
+    type: 'program',
+    appKey: 'Windows Messenger',
+    icon: '/icons/xp/messenger.png',
+    title: 'Windows Messenger',
+    description: 'Instant messaging',
+  },
+  },
 };

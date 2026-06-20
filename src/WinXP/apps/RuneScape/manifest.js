@@ -40,4 +40,13 @@ export default {
   categories: {
     "RuneScape Classic": "game"
   },
+  startMenu: {
+    "runescape": {
+    type: 'program',
+    appKey: 'RuneScape Classic',
+    icon: '/icons/runescape-icon.png',
+    title: 'RuneScape Classic',
+    description: 'Offline singleplayer RSC',
+  },
+  },
 };

@@ -60,4 +60,13 @@ export default {
   categories: {
     "Contact": "portfolio"
   },
+  startMenu: {
+    "contact": {
+    type: 'program',
+    appKey: 'Contact',
+    icon: '/icons/outlook/write.png',
+    title: 'Contact Me',
+    description: 'Send me a message',
+  },
+  },
 };

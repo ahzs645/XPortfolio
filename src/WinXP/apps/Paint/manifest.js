@@ -41,4 +41,13 @@ export default {
   categories: {
     "Paint": "accessory"
   },
+  startMenu: {
+    "paint": {
+    type: 'program',
+    appKey: 'Paint',
+    icon: '/icons/paint.webp',
+    title: 'Paint',
+    description: null,
+  },
+  },
 };

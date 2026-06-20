@@ -26,6 +26,7 @@ export default {
     minimized: false,
     maximized: false,
     multiInstance: false,
+    mobileFullscreen: false,
   },
   },
   icons: {
@@ -40,5 +41,14 @@ export default {
   },
   categories: {
     "Windows Media Player Classic": "media"
+  },
+  startMenu: {
+    "mediaPlayerClassic": {
+    type: 'program',
+    appKey: 'Windows Media Player Classic',
+    icon: '/icons/xp/WindowsMediaPlayer9.png',
+    title: 'Windows Media Player Classic',
+    description: 'Classic XP-style media player',
+  },
   },
 };

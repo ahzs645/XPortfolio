@@ -29,6 +29,7 @@ export default {
     minimized: false,
     maximized: false,
     multiInstance: true,
+    mobileFullscreen: false,
   },
   },
   icons: {
@@ -43,5 +44,14 @@ export default {
   },
   categories: {
     "Calculator": "accessory"
+  },
+  startMenu: {
+    "calculator": {
+    type: 'program',
+    appKey: 'Calculator',
+    icon: '/icons/xp/Calculator.png',
+    title: 'Calculator',
+    description: null,
+  },
   },
 };

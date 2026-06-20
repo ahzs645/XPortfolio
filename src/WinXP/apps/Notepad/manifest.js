@@ -40,4 +40,13 @@ export default {
   categories: {
     "Notepad": "accessory"
   },
+  startMenu: {
+    "notepad": {
+    type: 'program',
+    appKey: 'Notepad',
+    icon: '/icons/xp/Notepad.png',
+    title: 'Notepad',
+    description: null,
+  },
+  },
 };

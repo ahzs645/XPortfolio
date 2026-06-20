@@ -25,6 +25,7 @@ export default {
     minimized: false,
     maximized: false,
     multiInstance: false,
+    mobileFullscreen: false,
   },
   },
   icons: {
@@ -39,5 +40,14 @@ export default {
   },
   categories: {
     "Solitaire": "game"
+  },
+  startMenu: {
+    "solitaire": {
+    type: 'program',
+    appKey: 'Solitaire',
+    icon: '/icons/solitaire-icon.png',
+    title: 'Solitaire',
+    description: null,
+  },
   },
 };

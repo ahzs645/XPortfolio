@@ -40,4 +40,13 @@ export default {
   categories: {
     "StarCraft": "game"
   },
+  startMenu: {
+    "starcraft": {
+    type: 'program',
+    appKey: 'StarCraft',
+    icon: '/icons/games/starcraft.png',
+    title: 'StarCraft',
+    description: 'Blizzard real-time strategy',
+  },
+  },
 };

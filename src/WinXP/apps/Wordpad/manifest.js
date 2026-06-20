@@ -40,4 +40,13 @@ export default {
   categories: {
     "WordPad": "accessory"
   },
+  startMenu: {
+    "wordpad": {
+    type: 'program',
+    appKey: 'WordPad',
+    icon: '/icons/xp/wordpad.png',
+    title: 'WordPad',
+    description: 'Rich text editor',
+  },
+  },
 };

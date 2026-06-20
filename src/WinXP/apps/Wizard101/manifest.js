@@ -41,4 +41,13 @@ export default {
   categories: {
     "Wizard101": "game"
   },
+  startMenu: {
+    "wizard101": {
+    type: 'program',
+    appKey: 'Wizard101',
+    icon: '/apps/wizard101/images/icon.ico',
+    title: 'Wizard101',
+    description: 'Wizard101 Game Launcher',
+  },
+  },
 };

@@ -34,4 +34,13 @@ export default {
   categories: {
     "Volume Control": "system"
   },
+  startMenu: {
+    "volumeControl": {
+    type: 'program',
+    appKey: 'Volume Control',
+    icon: '/icons/luna/volume_on.png',
+    title: 'Volume Control',
+    description: 'Adjust system volume',
+  },
+  },
 };

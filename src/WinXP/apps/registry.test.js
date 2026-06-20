@@ -4,7 +4,7 @@
 // missing manifest, a bad glob path, or a malformed window descriptor.
 import { describe, it, expect } from 'vitest';
 
-import { appSettings, desktopIconCatalog, defaultIconState, generateIconState } from './index.js';
+import { appSettings, desktopIconCatalog, defaultIconState, generateIconState, startMenuEntries } from './index.js';
 
 describe('app registry', () => {
   it('assembles a populated registry from manifests', () => {
@@ -29,5 +29,11 @@ describe('app registry', () => {
   it('resolves catalog ids to launch targets', () => {
     const [about] = generateIconState(['about']);
     expect(about.target).toBe('About Me');
+  });
+
+  it('aggregates per-app Start Menu entries from manifests', () => {
+    expect(Object.keys(startMenuEntries).length).toBeGreaterThan(50);
+    expect(startMenuEntries.tour).toMatchObject({ type: 'program', appKey: 'Windows XP Tour' });
+    expect(startMenuEntries.about).toMatchObject({ type: 'program', appKey: 'About Me' });
   });
 });
