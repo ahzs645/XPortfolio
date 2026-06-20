@@ -453,6 +453,13 @@ export const START_MENU_CATALOG = {
     title: 'Volume Control',
     description: 'Adjust system volume',
   },
+  tour: {
+    type: 'program',
+    appKey: 'Windows XP Tour',
+    icon: '/icons/xp/tray/xptour.png',
+    title: 'Tour Windows XP',
+    description: 'Take a tour of Windows XP',
+  },
   blueScreenOfDeath: {
     type: 'program',
     appKey: 'Blue Screen of Death',
@@ -518,7 +525,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Accessories',
     icon: '/icons/folder-icon.png',
-    items: ['calculator', 'characterMap', 'notepad', 'coder', 'wordpad', 'microsoftWord', 'microsoftExcel', 'displayProperties', 'themeSettings', 'speechProperties', 'systemProperties', 'userAccounts', 'paint', 'cmd', 'imageViewer', 'installer', 'registryEditor', 'blueScreenOfDeath', 'systemTools'],
+    items: ['calculator', 'characterMap', 'notepad', 'coder', 'wordpad', 'microsoftWord', 'microsoftExcel', 'displayProperties', 'themeSettings', 'speechProperties', 'systemProperties', 'userAccounts', 'paint', 'cmd', 'imageViewer', 'installer', 'registryEditor', 'blueScreenOfDeath', 'tour', 'systemTools'],
   },
   entertainment: {
     type: 'folder',

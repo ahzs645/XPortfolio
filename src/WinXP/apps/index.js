@@ -83,6 +83,7 @@ const SystemInformation = lazy(() => import('./SystemInformation'));
 const CharacterMap = lazy(() => import('./CharacterMap'));
 const AboutWindows = lazy(() => import('./AboutWindows'));
 const VolumeControl = lazy(() => import('./VolumeControl'));
+const XPTour = lazy(() => import('./XPTour'));
 // ControlPanel is now integrated into MyComputer as a navigable view
 
 // XP Icons paths
@@ -208,6 +209,7 @@ export const appCategoryMap = {
   'Registry Editor': APP_CATEGORIES.SYSTEM,
   'About Windows': APP_CATEGORIES.SYSTEM,
   'Volume Control': APP_CATEGORIES.SYSTEM,
+  'Windows XP Tour': APP_CATEGORIES.SYSTEM,
 
   // Fun/Extra
   'QQ Penguin': APP_CATEGORIES.GAME,
@@ -505,6 +507,11 @@ export const desktopIconCatalog = {
     title: 'System Information',
     component: SystemInformation,
   },
+  xpTour: {
+    icon: '/icons/xp/tray/xptour.png',
+    title: 'Tour Windows XP',
+    component: XPTour,
+  },
 };
 
 // Load saved icon positions from localStorage
@@ -589,6 +596,7 @@ const CATALOG_TO_APP_KEY = {
   systemInformation: 'System Information',
   aboutWindows: 'About Windows',
   volumeControl: 'Volume Control',
+  xpTour: 'Windows XP Tour',
 };
 
 // Generate desktop icon state from program list
@@ -900,6 +908,31 @@ export const appSettings = {
       x: 130,
       y: 60,
     },
+    resizable: true,
+    minimized: false,
+    maximized: false,
+    multiInstance: false,
+  },
+  'Windows XP Tour': {
+    header: {
+      icon: '/icons/xp/tray/xptour.png',
+      title: 'Windows XP Tour',
+      buttons: ['minimize', 'maximize', 'close'],
+    },
+    component: XPTour,
+    defaultSize: {
+      width: 500,
+      height: 350,
+    },
+    minSize: {
+      width: 420,
+      height: 300,
+    },
+    defaultOffset: {
+      x: 180,
+      y: 90,
+    },
+    // resizable is required for the tour to maximize itself to fullscreen.
     resizable: true,
     minimized: false,
     maximized: false,

@@ -1,122 +1,228 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { withBaseUrl } from '../../../utils/baseUrl';
 
-function XPTour() {
-  const [mode, setMode] = useState('flash');
-  const [isLoaded, setIsLoaded] = useState(false);
-  const frameSrc = useMemo(() => (
-    mode === 'flash'
-      ? withBaseUrl('/apps/xp-tour/index.html')
-      : withBaseUrl('/apps/xp-tour/html-tour/default.htm')
-  ), [mode]);
+// The two tour formats, mirroring the original Windows XP Tour chooser dialog.
+const FORMATS = {
+  animated: {
+    label: 'Play the animated tour that features text, animation, music, and voice narration.',
+    src: '/apps/xp-tour/index.html',
+    caption: 'Windows XP Tour - Animated',
+  },
+  html: {
+    label: 'Play the non-animated tour that features text and images only.',
+    src: '/apps/xp-tour/html-tour/default.htm',
+    caption: 'Windows XP Tour - HTML',
+  },
+};
+
+const TOUR_ICON = '/icons/xp/tray/xptour.png';
+
+function XPTour({ onClose, onMaximize, isMaximized, onUpdateHeader }) {
+  // 'chooser' shows the welcome dialog, 'tour' plays the selected tour fullscreen.
+  const [view, setView] = useState('chooser');
+  const [format, setFormat] = useState('animated');
+
+  // Drive the window to/from its maximized (fullscreen) state. onMaximize is a
+  // toggle, so guard on the current isMaximized to avoid flipping the wrong way.
+  const setFullscreen = useCallback((shouldMaximize) => {
+    if (shouldMaximize && !isMaximized) onMaximize();
+    if (!shouldMaximize && isMaximized) onMaximize();
+  }, [isMaximized, onMaximize]);
+
+  const startTour = useCallback(() => {
+    setView('tour');
+    setFullscreen(true);
+    onUpdateHeader?.({
+      icon: TOUR_ICON,
+      title: FORMATS[format].caption,
+      buttons: ['minimize', 'maximize', 'close'],
+    });
+  }, [format, setFullscreen, onUpdateHeader]);
+
+  const backToChooser = useCallback(() => {
+    setView('chooser');
+    setFullscreen(false);
+    onUpdateHeader?.({
+      icon: TOUR_ICON,
+      title: 'Windows XP Tour',
+      buttons: ['minimize', 'maximize', 'close'],
+    });
+  }, [setFullscreen, onUpdateHeader]);
+
+  // While the tour plays fullscreen, Escape returns to the chooser.
+  useEffect(() => {
+    if (view !== 'tour') return undefined;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') backToChooser();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [view, backToChooser]);
+
+  if (view === 'tour') {
+    return (
+      <TourFrame
+        src={withBaseUrl(FORMATS[format].src)}
+        title="Windows XP Tour"
+        allow="autoplay; fullscreen"
+      />
+    );
+  }
 
   return (
-    <Container>
-      <Toolbar>
-        <ModeButton
-          type="button"
-          $active={mode === 'flash'}
-          onClick={() => {
-            setIsLoaded(false);
-            setMode('flash');
-          }}
-        >
-          Flash Tour
-        </ModeButton>
-        <ModeButton
-          type="button"
-          $active={mode === 'html'}
-          onClick={() => {
-            setIsLoaded(false);
-            setMode('html');
-          }}
-        >
-          HTML Tour
-        </ModeButton>
-      </Toolbar>
-      {!isLoaded && (
-        <Overlay>
-          <Loading>Loading Windows XP Tour…</Loading>
-          <Subtext>
-            {mode === 'flash'
-              ? 'If the Flash tour does not appear, refresh or allow autoplay for audio.'
-              : 'The HTML tour is a static walkthrough imported from the legacy snapshot.'}
-          </Subtext>
-        </Overlay>
-      )}
-      <Frame
-        src={frameSrc}
-        title="Tour Windows XP"
-        allow="autoplay"
-        onLoad={() => setIsLoaded(true)}
-      />
-    </Container>
+    <Dialog>
+      <ContentArea>
+        <LeftPane>
+          <img src={withBaseUrl('/apps/xp-tour/side.png')} alt="Windows XP" draggable={false} />
+        </LeftPane>
+        <RightPane>
+          <Title>Welcome to the Windows XP Tour!</Title>
+          <Paragraph>The tour is available in two formats. Which format do you prefer?</Paragraph>
+          <Form>
+            {Object.entries(FORMATS).map(([key, { label }]) => (
+              <Option key={key}>
+                <label>
+                  <input
+                    type="radio"
+                    name="tourFormat"
+                    value={key}
+                    checked={format === key}
+                    onChange={() => setFormat(key)}
+                  />
+                  <span>{label}</span>
+                </label>
+              </Option>
+            ))}
+          </Form>
+        </RightPane>
+      </ContentArea>
+      <Footer>
+        <Button type="button" disabled>&lt; Back</Button>
+        <Button type="button" className="default" onClick={startTour}>Next &gt;</Button>
+        <Button type="button" onClick={onClose}>Cancel</Button>
+      </Footer>
+    </Dialog>
   );
 }
 
-const Container = styled.div`
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background: #012b63;
+const Dialog = styled.div`
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  border-radius: 4px;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  height: 100%;
+  background: #fff;
+  font-family: 'Tahoma', sans-serif;
+  font-size: 13px;
 `;
 
-const Toolbar = styled.div`
+const ContentArea = styled.div`
   display: flex;
-  gap: 6px;
-  padding: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  background: linear-gradient(180deg, rgba(8, 36, 99, 0.9), rgba(2, 18, 56, 0.92));
-  z-index: 2;
-`;
-
-const ModeButton = styled.button`
-  min-width: 92px;
-  padding: 4px 10px;
-  border: 1px solid ${({ $active }) => ($active ? '#ffd34a' : '#7fa7ef')};
-  border-radius: 3px;
-  background: ${({ $active }) => ($active
-    ? 'linear-gradient(180deg, #fff7c2, #ffdd6f)'
-    : 'linear-gradient(180deg, #f5fbff, #d7e9ff)')};
-  color: #001137;
-  cursor: pointer;
-  font: 600 11px Tahoma, sans-serif;
-`;
-
-const Frame = styled.iframe`
-  width: 100%;
   flex: 1;
+  overflow: hidden;
+`;
+
+const LeftPane = styled.div`
+  width: 164px;
+  flex-shrink: 0;
+  background-color: #4a608a;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+const RightPane = styled.div`
+  flex: 1;
+  padding: 20px 25px;
+  background: #fff;
+  overflow-y: auto;
+`;
+
+const Title = styled.h1`
+  font-family: 'Tahoma', sans-serif;
+  font-size: 18px;
+  font-weight: normal;
+  margin: 0 0 15px 0;
+  color: #000;
+`;
+
+const Paragraph = styled.p`
+  margin: 0 0 20px 0;
+  line-height: 1.4;
+  color: #000;
+`;
+
+const Form = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`;
+
+const Option = styled.div`
+  list-style: none;
+
+  label {
+    display: flex;
+    align-items: flex-start;
+    cursor: pointer;
+  }
+
+  input {
+    margin: 2px 0 0 0;
+    flex-shrink: 0;
+  }
+
+  span {
+    margin-left: 8px;
+    line-height: 1.4;
+  }
+`;
+
+const Footer = styled.div`
+  padding: 10px;
+  border-top: 1px solid #ccc;
+  text-align: right;
+  flex-shrink: 0;
+  background: #ece9d8;
+`;
+
+const Button = styled.button`
+  min-width: 75px;
+  padding: 4px 14px;
+  margin-left: 5px;
+  background: linear-gradient(180deg, #fff 0%, #ecebe5 86%, #d8d0c4 100%);
+  border: 1px solid #003c74;
+  border-radius: 3px;
+  font-size: 11px;
+  font-family: 'Tahoma', sans-serif;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(180deg, #fff0cf 0%, #fdd889 50%, #fbc761 100%);
+  }
+
+  &:active:not(:disabled) {
+    background: linear-gradient(180deg, #e5e5de 0%, #e3e3db 8%, #cdcac3 100%);
+  }
+
+  &:disabled {
+    color: #a0a0a0;
+    cursor: default;
+    border-color: #a0a0a0;
+  }
+
+  &.default {
+    border: 2px solid #003c74;
+  }
+`;
+
+const TourFrame = styled.iframe`
+  width: 100%;
+  height: 100%;
   border: none;
-  background: transparent;
-`;
-
-const Overlay = styled.div`
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  text-align: center;
-  padding: 16px;
-  color: #f1f6ff;
-  background: linear-gradient(135deg, rgba(8, 36, 99, 0.9), rgba(0, 11, 45, 0.9));
-  z-index: 1;
-`;
-
-const Loading = styled.div`
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 6px;
-`;
-
-const Subtext = styled.div`
-  font-size: 12px;
-  opacity: 0.9;
+  background: #000;
 `;
 
 export default XPTour;
