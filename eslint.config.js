@@ -10,6 +10,7 @@ export default defineConfig([
     'external/**',
     'public/**',
     'node_modules/**',
+    'src/lib/xptour-player/**', // vendored build of the mmTour player library
   ]),
   {
     files: ['**/*.{js,jsx}'],

@@ -1,12 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { withBaseUrl } from '../../../utils/baseUrl';
+import GsapTourPlayer from './GsapTourPlayer';
 
 // The two tour formats, mirroring the original Windows XP Tour chooser dialog.
+// The animated tour now uses the native GSAP player (a web-native rebuild of the
+// original Flash tour); the non-animated tour is the static HTML walkthrough.
 const FORMATS = {
   animated: {
     label: 'Play the animated tour that features text, animation, music, and voice narration.',
-    src: '/apps/xp-tour/index.html',
     caption: 'Windows XP Tour - Animated',
   },
   html: {
@@ -32,7 +34,10 @@ function XPTour({ onClose, onMaximize, isMaximized, onUpdateHeader }) {
 
   const startTour = useCallback(() => {
     setView('tour');
-    setFullscreen(true);
+    // The animated tour renders as a fullscreen overlay (GsapTourPlayer) that covers
+    // the whole interface, so the window itself doesn't maximize. The HTML tour plays
+    // inside the (maximized) window.
+    if (format === 'html') setFullscreen(true);
     onUpdateHeader?.({
       icon: TOUR_ICON,
       title: FORMATS[format].caption,
@@ -61,9 +66,12 @@ function XPTour({ onClose, onMaximize, isMaximized, onUpdateHeader }) {
   }, [view, backToChooser]);
 
   if (view === 'tour') {
+    if (format === 'animated') {
+      return <GsapTourPlayer scene="A-tour.swf" autoplay onExit={backToChooser} />;
+    }
     return (
       <TourFrame
-        src={withBaseUrl(FORMATS[format].src)}
+        src={withBaseUrl(FORMATS.html.src)}
         title="Windows XP Tour"
         allow="autoplay; fullscreen"
       />
@@ -167,11 +175,50 @@ const Option = styled.div`
     display: flex;
     align-items: flex-start;
     cursor: pointer;
+    padding: 2px;
+    border-radius: 2px;
   }
 
-  input {
-    margin: 2px 0 0 0;
+  label:hover {
+    background: rgba(49, 106, 197, 0.08);
+  }
+
+  /* Authentic XP-style radio button. opacity override: a global XP stylesheet
+     hides native radios (behind <winradio> overlays) with opacity:0. */
+  input[type='radio'] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 13px;
+    height: 13px;
+    margin: 1px 0 0 0;
     flex-shrink: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 40%, #fff, #e6eef5);
+    border: 1px solid #7f9db9;
+    box-shadow: inset 1px 1px 1px rgba(0, 0, 0, 0.15);
+    position: relative;
+    cursor: pointer;
+    opacity: 1 !important;
+  }
+
+  input[type='radio']:hover {
+    border-color: #316ac5;
+  }
+
+  input[type='radio']:checked::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 35%, #4a8f3c, #1c5a2e);
+  }
+
+  input[type='radio']:focus-visible {
+    outline: 1px dotted #333;
+    outline-offset: 2px;
   }
 
   span {

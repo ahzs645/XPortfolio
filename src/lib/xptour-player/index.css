@@ -1,0 +1,2 @@
+.player-level{pointer-events:none;width:640px;height:480px;position:absolute;inset:0}.player-instance{transform-origin:0 0;will-change:transform, opacity;position:absolute;top:0;left:0}.player-media{display:block}.player-text{transform-origin:0 0;pointer-events:none;position:absolute}
+/*$vite$:1*/
