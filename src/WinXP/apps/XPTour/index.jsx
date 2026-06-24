@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { withBaseUrl } from '../../../utils/baseUrl';
-import GsapTourPlayer from './GsapTourPlayer';
+import { launchAnimatedTour } from './launchAnimatedTour';
 
 // The two tour formats, mirroring the original Windows XP Tour chooser dialog.
 // The animated tour now uses the native GSAP player (a web-native rebuild of the
@@ -33,17 +33,22 @@ function XPTour({ onClose, onMaximize, isMaximized, onUpdateHeader }) {
   }, [isMaximized, onMaximize]);
 
   const startTour = useCallback(() => {
+    if (format === 'animated') {
+      // Hand the animated tour off to a standalone fullscreen app and close this window
+      // — "Next" ends the chooser and the tour takes over the whole screen on its own.
+      launchAnimatedTour({ scene: 'A-tour.swf' });
+      onClose();
+      return;
+    }
+    // The HTML tour plays inside the (maximized) window.
     setView('tour');
-    // The animated tour renders as a fullscreen overlay (GsapTourPlayer) that covers
-    // the whole interface, so the window itself doesn't maximize. The HTML tour plays
-    // inside the (maximized) window.
-    if (format === 'html') setFullscreen(true);
+    setFullscreen(true);
     onUpdateHeader?.({
       icon: TOUR_ICON,
-      title: FORMATS[format].caption,
+      title: FORMATS.html.caption,
       buttons: ['minimize', 'maximize', 'close'],
     });
-  }, [format, setFullscreen, onUpdateHeader]);
+  }, [format, onClose, setFullscreen, onUpdateHeader]);
 
   const backToChooser = useCallback(() => {
     setView('chooser');
@@ -55,24 +60,7 @@ function XPTour({ onClose, onMaximize, isMaximized, onUpdateHeader }) {
     });
   }, [setFullscreen, onUpdateHeader]);
 
-  // The tour issues AVM1 fscommand(...) calls for player-level actions; the package now
-  // translates them faithfully (e.g. the nav toolbar's Quit button → fscommand("quit"))
-  // and surfaces them here, so we respond by meaning rather than by hard-coded button id.
-  // (Swap backToChooser for onClose to instead close the XP Tour window entirely.)
-  const handleTourFsCommand = useCallback((command) => {
-    if (command === 'quit') backToChooser();
-  }, [backToChooser]);
-
-  // Generic button hook (dev only): logs any button the conversion left unbound so it can
-  // be given a response. Returning undefined lets the player handle the click normally.
-  const handleTourButton = useCallback((e) => {
-    if (e.event === 'release' && !e.action?.command) {
-      console.debug('[XPTour] unbound button', e.scene, e.characterId);
-    }
-    return undefined;
-  }, []);
-
-  // While the tour plays fullscreen, Escape returns to the chooser.
+  // While the HTML tour plays in the maximized window, Escape returns to the chooser.
   useEffect(() => {
     if (view !== 'tour') return undefined;
     const onKeyDown = (e) => {
@@ -83,17 +71,8 @@ function XPTour({ onClose, onMaximize, isMaximized, onUpdateHeader }) {
   }, [view, backToChooser]);
 
   if (view === 'tour') {
-    if (format === 'animated') {
-      return (
-        <GsapTourPlayer
-          scene="A-tour.swf"
-          autoplay
-          onExit={backToChooser}
-          onButton={handleTourButton}
-          onFsCommand={handleTourFsCommand}
-        />
-      );
-    }
+    // Only the HTML tour plays in-window; the animated tour runs as a standalone
+    // fullscreen app launched from "Next" (see startTour / launchAnimatedTour).
     return (
       <TourFrame
         src={withBaseUrl(FORMATS.html.src)}

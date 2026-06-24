@@ -76,6 +76,14 @@ function GsapTourPlayer({ scene = 'A-tour.swf', autoplay = true, onExit, onButto
     };
   }, [scene, autoplay]);
 
+  // Esc exits the fullscreen tour (it runs as its own app, so it owns this key).
+  useEffect(() => {
+    if (!onExit) return undefined;
+    const onKeyDown = (e) => { if (e.key === 'Escape') onExit(); };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [onExit]);
+
   // Scale the 640x480 stage to fit the fullscreen overlay, preserving aspect ratio.
   useEffect(() => {
     const root = overlayRef.current;
