@@ -102,9 +102,6 @@ function GsapTourPlayer({ scene = 'A-tour.swf', autoplay = true, onExit, onButto
   return createPortal(
     <Overlay ref={overlayRef}>
       <Stage ref={stageRef} style={{ transform: `scale(${scale})` }} />
-      <ExitButton type="button" onClick={onExit} aria-label="Exit tour" title="Exit tour (Esc)">
-        ✕
-      </ExitButton>
       {status === 'loading' && <Message>Loading the Windows XP Tour…</Message>}
       {status === 'error' && (
         <Message>
@@ -138,28 +135,6 @@ const Stage = styled.div`
      bounds (background fills, perspective lines), so clip it here like Flash does —
      otherwise the overflow is visible in the letterbox once scaled up. */
   overflow: hidden;
-`;
-
-const ExitButton = styled.button`
-  position: absolute;
-  top: 14px;
-  right: 18px;
-  width: 30px;
-  height: 30px;
-  border: none;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.45);
-  color: #fff;
-  font-size: 15px;
-  line-height: 1;
-  cursor: pointer;
-  opacity: 0.55;
-  transition: opacity 0.15s;
-
-  &:hover {
-    opacity: 1;
-    background: rgba(200, 30, 30, 0.85);
-  }
 `;
 
 const Message = styled.div`
