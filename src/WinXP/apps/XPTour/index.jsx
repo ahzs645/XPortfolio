@@ -55,6 +55,23 @@ function XPTour({ onClose, onMaximize, isMaximized, onUpdateHeader }) {
     });
   }, [setFullscreen, onUpdateHeader]);
 
+  // The tour issues AVM1 fscommand(...) calls for player-level actions; the package now
+  // translates them faithfully (e.g. the nav toolbar's Quit button → fscommand("quit"))
+  // and surfaces them here, so we respond by meaning rather than by hard-coded button id.
+  // (Swap backToChooser for onClose to instead close the XP Tour window entirely.)
+  const handleTourFsCommand = useCallback((command) => {
+    if (command === 'quit') backToChooser();
+  }, [backToChooser]);
+
+  // Generic button hook (dev only): logs any button the conversion left unbound so it can
+  // be given a response. Returning undefined lets the player handle the click normally.
+  const handleTourButton = useCallback((e) => {
+    if (e.event === 'release' && !e.action?.command) {
+      console.debug('[XPTour] unbound button', e.scene, e.characterId);
+    }
+    return undefined;
+  }, []);
+
   // While the tour plays fullscreen, Escape returns to the chooser.
   useEffect(() => {
     if (view !== 'tour') return undefined;
@@ -67,7 +84,15 @@ function XPTour({ onClose, onMaximize, isMaximized, onUpdateHeader }) {
 
   if (view === 'tour') {
     if (format === 'animated') {
-      return <GsapTourPlayer scene="A-tour.swf" autoplay onExit={backToChooser} />;
+      return (
+        <GsapTourPlayer
+          scene="A-tour.swf"
+          autoplay
+          onExit={backToChooser}
+          onButton={handleTourButton}
+          onFsCommand={handleTourFsCommand}
+        />
+      );
     }
     return (
       <TourFrame

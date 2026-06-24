@@ -90,12 +90,12 @@ async function p(e) {
 	e?.length && await Promise.all(e.map(async (e) => {
 		let t = e.replace(/^\//, "");
 		if (!d.has(t)) try {
-			let e = await fetch(`${C}/${t}`);
+			let e = await fetch(`${w}/${t}`);
 			if (!e.ok) return;
 			let n = await e.text();
 			if (!i(n)) return;
 			let r = await o(n, async (e) => {
-				let t = await fetch(`${C}/${e.replace(/^\//, "")}`);
+				let t = await fetch(`${w}/${e.replace(/^\//, "")}`);
 				if (!t.ok) return;
 				let n = t.headers.get("content-type") || m(e);
 				return {
@@ -110,43 +110,43 @@ async function p(e) {
 function m(e) {
 	return /\.jpe?g$/i.test(e) ? "image/jpeg" : /\.gif$/i.test(e) ? "image/gif" : "image/png";
 }
-var h = "files", g = 0, _ = /* @__PURE__ */ new Map(), v = /* @__PURE__ */ new Map(), y = /* @__PURE__ */ new Map(), ee = !0, b = "", x = null, S = /* @__PURE__ */ new Map();
-function te() {
-	for (let e of S.values()) e.url && URL.revokeObjectURL(e.url);
-	S.clear();
+var h = "files", g = 0, _ = /* @__PURE__ */ new Map(), v = /* @__PURE__ */ new Map(), y = /* @__PURE__ */ new Map(), b = !0, x = "", S = null, C = /* @__PURE__ */ new Map();
+function ee() {
+	for (let e of C.values()) e.url && URL.revokeObjectURL(e.url);
+	C.clear();
 }
+function te(e) {
+	x = e, S = null, ee();
+}
+var w = "";
 function ne(e) {
-	b = e, x = null, te();
+	w = e.replace(/\/+$/, "");
 }
-var C = "";
-function re(e) {
-	C = e.replace(/\/+$/, "");
+function re() {
+	return w;
 }
 function ie() {
-	return C;
-}
-function ae() {
 	return h;
 }
-function oe(e) {
-	e !== h && (h = e, g += 1, me(), fe(), se(), f());
+function ae(e) {
+	e !== h && (h = e, g += 1, me(), fe(), oe(), f());
 }
-function se() {
+function oe() {
 	for (let e of y.values()) {
 		for (let t of e.shapes.values()) t.url && URL.revokeObjectURL(t.url);
 		for (let t of e.media.values()) t.url && URL.revokeObjectURL(t.url);
 	}
-	y.clear(), x = null, te();
+	y.clear(), S = null, ee();
 }
-async function w(e) {
+async function T(e) {
 	if (e[0] === 31 && e[1] === 139 && typeof DecompressionStream < "u") {
 		let t = new Blob([e]).stream().pipeThrough(new DecompressionStream("gzip"));
 		return await new Response(t).text();
 	}
 	return new TextDecoder().decode(e);
 }
-async function T(e) {
-	let t = new DataView(e.buffer, e.byteOffset, e.byteLength).getUint32(0, !0), n = JSON.parse(await w(e.slice(4, 4 + t))), r = /* @__PURE__ */ new Map();
+async function se(e) {
+	let t = new DataView(e.buffer, e.byteOffset, e.byteLength).getUint32(0, !0), n = JSON.parse(await T(e.slice(4, 4 + t))), r = /* @__PURE__ */ new Map();
 	for (let [e, t] of Object.entries(n.shapes ?? {})) r.set(e, { svg: t });
 	let i = /* @__PURE__ */ new Map();
 	for (let [e, t] of Object.entries(n.media ?? {})) i.set(e, t);
@@ -165,32 +165,32 @@ async function ce(e, t, n) {
 	return r.status === 206 ? i : i.slice(t, n + 1);
 }
 async function le() {
-	if (x) return x;
-	let e = await ce(b, 0, 65535);
+	if (S) return S;
+	let e = await ce(x, 0, 65535);
 	if (!e || e.byteLength < 4) return null;
-	let t = new DataView(e.buffer, e.byteOffset, e.byteLength).getUint32(0, !0), n = JSON.parse(await w(e.slice(4, 4 + t)));
-	for (let [e, t] of Object.entries(n.vars ?? {})) S.set(e, { content: t });
-	return x = {
+	let t = new DataView(e.buffer, e.byteOffset, e.byteLength).getUint32(0, !0), n = JSON.parse(await T(e.slice(4, 4 + t)));
+	for (let [e, t] of Object.entries(n.vars ?? {})) C.set(e, { content: t });
+	return S = {
 		blocksStart: 4 + t,
 		scenes: n.scenes
-	}, x;
+	}, S;
 }
 async function ue(e) {
 	let t = y.get(e);
 	if (t) return t;
 	let n = await le(), r = n?.scenes[e];
 	if (!n || !r) return null;
-	let i = n.blocksStart + r.offset, a = await ce(b, i, i + r.length - 1);
+	let i = n.blocksStart + r.offset, a = await ce(x, i, i + r.length - 1);
 	if (!a) return null;
-	let o = await T(a);
+	let o = await se(a);
 	return y.set(e, o), o;
 }
 async function de(e) {
 	let t = y.get(e);
 	if (t) return t;
-	let n = await fetch(`${C}/generated-packs/${e}.scene?v=${Date.now()}`);
+	let n = await fetch(`${w}/generated-packs/${e}.scene?v=${Date.now()}`);
 	if (!n.ok) return null;
-	let r = await T(new Uint8Array(await n.arrayBuffer()));
+	let r = await se(new Uint8Array(await n.arrayBuffer()));
 	return y.set(e, r), r;
 }
 function fe() {
@@ -202,8 +202,8 @@ async function pe(e) {
 	if (t) return t;
 	let n = null;
 	try {
-		let t = await fetch(`${C}/generated-bundles/${e}.json.gz?v=${Date.now()}`);
-		t.ok && (n = await w(new Uint8Array(await t.arrayBuffer())));
+		let t = await fetch(`${w}/generated-bundles/${e}.json.gz?v=${Date.now()}`);
+		t.ok && (n = await T(new Uint8Array(await t.arrayBuffer())));
 	} catch {
 		n = null;
 	}
@@ -270,8 +270,8 @@ function _e(e) {
 				return e.url;
 			}
 		}
-		let o = S.get(t);
-		return o ? (o.url ||= URL.createObjectURL(new Blob([o.content], { type: "text/plain" })), o.url) : `${C}/${t}`;
+		let o = C.get(t);
+		return o ? (o.url ||= URL.createObjectURL(new Blob([o.content], { type: "text/plain" })), o.url) : `${w}/${t}`;
 	}
 	if (h === "bundle") {
 		let t = e.replace(/^\//, "");
@@ -281,7 +281,7 @@ function _e(e) {
 			let n = /^generated\/([^/]+)\//.exec(t)?.[1], r = n ? v.get(n)?.shapes.get(t) : void 0;
 			if (r) return r.url ||= URL.createObjectURL(new Blob([r.svg], { type: "image/svg+xml" })), r.url;
 		}
-		return `${C}/${t}`;
+		return `${w}/${t}`;
 	}
 	if (h === "pack") {
 		let t = e.replace(/^\//, ""), n = /^generated\/([^/]+)\/(.+)$/.exec(t);
@@ -313,10 +313,10 @@ function _e(e) {
 		let e = d.get(t);
 		if (e) return e;
 	}
-	return `${C}/${t}`;
+	return `${w}/${t}`;
 }
 async function ve(e) {
-	let t = await fetch(`${C}/generated/${e}/timeline.json?v=${Date.now()}`);
+	let t = await fetch(`${w}/generated/${e}/timeline.json?v=${Date.now()}`);
 	if (!t.ok) return null;
 	try {
 		return await t.json();
@@ -327,8 +327,8 @@ async function ve(e) {
 async function ye(e) {
 	let t = _.get(e);
 	if (t) return t;
-	if (!ee) return null;
-	let n = await fetch(`${C}/generated-packed/${e}/${e}.pack?v=${Date.now()}`);
+	if (!b) return null;
+	let n = await fetch(`${w}/generated-packed/${e}/${e}.pack?v=${Date.now()}`);
 	if (!n.ok) return null;
 	let r = new Uint8Array(await n.arrayBuffer());
 	if (r.byteLength < 4) return null;
@@ -403,7 +403,7 @@ function Ce(e, t) {
 }
 //#endregion
 //#region src/data/soundTimings.ts
-function A(e) {
+function we(e) {
 	let t = /* @__PURE__ */ new Map();
 	for (let [n, r] of Object.entries(e?.soundTimings ?? {})) {
 		let e = typeof r == "number" ? r : Number(r?.durationMs);
@@ -411,7 +411,7 @@ function A(e) {
 	}
 	let n = (e) => {
 		for (let n of e?.functionCalls ?? []) {
-			let e = we(n);
+			let e = Te(n);
 			e && t.set(e.name, { durationMs: e.durationMs });
 		}
 	};
@@ -421,23 +421,23 @@ function A(e) {
 	for (let t of Object.values(e?.buttonActions ?? {})) n(t.release), n(t.rollOver), n(t.rollOut), n(t.press);
 	return Object.fromEntries([...t.entries()].sort(([e], [t]) => e.localeCompare(t, void 0, { numeric: !0 })));
 }
-function we(e) {
-	if (e.functionName !== "push" || !Te(e.target)) return;
-	let t = j(e.arguments), n = t.length === 1 && t[0]?.trim().startsWith("[") ? Ee(t[0]) : t, r = De(n[0]), i = Number(n[1]);
+function Te(e) {
+	if (e.functionName !== "push" || !Ee(e.target)) return;
+	let t = Oe(e.arguments), n = t.length === 1 && t[0]?.trim().startsWith("[") ? De(t[0]) : t, r = ke(n[0]), i = Number(n[1]);
 	if (!(!r || !Number.isFinite(i) || i <= 0)) return {
 		name: r,
 		durationMs: i
 	};
 }
-function Te(e) {
+function Ee(e) {
 	let t = String(e ?? "").replace(/[^a-z]/gi, "").toLowerCase();
 	return !!(t && /(?:snd|sound).*(?:time|duration|lib)|(?:time|duration).*(?:snd|sound)/.test(t));
 }
-function Ee(e) {
+function De(e) {
 	let t = e.trim();
-	return !t.startsWith("[") || !t.endsWith("]") ? [] : j(t.slice(1, -1));
+	return !t.startsWith("[") || !t.endsWith("]") ? [] : Oe(t.slice(1, -1));
 }
-function j(e) {
+function Oe(e) {
 	if (!e) return [];
 	let t = [], n = "", r = 0, i = 0;
 	for (let a = 0; a < e.length; a += 1) {
@@ -450,41 +450,41 @@ function j(e) {
 	}
 	return t.push(e.slice(i).trim()), t;
 }
-function De(e) {
+function ke(e) {
 	let t = e?.trim();
 	if (t && (t.startsWith("\"") && t.endsWith("\"") || t.startsWith("'") && t.endsWith("'"))) return t.slice(1, -1);
 }
 //#endregion
 //#region src/render/colorTransform.ts
-var M = "http://www.w3.org/2000/svg", Oe = "mmtour-color-transform-filters";
-function ke(e, t) {
-	let n = t?.rm ?? 1, r = t?.gm ?? 1, i = t?.bm ?? 1, a = t?.ra ?? 0, o = t?.ga ?? 0, s = t?.ba ?? 0;
-	if (n === 1 && r === 1 && i === 1 && a === 0 && o === 0 && s === 0) {
+var A = "http://www.w3.org/2000/svg", Ae = "mmtour-color-transform-filters";
+function je(e, t) {
+	let n = t?.rm ?? 1, r = t?.gm ?? 1, i = t?.bm ?? 1, a = t?.am ?? 1, o = t?.ra ?? 0, s = t?.ga ?? 0, c = t?.ba ?? 0, l = t?.aa ?? 0;
+	if (n === 1 && r === 1 && i === 1 && a === 1 && o === 0 && s === 0 && c === 0 && l === 0) {
 		e.style.removeProperty("filter");
 		return;
 	}
-	e.style.filter = `url(#${Ae(n, r, i, a, o, s)})`;
+	e.style.filter = `url(#${Me(n, r, i, a, o, s, c, l)})`;
 }
-function Ae(e, t, n, r, i, a) {
-	let o = je(e, t, n, r, i, a);
-	if (document.getElementById(o)) return o;
-	let s = document.getElementById(Oe);
-	s || (s = document.createElementNS(M, "svg"), s.id = Oe, s.setAttribute("width", "0"), s.setAttribute("height", "0"), s.setAttribute("aria-hidden", "true"), s.style.position = "absolute", s.style.width = "0", s.style.height = "0", s.style.overflow = "hidden", document.body.append(s));
-	let c = document.createElementNS(M, "filter");
-	c.id = o, c.setAttribute("color-interpolation-filters", "sRGB");
-	let l = document.createElementNS(M, "feComponentTransfer");
-	return l.append(N("feFuncR", e, r), N("feFuncG", t, i), N("feFuncB", n, a)), c.append(l), s.append(c), o;
+function Me(e, t, n, r, i, a, o, s) {
+	let c = Ne(e, t, n, r, i, a, o, s);
+	if (document.getElementById(c)) return c;
+	let l = document.getElementById(Ae);
+	l || (l = document.createElementNS(A, "svg"), l.id = Ae, l.setAttribute("width", "0"), l.setAttribute("height", "0"), l.setAttribute("aria-hidden", "true"), l.style.position = "absolute", l.style.width = "0", l.style.height = "0", l.style.overflow = "hidden", document.body.append(l));
+	let u = document.createElementNS(A, "filter");
+	u.id = c, u.setAttribute("color-interpolation-filters", "sRGB");
+	let d = document.createElementNS(A, "feComponentTransfer");
+	return d.append(j("feFuncR", e, i), j("feFuncG", t, a), j("feFuncB", n, o), j("feFuncA", r, s)), u.append(d), l.append(u), c;
 }
-function N(e, t, n) {
-	let r = document.createElementNS(M, e);
+function j(e, t, n) {
+	let r = document.createElementNS(A, e);
 	return r.setAttribute("type", "linear"), r.setAttribute("slope", String(t)), r.setAttribute("intercept", String(n)), r;
 }
-function je(...e) {
+function Ne(...e) {
 	return `mmtour-ct-${e.map((e) => String(Math.round(e * 1e5)).replace("-", "n")).join("-")}`;
 }
 //#endregion
 //#region src/render/DomRenderer.ts
-var Me = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", P = /* @__PURE__ */ new Map(), Ne = /* @__PURE__ */ new Set(), Pe = {
+var Pe = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", M = /* @__PURE__ */ new Map(), Fe = /* @__PURE__ */ new Set(), Ie = {
 	a: 1,
 	b: 0,
 	c: 0,
@@ -492,7 +492,7 @@ var Me = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEA
 	tx: 0,
 	ty: 0
 };
-function Fe(e, t) {
+function Le(e, t) {
 	return {
 		a: e.a * t.a + e.c * t.b,
 		b: e.b * t.a + e.d * t.b,
@@ -502,10 +502,10 @@ function Fe(e, t) {
 		ty: e.b * t.tx + e.d * t.ty + e.ty
 	};
 }
-function Ie(e) {
-	if (P.has(e)) return P.get(e);
-	Ne.has(e) || (Ne.add(e), fetch(O(e)).then((e) => e.ok ? e.text() : "").then((t) => {
-		let n = t.replace(/<\?xml[^>]*\?>/i, "").replace(/<svg[^>]*>/i, "").replace(/<\/svg>\s*$/i, ""), r = n.match(/<g\s+transform="matrix\(([^)]+)\)"\s*>([\s\S]*)<\/g>\s*$/i), i = Pe, a = n;
+function Re(e) {
+	if (M.has(e)) return M.get(e);
+	Fe.has(e) || (Fe.add(e), fetch(O(e)).then((e) => e.ok ? e.text() : "").then((t) => {
+		let n = t.replace(/<\?xml[^>]*\?>/i, "").replace(/<svg[^>]*>/i, "").replace(/<\/svg>\s*$/i, ""), r = n.match(/<g\s+transform="matrix\(([^)]+)\)"\s*>([\s\S]*)<\/g>\s*$/i), i = Ie, a = n;
 		if (r) {
 			let e = r[1].split(/[\s,]+/).map(Number);
 			e.length === 6 && e.every(Number.isFinite) && (i = {
@@ -517,20 +517,20 @@ function Ie(e) {
 				ty: e[5]
 			}), a = r[2];
 		}
-		a = a.replace(/fill="[^"]*"/g, "fill=\"#ffffff\"").replace(/stroke="[^"]*"/g, "stroke=\"none\""), P.set(e, {
+		a = a.replace(/fill="[^"]*"/g, "fill=\"#ffffff\"").replace(/stroke="[^"]*"/g, "stroke=\"none\""), M.set(e, {
 			gMatrix: i,
 			body: a
 		});
-	}).catch(() => P.set(e, null)));
+	}).catch(() => M.set(e, null)));
 }
-function Le(e, t = "") {
-	let n = e.matrix, r = O(e.src), i = e.colorTransform ? ` filter="url(#${Be(e.colorTransform)})"` : "";
+function ze(e, t = "") {
+	let n = e.matrix, r = O(e.src), i = e.colorTransform ? ` filter="url(#${He(e.colorTransform)})"` : "";
 	return `<image href="${r}" xlink:href="${r}" x="${-e.origin.x}" y="${-e.origin.y}" width="${e.origin.width}" height="${e.origin.height}" transform="matrix(${n.a},${n.b},${n.c},${n.d},${n.tx},${n.ty})"${i}${t}/>`;
 }
-function Re(e, t) {
-	let n = "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"640\" height=\"480\" style=\"position:absolute;left:0;top:0;overflow:visible\">", r = ze(e.items), i = Ie(e.mask.src);
-	if (!i) return `${n}${r ? `<defs>${r}</defs>` : ""}${e.items.map((e) => Le(e)).join("")}</svg>`;
-	let a = e.mask.matrix, o = e.mask.origin, s = Fe(Fe(a, {
+function Be(e, t) {
+	let n = "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"640\" height=\"480\" style=\"position:absolute;left:0;top:0;overflow:visible\">", r = Ve(e.items), i = Re(e.mask.src);
+	if (!i) return `${n}${r ? `<defs>${r}</defs>` : ""}${e.items.map((e) => ze(e)).join("")}</svg>`;
+	let a = e.mask.matrix, o = e.mask.origin, s = Le(Le(a, {
 		a: 1,
 		b: 0,
 		c: 0,
@@ -538,17 +538,17 @@ function Re(e, t) {
 		tx: -o.x,
 		ty: -o.y
 	}), i.gMatrix), c = `c${t.replace(/\W/g, "_")}`, l = `matrix(${s.a},${s.b},${s.c},${s.d},${s.tx},${s.ty})`;
-	return `${n}<defs>${r}<clipPath id="${c}" clipPathUnits="userSpaceOnUse">${i.body.replace(/<(path|polygon|rect|ellipse|circle)\b/g, `<$1 transform="${l}"`)}</clipPath></defs><g clip-path="url(#${c})">${e.items.map((e) => Le(e, e.opacity === 1 ? "" : ` opacity="${e.opacity}"`)).join("")}</g></svg>`;
+	return `${n}<defs>${r}<clipPath id="${c}" clipPathUnits="userSpaceOnUse">${i.body.replace(/<(path|polygon|rect|ellipse|circle)\b/g, `<$1 transform="${l}"`)}</clipPath></defs><g clip-path="url(#${c})">${e.items.map((e) => ze(e, e.opacity === 1 ? "" : ` opacity="${e.opacity}"`)).join("")}</g></svg>`;
 }
-function ze(e) {
+function Ve(e) {
 	let t = /* @__PURE__ */ new Map();
-	for (let n of e) n.colorTransform && t.set(Be(n.colorTransform), n.colorTransform);
+	for (let n of e) n.colorTransform && t.set(He(n.colorTransform), n.colorTransform);
 	return [...t.entries()].map(([e, t]) => {
 		let n = t.rm ?? 1, r = t.gm ?? 1, i = t.bm ?? 1;
 		return `<filter id="${e}" color-interpolation-filters="sRGB"><feComponentTransfer><feFuncR type="linear" slope="${n}" intercept="${t.ra ?? 0}"/><feFuncG type="linear" slope="${r}" intercept="${t.ga ?? 0}"/><feFuncB type="linear" slope="${i}" intercept="${t.ba ?? 0}"/></feComponentTransfer></filter>`;
 	}).join("");
 }
-function Be(e) {
+function He(e) {
 	return `mc${[
 		e.rm ?? 1,
 		e.gm ?? 1,
@@ -558,7 +558,7 @@ function Be(e) {
 		e.ba ?? 0
 	].map((e) => String(Math.round(e * 1e5)).replace("-", "n")).join("_")}`;
 }
-var Ve = class {
+var Ue = class {
 	layer;
 	options;
 	nodes = /* @__PURE__ */ new Map();
@@ -595,7 +595,7 @@ var Ve = class {
 				src: ""
 			}, this.nodes.set(e.key, t);
 		}
-		t.element.style.zIndex = String(e.order), t.element.style.transform = "none", t.element.innerHTML = Re(e.maskGroup, e.key);
+		t.element.style.zIndex = String(e.order), t.element.style.transform = "none", t.element.innerHTML = Be(e.maskGroup, e.key);
 	}
 	createNode(e) {
 		let t = document.createElement("div");
@@ -649,7 +649,7 @@ var Ve = class {
 		}
 		if (e.kind === "button") {
 			let t = document.createElement("img");
-			return t.className = "player-hit", t.decoding = "async", t.draggable = !1, t.src = e.src ? O(e.src) : Me, t;
+			return t.className = "player-hit", t.decoding = "async", t.draggable = !1, t.src = e.src ? O(e.src) : Pe, t;
 		}
 		let t = document.createElement("img");
 		return t.decoding = "async", t.draggable = !1, t;
@@ -659,7 +659,7 @@ var Ve = class {
 			t.text ? this.styleText(e.media, t) : e.src !== t.src && t.src && this.loadPlainText(e.media, t.src), e.src = t.src;
 			return;
 		}
-		e.src !== t.src && e.media instanceof HTMLImageElement && (e.media.src = t.src ? O(t.src) : Me, e.src = t.src);
+		e.src !== t.src && e.media instanceof HTMLImageElement && (e.media.src = t.src ? O(t.src) : Pe, e.src = t.src);
 	}
 	loadPlainText(e, t) {
 		fetch(O(t)).then((e) => e.ok ? e.text() : "").then((t) => {
@@ -675,7 +675,7 @@ var Ve = class {
 		let r = this.options.resolveFontFamily?.(n.fontId);
 		e.style.position = "absolute", e.style.left = `${n.x ?? t.origin.x}px`, e.style.top = `${n.y ?? t.origin.y}px`;
 		let i = n.width ?? t.origin.width;
-		i > 0 && (e.style.width = `${i}px`), e.style.fontSize = `${n.fontHeight}px`, e.style.lineHeight = n.leading ? `${n.fontHeight + n.leading}px` : "normal", e.style.color = n.color ?? "#000", e.style.textAlign = n.align ?? "left", e.style.whiteSpace = n.wordWrap ? "pre-wrap" : "pre", r && (e.style.fontFamily = r), n.html ? e.innerHTML = n.text ?? "" : e.textContent = n.text ?? "";
+		i > 0 && (e.style.width = `${i}px`), e.style.fontSize = `${n.fontHeight}px`, e.style.lineHeight = n.leading ? `${n.fontHeight + n.leading}px` : "normal", e.style.color = n.color ?? "#000", e.style.textAlign = n.align ?? "left", e.style.whiteSpace = n.wordWrap ? "pre-wrap" : "pre", r && (e.style.fontFamily = r), n.html ? e.innerHTML = We(n.text ?? "") : e.textContent = n.text ?? "";
 	}
 	placeNode(t, n) {
 		t.kind !== "text" && e.set(t.media, {
@@ -690,9 +690,51 @@ var Ve = class {
 			zIndex: n.order,
 			opacity: n.opacity,
 			transform: `matrix(${r}, ${i}, ${a}, ${o}, ${s}, ${c})`
-		}), ke(t.media, n.colorTransform);
+		}), je(t.media, n.colorTransform);
 	}
-}, He = class {
+};
+function We(e) {
+	let t = document.createElement("template");
+	t.innerHTML = e;
+	let n = (e) => {
+		if (e.nodeType === Node.TEXT_NODE) return Je(e.textContent ?? "");
+		if (!(e instanceof Element)) return "";
+		let t = e.tagName.toLowerCase(), r = [...e.childNodes].map(n).join("");
+		if (t === "sbr" || t === "br") return "<br>";
+		if (t === "p") {
+			let t = Ke(e.getAttribute("align"));
+			return `<div style="margin:0${t ? `;text-align:${t}` : ""}">${r}</div>`;
+		}
+		if (t === "font") {
+			let t = Ge(e);
+			return t ? `<span style="${t}">${r}</span>` : `<span>${r}</span>`;
+		}
+		if (t === "a") {
+			let t = qe(e.getAttribute("href"));
+			return t ? `<a href="${Je(t)}" target="_blank" rel="noreferrer">${r}</a>` : `<span>${r}</span>`;
+		}
+		return t === "b" || t === "strong" ? `<strong>${r}</strong>` : t === "i" || t === "em" ? `<em>${r}</em>` : t === "u" ? `<u>${r}</u>` : r;
+	};
+	return [...t.content.childNodes].map(n).join("");
+}
+function Ge(e) {
+	let t = [], n = e.getAttribute("color"), r = e.getAttribute("face"), i = Number.parseFloat(e.getAttribute("size") ?? ""), a = Number.parseFloat(e.getAttribute("letterSpacing") ?? "");
+	return n && /^#[0-9a-f]{6}$/i.test(n) && t.push(`color:${n}`), r && t.push(`font-family:${r.split(",").map((e) => `"${e.trim().replaceAll("\"", "\\\"")}"`).join(",")}`), Number.isFinite(i) && i > 0 && t.push(`font-size:${i}px`), Number.isFinite(a) && t.push(`letter-spacing:${a}px`), t.join(";");
+}
+function Ke(e) {
+	let t = String(e ?? "").toLowerCase();
+	return t === "left" || t === "right" || t === "center" || t === "justify" ? t : "";
+}
+function qe(e) {
+	let t = String(e ?? "");
+	return /^(https?:|mailto:)/i.test(t) ? t : "";
+}
+function Je(e) {
+	return e.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\"", "&quot;");
+}
+//#endregion
+//#region src/render/TextRenderer.ts
+var Ye = class {
 	registered = /* @__PURE__ */ new Set();
 	families = /* @__PURE__ */ new Map();
 	register(e) {
@@ -706,10 +748,57 @@ var Ve = class {
 	resolveFamily(e) {
 		if (e != null) return this.families.get(e);
 	}
-};
+}, Xe = [
+	N("_x", 0, "display", "readwrite", "number"),
+	N("_y", 1, "display", "readwrite", "number"),
+	N("_xscale", 2, "display", "readwrite", "number"),
+	N("_yscale", 3, "display", "readwrite", "number"),
+	N("_currentframe", 4, "movieclip", "read", "number"),
+	N("_totalframes", 5, "movieclip", "read", "number"),
+	N("_alpha", 6, "display", "readwrite", "number"),
+	N("_visible", 7, "display", "readwrite", "boolean"),
+	N("_width", 8, "display", "readwrite", "number"),
+	N("_height", 9, "display", "readwrite", "number"),
+	N("_rotation", 10, "display", "readwrite", "number"),
+	N("_target", 11, "movieclip", "read", "string"),
+	N("_framesloaded", 12, "movieclip", "read", "number"),
+	N("_name", 13, "display", "readwrite", "string"),
+	N("_droptarget", 14, "movieclip", "read", "string"),
+	N("_url", 15, "movieclip", "read", "string"),
+	N("_highquality", 16, "global", "readwrite", "number"),
+	N("_focusrect", 17, "global", "readwrite", "boolean"),
+	N("_soundbuftime", 18, "global", "readwrite", "number"),
+	N("_quality", 19, "global", "readwrite", "string"),
+	N("_xmouse", 20, "movieclip", "read", "number"),
+	N("_ymouse", 21, "movieclip", "read", "number")
+], Ze = [
+	N("enabled", void 0, "button", "readwrite", "boolean"),
+	N("text", void 0, "textfield", "readwrite", "string"),
+	N("htmlText", void 0, "textfield", "readwrite", "string", ["htmltext"]),
+	N("html", void 0, "textfield", "readwrite", "boolean"),
+	N("variable", void 0, "textfield", "readwrite", "string"),
+	N("selectable", void 0, "textfield", "readwrite", "boolean"),
+	N("type", void 0, "textfield", "readwrite", "string"),
+	N("wordWrap", void 0, "textfield", "readwrite", "boolean", ["wordwrap"]),
+	N("multiline", void 0, "textfield", "readwrite", "boolean")
+], Qe = [...Xe, ...Ze];
+new Map(Qe.filter((e) => e.index !== void 0).map((e) => [e.index, e])), new Map(Qe.flatMap((e) => [[$e(e.canonicalName), e], ...e.aliases.map((t) => [$e(t), e])]));
+function $e(e) {
+	return e.trim().toLowerCase();
+}
+function N(e, t, n, r, i, a = []) {
+	return {
+		canonicalName: e,
+		index: t,
+		aliases: a,
+		owner: n,
+		access: r,
+		valueType: i
+	};
+}
 //#endregion
 //#region src/player/avm1.ts
-function F(e) {
+function P(e) {
 	if (!e?.trim()) return [];
 	let t = [], n = 0, r = "", i = 0;
 	for (let a = 0; a < e.length; a++) {
@@ -722,11 +811,11 @@ function F(e) {
 	}
 	return t.push(e.slice(i)), t;
 }
-function I(e) {
+function F(e) {
 	let t = e.trim();
 	return /^[A-Za-z_$][\w$]*$/.test(t) && !/^(true|false|null|undefined|this|_root|_global|_parent|_level\d+)$/.test(t);
 }
-function Ue(e, t) {
+function et(e, t) {
 	let n = e;
 	for (let [e, r] of Object.entries(t)) {
 		if (r === void 0) continue;
@@ -737,26 +826,45 @@ function Ue(e, t) {
 }
 //#endregion
 //#region src/player/types.ts
-function L(e, t, n) {
+function I(e, t, n) {
 	return Math.max(t, Math.min(n, e));
 }
 //#endregion
 //#region src/player/renderNodes.ts
-function We(e, t) {
+function tt(e, t) {
 	for (let n of e.childClips.values()) if (n.name === t) return n;
 	return null;
 }
-function Ge(e) {
+function nt(e) {
 	return e.kind === "sprite" && !!(e.timeline?.length || e.frames?.length);
 }
-function Ke(e, t) {
+function rt(e, t) {
 	if (e.kind === "sprite" && e.frames?.length) {
-		let n = t ? L(t.currentFrame, 0, e.frames.length - 1) : 0;
+		let n = t ? I(t.currentFrame, 0, e.frames.length - 1) : 0;
 		return e.frames[n] ?? "";
 	}
 	return e.kind === "button" ? e.states?.up?.src ?? e.src ?? "" : e.src ?? "";
 }
-function qe(e, t, n, r, i, a, o, s, c = o.colorTransform) {
+function L(e) {
+	let t = {};
+	return e.visible !== void 0 && (t.visible = e.visible), e.blendMode !== void 0 && (t.blendMode = e.blendMode), e.filters !== void 0 && (t.filters = e.filters), e.cacheAsBitmap !== void 0 && (t.cacheAsBitmap = e.cacheAsBitmap), e.className !== void 0 && (t.className = e.className), e.clipActions !== void 0 && (t.clipActions = e.clipActions), t;
+}
+function R(e, t) {
+	if (!e) return t;
+	if (!t) return e;
+	let n = (t.rm ?? 1) * (e.rm ?? 1), r = (t.gm ?? 1) * (e.gm ?? 1), i = (t.bm ?? 1) * (e.bm ?? 1), a = (t.am ?? 1) * (e.am ?? 1), o = (t.ra ?? 0) * (e.rm ?? 1) + (e.ra ?? 0), s = (t.ga ?? 0) * (e.gm ?? 1) + (e.ga ?? 0), c = (t.ba ?? 0) * (e.bm ?? 1) + (e.ba ?? 0), l = (t.aa ?? 0) * (e.am ?? 1) + (e.aa ?? 0);
+	if (!(n === 1 && r === 1 && i === 1 && a === 1 && o === 0 && s === 0 && c === 0 && l === 0)) return {
+		rm: n,
+		gm: r,
+		bm: i,
+		am: a,
+		ra: o,
+		ga: s,
+		ba: c,
+		aa: l
+	};
+}
+function it(e, t, n, r, i, a, o, s, c = o.colorTransform) {
 	return {
 		key: e,
 		order: t,
@@ -768,11 +876,12 @@ function qe(e, t, n, r, i, a, o, s, c = o.colorTransform) {
 		matrix: i,
 		opacity: a,
 		colorTransform: c,
+		...L(o),
 		clipDepth: o.clipDepth,
 		spriteFrame: s
 	};
 }
-function R(e, t, n, r, i, a, o, s = 1, c, l = i.colorTransform) {
+function z(e, t, n, r, i, a, o, s = 1, c, l = i.colorTransform) {
 	let u = c === "down" ? n.states?.down ?? n.states?.over ?? n.states?.up : c === "over" ? n.states?.over ?? n.states?.up : n.states?.up, d = o || c ? u : void 0;
 	return {
 		key: e,
@@ -785,12 +894,13 @@ function R(e, t, n, r, i, a, o, s = 1, c, l = i.colorTransform) {
 		matrix: r,
 		opacity: d?.src ? s : 1,
 		colorTransform: l,
+		...L(i),
 		buttonOwnerPath: a
 	};
 }
 //#endregion
 //#region src/player/ClipInstance.ts
-var z = class {
+var B = class {
 	characterId;
 	parent;
 	name;
@@ -806,12 +916,12 @@ var z = class {
 };
 //#endregion
 //#region src/player/conditions.ts
-function B(e, t) {
+function V(e, t) {
 	if (!e) return !0;
 	let n = e.trim();
-	return n === "" || n === "else" || n === "true" ? !0 : n === "false" ? !1 : V(n, t);
+	return n === "" || n === "else" || n === "true" ? !0 : n === "false" ? !1 : at(n, t);
 }
-function V(e, t) {
+function at(e, t) {
 	let n = G(e, "||");
 	return n.length > 1 ? n.some((e) => H(e, t)) : H(e, t);
 }
@@ -821,8 +931,8 @@ function H(e, t) {
 }
 function U(e, t) {
 	let n = e.trim();
-	for (; n.startsWith("(") && $e(n) === n.length - 1;) n = n.slice(1, -1).trim();
-	if (G(n, "||").length > 1) return V(n, t);
+	for (; n.startsWith("(") && dt(n) === n.length - 1;) n = n.slice(1, -1).trim();
+	if (G(n, "||").length > 1) return at(n, t);
 	if (G(n, "&&").length > 1) return H(n, t);
 	if (n.startsWith("!")) return !U(n.slice(1), t);
 	for (let e of [
@@ -833,13 +943,13 @@ function U(e, t) {
 		"<",
 		">"
 	]) {
-		let r = Qe(n, e);
-		if (r >= 0) return Je(W(n.slice(0, r), t), W(n.slice(r + e.length), t), e);
+		let r = ut(n, e);
+		if (r >= 0) return ot(W(n.slice(0, r), t), W(n.slice(r + e.length), t), e);
 	}
-	return Xe(W(n, t));
+	return ct(W(n, t));
 }
-function Je(e, t, n) {
-	let r = Ze(e), i = Ze(t);
+function ot(e, t, n) {
+	let r = lt(e), i = lt(t);
 	if (r !== void 0 && i !== void 0) switch (n) {
 		case "==": return r === i;
 		case "!=": return r !== i;
@@ -862,23 +972,23 @@ function Je(e, t, n) {
 function W(e, t) {
 	let n = e.trim();
 	if (n === "") return;
-	let r = Ye(n, "eval");
+	let r = st(n, "eval");
 	if (r !== void 0) {
 		let e = W(r, t);
 		return e === void 0 ? void 0 : t.get(String(e));
 	}
 	return n.startsWith("\"") && n.endsWith("\"") || n.startsWith("'") && n.endsWith("'") ? n.slice(1, -1) : n === "true" ? !0 : n === "false" ? !1 : /^-?\d+(\.\d+)?$/.test(n) ? Number(n) : t.get(n);
 }
-function Ye(e, t) {
+function st(e, t) {
 	let n = `${t}(`;
 	if (!e.startsWith(n) || !e.endsWith(")")) return;
 	let r = e.slice(t.length);
-	if ($e(r) === r.length - 1) return r.slice(1, -1).trim();
+	if (dt(r) === r.length - 1) return r.slice(1, -1).trim();
 }
-function Xe(e) {
+function ct(e) {
 	return e !== void 0 && e !== !1 && e !== 0 && e !== "" && e !== "0";
 }
-function Ze(e) {
+function lt(e) {
 	if (typeof e == "number") return e;
 	if (typeof e == "boolean") return +!!e;
 	if (typeof e == "string" && /^-?\d+(\.\d+)?$/.test(e.trim())) return Number(e);
@@ -895,7 +1005,7 @@ function G(e, t) {
 	}
 	return n.push(e.slice(a)), n.map((e) => e.trim()).filter((e) => e.length > 0);
 }
-function Qe(e, t) {
+function ut(e, t) {
 	let n = 0, r = "";
 	for (let i = 0; i <= e.length - t.length; i++) {
 		let a = e[i];
@@ -913,7 +1023,7 @@ function Qe(e, t) {
 	}
 	return -1;
 }
-function $e(e) {
+function dt(e) {
 	let t = 0;
 	for (let n = 0; n < e.length; n++) if (e[n] === "(") t++;
 	else if (e[n] === ")" && (t--, t === 0)) return n;
@@ -921,7 +1031,7 @@ function $e(e) {
 }
 //#endregion
 //#region src/player/matrix.ts
-var et = {
+var ft = {
 	a: 1,
 	b: 0,
 	c: 0,
@@ -941,7 +1051,7 @@ function K(e, t) {
 }
 //#endregion
 //#region src/player/Ticker.ts
-var tt = class t {
+var pt = class t {
 	fps;
 	state = { t: 0 };
 	tween;
@@ -979,13 +1089,13 @@ var tt = class t {
 	destroy() {
 		this.tween.kill();
 	}
-}, nt = /^_(?:level\d+|root|parent)\./;
+}, mt = /^_(?:level\d+|root|parent)\./;
 function q(e) {
 	let t = e.trim();
-	for (; nt.test(t);) t = t.replace(nt, "");
+	for (; mt.test(t);) t = t.replace(mt, "");
 	return t;
 }
-var rt = class {
+var ht = class {
 	values = /* @__PURE__ */ new Map();
 	seed(e) {
 		if (e) for (let [t, n] of Object.entries(e)) {
@@ -1005,19 +1115,19 @@ var rt = class {
 	reset() {
 		this.values.clear();
 	}
-}, it = new Set([
+}, gt = new Set([
 	"gotoAndPlay",
 	"gotoAndStop",
 	"play",
 	"stop",
 	"nextFrame",
 	"prevFrame"
-]), at = new Set(["waitForVal", "startTimer"]), ot = new Set(["markSnd", "markSndSegment"]), st = /^_level[1-9]\d*\b/i, J = -1, ct = 24, lt = 3, ut = {
+]), _t = new Set(["waitForVal", "startTimer"]), vt = new Set(["markSnd", "markSndSegment"]), yt = /^_level[1-9]\d*\b/i, J = -1, bt = 24, xt = 3, St = {
 	x: 0,
 	y: 0,
 	width: 0,
 	height: 0
-}, dt = class {
+}, Ct = class {
 	timeline;
 	renderer;
 	options;
@@ -1054,7 +1164,7 @@ var rt = class {
 			let e = t?.normalizedVariableName;
 			e && this.boundTextVars.add(q(e));
 		}
-		this.rootFrames = e.frames ?? [], this.rootStop = new Set(e.control?.stopFrames ?? []), this.startFrame = L(n.startFrame ?? e.entryFrame ?? 0, 0, Math.max(0, this.rootFrames.length - 1));
+		this.rootFrames = e.frames ?? [], this.rootStop = new Set(e.control?.stopFrames ?? []), this.startFrame = I(n.startFrame ?? e.entryFrame ?? 0, 0, Math.max(0, this.rootFrames.length - 1));
 		for (let t of e.control?.frameActions ?? []) {
 			let e = (t.actions ?? []).filter((e) => !e.executionContext || e.executionContext === "timeline" || e.executionContext === "branch");
 			e.length && this.rootActions.set(t.frame, [...this.rootActions.get(t.frame) ?? [], ...e]);
@@ -1066,7 +1176,7 @@ var rt = class {
 			let n = `${t.spriteId}:${t.frame}`;
 			this.spriteActions.set(n, [...this.spriteActions.get(n) ?? [], ...e]);
 		}
-		this.store = n.store, this.buildFunctionTable(), this.buildSoundSegmentDurations(), this.ticker = new tt(e.fps || 20, () => this.onTick()), this.root = this.buildRoot(this.startFrame), this.primeAmbientSound(), this.render();
+		this.store = n.store, this.buildFunctionTable(), this.buildSoundSegmentDurations(), this.ticker = new pt(e.fps || 20, () => this.onTick()), this.root = this.buildRoot(this.startFrame), this.primeAmbientSound(), this.render();
 	}
 	get frameCount() {
 		return Math.max(1, this.rootFrames.length);
@@ -1099,7 +1209,7 @@ var rt = class {
 		this.ticker.isPlaying ? this.pause() : this.play();
 	}
 	seekRootFrame(e) {
-		this.ticker.pause(), this.voWaiting = !1, this.buttonVisualStates.clear(), this.root = this.buildRoot(L(e, 0, this.frameCount - 1)), this.render(), this.options.onFrame?.(this.root.currentFrame, !1);
+		this.ticker.pause(), this.voWaiting = !1, this.buttonVisualStates.clear(), this.root = this.buildRoot(I(e, 0, this.frameCount - 1)), this.render(), this.options.onFrame?.(this.root.currentFrame, !1);
 	}
 	restart() {
 		this.seekRootFrame(this.startFrame), this.primeAmbientSound();
@@ -1110,13 +1220,26 @@ var rt = class {
 	handleButtonEvent(e, t, n, r) {
 		this.setButtonVisualState(r ?? `${e}:${t}`, n);
 		let i = this.clipByPath.get(e) ?? this.root, a = this.buttonEventScope(i, t), o = this.buttonActionFor(i, t, n), s = this.companionButtonActions(i, t, n);
+		if (this.options.onButton) {
+			let r = o ? {
+				command: o.command,
+				target: o.target,
+				label: o.label,
+				swf: o.swf,
+				level: o.level == null ? void 0 : Number(o.level)
+			} : void 0;
+			if (this.options.onButton(t, e, n, r) === !0) {
+				this.render();
+				return;
+			}
+		}
 		if (!o) {
 			this.render();
 			return;
 		}
 		for (let e of o.assignments ?? []) {
 			let t = this.resolveExpr(e.rawValue ?? String(e.value ?? ""));
-			e.target && t !== void 0 && !ft(e.target, t) && this.scopeSet(i, e.target, t);
+			e.target && t !== void 0 && !wt(e.target, t) && this.scopeSet(i, e.target, t);
 		}
 		let c = (e) => !e || e === "self" || e === "this" || e === "_root" || e === "_level0" || e === "_parent", l = this.buttonCallableActions(o, (e) => {
 			if (e.functionName !== o.command || !c(e.target)) return !1;
@@ -1128,7 +1251,7 @@ var rt = class {
 		if (l?.length && this.runCallFunctions({
 			...o,
 			functionCalls: l
-		}, i, void 0, a), (o.command === "loadMovieNum" || o.command === "loadMovie") && this.options.onNavigate?.(o), o.command !== "loadMovieNum" && o.command !== "loadMovie") {
+		}, i, void 0, a), (o.command === "loadMovieNum" || o.command === "loadMovie") && this.options.onNavigate?.(o), o.command === "fsCommand" && this.options.onFsCommand?.(String(o.value ?? ""), o.arguments ?? ""), o.command !== "loadMovieNum" && o.command !== "loadMovie") {
 			let e = o.loads?.length ? o.loads : o.swf ? [{
 				swf: o.swf,
 				level: o.level
@@ -1170,14 +1293,14 @@ var rt = class {
 	}
 	companionButtonActions(e, t, n) {
 		if (n === "release") return [];
-		let r = this.timeline.control?.buttonActions ?? {}, i = r[String(t)], a = pt(i?.release);
+		let r = this.timeline.control?.buttonActions ?? {}, i = r[String(t)], a = Tt(i?.release);
 		if (!i || !a) return [];
 		let o = [], s = e.parent ?? e;
 		for (let [c, l] of Object.entries(r)) {
 			let r = Number(c);
 			if (!Number.isFinite(r) || r === t) continue;
 			let u = l[n];
-			if (!u || pt(l.release) !== a || !mt(i, l) || !ht(i[n], u)) continue;
+			if (!u || Tt(l.release) !== a || !Et(i, l) || !Dt(i[n], u)) continue;
 			let d = this.findButtonOwnerClip(s, r) ?? this.findButtonOwnerClip(this.root, r);
 			!d || d === e || o.push({
 				owner: d,
@@ -1191,7 +1314,7 @@ var rt = class {
 		let r = this.buttonEventScope(e, t);
 		for (let t of n.assignments ?? []) {
 			let n = this.resolveExpr(t.rawValue ?? String(t.value ?? ""));
-			t.target && n !== void 0 && !ft(t.target, n) && this.scopeSet(e, t.target, n);
+			t.target && n !== void 0 && !wt(t.target, n) && this.scopeSet(e, t.target, n);
 		}
 		let i = this.buttonCallableActions(n);
 		if (i?.length && this.runCallFunctions({
@@ -1217,7 +1340,7 @@ var rt = class {
 		return (this.framesFor(e)?.[e.currentFrame])?.instances?.some((e) => e.characterId === t && this.getAsset(e.characterId)?.kind === "button") ? !0 : this.latentButtonPlacements(e).some((e) => e.characterId === t);
 	}
 	buttonEventScope(e, t) {
-		return new z(t, "", e);
+		return new B(t, "", e);
 	}
 	setButtonVisualState(e, t) {
 		switch (t) {
@@ -1265,7 +1388,7 @@ var rt = class {
 				r.actions.push(...n.actions), e.set(n.functionName, r);
 				continue;
 			}
-			let e = (n.body ?? []).filter((e) => e.kind === "call" && !!e.functionName?.startsWith("gotoAnd") && (!e.target || e.target === "self" || e.target === "this") || e.kind === "assign" && I(e.target));
+			let e = (n.body ?? []).filter((e) => e.kind === "call" && !!e.functionName?.startsWith("gotoAnd") && (!e.target || e.target === "self" || e.target === "this") || e.kind === "assign" && F(e.target));
 			if (!e.length) continue;
 			let r = this.spriteFunctions.get(n.spriteId);
 			r || this.spriteFunctions.set(n.spriteId, r = /* @__PURE__ */ new Map());
@@ -1311,14 +1434,14 @@ var rt = class {
 			if (!a[t]) return;
 			let n = e.functionCalls ?? [];
 			if (e.command === "callFunctions" && n.length > 0 && n.every((e) => s.has(e.functionName))) return;
-			let r = St(e);
+			let r = Ft(e);
 			r && c.has(r) || this.runFunctionAction(e, i);
 		}), this.runFunctionBody(r.body, i, o), this.render(), !0;
 	}
 	functionActionDecisions(e, t) {
 		let n = e.map(() => !0);
 		if (!this.store) return n;
-		let r = (e) => e === "else", i = (e) => !e || this.evalGuard(Ue(e, t));
+		let r = (e) => e === "else", i = (e) => !e || this.evalGuard(et(e, t));
 		for (let t = 0; t < e.length;) {
 			if (!e[t].functionBranchCondition) {
 				t += 1;
@@ -1344,7 +1467,7 @@ var rt = class {
 		}), r;
 	}
 	parseArgs(e, t) {
-		return F(e).map((e) => this.resolveExpr(e.trim(), t));
+		return P(e).map((e) => this.resolveExpr(e.trim(), t));
 	}
 	getTimer() {
 		return performance.now();
@@ -1353,7 +1476,7 @@ var rt = class {
 		let n = e.trim();
 		if (n === "") return;
 		if (n === "getTimer()") return this.getTimer();
-		let r = wt(n, "eval");
+		let r = Lt(n, "eval");
 		if (r !== void 0) {
 			let e = this.resolveExpr(r, t);
 			return e === void 0 ? void 0 : this.store?.get(String(e)) ?? this.textVars.get(q(String(e))) ?? void 0;
@@ -1361,20 +1484,20 @@ var rt = class {
 		return n.startsWith("\"") && n.endsWith("\"") || n.startsWith("'") && n.endsWith("'") ? n.slice(1, -1) : n === "true" ? !0 : n === "false" ? !1 : /^-?\d+(\.\d+)?$/.test(n) ? Number(n) : t && n in t ? t[n] : /^[A-Za-z_$][\w$.]*$/.test(n) ? this.store?.get(n) ?? this.textVars.get(q(n)) ?? void 0 : n;
 	}
 	scopeGet(e, t) {
-		return I(t) && t in e.locals ? e.locals[t] : this.store?.get(t);
+		return F(t) && t in e.locals ? e.locals[t] : this.store?.get(t);
 	}
 	scopeSet(e, t, n) {
-		I(t) && (e.locals[t] = n), this.store?.set(t, n);
+		F(t) && (e.locals[t] = n), this.store?.set(t, n);
 	}
 	scopeFor(e) {
 		return {
 			get: (t) => this.scopeGet(e, t),
 			set: (t, n) => this.scopeSet(e, t, n),
-			has: (t) => I(t) && t in e.locals || (this.store?.has(t) ?? !1)
+			has: (t) => F(t) && t in e.locals || (this.store?.has(t) ?? !1)
 		};
 	}
 	evalGuard(e, t) {
-		return this.store ? e ? B(e.replace(/[\w.]*\btimeMarkDone\s*\(([^)]*)\)/g, (e, t) => {
+		return this.store ? e ? V(e.replace(/[\w.]*\btimeMarkDone\s*\(([^)]*)\)/g, (e, t) => {
 			let n = Number(this.resolveExpr(t.trim()) ?? 0), r = Number(this.store?.get("bkgd.timeTarg") ?? 0);
 			return this.getTimer() > r + n ? "1" : "0";
 		}), t ? this.scopeFor(t) : this.store) : !0 : !e;
@@ -1383,7 +1506,7 @@ var rt = class {
 		return this.parseArgs(e, t).map((e) => typeof e == "string" ? JSON.stringify(e) : String(e)).join(",");
 	}
 	branchPasses(e, t) {
-		return !e || !this.store ? !e : B(Ue(e, t), this.store);
+		return !e || !this.store ? !e : V(et(e, t), this.store);
 	}
 	functionBodyDecisions(e, t) {
 		let n = this.functionGuardLocals(e, t);
@@ -1397,7 +1520,7 @@ var rt = class {
 	functionGuardLocals(e, t) {
 		let n = { ...t };
 		for (let t of e) {
-			if (t.kind !== "assign" || gt(t.branchCondition, t.target) || !this.branchPasses(t.branchCondition, n)) continue;
+			if (t.kind !== "assign" || Ot(t.branchCondition, t.target) || !this.branchPasses(t.branchCondition, n)) continue;
 			let e = this.resolveExpr(t.rawValue, n);
 			e !== void 0 && (n[t.target] = e);
 		}
@@ -1414,16 +1537,16 @@ var rt = class {
 	runBodyCall(e, t) {
 		let n = e.functionName, r = e.target;
 		if (!this.runMovieLoadCall(n, e.arguments, t) && !this.runMovieUnloadCall(n, e.arguments, t) && !this.runSoundMethod(r, n, e.arguments, t)) {
-			if (at.has(n)) {
+			if (_t.has(n)) {
 				this.options.onWaiter?.(n, this.parseArgs(e.arguments, t));
 				return;
 			}
-			if (ot.has(n)) {
+			if (vt.has(n)) {
 				let n = this.parseArgs(e.arguments, t)[0];
 				n !== void 0 && this.runSoundMarker(r, String(n), e.arguments);
 				return;
 			}
-			if (it.has(n) && r) {
+			if (gt.has(n) && r) {
 				let i = this.parseArgs(e.arguments, t)[0] ?? 0;
 				/^_level\d+/i.test(r) ? this.options.onClipCommand?.(r, n, i) : this.runNamedClipCommand(this.root, r, n, i);
 				return;
@@ -1439,11 +1562,11 @@ var rt = class {
 	bodySoundCallKey(e, t) {
 		let [n] = this.parseArgs(e.arguments, t);
 		switch (e.functionName) {
-			case "attachSound": return Q("attachSound", n);
-			case "playVO": return Q("playVO", n);
+			case "attachSound": return X("attachSound", n);
+			case "playVO": return X("playVO", n);
 			case "markSnd":
-			case "markSndSegment": return Q("markSndSegment", n);
-			case "stop": return e.target ? Q("stopSound", q(e.target)) : void 0;
+			case "markSndSegment": return X("markSndSegment", n);
+			case "stop": return e.target ? X("stopSound", q(e.target)) : void 0;
 			default: return;
 		}
 	}
@@ -1453,7 +1576,7 @@ var rt = class {
 		return i && this.options.onNavigate?.({
 			command: e,
 			swf: i,
-			level: e === "loadMovieNum" ? vt(r[1], _t(t, 1)) : void 0,
+			level: e === "loadMovieNum" ? At(r[1], kt(t, 1)) : void 0,
 			executionContext: "function"
 		}), !0;
 	}
@@ -1462,7 +1585,7 @@ var rt = class {
 		let r = this.parseArgs(t, n);
 		return this.options.onNavigate?.({
 			command: e,
-			level: vt(r[0], _t(t, 0)),
+			level: At(r[0], kt(t, 0)),
 			executionContext: "function"
 		}), !0;
 	}
@@ -1553,7 +1676,7 @@ var rt = class {
 		for (let t of Object.values(e)) if (typeof t != "string" && (t.name?.toLowerCase() === n || t.aliases?.some((e) => e.toLowerCase() === n))) return t;
 	}
 	buildSoundSegmentDurations() {
-		let e = A(this.timeline.control);
+		let e = we(this.timeline.control);
 		for (let [t, n] of Object.entries(e)) this.soundSegmentDurations.set(t, {
 			baseSound: t,
 			durationMs: n.durationMs
@@ -1571,8 +1694,8 @@ var rt = class {
 			let t = e.soundAction;
 			t?.command === "markSndSegment" && n(t.segment ?? t.sound), t?.command === "playVO" && n(t.segment);
 			for (let t of e.functionCalls ?? []) {
-				let e = F(t.arguments);
-				(t.functionName === "markSnd" || t.functionName === "markSndSegment") && n(Ct(e[0])), t.functionName === "playVO" && n(Ct(e[2]));
+				let e = P(t.arguments);
+				(t.functionName === "markSnd" || t.functionName === "markSndSegment") && n(It(e[0])), t.functionName === "playVO" && n(It(e[2]));
 			}
 		};
 		for (let e of this.timeline.control?.frameActions ?? []) for (let t of e.actions ?? []) r(t);
@@ -1648,6 +1771,9 @@ var rt = class {
 					reload: !0
 				});
 				break;
+			case "fsCommand":
+				this.options.onFsCommand?.(String(e.value ?? ""), e.arguments ?? "");
+				break;
 			case "loadVariables":
 				this.options.onLoadVariables?.(e);
 				break;
@@ -1670,19 +1796,19 @@ var rt = class {
 		let i = !1;
 		for (let a of e.functionCalls ?? []) {
 			let o = this.runFunctionCall(a, t, n, r);
-			xt(a, e.soundAction) && o && (i = !0);
+			Pt(a, e.soundAction) && o && (i = !0);
 		}
 		e.soundAction && !i && this.runSoundMetadataFallback(e.soundAction);
 	}
 	runFunctionCall(e, t, n, r) {
 		let i = e.target ?? "self", a = e.functionName;
 		if (this.runSoundMethod(i, a, e.arguments, n)) return !0;
-		if (at.has(a)) return this.options.onWaiter?.(a, this.parseArgs(e.arguments, n)), !0;
-		if (ot.has(a)) {
+		if (_t.has(a)) return this.options.onWaiter?.(a, this.parseArgs(e.arguments, n)), !0;
+		if (vt.has(a)) {
 			let t = this.parseArgs(e.arguments, n)[0];
 			if (t !== void 0) return this.runSoundMarker(i, String(t), e.arguments), !0;
 		}
-		if (it.has(a) && i !== "self" && i !== "this" && i !== "_root") {
+		if (gt.has(a) && i !== "self" && i !== "this" && i !== "_root") {
 			let o = this.parseArgs(e.arguments, n)[0] ?? 0;
 			return /^_level\d+/i.test(i) ? (this.options.onClipCommand?.(i, a, o), !0) : this.runNamedClipCommand(t, i, a, o) ? !0 : r ? this.runNamedClipCommand(r, i, a, o) : !1;
 		}
@@ -1710,9 +1836,9 @@ var rt = class {
 	callClipFunction(e, t) {
 		let n = this.spriteFunctions.get(e.characterId)?.get(t);
 		if (!n) return !1;
-		let r = this.scopeFor(e), i = (e) => e === "else", a = n.actions.some((e) => e.functionBranchCondition && !i(e.functionBranchCondition) && B(e.functionBranchCondition, r)), o = n.actions.map((e) => {
+		let r = this.scopeFor(e), i = (e) => e === "else", a = n.actions.some((e) => e.functionBranchCondition && !i(e.functionBranchCondition) && V(e.functionBranchCondition, r)), o = n.actions.map((e) => {
 			let t = e.functionBranchCondition;
-			return i(t) ? !a : !t || B(t, r);
+			return i(t) ? !a : !t || V(t, r);
 		});
 		for (let t = 0; t < n.actions.length; t += 1) this.store && !o[t] || this.runClipAction(e, n.actions[t]);
 		return this.render(), !0;
@@ -1745,7 +1871,7 @@ var rt = class {
 	findClipByName(e, t) {
 		let n = [], r = (e) => {
 			if (e.name === t) return e;
-			Z(e.name, t) && n.push(e);
+			Nt(e.name, t) && n.push(e);
 			for (let t of e.childClips.values()) {
 				let e = r(t);
 				if (e) return e;
@@ -1755,7 +1881,7 @@ var rt = class {
 		return r(e) || (n.length === 1 ? n[0] : null);
 	}
 	buildRoot(e) {
-		let t = new z(J, "_root", null);
+		let t = new B(J, "_root", null);
 		return this.enterFrame(t, e, 0), t;
 	}
 	onTick() {
@@ -1770,7 +1896,7 @@ var rt = class {
 		for (let t of e.childClips.values()) this.tickClip(t);
 	}
 	enterFrame(e, t, n) {
-		e.currentFrame = L(t, 0, Math.max(0, this.frameCountFor(e) - 1)), this.reconcile(e), e.enteredFrame !== e.currentFrame && (e.enteredFrame = e.currentFrame, this.stopFramesFor(e).has(e.currentFrame) && (e.playing = !1), n < ct && this.runScript(e, n));
+		e.currentFrame = I(t, 0, Math.max(0, this.frameCountFor(e) - 1)), this.reconcile(e), e.enteredFrame !== e.currentFrame && (e.enteredFrame = e.currentFrame, this.stopFramesFor(e).has(e.currentFrame) && (e.playing = !1), n < bt && this.runScript(e, n));
 	}
 	reconcile(e) {
 		let t = this.framesFor(e);
@@ -1778,11 +1904,11 @@ var rt = class {
 		let n = t[e.currentFrame]?.instances ?? [], r = /* @__PURE__ */ new Set();
 		for (let t of n) {
 			let n = this.getAsset(t.characterId);
-			if (!n || !Ge(n)) continue;
+			if (!n || !nt(n)) continue;
 			r.add(t.depth), t.name && e.depthNames.set(t.depth, t.name);
 			let i = t.name || e.depthNames.get(t.depth) || "", a = e.childClips.get(t.depth);
 			if (!a || a.characterId !== t.characterId) {
-				let n = new z(t.characterId, i, e);
+				let n = new B(t.characterId, i, e);
 				e.childClips.set(t.depth, n), this.enterFrame(n, 0, 0);
 				let r = i ? this.pendingClipCommandKey(i) : void 0, a = r ? this.pendingClipCommands.get(r) : void 0;
 				if (a && r) {
@@ -1796,7 +1922,7 @@ var rt = class {
 	}
 	pendingClipCommandKey(e) {
 		if (this.pendingClipCommands.has(e)) return e;
-		let t = Array.from(this.pendingClipCommands.keys()).filter((t) => Z(e, t));
+		let t = Array.from(this.pendingClipCommands.keys()).filter((t) => Nt(e, t));
 		return t.length === 1 ? t[0] : void 0;
 	}
 	runScript(e, t) {
@@ -1832,7 +1958,7 @@ var rt = class {
 					if (!n || r < 0) break;
 					if (a.branchCondition?.includes("sndDonePlaying") && a.command === "gotoAndPlay" && n === e && r < e.currentFrame) {
 						let t = e.currentFrame - r, n = this.options.isVoiceDone?.() ?? !0, i = this.voWaiting && n || e !== this.root && !this.voWaiting;
-						if (t <= lt && i) {
+						if (t <= xt && i) {
 							this.voWaiting = !1;
 							break;
 						}
@@ -1899,7 +2025,7 @@ var rt = class {
 				continue;
 			}
 			if (!r) return null;
-			r = We(r, t) ?? this.findClipByName(r, t);
+			r = tt(r, t) ?? this.findClipByName(r, t);
 		}
 		return r;
 	}
@@ -1914,7 +2040,7 @@ var rt = class {
 		let n = e.frameExpression?.match(/^_currentframe\s*([+-])\s*(\d+)$/);
 		if (n && t) {
 			let e = Number(n[2]) * (n[1] === "-" ? -1 : 1);
-			return L(t.currentFrame + e, 0, Math.max(0, this.frameCountFor(t) - 1));
+			return I(t.currentFrame + e, 0, Math.max(0, this.frameCountFor(t) - 1));
 		}
 		return -1;
 	}
@@ -1939,7 +2065,7 @@ var rt = class {
 	}
 	render() {
 		let e = [];
-		this.clipByPath = /* @__PURE__ */ new Map(), this.clipByPath.set("0", this.root), this.flatten(this.root, et, 1, void 0, "0", { n: 0 }, e);
+		this.clipByPath = /* @__PURE__ */ new Map(), this.clipByPath.set("0", this.root), this.flatten(this.root, ft, 1, void 0, "0", { n: 0 }, e);
 		let t = new Set(e.filter((e) => e.kind === "button").map((e) => e.key));
 		for (let e of this.buttonVisualStates.keys()) t.has(e) || this.buttonVisualStates.delete(e);
 		this.renderer.apply(e), this.lastNodes = e;
@@ -1959,7 +2085,7 @@ var rt = class {
 					kind: "shape",
 					name: "",
 					src: "",
-					origin: ut,
+					origin: St,
 					matrix: t,
 					opacity: 1,
 					maskGroup: e.group
@@ -1970,9 +2096,9 @@ var rt = class {
 			d(s.depth);
 			let c = this.getAsset(s.characterId);
 			if (!c) continue;
-			let l = K(t, s.matrix), f = n * s.opacity, p = X(r, s.colorTransform), m = `${i}/${s.depth}`, h = e.childClips.get(s.depth);
+			let l = K(t, s.matrix), f = n * s.opacity, p = R(r, s.colorTransform), m = `${i}/${s.depth}`, h = e.childClips.get(s.depth);
 			if (s.clipDepth) {
-				let e = Ke(c, h);
+				let e = rt(c, h);
 				e && u.push({
 					key: `${m}#mask`,
 					order: a.n++,
@@ -1984,7 +2110,8 @@ var rt = class {
 							origin: c.origin,
 							matrix: l,
 							opacity: 1,
-							colorTransform: p
+							colorTransform: p,
+							...L(s)
 						},
 						items: []
 					}
@@ -1993,20 +2120,21 @@ var rt = class {
 			}
 			let g = u[u.length - 1];
 			if (g && s.depth <= g.clipDepth) {
-				let e = Ke(c, h);
+				let e = rt(c, h);
 				e && g.group.items.push({
 					characterId: c.id,
 					src: e,
 					origin: c.origin,
 					matrix: l,
 					opacity: f,
-					colorTransform: p
+					colorTransform: p,
+					...L(s)
 				});
 				continue;
 			}
 			if (c.kind === "sprite" && c.frames?.length && !c.overflowsBounds) {
-				let e = h ? L(h.currentFrame, 0, c.frames.length - 1) : 0;
-				o.push(qe(m, a.n++, c, c.frames[e], l, f, s, h?.currentFrame, p)), h && c.timeline?.length && this.collectButtons(h, l, p, m, a, o);
+				let e = h ? I(h.currentFrame, 0, c.frames.length - 1) : 0;
+				o.push(it(m, a.n++, c, c.frames[e], l, f, s, h?.currentFrame, p)), h && c.timeline?.length && this.collectButtons(h, l, p, m, a, o);
 				continue;
 			}
 			if (c.kind === "sprite" && c.timeline?.length && h && h.characterId === c.id) {
@@ -2014,7 +2142,7 @@ var rt = class {
 				continue;
 			}
 			if (c.kind === "button") {
-				o.push(R(m, a.n++, c, l, s, i, !0, f, this.buttonVisualStates.get(m), p)), this.collectButtonText(c, l, p, m, a, o, s);
+				o.push(z(m, a.n++, c, l, s, i, !0, f, this.buttonVisualStates.get(m), p)), this.collectButtonText(c, l, p, m, a, o, s);
 				continue;
 			}
 			o.push(this.leafNode(m, a.n++, c, c.src ?? "", l, f, s, p));
@@ -2032,8 +2160,8 @@ var rt = class {
 			if (o.clipDepth) continue;
 			let s = this.getAsset(o.characterId);
 			if (!s) continue;
-			let c = K(t, o.matrix), l = X(n, o.colorTransform), u = `${r}/${o.depth}`;
-			if (s.kind === "button") a.push(R(u, i.n++, s, c, o, r, !1, 1, this.buttonVisualStates.get(u), l)), this.collectButtonText(s, c, l, u, i, a, o);
+			let c = K(t, o.matrix), l = R(n, o.colorTransform), u = `${r}/${o.depth}`;
+			if (s.kind === "button") a.push(z(u, i.n++, s, c, o, r, !1, 1, this.buttonVisualStates.get(u), l)), this.collectButtonText(s, c, l, u, i, a, o);
 			else if (s.kind === "text") {
 				let e = this.resolveTextField(s.id, s);
 				(e?.normalizedVariableName ? this.textVars.has(e.normalizedVariableName) : e?.text && String(e.text).trim()) && a.push(this.leafNode(u, i.n++, s, s.src ?? "", c, o.opacity, o, l));
@@ -2049,8 +2177,8 @@ var rt = class {
 			if (o.has(c.depth)) continue;
 			let e = this.getAsset(c.characterId);
 			if (!e || e.kind !== "button") continue;
-			let l = K(t, c.matrix), u = X(n, c.colorTransform), d = `${r}/${c.depth}`;
-			a.push(R(d, i.n++, e, l, c, r, !1, s, this.buttonVisualStates.get(d), u));
+			let l = K(t, c.matrix), u = R(n, c.colorTransform), d = `${r}/${c.depth}`;
+			a.push(z(d, i.n++, e, l, c, r, !1, s, this.buttonVisualStates.get(d), u));
 		}
 	}
 	latentButtonPlacements(e) {
@@ -2097,6 +2225,7 @@ var rt = class {
 			matrix: i,
 			opacity: a,
 			colorTransform: s,
+			...L(o),
 			clipDepth: o.clipDepth,
 			text: n.kind === "text" ? this.resolveTextField(n.id, n) : void 0
 		};
@@ -2117,7 +2246,7 @@ var rt = class {
 			return {
 				...i,
 				text: e,
-				align: bt(e, i.align, !!i.html)
+				align: Mt(e, i.align, !!i.html)
 			};
 		}
 		return i;
@@ -2132,23 +2261,10 @@ var rt = class {
 function Y(e) {
 	return !e || e === "self" || e === "this" || e === "_root" || e === "_level0" || e === "root";
 }
-function ft(e, t) {
-	return t === "" && st.test(e);
+function wt(e, t) {
+	return t === "" && yt.test(e);
 }
-function X(e, t) {
-	if (!e) return t;
-	if (!t) return e;
-	let n = (t.rm ?? 1) * (e.rm ?? 1), r = (t.gm ?? 1) * (e.gm ?? 1), i = (t.bm ?? 1) * (e.bm ?? 1), a = (t.ra ?? 0) * (e.rm ?? 1) + (e.ra ?? 0), o = (t.ga ?? 0) * (e.gm ?? 1) + (e.ga ?? 0), s = (t.ba ?? 0) * (e.bm ?? 1) + (e.ba ?? 0);
-	if (!(n === 1 && r === 1 && i === 1 && a === 0 && o === 0 && s === 0)) return {
-		rm: n,
-		gm: r,
-		bm: i,
-		ra: a,
-		ga: o,
-		ba: s
-	};
-}
-function pt(e) {
+function Tt(e) {
 	if (!e) return "";
 	let t = e.exitNavigation;
 	return t ? [
@@ -2169,14 +2285,14 @@ function pt(e) {
 		e.frame ?? ""
 	].join("|");
 }
-function mt(e, t) {
+function Et(e, t) {
 	let n = new Set((e.ownerSpriteIds ?? []).map(String));
 	return (t.ownerSpriteIds ?? []).some((e) => n.has(String(e)));
 }
-function ht(e, t) {
+function Dt(e, t) {
 	return !(!e || !t || e.command !== t.command || (e.target ?? "self") !== (t.target ?? "self") || (e.label ?? "") !== (t.label ?? "") || (e.frame ?? "") !== (t.frame ?? "") || (e.frameExpression ?? "") !== (t.frameExpression ?? ""));
 }
-function gt(e, t) {
+function Ot(e, t) {
 	if (!e) return !1;
 	let n = q(t), r = new Set([
 		t,
@@ -2190,45 +2306,45 @@ function gt(e, t) {
 	}
 	return !1;
 }
-function _t(e, t) {
-	return F(e)[t]?.trim();
+function kt(e, t) {
+	return P(e)[t]?.trim();
 }
-function vt(e, t) {
-	return yt(e) ?? yt(t);
+function At(e, t) {
+	return jt(e) ?? jt(t);
 }
-function yt(e) {
+function jt(e) {
 	if (e == null) return;
 	let t = String(e).replace(/^["']|["']$/g, "").trim(), n = /^_level(\d+)$/i.exec(t), r = Number(n?.[1] ?? t);
 	return Number.isFinite(r) ? r : void 0;
 }
-function bt(e, t, n) {
+function Mt(e, t, n) {
 	if (!n) return t;
 	let r = e.match(/<p\b[^>]*\balign\s*=\s*["']?(left|center|right|justify)\b/i) ?? e.match(/\btext-align\s*:\s*(left|center|right|justify)\b/i);
 	return r?.[1] ? r[1].toLowerCase() : "left";
 }
-function Z(e, t) {
+function Nt(e, t) {
 	return !e || !t || e === t || !e.startsWith(t) ? !1 : /^[A-Z0-9_$]/.test(e.slice(t.length));
 }
-function xt(e, t) {
+function Pt(e, t) {
 	return t ? t.command === "markSndSegment" ? e.functionName === "markSnd" || e.functionName === "markSndSegment" : e.functionName === t.command : !1;
 }
-function St(e) {
+function Ft(e) {
 	switch (e.command) {
-		case "attachSound": return Q("attachSound", e.sound ?? e.resolvedSound);
-		case "playVO": return Q("playVO", e.sound ?? e.resolvedSound);
-		case "markSndSegment": return Q("markSndSegment", e.segment ?? e.sound ?? e.resolvedSound);
-		case "stopSound": return e.target ? Q("stopSound", q(e.target)) : void 0;
+		case "attachSound": return X("attachSound", e.sound ?? e.resolvedSound);
+		case "playVO": return X("playVO", e.sound ?? e.resolvedSound);
+		case "markSndSegment": return X("markSndSegment", e.segment ?? e.sound ?? e.resolvedSound);
+		case "stopSound": return e.target ? X("stopSound", q(e.target)) : void 0;
 		default: return;
 	}
 }
-function Q(e, t) {
+function X(e, t) {
 	if (!(t == null || t === "")) return `${e}:${String(t)}`;
 }
-function Ct(e) {
+function It(e) {
 	let t = e?.trim();
 	if (t && (t.startsWith("\"") && t.endsWith("\"") || t.startsWith("'") && t.endsWith("'"))) return t.slice(1, -1);
 }
-function wt(e, t) {
+function Lt(e, t) {
 	let n = `${t}(`;
 	if (!e.startsWith(n) || !e.endsWith(")")) return;
 	let r = 0, i = "";
@@ -2246,7 +2362,7 @@ function wt(e, t) {
 }
 //#endregion
 //#region src/audio/SoundController.ts
-var Tt = class e {
+var Rt = class e {
 	music = null;
 	musicSrc = "";
 	musicOwner;
@@ -2312,12 +2428,12 @@ var Tt = class e {
 		this.cancelPendingMusicStop();
 		let r = this.volumeFor(e.target, .5);
 		if (this.musicSrc === n && this.music) {
-			this.musicOwner = t, this.musicTarget = $(e.target), this.music.loop = !0, this.music.volume = r, this.tryPlay(this.music);
+			this.musicOwner = t, this.musicTarget = Z(e.target), this.music.loop = !0, this.music.volume = r, this.tryPlay(this.music);
 			return;
 		}
 		this.stopMusic();
 		let i = new Audio(O(n));
-		i.preload = "auto", i.loop = !0, i.volume = r, this.music = i, this.musicSrc = n, this.musicOwner = t, this.musicTarget = $(e.target), this.tryPlay(i);
+		i.preload = "auto", i.loop = !0, i.volume = r, this.music = i, this.musicSrc = n, this.musicOwner = t, this.musicTarget = Z(e.target), this.tryPlay(i);
 	}
 	playVoice(e, t) {
 		let n = e.soundSrc;
@@ -2327,7 +2443,7 @@ var Tt = class e {
 		let a = new Audio(O(n));
 		a.preload = "auto", a.volume = this.volumeFor(e.target, 1), this.voiceStartedAt = performance.now(), this.voiceDurationMs = i || (r && Number.isFinite(r) ? r : 0), a.addEventListener("loadedmetadata", () => {
 			!this.voiceDurationMs && Number.isFinite(a.duration) && (this.voiceDurationMs = a.duration * 1e3);
-		}), this.voice = a, this.voiceOwner = t, this.voiceTarget = $(e.target), this.tryPlay(a);
+		}), this.voice = a, this.voiceOwner = t, this.voiceTarget = Z(e.target), this.tryPlay(a);
 	}
 	markVoiceSegment(t) {
 		let n = t && Number.isFinite(t) ? t : e.FALLBACK_SEGMENT_MS;
@@ -2345,24 +2461,24 @@ var Tt = class e {
 	stopMusic() {
 		this.cancelPendingMusicStop();
 		let e = this.music;
-		e && (this.pendingPlayback.delete(e), e.pause(), Et(e)), this.music = null, this.musicSrc = "", this.musicOwner = void 0, this.musicTarget = "";
+		e && (this.pendingPlayback.delete(e), e.pause(), zt(e)), this.music = null, this.musicSrc = "", this.musicOwner = void 0, this.musicTarget = "";
 	}
 	stopVoice() {
 		let e = this.voice;
-		e && (this.pendingPlayback.delete(e), e.pause(), Et(e)), this.voice = null, this.voiceOwner = void 0, this.voiceTarget = "", this.voiceStartedAt = 0, this.voiceDurationMs = 0;
+		e && (this.pendingPlayback.delete(e), e.pause(), zt(e)), this.voice = null, this.voiceOwner = void 0, this.voiceTarget = "", this.voiceStartedAt = 0, this.voiceDurationMs = 0;
 	}
 	stopForAction(e) {
-		let t = $(e.target), n = e.soundRole === "music" || t && t === this.musicTarget, r = e.soundRole === "vo" || !t || t === this.voiceTarget;
+		let t = Z(e.target), n = e.soundRole === "music" || t && t === this.musicTarget, r = e.soundRole === "vo" || !t || t === this.voiceTarget;
 		n && this.scheduleMusicStop(), r && this.stopVoice();
 	}
 	setVolume(e) {
-		let t = $(e.target);
+		let t = Z(e.target);
 		if (!t) return;
-		let n = Dt(e.value);
+		let n = Bt(e.value);
 		this.targetVolumes.set(t, n), this.music && t === this.musicTarget && (this.music.volume = n), this.voice && t === this.voiceTarget && (this.voice.volume = n);
 	}
 	volumeFor(e, t) {
-		let n = $(e);
+		let n = Z(e);
 		return n ? this.targetVolumes.get(n) ?? t : t;
 	}
 	scheduleMusicStop() {
@@ -2416,27 +2532,27 @@ var Tt = class e {
 		}
 	}
 };
-function $(e) {
+function Z(e) {
 	return (e ?? "").replace(/^_root\./i, "").replace(/^_level0\./i, "").replace(/^this\./i, "").replace(/^self\./i, "");
 }
-function Et(e) {
+function zt(e) {
 	try {
 		e.currentTime = 0;
 	} catch {}
 }
-function Dt(e) {
+function Bt(e) {
 	let t = Number(e);
 	return Number.isFinite(t) ? Math.max(0, Math.min(1, t / 100)) : 1;
 }
 //#endregion
 //#region src/app/PlayerController.ts
-var Ot = /^_level(\d+)/, kt = class {
+var Vt = /^_level(\d+)/, Q = class {
 	container;
 	options;
-	fonts = new He();
-	sound = new Tt();
+	fonts = new Ye();
+	sound = new Rt();
 	levels = /* @__PURE__ */ new Map();
-	store = new rt();
+	store = new ht();
 	loadBurst = /* @__PURE__ */ new Set();
 	pendingCalls = [];
 	waiters = [];
@@ -2462,11 +2578,11 @@ var Ot = /^_level(\d+)/, kt = class {
 		return this.main?.isPlaying ?? !1;
 	}
 	activate(e, t, n) {
-		this.deactivate(), this.container.hidden = !1, this.mainSwf = t, this.createLevel(0, t, e), typeof n == "number" && this.main?.seekRootFrame(n), this.emitFrame();
+		this.deactivate(), this.container.hidden = !1, this.mainSwf = t, this.container.style.background = e.backgroundColor ?? "#ffffff", this.createLevel(0, t, e), typeof n == "number" && this.main?.seekRootFrame(n), this.emitFrame();
 	}
 	deactivate() {
 		for (let e of this.levels.values()) e.player.destroy(), e.layer.remove();
-		this.levels.clear(), this.store.reset(), this.pendingCalls = [], this.waiters = [], this.loadBurst.clear(), this.prefetched.clear(), this.sound.destroy(), this.container.hidden = !0, this.container.replaceChildren();
+		this.levels.clear(), this.store.reset(), this.pendingCalls = [], this.waiters = [], this.loadBurst.clear(), this.prefetched.clear(), this.sound.destroy(), this.container.style.background = "", this.container.hidden = !0, this.container.replaceChildren();
 	}
 	play() {
 		this.playing = !0;
@@ -2489,10 +2605,10 @@ var Ot = /^_level(\d+)/, kt = class {
 		this.emitFrame();
 	}
 	createLevel(e, t, n) {
-		this.levels.get(e) && this.destroyLevel(e), this.store.seed(n.control?.globalDefaults), this.sound.registerTimings(A(n.control)), this.fonts.register(n);
+		this.levels.get(e) && this.destroyLevel(e), this.store.seed(n.control?.globalDefaults), this.sound.registerTimings(we(n.control)), this.fonts.register(n);
 		let r = document.createElement("div");
 		r.className = "player-level", r.style.zIndex = String(e), this.container.append(r);
-		let i = new dt(n, new Ve(r, {
+		let i = new Ct(n, new Ue(r, {
 			resolveFontFamily: (e) => this.fonts.resolveFamily(e),
 			onButtonEvent: (t, n, r, i) => this.levels.get(e)?.player.handleButtonEvent(t, n, r, i)
 		}), {
@@ -2501,6 +2617,14 @@ var Ot = /^_level(\d+)/, kt = class {
 			} : void 0,
 			onSound: (t) => this.sound.handle(t, e),
 			onNavigate: (t) => this.handleNavigate(t, e),
+			onButton: this.options.onButton ? (e, t, r, i) => this.options.onButton({
+				characterId: e,
+				ownerPath: t,
+				event: r,
+				scene: n.scene,
+				action: i
+			}) : void 0,
+			onFsCommand: this.options.onFsCommand,
 			store: this.store,
 			onCallFunction: (e, t, n) => this.dispatchCall(e, t, n),
 			onClipCommand: (e, t, n) => this.dispatchClipCommand(e, t, n),
@@ -2563,7 +2687,7 @@ var Ot = /^_level(\d+)/, kt = class {
 		this.waiters = e;
 	}
 	dispatchClipCommand(e, t, n) {
-		let r = Ot.exec(e);
+		let r = Vt.exec(e);
 		if (!r) return;
 		let i = this.levels.get(Number(r[1]))?.player;
 		if (!i) return;
@@ -2575,11 +2699,11 @@ var Ot = /^_level(\d+)/, kt = class {
 		if (n) try {
 			let t = await fetch(O(n));
 			if (!t.ok || this.container.hidden) return;
-			this.levels.get(e)?.player.setTextVars(At(await t.text()));
+			this.levels.get(e)?.player.setTextVars(Ht(await t.text()));
 		} catch {}
 	}
 	dispatchCall(e, t, n) {
-		let r = Ot.exec(e);
+		let r = Vt.exec(e);
 		if (!r) return;
 		let i = Number(r[1]), a = this.levels.get(i)?.player;
 		a ? a.callFunction(t, n) : this.pendingCalls.push({
@@ -2589,7 +2713,12 @@ var Ot = /^_level(\d+)/, kt = class {
 		});
 	}
 	handleNavigate(e, t = 0) {
-		if (e.command === "unloadMovieNum" || e.command === "unloadMovie") {
+		if (this.options.onNavigate?.({
+			command: e.command ?? "",
+			swf: e.swf,
+			level: e.level == null ? void 0 : Number(e.level),
+			reload: e.reload
+		}), e.command === "unloadMovieNum" || e.command === "unloadMovie") {
 			let n = Number(e.level ?? this.inferLoadLevel(t) ?? 0);
 			n > 0 && this.destroyLevel(n);
 			return;
@@ -2607,12 +2736,46 @@ var Ot = /^_level(\d+)/, kt = class {
 		let t = [...this.levels.keys()].filter((t) => t > 0 && t < e);
 		return t.length ? Math.max(...t) : void 0;
 	}
-	async loadLevel(e, t, n = !1) {
+	async loadLevel(e, t, r = !1) {
 		if (e <= 0) return;
-		let r = this.levels.get(e);
-		if (!n && r && r.swf.toLowerCase() === t.toLowerCase() || t.toLowerCase() === this.mainSwf.toLowerCase()) return;
-		let i = await D(t);
-		!i || this.container.hidden || this.createLevel(e, t, i);
+		let i = this.levels.get(e);
+		if (!r && i && i.swf.toLowerCase() === t.toLowerCase() || t.toLowerCase() === this.mainSwf.toLowerCase()) return;
+		let a = n(t);
+		this.options.onLoadStart?.({
+			source: "level",
+			level: e,
+			swf: t,
+			scene: a
+		});
+		try {
+			let n = await D(t);
+			if (!n) {
+				this.options.onLoadError?.({
+					source: "level",
+					level: e,
+					swf: t,
+					scene: a,
+					error: /* @__PURE__ */ Error(`mmtour: failed to load level ${e} scene "${t}"`)
+				});
+				return;
+			}
+			if (this.container.hidden) return;
+			this.createLevel(e, t, n), this.options.onLoadComplete?.({
+				source: "level",
+				level: e,
+				swf: t,
+				scene: n.scene,
+				timeline: n
+			});
+		} catch (n) {
+			this.options.onLoadError?.({
+				source: "level",
+				level: e,
+				swf: t,
+				scene: a,
+				error: n
+			});
+		}
 	}
 	destroyLevel(e) {
 		let t = this.levels.get(e);
@@ -2623,7 +2786,7 @@ var Ot = /^_level(\d+)/, kt = class {
 		e && this.options.onFrame?.(e.currentFrame, e.isPlaying, e.currentLabel());
 	}
 };
-function At(e) {
+function Ht(e) {
 	let t = {};
 	for (let n of e.split("&")) {
 		let e = n.indexOf("=");
@@ -2638,34 +2801,137 @@ function At(e) {
 }
 //#endregion
 //#region src/index.ts
-async function jt(e, t = {}) {
-	let { assetsBaseUrl: n = "", assetSource: r = "files", archiveUrl: i, scene: a = "A-tour.swf", autoplay: o = !0, debug: s = !1, onFrame: c } = t;
-	re(n), oe(r), r === "archive" && ne(i ?? `${n.replace(/\/+$/, "")}/xp-tour.pack`), be();
-	let l = await D(a);
-	if (!l) throw Error(`mmtour: failed to load tour scene "${a}" from "${n || "/"}"`);
-	let u = new kt(e, {
-		debug: s,
-		onFrame: c
+async function Ut(e, t = {}) {
+	let { assetsBaseUrl: r = "", assetSource: i = "files", archiveUrl: a, scene: o = "A-tour.swf", autoplay: s = !0, debug: c = !1, onFrame: l, onButton: u, onNavigate: d, onFsCommand: f, onLoadStart: p, onLoadComplete: m, onLoadError: h } = t;
+	Gt({
+		assetsBaseUrl: r,
+		assetSource: i,
+		archiveUrl: a
 	});
-	return u.activate(l, a), o && u.play(), {
-		play: () => u.play(),
-		pause: () => u.pause(),
-		toggle: () => u.toggle(),
-		restart: () => u.restart(),
-		seek: (e) => u.seekRootFrame(e),
+	let g = $(o), _ = n(o);
+	p?.({
+		source: "initial",
+		level: 0,
+		swf: g,
+		scene: _
+	});
+	let v;
+	try {
+		let e = await D(o);
+		if (!e) throw Error(`mmtour: failed to load tour scene "${o}" from "${r || "/"}"`);
+		v = e;
+	} catch (e) {
+		throw h?.({
+			source: "initial",
+			level: 0,
+			swf: g,
+			scene: _,
+			error: e
+		}), e;
+	}
+	let y = new Q(e, {
+		debug: c,
+		onFrame: l,
+		onButton: u,
+		onNavigate: d,
+		onFsCommand: f,
+		onLoadStart: p,
+		onLoadComplete: m,
+		onLoadError: h
+	});
+	return y.activate(v, g), m?.({
+		source: "initial",
+		level: 0,
+		swf: g,
+		scene: v.scene,
+		timeline: v
+	}), s && y.play(), qt(y);
+}
+async function Wt(e, t) {
+	let { assetsBaseUrl: r = "", assetSource: i = "files", archiveUrl: a, autoplay: o = !0, debug: s = !1, onFrame: c, onButton: l, onNavigate: u, onFsCommand: d, onLoadStart: f, onLoadComplete: p, onLoadError: m } = t;
+	Gt({
+		assetsBaseUrl: r,
+		assetSource: i,
+		archiveUrl: a
+	});
+	let h = "timeline" in t ? t.timeline : void 0, g = "scene" in t ? t.scene : void 0, _, v, y;
+	if (h) v = Kt(h, t.swf), y = h.scene;
+	else {
+		if (!g) throw Error("mmtour: createDecompiledPlayer requires either a scene or a timeline");
+		_ = g, v = $(g), y = n(g);
+	}
+	f?.({
+		source: "initial",
+		level: 0,
+		swf: v,
+		scene: y
+	});
+	let b;
+	try {
+		if (h) b = h;
+		else {
+			if (!_) throw Error("mmtour: createDecompiledPlayer requires either a scene or a timeline");
+			let e = await D(_);
+			if (!e) throw Error(`mmtour: failed to load scene "${_}" from "${r || "/"}"`);
+			b = e;
+		}
+	} catch (e) {
+		throw m?.({
+			source: "initial",
+			level: 0,
+			swf: v,
+			scene: y,
+			error: e
+		}), e;
+	}
+	let x = new Q(e, {
+		debug: s,
+		onFrame: c,
+		onButton: l,
+		onNavigate: u,
+		onFsCommand: d,
+		onLoadStart: f,
+		onLoadComplete: p,
+		onLoadError: m
+	});
+	return x.activate(b, v), p?.({
+		source: "initial",
+		level: 0,
+		swf: v,
+		scene: b.scene,
+		timeline: b
+	}), o && x.play(), qt(x);
+}
+function Gt(e) {
+	let { assetsBaseUrl: t, assetSource: n, archiveUrl: r } = e;
+	ne(t), ae(n), n === "archive" && te(r ?? `${t.replace(/\/+$/, "")}/xp-tour.pack`), be();
+}
+function Kt(e, t) {
+	return t || $(e.scene);
+}
+function $(e) {
+	return /\.swf$/i.test(e) ? e : `${e}.swf`;
+}
+function qt(e) {
+	return {
+		play: () => e.play(),
+		pause: () => e.pause(),
+		toggle: () => e.toggle(),
+		restart: () => e.restart(),
+		seek: (t) => e.seekRootFrame(t),
 		get frameCount() {
-			return u.frameCount;
+			return e.frameCount;
 		},
 		get currentFrame() {
-			return u.currentFrame;
+			return e.currentFrame;
 		},
 		get isPlaying() {
-			return u.isPlaying;
+			return e.isPlaying;
 		},
-		destroy: () => u.deactivate()
+		destroy: () => e.deactivate()
 	};
 }
 //#endregion
-export { kt as PlayerController, jt as createTourPlayer, ae as getAssetSource, ie as getAssetsBaseUrl, D as loadTimeline, n as sceneNameFromSwf, t as scenes, ne as setArchiveUrl, oe as setAssetSource, re as setAssetsBaseUrl };
+export { Q as PlayerController, Wt as createDecompiledPlayer, Ut as createTourPlayer, ie as getAssetSource, re as getAssetsBaseUrl, D as loadTimeline, n as sceneNameFromSwf, t as scenes, te as setArchiveUrl, ae as setAssetSource, ne as setAssetsBaseUrl };
 
 //# sourceMappingURL=index.js.map

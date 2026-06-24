@@ -11,12 +11,21 @@ import '../../../lib/xptour-player/index.css';
 const STAGE_W = 640;
 const STAGE_H = 480;
 
-function GsapTourPlayer({ scene = 'A-tour.swf', autoplay = true, onExit }) {
+function GsapTourPlayer({ scene = 'A-tour.swf', autoplay = true, onExit, onButton, onNavigate, onFsCommand }) {
   const overlayRef = useRef(null);
   const stageRef = useRef(null);
   const [status, setStatus] = useState('loading'); // loading | ready | error
   const [errorMsg, setErrorMsg] = useState('');
   const [scale, setScale] = useState(1);
+
+  // Keep the latest callbacks in refs so the boot effect (which re-creates the player)
+  // doesn't depend on them — the host can change its response logic without a reboot.
+  const onButtonRef = useRef(onButton);
+  const onNavigateRef = useRef(onNavigate);
+  const onFsCommandRef = useRef(onFsCommand);
+  onButtonRef.current = onButton;
+  onNavigateRef.current = onNavigate;
+  onFsCommandRef.current = onFsCommand;
 
   // Boot the player into the stage; tear it down on unmount.
   useEffect(() => {
@@ -35,6 +44,14 @@ function GsapTourPlayer({ scene = 'A-tour.swf', autoplay = true, onExit }) {
         archiveUrl: withBaseUrl('/apps/xp-tour/gsap/xp-tour.pack'),
         scene,
         autoplay,
+        // Surface tour interactions so the host decides the response. onButton fires for
+        // every button (including ones the conversion left unbound); return true to take
+        // it over. onNavigate reports scene/level changes as the tour progresses.
+        onButton: (e) => onButtonRef.current?.(e),
+        onNavigate: (n) => onNavigateRef.current?.(n),
+        // The player surfaces AVM1 fscommand(...) here — the tour's quit button is
+        // fscommand("quit"), recovered faithfully in the package (no per-button wiring).
+        onFsCommand: (cmd, args) => onFsCommandRef.current?.(cmd, args),
       })
         .then((p) => {
           if (cancelled) {
@@ -109,6 +126,10 @@ const Stage = styled.div`
   height: ${STAGE_H}px;
   flex-shrink: 0;
   transform-origin: center center;
+  /* The SWF stage clips to 640x480; the player draws art that extends past those
+     bounds (background fills, perspective lines), so clip it here like Flash does —
+     otherwise the overflow is visible in the letterbox once scaled up. */
+  overflow: hidden;
 `;
 
 const ExitButton = styled.button`
