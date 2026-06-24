@@ -16,7 +16,7 @@
  *   tour.destroy();
  */
 import "./player.css";
-import { type AssetSource } from "./data/packedAssets";
+import { type AssetSource } from "./data/packedAssets.ts";
 export interface TourPlayerOptions {
     /** Where the converted `generated/` (and `generated-packed/`) assets are served. Default "" (origin root). */
     assetsBaseUrl?: string;
@@ -59,8 +59,8 @@ export interface TourPlayer {
 export declare function createTourPlayer(container: HTMLElement, options?: TourPlayerOptions): Promise<TourPlayer>;
 export { PlayerController } from "./app/PlayerController";
 export type { PlayerControllerOptions } from "./app/PlayerController";
-export { setAssetsBaseUrl, getAssetsBaseUrl, setAssetSource, getAssetSource, setArchiveUrl } from "./data/packedAssets";
-export type { AssetSource } from "./data/packedAssets";
+export { setAssetsBaseUrl, getAssetsBaseUrl, setAssetSource, getAssetSource, setArchiveUrl } from "./data/packedAssets.ts";
+export type { AssetSource } from "./data/packedAssets.ts";
 export { loadTimeline } from "./data/TimelineLoader";
 export { scenes, sceneNameFromSwf } from "./data/scenes";
 export type { TourScene } from "./data/scenes";

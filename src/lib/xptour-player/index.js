@@ -46,40 +46,107 @@ function n(e) {
 	return e.replace(/\.swf$/i, "");
 }
 //#endregion
+//#region src/data/shapeBitmapInline.ts
+var r = /\b(xlink:href|href)="(generated\/[^"]*?\/images\/[^"]+?)"/g;
+function i(e) {
+	return r.lastIndex = 0, r.test(e);
+}
+function a(e, t) {
+	return e.includes("/images/") ? e.replace(r, (e, n, r) => {
+		let i = t(r);
+		return i ? `${n}="data:${i.type};base64,${s(i.bytes)}"` : e;
+	}) : e;
+}
+async function o(e, t) {
+	if (!e.includes("/images/")) return e;
+	r.lastIndex = 0;
+	let n = /* @__PURE__ */ new Set();
+	for (let t of e.matchAll(r)) n.add(t[2]);
+	if (!n.size) return e;
+	let i = /* @__PURE__ */ new Map();
+	return await Promise.all([...n].map(async (e) => {
+		let n = await t(e);
+		n && i.set(e, n);
+	})), a(e, (e) => i.get(e));
+}
+function s(e) {
+	let t = globalThis.Buffer;
+	if (t) return t.from(e).toString("base64");
+	let n = "", r = 32768;
+	for (let t = 0; t < e.length; t += r) n += String.fromCharCode(...e.subarray(t, t + r));
+	return btoa(n);
+}
+function c(e) {
+	return e.replace(/^\/?generated\/[^/]+\//, "");
+}
+//#endregion
 //#region src/data/packedAssets.ts
-var r = "files", i = /* @__PURE__ */ new Map(), a = /* @__PURE__ */ new Map(), o = /* @__PURE__ */ new Map(), s = "", c = null;
-function l(e) {
-	s = e, c = null;
-}
-var u = "";
-function d(e) {
-	u = e.replace(/\/+$/, "");
-}
+var l = new TextEncoder(), u = new TextDecoder(), d = /* @__PURE__ */ new Map();
 function f() {
-	return u;
+	for (let e of d.values()) URL.revokeObjectURL(e);
+	d.clear();
 }
-function p() {
-	return r;
+async function p(e) {
+	e?.length && await Promise.all(e.map(async (e) => {
+		let t = e.replace(/^\//, "");
+		if (!d.has(t)) try {
+			let e = await fetch(`${C}/${t}`);
+			if (!e.ok) return;
+			let n = await e.text();
+			if (!i(n)) return;
+			let r = await o(n, async (e) => {
+				let t = await fetch(`${C}/${e.replace(/^\//, "")}`);
+				if (!t.ok) return;
+				let n = t.headers.get("content-type") || m(e);
+				return {
+					bytes: new Uint8Array(await t.arrayBuffer()),
+					type: n
+				};
+			});
+			d.set(t, URL.createObjectURL(new Blob([r], { type: "image/svg+xml" })));
+		} catch {}
+	}));
 }
 function m(e) {
-	e !== r && (r = e, ae(), re(), ee());
+	return /\.jpe?g$/i.test(e) ? "image/jpeg" : /\.gif$/i.test(e) ? "image/gif" : "image/png";
 }
-function ee() {
-	for (let e of o.values()) {
+var h = "files", g = 0, _ = /* @__PURE__ */ new Map(), v = /* @__PURE__ */ new Map(), y = /* @__PURE__ */ new Map(), ee = !0, b = "", x = null, S = /* @__PURE__ */ new Map();
+function te() {
+	for (let e of S.values()) e.url && URL.revokeObjectURL(e.url);
+	S.clear();
+}
+function ne(e) {
+	b = e, x = null, te();
+}
+var C = "";
+function re(e) {
+	C = e.replace(/\/+$/, "");
+}
+function ie() {
+	return C;
+}
+function ae() {
+	return h;
+}
+function oe(e) {
+	e !== h && (h = e, g += 1, me(), fe(), se(), f());
+}
+function se() {
+	for (let e of y.values()) {
 		for (let t of e.shapes.values()) t.url && URL.revokeObjectURL(t.url);
 		for (let t of e.media.values()) t.url && URL.revokeObjectURL(t.url);
 	}
-	o.clear(), c = null;
+	y.clear(), x = null, te();
 }
-async function h(e) {
+async function w(e) {
 	if (e[0] === 31 && e[1] === 139 && typeof DecompressionStream < "u") {
 		let t = new Blob([e]).stream().pipeThrough(new DecompressionStream("gzip"));
 		return await new Response(t).text();
 	}
 	return new TextDecoder().decode(e);
 }
-async function g(e) {
-	let t = new DataView(e.buffer, e.byteOffset, e.byteLength).getUint32(0, !0), n = JSON.parse(await h(e.slice(4, 4 + t))), r = /* @__PURE__ */ new Map();
+async function T(e) {
+	let t = new DataView(e.buffer, e.byteOffset, e.byteLength).getUint32(0, !0), n = JSON.parse(await w(e.slice(4, 4 + t))), r = /* @__PURE__ */ new Map();
 	for (let [e, t] of Object.entries(n.shapes ?? {})) r.set(e, { svg: t });
 	let i = /* @__PURE__ */ new Map();
 	for (let [e, t] of Object.entries(n.media ?? {})) i.set(e, t);
@@ -91,51 +158,52 @@ async function g(e) {
 		bodyStart: 4 + t
 	};
 }
-async function _(e, t, n) {
+async function ce(e, t, n) {
 	let r = await fetch(e, { headers: { Range: `bytes=${t}-${n}` } });
 	if (!r.ok) return null;
 	let i = new Uint8Array(await r.arrayBuffer());
 	return r.status === 206 ? i : i.slice(t, n + 1);
 }
-async function v() {
-	if (c) return c;
-	let e = await _(s, 0, 65535);
+async function le() {
+	if (x) return x;
+	let e = await ce(b, 0, 65535);
 	if (!e || e.byteLength < 4) return null;
-	let t = new DataView(e.buffer, e.byteOffset, e.byteLength).getUint32(0, !0), n = JSON.parse(await h(e.slice(4, 4 + t)));
-	return c = {
+	let t = new DataView(e.buffer, e.byteOffset, e.byteLength).getUint32(0, !0), n = JSON.parse(await w(e.slice(4, 4 + t)));
+	for (let [e, t] of Object.entries(n.vars ?? {})) S.set(e, { content: t });
+	return x = {
 		blocksStart: 4 + t,
 		scenes: n.scenes
-	}, c;
+	}, x;
 }
-async function te(e) {
-	let t = o.get(e);
+async function ue(e) {
+	let t = y.get(e);
 	if (t) return t;
-	let n = await v(), r = n?.scenes[e];
+	let n = await le(), r = n?.scenes[e];
 	if (!n || !r) return null;
-	let i = n.blocksStart + r.offset, a = await _(s, i, i + r.length - 1);
+	let i = n.blocksStart + r.offset, a = await ce(b, i, i + r.length - 1);
 	if (!a) return null;
-	let c = await g(a);
-	return o.set(e, c), c;
+	let o = await T(a);
+	return y.set(e, o), o;
 }
-async function ne(e) {
-	let t = o.get(e);
+async function de(e) {
+	let t = y.get(e);
 	if (t) return t;
-	let n = await fetch(`${u}/generated-packs/${e}.scene?v=${Date.now()}`);
+	let n = await fetch(`${C}/generated-packs/${e}.scene?v=${Date.now()}`);
 	if (!n.ok) return null;
-	let r = await g(new Uint8Array(await n.arrayBuffer()));
-	return o.set(e, r), r;
+	let r = await T(new Uint8Array(await n.arrayBuffer()));
+	return y.set(e, r), r;
 }
-function re() {
-	for (let e of a.values()) for (let t of e.shapes.values()) t.url && URL.revokeObjectURL(t.url);
-	a.clear();
+function fe() {
+	for (let e of v.values()) for (let t of e.shapes.values()) t.url && URL.revokeObjectURL(t.url);
+	v.clear();
 }
-async function ie(e) {
-	let t = a.get(e);
+async function pe(e) {
+	let t = v.get(e);
 	if (t) return t;
 	let n = null;
 	try {
-		let t = await fetch(`${u}/generated-bundles/${e}.json.gz?v=${Date.now()}`);
-		t.ok && (n = await h(new Uint8Array(await t.arrayBuffer())));
+		let t = await fetch(`${C}/generated-bundles/${e}.json.gz?v=${Date.now()}`);
+		t.ok && (n = await w(new Uint8Array(await t.arrayBuffer())));
 	} catch {
 		n = null;
 	}
@@ -148,28 +216,50 @@ async function ie(e) {
 	}
 	let i = /* @__PURE__ */ new Map();
 	for (let [e, t] of Object.entries(r.shapes ?? {})) i.set(e, { svg: t });
-	let o = {
+	let a = {
 		timeline: r.timeline ?? null,
 		shapes: i
 	};
-	return a.set(e, o), o;
+	return v.set(e, a), a;
 }
-function ae() {
-	for (let e of i.values()) for (let t of e.files.values()) t.url && URL.revokeObjectURL(t.url);
-	i.clear();
+function me() {
+	for (let e of _.values()) for (let t of e.files.values()) t.url && URL.revokeObjectURL(t.url);
+	_.clear(), g += 1;
 }
-function y(e) {
-	return `${r}:${e}`;
+function he(e) {
+	return `${h}:${g}:${e}`;
 }
-async function oe(e) {
-	return r === "files" ? ce(e) : r === "bundle" ? (await ie(e))?.timeline ?? null : r === "archive" ? (await te(e))?.timeline ?? null : r === "scene-pack" ? (await ne(e))?.timeline ?? null : (await le(e))?.timeline ?? null;
+async function ge(e) {
+	if (h === "files") {
+		let t = await ve(e);
+		return t && await p(t.bitmapFillShapeSrcs), t;
+	}
+	if (h === "bundle") {
+		let t = (await pe(e))?.timeline ?? null;
+		return t && await p(t.bitmapFillShapeSrcs), t;
+	}
+	return h === "archive" ? (await ue(e))?.timeline ?? null : h === "scene-pack" ? (await de(e))?.timeline ?? null : (await ye(e))?.timeline ?? null;
 }
-function se(e) {
-	if (r === "archive" || r === "scene-pack") {
-		let t = e.replace(/^\//, ""), n = /^generated\/([^/]+)\//.exec(t)?.[1], r = n ? o.get(n) : void 0;
+function _e(e) {
+	if (h === "archive" || h === "scene-pack") {
+		let t = e.replace(/^\//, ""), n = /^generated\/([^/]+)\//.exec(t)?.[1], r = n ? y.get(n) : void 0;
 		if (r) if (t.endsWith(".svg")) {
 			let e = r.shapes.get(t);
-			if (e) return e.url ||= URL.createObjectURL(new Blob([e.svg], { type: "image/svg+xml" })), e.url;
+			if (e) {
+				if (!e.url) {
+					let t = i(e.svg) ? a(e.svg, (e) => {
+						let t = r.media.get(e.replace(/^\//, ""));
+						if (!t) return;
+						let n = r.bodyStart + t.offset;
+						return {
+							bytes: r.body.slice(n, n + t.length),
+							type: t.type
+						};
+					}) : e.svg;
+					e.url = URL.createObjectURL(new Blob([t], { type: "image/svg+xml" }));
+				}
+				return e.url;
+			}
 		} else {
 			let e = r.media.get(t);
 			if (e) {
@@ -180,27 +270,53 @@ function se(e) {
 				return e.url;
 			}
 		}
-		return `${u}/${t}`;
+		let o = S.get(t);
+		return o ? (o.url ||= URL.createObjectURL(new Blob([o.content], { type: "text/plain" })), o.url) : `${C}/${t}`;
 	}
-	if (r === "bundle") {
+	if (h === "bundle") {
 		let t = e.replace(/^\//, "");
 		if (t.endsWith(".svg")) {
-			let e = /^generated\/([^/]+)\//.exec(t)?.[1], n = e ? a.get(e)?.shapes.get(t) : void 0;
-			if (n) return n.url ||= URL.createObjectURL(new Blob([n.svg], { type: "image/svg+xml" })), n.url;
+			let e = d.get(t);
+			if (e) return e;
+			let n = /^generated\/([^/]+)\//.exec(t)?.[1], r = n ? v.get(n)?.shapes.get(t) : void 0;
+			if (r) return r.url ||= URL.createObjectURL(new Blob([r.svg], { type: "image/svg+xml" })), r.url;
 		}
-		return `${u}/${t}`;
+		return `${C}/${t}`;
 	}
-	if (r === "pack") {
+	if (h === "pack") {
 		let t = e.replace(/^\//, ""), n = /^generated\/([^/]+)\/(.+)$/.exec(t);
 		if (n) {
-			let e = i.get(n[1])?.files.get(n[2]);
-			if (e) return e.url ||= URL.createObjectURL(new Blob([e.bytes.slice().buffer], { type: e.type })), e.url;
+			let e = _.get(n[1]), t = e?.files.get(n[2]);
+			if (t && e) {
+				if (!t.url) {
+					if (t.type === "image/svg+xml") {
+						let n = u.decode(t.bytes);
+						if (i(n)) {
+							let r = a(n, (t) => {
+								let n = e.files.get(c(t));
+								return n ? {
+									bytes: n.bytes,
+									type: n.type
+								} : void 0;
+							});
+							return t.url = URL.createObjectURL(new Blob([l.encode(r)], { type: t.type })), t.url;
+						}
+					}
+					t.url = URL.createObjectURL(new Blob([t.bytes.slice().buffer], { type: t.type }));
+				}
+				return t.url;
+			}
 		}
 	}
-	return `${u}/${e.replace(/^\//, "")}`;
+	let t = e.replace(/^\//, "");
+	if (t.endsWith(".svg")) {
+		let e = d.get(t);
+		if (e) return e;
+	}
+	return `${C}/${t}`;
 }
-async function ce(e) {
-	let t = await fetch(`${u}/generated/${e}/timeline.json?v=${Date.now()}`);
+async function ve(e) {
+	let t = await fetch(`${C}/generated/${e}/timeline.json?v=${Date.now()}`);
 	if (!t.ok) return null;
 	try {
 		return await t.json();
@@ -208,93 +324,167 @@ async function ce(e) {
 		return null;
 	}
 }
-async function le(e) {
-	let t = i.get(e);
+async function ye(e) {
+	let t = _.get(e);
 	if (t) return t;
-	let n = await fetch(`${u}/generated-packed/${e}/${e}.pack?v=${Date.now()}`);
+	if (!ee) return null;
+	let n = await fetch(`${C}/generated-packed/${e}/${e}.pack?v=${Date.now()}`);
 	if (!n.ok) return null;
 	let r = new Uint8Array(await n.arrayBuffer());
 	if (r.byteLength < 4) return null;
-	let a = 4 + new DataView(r.buffer, r.byteOffset, r.byteLength).getUint32(0, !0);
-	if (a > r.byteLength) return null;
-	let o;
+	let i = 4 + new DataView(r.buffer, r.byteOffset, r.byteLength).getUint32(0, !0);
+	if (i > r.byteLength) return null;
+	let a;
 	try {
-		o = JSON.parse(new TextDecoder().decode(r.slice(4, a)));
+		a = JSON.parse(new TextDecoder().decode(r.slice(4, i)));
 	} catch {
 		return null;
 	}
-	if (o.format !== "mmtour-generated-pack" || o.scene !== e) return null;
-	let s = /* @__PURE__ */ new Map();
-	for (let e of o.files) {
-		let t = a + e.offset, n = t + e.length;
-		t < a || n > r.byteLength || s.set(e.path, {
+	if (a.format !== "mmtour-generated-pack" || a.scene !== e) return null;
+	let o = /* @__PURE__ */ new Map();
+	for (let e of a.files) {
+		let t = i + e.offset, n = t + e.length;
+		t < i || n > r.byteLength || o.set(e.path, {
 			type: e.type,
 			bytes: r.slice(t, n)
 		});
 	}
-	let c = s.get("timeline.json")?.bytes, l = null;
-	if (c) try {
-		l = JSON.parse(new TextDecoder().decode(c));
+	let s = o.get("timeline.json")?.bytes, c = null;
+	if (s) try {
+		c = JSON.parse(new TextDecoder().decode(s));
 	} catch {
-		l = null;
+		c = null;
 	}
-	let d = {
+	let l = {
 		scene: e,
-		files: s,
-		timeline: l
+		files: o,
+		timeline: c
 	};
-	return i.set(e, d), d;
+	return _.set(e, l), l;
 }
 //#endregion
 //#region src/data/TimelineLoader.ts
-var b = /* @__PURE__ */ new Map();
-async function x(e) {
-	let t = y(e.toLowerCase()), r = b.get(t);
-	if (r) return r;
-	let i = await oe(n(e));
-	return i ? (!i.frameSvgsOmitted && !i.frameSvgs?.length && (i.frameSvgs = Array.from({ length: i.frameCount }, (e, t) => `generated/${i.scene}/frames/${t + 1}.svg`)), b.set(t, i), i) : null;
+var E = /* @__PURE__ */ new Map();
+function be() {
+	E.clear();
 }
-function S(e) {
-	return se(e);
+async function D(e) {
+	let t = he(e.toLowerCase()), r = E.get(t);
+	if (r) return r;
+	let i = await ge(n(e));
+	return i ? (!i.frameSvgsOmitted && !i.frameSvgs?.length && (i.frameSvgs = Array.from({ length: i.frameCount }, (e, t) => `generated/${i.scene}/frames/${t + 1}.svg`)), E.set(t, i), i) : null;
+}
+function O(e) {
+	return _e(e);
 }
 //#endregion
 //#region src/data/prefetch.ts
-var C = /\.swf$/i;
-function ue(e) {
+var k = /\.swf$/i;
+function xe(e) {
 	let t = /* @__PURE__ */ new Set(), n = (e) => {
 		if (e) {
-			e.swf && C.test(e.swf) && t.add(e.swf);
-			for (let n of e.loads ?? []) C.test(n.swf) && t.add(n.swf);
+			e.swf && k.test(e.swf) && t.add(e.swf), e.exitNavigation?.swf && k.test(e.exitNavigation.swf) && t.add(e.exitNavigation.swf);
+			for (let n of e.loads ?? []) k.test(n.swf) && t.add(n.swf);
 		}
 	};
 	for (let t of Object.values(e.control?.buttonActions ?? {})) n(t.release), n(t.rollOver), n(t.rollOut), n(t.press);
 	for (let t of e.control?.frameActions ?? []) for (let e of t.actions ?? []) n(e);
 	return [...t];
 }
-async function de(e) {
-	let t = await x(e);
-	t && w(t, 0);
+async function Se(e) {
+	let t = await D(e);
+	t && Ce(t, 0);
 }
-function w(e, t) {
+function Ce(e, t) {
 	for (let n of e.frames[t]?.instances ?? []) {
 		let t = e.assets[String(n.characterId)], r = t?.src ?? t?.frames?.[0] ?? t?.states?.up?.src;
-		r && fetch(S(r)).catch(() => {});
+		r && fetch(O(r)).catch(() => {});
 	}
 }
 //#endregion
+//#region src/data/soundTimings.ts
+function A(e) {
+	let t = /* @__PURE__ */ new Map();
+	for (let [n, r] of Object.entries(e?.soundTimings ?? {})) {
+		let e = typeof r == "number" ? r : Number(r?.durationMs);
+		n && Number.isFinite(e) && e > 0 && t.set(n, { durationMs: e });
+	}
+	let n = (e) => {
+		for (let n of e?.functionCalls ?? []) {
+			let e = we(n);
+			e && t.set(e.name, { durationMs: e.durationMs });
+		}
+	};
+	for (let t of e?.frameActions ?? []) for (let e of t.actions ?? []) n(e);
+	for (let t of e?.spriteActions ?? []) for (let e of t.actions ?? []) n(e);
+	for (let t of Object.values(e?.definedFunctions ?? {})) for (let e of t?.actions ?? []) n(e);
+	for (let t of Object.values(e?.buttonActions ?? {})) n(t.release), n(t.rollOver), n(t.rollOut), n(t.press);
+	return Object.fromEntries([...t.entries()].sort(([e], [t]) => e.localeCompare(t, void 0, { numeric: !0 })));
+}
+function we(e) {
+	if (e.functionName !== "push" || !Te(e.target)) return;
+	let t = j(e.arguments), n = t.length === 1 && t[0]?.trim().startsWith("[") ? Ee(t[0]) : t, r = De(n[0]), i = Number(n[1]);
+	if (!(!r || !Number.isFinite(i) || i <= 0)) return {
+		name: r,
+		durationMs: i
+	};
+}
+function Te(e) {
+	let t = String(e ?? "").replace(/[^a-z]/gi, "").toLowerCase();
+	return !!(t && /(?:snd|sound).*(?:time|duration|lib)|(?:time|duration).*(?:snd|sound)/.test(t));
+}
+function Ee(e) {
+	let t = e.trim();
+	return !t.startsWith("[") || !t.endsWith("]") ? [] : j(t.slice(1, -1));
+}
+function j(e) {
+	if (!e) return [];
+	let t = [], n = "", r = 0, i = 0;
+	for (let a = 0; a < e.length; a += 1) {
+		let o = e[a];
+		if (n) {
+			o === n && e[a - 1] !== "\\" && (n = "");
+			continue;
+		}
+		o === "\"" || o === "'" ? n = o : o === "(" || o === "[" || o === "{" ? r += 1 : o === ")" || o === "]" || o === "}" ? --r : o === "," && r === 0 && (t.push(e.slice(i, a).trim()), i = a + 1);
+	}
+	return t.push(e.slice(i).trim()), t;
+}
+function De(e) {
+	let t = e?.trim();
+	if (t && (t.startsWith("\"") && t.endsWith("\"") || t.startsWith("'") && t.endsWith("'"))) return t.slice(1, -1);
+}
+//#endregion
 //#region src/render/colorTransform.ts
-function T(e, t) {
+var M = "http://www.w3.org/2000/svg", Oe = "mmtour-color-transform-filters";
+function ke(e, t) {
 	let n = t?.rm ?? 1, r = t?.gm ?? 1, i = t?.bm ?? 1, a = t?.ra ?? 0, o = t?.ga ?? 0, s = t?.ba ?? 0;
 	if (n === 1 && r === 1 && i === 1 && a === 0 && o === 0 && s === 0) {
 		e.style.removeProperty("filter");
 		return;
 	}
-	let c = `<svg xmlns='http://www.w3.org/2000/svg'><filter id='c' color-interpolation-filters='sRGB'><feComponentTransfer><feFuncR type='linear' slope='${n}' intercept='${a}'/><feFuncG type='linear' slope='${r}' intercept='${o}'/><feFuncB type='linear' slope='${i}' intercept='${s}'/></feComponentTransfer></filter></svg>`;
-	e.style.filter = `url("data:image/svg+xml,${encodeURIComponent(c)}#c")`;
+	e.style.filter = `url(#${Ae(n, r, i, a, o, s)})`;
+}
+function Ae(e, t, n, r, i, a) {
+	let o = je(e, t, n, r, i, a);
+	if (document.getElementById(o)) return o;
+	let s = document.getElementById(Oe);
+	s || (s = document.createElementNS(M, "svg"), s.id = Oe, s.setAttribute("width", "0"), s.setAttribute("height", "0"), s.setAttribute("aria-hidden", "true"), s.style.position = "absolute", s.style.width = "0", s.style.height = "0", s.style.overflow = "hidden", document.body.append(s));
+	let c = document.createElementNS(M, "filter");
+	c.id = o, c.setAttribute("color-interpolation-filters", "sRGB");
+	let l = document.createElementNS(M, "feComponentTransfer");
+	return l.append(N("feFuncR", e, r), N("feFuncG", t, i), N("feFuncB", n, a)), c.append(l), s.append(c), o;
+}
+function N(e, t, n) {
+	let r = document.createElementNS(M, e);
+	return r.setAttribute("type", "linear"), r.setAttribute("slope", String(t)), r.setAttribute("intercept", String(n)), r;
+}
+function je(...e) {
+	return `mmtour-ct-${e.map((e) => String(Math.round(e * 1e5)).replace("-", "n")).join("-")}`;
 }
 //#endregion
 //#region src/render/DomRenderer.ts
-var E = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", D = /* @__PURE__ */ new Map(), O = /* @__PURE__ */ new Set(), fe = {
+var Me = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", P = /* @__PURE__ */ new Map(), Ne = /* @__PURE__ */ new Set(), Pe = {
 	a: 1,
 	b: 0,
 	c: 0,
@@ -302,7 +492,7 @@ var E = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAA
 	tx: 0,
 	ty: 0
 };
-function k(e, t) {
+function Fe(e, t) {
 	return {
 		a: e.a * t.a + e.c * t.b,
 		b: e.b * t.a + e.d * t.b,
@@ -312,10 +502,10 @@ function k(e, t) {
 		ty: e.b * t.tx + e.d * t.ty + e.ty
 	};
 }
-function pe(e) {
-	if (D.has(e)) return D.get(e);
-	O.has(e) || (O.add(e), fetch(S(e)).then((e) => e.ok ? e.text() : "").then((t) => {
-		let n = t.replace(/<\?xml[^>]*\?>/i, "").replace(/<svg[^>]*>/i, "").replace(/<\/svg>\s*$/i, ""), r = n.match(/<g\s+transform="matrix\(([^)]+)\)"\s*>([\s\S]*)<\/g>\s*$/i), i = fe, a = n;
+function Ie(e) {
+	if (P.has(e)) return P.get(e);
+	Ne.has(e) || (Ne.add(e), fetch(O(e)).then((e) => e.ok ? e.text() : "").then((t) => {
+		let n = t.replace(/<\?xml[^>]*\?>/i, "").replace(/<svg[^>]*>/i, "").replace(/<\/svg>\s*$/i, ""), r = n.match(/<g\s+transform="matrix\(([^)]+)\)"\s*>([\s\S]*)<\/g>\s*$/i), i = Pe, a = n;
 		if (r) {
 			let e = r[1].split(/[\s,]+/).map(Number);
 			e.length === 6 && e.every(Number.isFinite) && (i = {
@@ -327,38 +517,57 @@ function pe(e) {
 				ty: e[5]
 			}), a = r[2];
 		}
-		a = a.replace(/fill="[^"]*"/g, "fill=\"#ffffff\"").replace(/stroke="[^"]*"/g, "stroke=\"none\""), D.set(e, {
+		a = a.replace(/fill="[^"]*"/g, "fill=\"#ffffff\"").replace(/stroke="[^"]*"/g, "stroke=\"none\""), P.set(e, {
 			gMatrix: i,
 			body: a
 		});
-	}).catch(() => D.set(e, null)));
+	}).catch(() => P.set(e, null)));
 }
-function A(e, t = "") {
-	let n = e.matrix, r = S(e.src);
-	return `<image href="${r}" xlink:href="${r}" x="${-e.origin.x}" y="${-e.origin.y}" width="${e.origin.width}" height="${e.origin.height}" transform="matrix(${n.a},${n.b},${n.c},${n.d},${n.tx},${n.ty})"${t}/>`;
+function Le(e, t = "") {
+	let n = e.matrix, r = O(e.src), i = e.colorTransform ? ` filter="url(#${Be(e.colorTransform)})"` : "";
+	return `<image href="${r}" xlink:href="${r}" x="${-e.origin.x}" y="${-e.origin.y}" width="${e.origin.width}" height="${e.origin.height}" transform="matrix(${n.a},${n.b},${n.c},${n.d},${n.tx},${n.ty})"${i}${t}/>`;
 }
-function me(e, t) {
-	let n = "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"640\" height=\"480\" style=\"position:absolute;left:0;top:0;overflow:visible\">", r = pe(e.mask.src);
-	if (!r) return `${n}${e.items.map((e) => A(e)).join("")}</svg>`;
-	let i = e.mask.matrix, a = e.mask.origin, o = k(k(i, {
+function Re(e, t) {
+	let n = "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"640\" height=\"480\" style=\"position:absolute;left:0;top:0;overflow:visible\">", r = ze(e.items), i = Ie(e.mask.src);
+	if (!i) return `${n}${r ? `<defs>${r}</defs>` : ""}${e.items.map((e) => Le(e)).join("")}</svg>`;
+	let a = e.mask.matrix, o = e.mask.origin, s = Fe(Fe(a, {
 		a: 1,
 		b: 0,
 		c: 0,
 		d: 1,
-		tx: -a.x,
-		ty: -a.y
-	}), r.gMatrix), s = `c${t.replace(/\W/g, "_")}`, c = `matrix(${o.a},${o.b},${o.c},${o.d},${o.tx},${o.ty})`;
-	return `${n}<defs><clipPath id="${s}" clipPathUnits="userSpaceOnUse">${r.body.replace(/<(path|polygon|rect|ellipse|circle)\b/g, `<$1 transform="${c}"`)}</clipPath></defs><g clip-path="url(#${s})">${e.items.map((e) => A(e, e.opacity === 1 ? "" : ` opacity="${e.opacity}"`)).join("")}</g></svg>`;
+		tx: -o.x,
+		ty: -o.y
+	}), i.gMatrix), c = `c${t.replace(/\W/g, "_")}`, l = `matrix(${s.a},${s.b},${s.c},${s.d},${s.tx},${s.ty})`;
+	return `${n}<defs>${r}<clipPath id="${c}" clipPathUnits="userSpaceOnUse">${i.body.replace(/<(path|polygon|rect|ellipse|circle)\b/g, `<$1 transform="${l}"`)}</clipPath></defs><g clip-path="url(#${c})">${e.items.map((e) => Le(e, e.opacity === 1 ? "" : ` opacity="${e.opacity}"`)).join("")}</g></svg>`;
 }
-var he = class {
+function ze(e) {
+	let t = /* @__PURE__ */ new Map();
+	for (let n of e) n.colorTransform && t.set(Be(n.colorTransform), n.colorTransform);
+	return [...t.entries()].map(([e, t]) => {
+		let n = t.rm ?? 1, r = t.gm ?? 1, i = t.bm ?? 1;
+		return `<filter id="${e}" color-interpolation-filters="sRGB"><feComponentTransfer><feFuncR type="linear" slope="${n}" intercept="${t.ra ?? 0}"/><feFuncG type="linear" slope="${r}" intercept="${t.ga ?? 0}"/><feFuncB type="linear" slope="${i}" intercept="${t.ba ?? 0}"/></feComponentTransfer></filter>`;
+	}).join("");
+}
+function Be(e) {
+	return `mc${[
+		e.rm ?? 1,
+		e.gm ?? 1,
+		e.bm ?? 1,
+		e.ra ?? 0,
+		e.ga ?? 0,
+		e.ba ?? 0
+	].map((e) => String(Math.round(e * 1e5)).replace("-", "n")).join("_")}`;
+}
+var Ve = class {
 	layer;
 	options;
 	nodes = /* @__PURE__ */ new Map();
+	hoveredButtonKeys = /* @__PURE__ */ new Set();
 	constructor(e, t = {}) {
 		this.layer = e, this.options = t;
 	}
 	clear() {
-		this.nodes.clear(), this.layer.replaceChildren();
+		this.nodes.clear(), this.hoveredButtonKeys.clear(), this.layer.replaceChildren();
 	}
 	apply(e) {
 		let t = /* @__PURE__ */ new Set();
@@ -372,7 +581,7 @@ var he = class {
 			let e = this.nodes.get(n.key);
 			(!e || e.characterId !== n.characterId || e.kind !== n.kind) && (e?.element.remove(), e = this.createNode(n), this.nodes.set(n.key, e)), this.updateMedia(e, n), this.placeNode(e, n);
 		}
-		for (let [e, n] of this.nodes) t.has(e) || (n.element.remove(), this.nodes.delete(e));
+		for (let [e, n] of this.nodes) t.has(e) || (n.element.remove(), this.nodes.delete(e), this.hoveredButtonKeys.delete(e));
 	}
 	applyMaskGroup(e) {
 		let t = this.nodes.get(e.key);
@@ -386,13 +595,13 @@ var he = class {
 				src: ""
 			}, this.nodes.set(e.key, t);
 		}
-		t.element.style.zIndex = String(e.order), t.element.style.transform = "none", t.element.innerHTML = me(e.maskGroup, e.key);
+		t.element.style.zIndex = String(e.order), t.element.style.transform = "none", t.element.innerHTML = Re(e.maskGroup, e.key);
 	}
 	createNode(e) {
 		let t = document.createElement("div");
 		t.className = "player-instance", t.dataset.key = e.key, t.dataset.character = String(e.characterId);
 		let n = this.createMedia(e);
-		return n.classList.add("player-media"), t.append(n), this.layer.append(t), e.kind === "button" && e.buttonOwnerPath !== void 0 && this.wireButton(n, e.buttonOwnerPath, e.characterId), {
+		return n.classList.add("player-media"), t.append(n), this.layer.append(t), e.kind === "button" && e.buttonOwnerPath !== void 0 && this.wireButton(n, e.buttonOwnerPath, e.characterId, e.key), {
 			element: t,
 			media: n,
 			characterId: e.characterId,
@@ -400,9 +609,38 @@ var he = class {
 			src: ""
 		};
 	}
-	wireButton(e, t, n) {
-		let r = this.options.onButtonEvent;
-		r && (e.style.pointerEvents = "auto", e.style.cursor = "pointer", e.addEventListener("pointerenter", () => r(t, n, "rollOver")), e.addEventListener("pointerleave", () => r(t, n, "rollOut")), e.addEventListener("pointerdown", () => r(t, n, "press")), e.addEventListener("pointerup", () => r(t, n, "release")));
+	wireButton(e, t, n, r) {
+		let i = this.options.onButtonEvent;
+		if (!i) return;
+		e.dataset.buttonOwnerPath = t, e.dataset.buttonCharacter = String(n), e.dataset.buttonKey = r, e.style.pointerEvents = "auto", e.style.cursor = "pointer";
+		let a = () => {
+			this.hoveredButtonKeys.has(r) || (this.hoveredButtonKeys.add(r), i(t, n, "rollOver", r));
+		}, o = () => {
+			this.hoveredButtonKeys.delete(r) && i(t, n, "rollOut", r);
+		};
+		e.addEventListener("pointerenter", a), e.addEventListener("pointerover", a), e.addEventListener("mouseover", a), e.addEventListener("pointerleave", (t) => {
+			let n = e.getBoundingClientRect(), i = t.clientX, a = t.clientY, s = i >= n.left && i <= n.right && a >= n.top && a <= n.bottom;
+			requestAnimationFrame(() => {
+				(document.elementFromPoint(i, a)?.closest(".player-hit"))?.dataset.buttonKey !== r && !s && o();
+			});
+		}), e.addEventListener("mouseleave", (t) => {
+			let n = e.getBoundingClientRect(), r = t.clientX, i = t.clientY;
+			(r < n.left || r > n.right || i < n.top || i > n.bottom) && o();
+		}), e.addEventListener("pointerdown", (a) => {
+			if (a.button !== 0) return;
+			let o = e.getBoundingClientRect(), s = (e, t) => e >= o.left && e <= o.right && t >= o.top && t <= o.bottom, c = () => {
+				window.removeEventListener("pointerup", l, !0), window.removeEventListener("pointercancel", u, !0);
+			}, l = (e) => {
+				e.pointerId === a.pointerId && (c(), ((document.elementFromPoint(e.clientX, e.clientY)?.closest(".player-hit"))?.dataset.buttonKey === r || s(e.clientX, e.clientY)) && i(t, n, "release", r));
+			}, u = (e) => {
+				e.pointerId === a.pointerId && c();
+			};
+			window.addEventListener("pointerup", l, !0), window.addEventListener("pointercancel", u, !0);
+			try {
+				e.setPointerCapture(a.pointerId);
+			} catch {}
+			i(t, n, "press", r);
+		});
 	}
 	createMedia(e) {
 		if (e.kind === "text") {
@@ -411,7 +649,7 @@ var he = class {
 		}
 		if (e.kind === "button") {
 			let t = document.createElement("img");
-			return t.className = "player-hit", t.decoding = "async", t.draggable = !1, t.src = e.src ? S(e.src) : E, t;
+			return t.className = "player-hit", t.decoding = "async", t.draggable = !1, t.src = e.src ? O(e.src) : Me, t;
 		}
 		let t = document.createElement("img");
 		return t.decoding = "async", t.draggable = !1, t;
@@ -421,10 +659,10 @@ var he = class {
 			t.text ? this.styleText(e.media, t) : e.src !== t.src && t.src && this.loadPlainText(e.media, t.src), e.src = t.src;
 			return;
 		}
-		e.src !== t.src && e.media instanceof HTMLImageElement && (e.media.src = t.src ? S(t.src) : E, e.src = t.src);
+		e.src !== t.src && e.media instanceof HTMLImageElement && (e.media.src = t.src ? O(t.src) : Me, e.src = t.src);
 	}
 	loadPlainText(e, t) {
-		fetch(S(t)).then((e) => e.ok ? e.text() : "").then((t) => {
+		fetch(O(t)).then((e) => e.ok ? e.text() : "").then((t) => {
 			e.textContent = t.trim();
 		});
 	}
@@ -452,9 +690,9 @@ var he = class {
 			zIndex: n.order,
 			opacity: n.opacity,
 			transform: `matrix(${r}, ${i}, ${a}, ${o}, ${s}, ${c})`
-		}), T(t.media, n.colorTransform);
+		}), ke(t.media, n.colorTransform);
 	}
-}, ge = class {
+}, He = class {
 	registered = /* @__PURE__ */ new Set();
 	families = /* @__PURE__ */ new Map();
 	register(e) {
@@ -462,7 +700,7 @@ var he = class {
 		for (let n of Object.values(e.assets ?? {})) {
 			if (n.kind !== "font" || !n.src) continue;
 			let e = (n.src.split("/").pop() ?? "").replace(/\.ttf$/i, "").replace(/^\d+_/, "").trim(), r = `swf-font-${n.id}`;
-			this.families.set(n.id, `"${r}", "${e}", Arial, Helvetica, sans-serif`), !(!t || this.registered.has(n.id)) && (this.registered.add(n.id), new FontFace(r, `url("${encodeURI(S(n.src))}")`).load().then((e) => document.fonts.add(e)).catch(() => {}));
+			this.families.set(n.id, `"${r}", "${e}", Arial, Helvetica, sans-serif`), !(!t || this.registered.has(n.id)) && (this.registered.add(n.id), new FontFace(r, `url("${encodeURI(O(n.src))}")`).load().then((e) => document.fonts.add(e)).catch(() => {}));
 		}
 	}
 	resolveFamily(e) {
@@ -471,7 +709,7 @@ var he = class {
 };
 //#endregion
 //#region src/player/avm1.ts
-function _e(e) {
+function F(e) {
 	if (!e?.trim()) return [];
 	let t = [], n = 0, r = "", i = 0;
 	for (let a = 0; a < e.length; a++) {
@@ -484,11 +722,11 @@ function _e(e) {
 	}
 	return t.push(e.slice(i)), t;
 }
-function j(e) {
+function I(e) {
 	let t = e.trim();
 	return /^[A-Za-z_$][\w$]*$/.test(t) && !/^(true|false|null|undefined|this|_root|_global|_parent|_level\d+)$/.test(t);
 }
-function M(e, t) {
+function Ue(e, t) {
 	let n = e;
 	for (let [e, r] of Object.entries(t)) {
 		if (r === void 0) continue;
@@ -499,26 +737,26 @@ function M(e, t) {
 }
 //#endregion
 //#region src/player/types.ts
-function N(e, t, n) {
+function L(e, t, n) {
 	return Math.max(t, Math.min(n, e));
 }
 //#endregion
 //#region src/player/renderNodes.ts
-function P(e, t) {
+function We(e, t) {
 	for (let n of e.childClips.values()) if (n.name === t) return n;
 	return null;
 }
-function F(e) {
+function Ge(e) {
 	return e.kind === "sprite" && !!(e.timeline?.length || e.frames?.length);
 }
-function I(e, t) {
+function Ke(e, t) {
 	if (e.kind === "sprite" && e.frames?.length) {
-		let n = t ? N(t.currentFrame, 0, e.frames.length - 1) : 0;
+		let n = t ? L(t.currentFrame, 0, e.frames.length - 1) : 0;
 		return e.frames[n] ?? "";
 	}
 	return e.kind === "button" ? e.states?.up?.src ?? e.src ?? "" : e.src ?? "";
 }
-function ve(e, t, n, r, i, a, o, s) {
+function qe(e, t, n, r, i, a, o, s, c = o.colorTransform) {
 	return {
 		key: e,
 		order: t,
@@ -529,29 +767,30 @@ function ve(e, t, n, r, i, a, o, s) {
 		origin: n.origin,
 		matrix: i,
 		opacity: a,
-		colorTransform: o.colorTransform,
+		colorTransform: c,
 		clipDepth: o.clipDepth,
 		spriteFrame: s
 	};
 }
-function L(e, t, n, r, i, a, o, s = 1) {
-	let c = o ? n.states?.up : void 0;
+function R(e, t, n, r, i, a, o, s = 1, c, l = i.colorTransform) {
+	let u = c === "down" ? n.states?.down ?? n.states?.over ?? n.states?.up : c === "over" ? n.states?.over ?? n.states?.up : n.states?.up, d = o || c ? u : void 0;
 	return {
 		key: e,
 		order: t,
 		characterId: n.id,
 		kind: "button",
 		name: i.name,
-		src: c?.src ?? "",
-		origin: c?.origin ?? n.origin,
+		src: d?.src ?? "",
+		origin: d?.origin ?? n.origin,
 		matrix: r,
-		opacity: c?.src ? s : 1,
+		opacity: d?.src ? s : 1,
+		colorTransform: l,
 		buttonOwnerPath: a
 	};
 }
 //#endregion
 //#region src/player/ClipInstance.ts
-var R = class {
+var z = class {
 	characterId;
 	parent;
 	name;
@@ -559,6 +798,7 @@ var R = class {
 	playing = !0;
 	enteredFrame = -1;
 	childClips = /* @__PURE__ */ new Map();
+	depthNames = /* @__PURE__ */ new Map();
 	locals = {};
 	constructor(e, t, n) {
 		this.characterId = e, this.name = t, this.parent = n;
@@ -566,25 +806,25 @@ var R = class {
 };
 //#endregion
 //#region src/player/conditions.ts
-function z(e, t) {
+function B(e, t) {
 	if (!e) return !0;
 	let n = e.trim();
-	return n === "" || n === "else" || n === "true" ? !0 : n === "false" ? !1 : B(n, t);
-}
-function B(e, t) {
-	let n = G(e, "||");
-	return n.length > 1 ? n.some((e) => V(e, t)) : V(e, t);
+	return n === "" || n === "else" || n === "true" ? !0 : n === "false" ? !1 : V(n, t);
 }
 function V(e, t) {
-	let n = G(e, "&&");
-	return n.length > 1 ? n.every((e) => H(e, t)) : H(e, t);
+	let n = G(e, "||");
+	return n.length > 1 ? n.some((e) => H(e, t)) : H(e, t);
 }
 function H(e, t) {
+	let n = G(e, "&&");
+	return n.length > 1 ? n.every((e) => U(e, t)) : U(e, t);
+}
+function U(e, t) {
 	let n = e.trim();
-	for (; n.startsWith("(") && Se(n) === n.length - 1;) n = n.slice(1, -1).trim();
-	if (G(n, "||").length > 1) return B(n, t);
-	if (G(n, "&&").length > 1) return V(n, t);
-	if (n.startsWith("!")) return !H(n.slice(1), t);
+	for (; n.startsWith("(") && $e(n) === n.length - 1;) n = n.slice(1, -1).trim();
+	if (G(n, "||").length > 1) return V(n, t);
+	if (G(n, "&&").length > 1) return H(n, t);
+	if (n.startsWith("!")) return !U(n.slice(1), t);
 	for (let e of [
 		"==",
 		"!=",
@@ -593,13 +833,13 @@ function H(e, t) {
 		"<",
 		">"
 	]) {
-		let r = xe(n, e);
-		if (r >= 0) return ye(U(n.slice(0, r), t), U(n.slice(r + e.length), t), e);
+		let r = Qe(n, e);
+		if (r >= 0) return Je(W(n.slice(0, r), t), W(n.slice(r + e.length), t), e);
 	}
-	return be(U(n, t));
+	return Xe(W(n, t));
 }
-function ye(e, t, n) {
-	let r = W(e), i = W(t);
+function Je(e, t, n) {
+	let r = Ze(e), i = Ze(t);
 	if (r !== void 0 && i !== void 0) switch (n) {
 		case "==": return r === i;
 		case "!=": return r !== i;
@@ -619,14 +859,26 @@ function ye(e, t, n) {
 		default: return !1;
 	}
 }
-function U(e, t) {
+function W(e, t) {
 	let n = e.trim();
-	if (n !== "") return n.startsWith("\"") && n.endsWith("\"") || n.startsWith("'") && n.endsWith("'") ? n.slice(1, -1) : n === "true" ? !0 : n === "false" ? !1 : /^-?\d+(\.\d+)?$/.test(n) ? Number(n) : t.get(n);
+	if (n === "") return;
+	let r = Ye(n, "eval");
+	if (r !== void 0) {
+		let e = W(r, t);
+		return e === void 0 ? void 0 : t.get(String(e));
+	}
+	return n.startsWith("\"") && n.endsWith("\"") || n.startsWith("'") && n.endsWith("'") ? n.slice(1, -1) : n === "true" ? !0 : n === "false" ? !1 : /^-?\d+(\.\d+)?$/.test(n) ? Number(n) : t.get(n);
 }
-function be(e) {
+function Ye(e, t) {
+	let n = `${t}(`;
+	if (!e.startsWith(n) || !e.endsWith(")")) return;
+	let r = e.slice(t.length);
+	if ($e(r) === r.length - 1) return r.slice(1, -1).trim();
+}
+function Xe(e) {
 	return e !== void 0 && e !== !1 && e !== 0 && e !== "" && e !== "0";
 }
-function W(e) {
+function Ze(e) {
 	if (typeof e == "number") return e;
 	if (typeof e == "boolean") return +!!e;
 	if (typeof e == "string" && /^-?\d+(\.\d+)?$/.test(e.trim())) return Number(e);
@@ -643,7 +895,7 @@ function G(e, t) {
 	}
 	return n.push(e.slice(a)), n.map((e) => e.trim()).filter((e) => e.length > 0);
 }
-function xe(e, t) {
+function Qe(e, t) {
 	let n = 0, r = "";
 	for (let i = 0; i <= e.length - t.length; i++) {
 		let a = e[i];
@@ -661,7 +913,7 @@ function xe(e, t) {
 	}
 	return -1;
 }
-function Se(e) {
+function $e(e) {
 	let t = 0;
 	for (let n = 0; n < e.length; n++) if (e[n] === "(") t++;
 	else if (e[n] === ")" && (t--, t === 0)) return n;
@@ -669,7 +921,7 @@ function Se(e) {
 }
 //#endregion
 //#region src/player/matrix.ts
-var Ce = {
+var et = {
 	a: 1,
 	b: 0,
 	c: 0,
@@ -689,7 +941,7 @@ function K(e, t) {
 }
 //#endregion
 //#region src/player/Ticker.ts
-var we = class t {
+var tt = class t {
 	fps;
 	state = { t: 0 };
 	tween;
@@ -727,45 +979,45 @@ var we = class t {
 	destroy() {
 		this.tween.kill();
 	}
-}, q = /^_(?:level\d+|root|parent)\./;
-function J(e) {
+}, nt = /^_(?:level\d+|root|parent)\./;
+function q(e) {
 	let t = e.trim();
-	for (; q.test(t);) t = t.replace(q, "");
+	for (; nt.test(t);) t = t.replace(nt, "");
 	return t;
 }
-var Te = class {
+var rt = class {
 	values = /* @__PURE__ */ new Map();
 	seed(e) {
 		if (e) for (let [t, n] of Object.entries(e)) {
-			let e = J(t);
+			let e = q(t);
 			!this.values.has(e) && (typeof n == "string" || typeof n == "number" || typeof n == "boolean") && this.values.set(e, n);
 		}
 	}
 	get(e) {
-		return this.values.get(J(e));
+		return this.values.get(q(e));
 	}
 	set(e, t) {
-		this.values.set(J(e), t);
+		this.values.set(q(e), t);
 	}
 	has(e) {
-		return this.values.has(J(e));
+		return this.values.has(q(e));
 	}
 	reset() {
 		this.values.clear();
 	}
-}, Y = new Set([
+}, it = new Set([
 	"gotoAndPlay",
 	"gotoAndStop",
 	"play",
 	"stop",
 	"nextFrame",
 	"prevFrame"
-]), X = new Set(["waitForVal", "startTimer"]), Z = -1, Ee = 24, De = 3, Oe = {
+]), at = new Set(["waitForVal", "startTimer"]), ot = new Set(["markSnd", "markSndSegment"]), st = /^_level[1-9]\d*\b/i, J = -1, ct = 24, lt = 3, ut = {
 	x: 0,
 	y: 0,
 	width: 0,
 	height: 0
-}, ke = class {
+}, dt = class {
 	timeline;
 	renderer;
 	options;
@@ -784,6 +1036,11 @@ var Te = class {
 	boundTextVars = /* @__PURE__ */ new Set();
 	pendingClipCommands = /* @__PURE__ */ new Map();
 	voWaiting = !1;
+	soundObjectTargets = /* @__PURE__ */ new Set();
+	soundBindings = /* @__PURE__ */ new Map();
+	buttonVisualStates = /* @__PURE__ */ new Map();
+	latentButtonPlacementsCache = /* @__PURE__ */ new Map();
+	soundSegmentDurations = /* @__PURE__ */ new Map();
 	root;
 	clipByPath = /* @__PURE__ */ new Map();
 	lastNodes = [];
@@ -791,13 +1048,13 @@ var Te = class {
 		this.timeline = e, this.renderer = t, this.options = n, this.assets = e.assets ?? {};
 		for (let e of Object.values(this.assets)) {
 			let t = e?.text?.normalizedVariableName;
-			t && this.boundTextVars.add(J(t));
+			t && this.boundTextVars.add(q(t));
 		}
 		for (let t of Object.values(e.control?.dynamicTexts ?? {})) {
 			let e = t?.normalizedVariableName;
-			e && this.boundTextVars.add(J(e));
+			e && this.boundTextVars.add(q(e));
 		}
-		this.rootFrames = e.frames ?? [], this.rootStop = new Set(e.control?.stopFrames ?? []), this.startFrame = N(n.startFrame ?? e.entryFrame ?? 0, 0, Math.max(0, this.rootFrames.length - 1));
+		this.rootFrames = e.frames ?? [], this.rootStop = new Set(e.control?.stopFrames ?? []), this.startFrame = L(n.startFrame ?? e.entryFrame ?? 0, 0, Math.max(0, this.rootFrames.length - 1));
 		for (let t of e.control?.frameActions ?? []) {
 			let e = (t.actions ?? []).filter((e) => !e.executionContext || e.executionContext === "timeline" || e.executionContext === "branch");
 			e.length && this.rootActions.set(t.frame, [...this.rootActions.get(t.frame) ?? [], ...e]);
@@ -809,7 +1066,7 @@ var Te = class {
 			let n = `${t.spriteId}:${t.frame}`;
 			this.spriteActions.set(n, [...this.spriteActions.get(n) ?? [], ...e]);
 		}
-		this.store = n.store, this.buildFunctionTable(), this.ticker = new we(e.fps || 20, () => this.onTick()), this.root = this.buildRoot(this.startFrame), this.primeAmbientSound(), this.render();
+		this.store = n.store, this.buildFunctionTable(), this.buildSoundSegmentDurations(), this.ticker = new tt(e.fps || 20, () => this.onTick()), this.root = this.buildRoot(this.startFrame), this.primeAmbientSound(), this.render();
 	}
 	get frameCount() {
 		return Math.max(1, this.rootFrames.length);
@@ -842,37 +1099,39 @@ var Te = class {
 		this.ticker.isPlaying ? this.pause() : this.play();
 	}
 	seekRootFrame(e) {
-		this.ticker.pause(), this.voWaiting = !1, this.root = this.buildRoot(N(e, 0, this.frameCount - 1)), this.render(), this.options.onFrame?.(this.root.currentFrame, !1);
+		this.ticker.pause(), this.voWaiting = !1, this.buttonVisualStates.clear(), this.root = this.buildRoot(L(e, 0, this.frameCount - 1)), this.render(), this.options.onFrame?.(this.root.currentFrame, !1);
 	}
 	restart() {
 		this.seekRootFrame(this.startFrame), this.primeAmbientSound();
 	}
 	destroy() {
-		this.ticker.destroy(), this.renderer.clear();
+		this.ticker.destroy(), this.buttonVisualStates.clear(), this.renderer.clear();
 	}
-	handleButtonEvent(e, t, n) {
-		let r = this.timeline.control?.buttonActions?.[String(t)]?.[n];
-		if (!r) return;
-		let i = this.clipByPath.get(e) ?? this.root;
-		for (let e of r.assignments ?? []) {
-			if (/^_level[1-9]\d*\b/i.test(e.target)) continue;
-			let t = this.resolveExpr(e.rawValue ?? String(e.value ?? ""));
-			e.target && t !== void 0 && this.scopeSet(i, e.target, t);
+	handleButtonEvent(e, t, n, r) {
+		this.setButtonVisualState(r ?? `${e}:${t}`, n);
+		let i = this.clipByPath.get(e) ?? this.root, a = this.buttonEventScope(i, t), o = this.buttonActionFor(i, t, n), s = this.companionButtonActions(i, t, n);
+		if (!o) {
+			this.render();
+			return;
 		}
-		let a = (e) => !e || e === "self" || e === "this" || e === "_root" || e === "_level0" || e === "_parent", o = (e) => {
-			if (e.functionName !== r.command || !a(e.target)) return !1;
+		for (let e of o.assignments ?? []) {
+			let t = this.resolveExpr(e.rawValue ?? String(e.value ?? ""));
+			e.target && t !== void 0 && !ft(e.target, t) && this.scopeSet(i, e.target, t);
+		}
+		let c = (e) => !e || e === "self" || e === "this" || e === "_root" || e === "_level0" || e === "_parent", l = this.buttonCallableActions(o, (e) => {
+			if (e.functionName !== o.command || !c(e.target)) return !1;
 			let t = (e.arguments ?? "").trim().replace(/^["']|["']$/g, "");
-			if (r.label && t === r.label) return !0;
+			if (o.label && t === o.label) return !0;
 			let n = Number(t);
-			return typeof r.frame == "number" && Number.isFinite(n) && (n - 1 === r.frame || n === r.frame);
-		}, s = r.command === "gotoAndPlay" || r.command === "gotoAndStop" ? (r.functionCalls ?? []).filter((e) => !o(e)) : r.functionCalls;
-		if (s?.length && this.runCallFunctions({
-			...r,
-			functionCalls: s
-		}, i), (r.command === "loadMovieNum" || r.command === "loadMovie") && this.options.onNavigate?.(r), r.command !== "loadMovieNum" && r.command !== "loadMovie") {
-			let e = r.loads?.length ? r.loads : r.swf ? [{
-				swf: r.swf,
-				level: r.level
+			return typeof o.frame == "number" && Number.isFinite(n) && (n - 1 === o.frame || n === o.frame);
+		});
+		if (l?.length && this.runCallFunctions({
+			...o,
+			functionCalls: l
+		}, i, void 0, a), (o.command === "loadMovieNum" || o.command === "loadMovie") && this.options.onNavigate?.(o), o.command !== "loadMovieNum" && o.command !== "loadMovie") {
+			let e = o.loads?.length ? o.loads : o.swf ? [{
+				swf: o.swf,
+				level: o.level
 			}] : [];
 			for (let t of e) this.options.onNavigate?.({
 				command: "loadMovie",
@@ -881,11 +1140,104 @@ var Te = class {
 				reload: !0
 			});
 		}
-		if (r.command === "gotoAndPlay" || r.command === "gotoAndStop") {
-			let e = this.resolveTarget(i, r.target), t = this.resolveFrame(r, e);
-			e && t >= 0 && (e.playing = r.command === "gotoAndPlay", this.enterFrame(e, t, 0));
+		if (o.command === "gotoAndPlay" || o.command === "gotoAndStop") {
+			let e = this.resolveTarget(i, o.target) ?? this.resolveTarget(a, o.target), t = this.resolveFrame(o, e);
+			e && t >= 0 && (e.playing = o.command === "gotoAndPlay", this.enterFrame(e, t, 0));
 		}
+		for (let e of s) this.runCompanionButtonAction(e.owner, e.characterId, e.action);
 		this.render();
+	}
+	buttonActionFor(e, t, n) {
+		let r = this.timeline.control?.buttonActions?.[String(t)]?.[n];
+		if (r) return r;
+		let i = this.buttonTextFieldSignature(t);
+		if (!i) return;
+		let a = this.framesFor(e);
+		if (!a?.length) return;
+		let o;
+		for (let r = 0; r < a.length; r += 1) {
+			let s = Math.abs(r - e.currentFrame);
+			if (!(o && s > o.distance)) for (let e of a[r]?.instances ?? []) {
+				if (e.characterId === t || this.buttonTextFieldSignature(e.characterId) !== i) continue;
+				let r = this.timeline.control?.buttonActions?.[String(e.characterId)]?.[n];
+				r && (!o || s < o.distance) && (o = {
+					action: r,
+					distance: s
+				});
+			}
+		}
+		return o?.action;
+	}
+	companionButtonActions(e, t, n) {
+		if (n === "release") return [];
+		let r = this.timeline.control?.buttonActions ?? {}, i = r[String(t)], a = pt(i?.release);
+		if (!i || !a) return [];
+		let o = [], s = e.parent ?? e;
+		for (let [c, l] of Object.entries(r)) {
+			let r = Number(c);
+			if (!Number.isFinite(r) || r === t) continue;
+			let u = l[n];
+			if (!u || pt(l.release) !== a || !mt(i, l) || !ht(i[n], u)) continue;
+			let d = this.findButtonOwnerClip(s, r) ?? this.findButtonOwnerClip(this.root, r);
+			!d || d === e || o.push({
+				owner: d,
+				characterId: r,
+				action: u
+			});
+		}
+		return o;
+	}
+	runCompanionButtonAction(e, t, n) {
+		let r = this.buttonEventScope(e, t);
+		for (let t of n.assignments ?? []) {
+			let n = this.resolveExpr(t.rawValue ?? String(t.value ?? ""));
+			t.target && n !== void 0 && !ft(t.target, n) && this.scopeSet(e, t.target, n);
+		}
+		let i = this.buttonCallableActions(n);
+		if (i?.length && this.runCallFunctions({
+			...n,
+			functionCalls: i
+		}, e, void 0, r), n.command !== "gotoAndPlay" && n.command !== "gotoAndStop") return;
+		let a = this.resolveTarget(e, n.target) ?? this.resolveTarget(r, n.target), o = this.resolveFrame(n, a);
+		a && o >= 0 && (a.playing = n.command === "gotoAndPlay", this.enterFrame(a, o, 0));
+	}
+	buttonCallableActions(e, t = () => !1) {
+		let n = e.functionCalls;
+		return e.command !== "gotoAndPlay" && e.command !== "gotoAndStop" ? n : (n ?? []).filter((e) => !t(e));
+	}
+	findButtonOwnerClip(e, t) {
+		if (this.clipOwnsButton(e, t)) return e;
+		for (let n of e.childClips.values()) {
+			let e = this.findButtonOwnerClip(n, t);
+			if (e) return e;
+		}
+		return null;
+	}
+	clipOwnsButton(e, t) {
+		return (this.framesFor(e)?.[e.currentFrame])?.instances?.some((e) => e.characterId === t && this.getAsset(e.characterId)?.kind === "button") ? !0 : this.latentButtonPlacements(e).some((e) => e.characterId === t);
+	}
+	buttonEventScope(e, t) {
+		return new z(t, "", e);
+	}
+	setButtonVisualState(e, t) {
+		switch (t) {
+			case "rollOver":
+				this.buttonVisualStates.get(e) !== "down" && this.buttonVisualStates.set(e, "over");
+				break;
+			case "press":
+				this.buttonVisualStates.set(e, "down");
+				break;
+			case "release":
+				this.buttonVisualStates.set(e, "over");
+				break;
+			case "rollOut":
+				this.buttonVisualStates.delete(e);
+				break;
+		}
+	}
+	buttonTextFieldSignature(e) {
+		let t = this.getAsset(e);
+		return t?.kind !== "button" || !t.textFields?.length ? "" : t.textFields.map((e) => e.id).sort((e, t) => e - t).join("|");
 	}
 	buildFunctionTable() {
 		let e = this.timeline.control, t = () => ({
@@ -897,7 +1249,7 @@ var Te = class {
 			let e = n?.functionName;
 			if (!e) continue;
 			let r = this.functions.get(e) ?? t();
-			n.parameters?.length && (r.parameters = n.parameters), n.body?.length && r.body.push(...n.body), this.functions.set(e, r);
+			n.parameters?.length && (r.parameters = n.parameters), n.actions?.length && r.actions.push(...n.actions), n.body?.length && r.body.push(...n.body), this.functions.set(e, r);
 		}
 		for (let n of e?.frameActions ?? []) for (let e of n.actions ?? []) {
 			if (!e.functionName) continue;
@@ -906,7 +1258,14 @@ var Te = class {
 		}
 		for (let n of Object.values(e?.definedFunctions ?? {})) {
 			if (n.scope !== "sprite" || typeof n.spriteId != "number" || !n.functionName) continue;
-			let e = (n.body ?? []).filter((e) => e.kind === "call" && !!e.functionName?.startsWith("gotoAnd") && (!e.target || e.target === "self" || e.target === "this") || e.kind === "assign" && j(e.target));
+			if (n.actions?.length) {
+				let e = this.spriteFunctions.get(n.spriteId);
+				e || this.spriteFunctions.set(n.spriteId, e = /* @__PURE__ */ new Map());
+				let r = e.get(n.functionName) ?? t();
+				r.actions.push(...n.actions), e.set(n.functionName, r);
+				continue;
+			}
+			let e = (n.body ?? []).filter((e) => e.kind === "call" && !!e.functionName?.startsWith("gotoAnd") && (!e.target || e.target === "self" || e.target === "this") || e.kind === "assign" && I(e.target));
 			if (!e.length) continue;
 			let r = this.spriteFunctions.get(n.spriteId);
 			r || this.spriteFunctions.set(n.spriteId, r = /* @__PURE__ */ new Map());
@@ -947,23 +1306,19 @@ var Te = class {
 	callFunction(e, t, n) {
 		let r = this.functions.get(e);
 		if (!r) return !1;
-		let i = this.bindParams(r.parameters, t, n), a = this.functionActionDecisions(r.actions, i), o = new Set(r.body.filter((e) => e.kind === "call").map((e) => e.functionName));
-		r.actions.forEach((e, t) => {
+		let i = this.bindParams(r.parameters, t, n), a = this.functionActionDecisions(r.actions, i), o = this.functionBodyDecisions(r.body, i), s = new Set(r.body.filter((e, t) => o[t] && e.kind === "call").map((e) => e.functionName)), c = new Set(r.body.filter((e, t) => o[t] && e.kind === "call").map((e) => this.bodySoundCallKey(e, i)).filter((e) => !!e));
+		return r.actions.forEach((e, t) => {
 			if (!a[t]) return;
 			let n = e.functionCalls ?? [];
-			e.command === "callFunctions" && n.length > 0 && n.every((e) => o.has(e.functionName)) || this.runFunctionAction(e);
-		});
-		let s = { ...i };
-		for (let e of r.body) !e.branchCondition && e.kind === "assign" && /^[A-Za-z_$][\w$]*$/.test(e.target) && (s[e.target] = this.resolveExpr(e.rawValue, s));
-		let c = r.body.map((e) => this.branchPasses(e.branchCondition, s));
-		return r.body.forEach((e, t) => {
-			c[t] && this.runBodyStatement(e, i);
-		}), this.render(), !0;
+			if (e.command === "callFunctions" && n.length > 0 && n.every((e) => s.has(e.functionName))) return;
+			let r = St(e);
+			r && c.has(r) || this.runFunctionAction(e, i);
+		}), this.runFunctionBody(r.body, i, o), this.render(), !0;
 	}
 	functionActionDecisions(e, t) {
 		let n = e.map(() => !0);
 		if (!this.store) return n;
-		let r = (e) => e === "else", i = (e) => !e || this.evalGuard(M(e, t));
+		let r = (e) => e === "else", i = (e) => !e || this.evalGuard(Ue(e, t));
 		for (let t = 0; t < e.length;) {
 			if (!e[t].functionBranchCondition) {
 				t += 1;
@@ -989,30 +1344,37 @@ var Te = class {
 		}), r;
 	}
 	parseArgs(e, t) {
-		return _e(e).map((e) => this.resolveExpr(e.trim(), t));
+		return F(e).map((e) => this.resolveExpr(e.trim(), t));
 	}
 	getTimer() {
 		return performance.now();
 	}
 	resolveExpr(e, t) {
 		let n = e.trim();
-		if (n !== "") return n === "getTimer()" ? this.getTimer() : n.startsWith("\"") && n.endsWith("\"") || n.startsWith("'") && n.endsWith("'") ? n.slice(1, -1) : n === "true" ? !0 : n === "false" ? !1 : /^-?\d+(\.\d+)?$/.test(n) ? Number(n) : t && n in t ? t[n] : /^[A-Za-z_$][\w$.]*$/.test(n) ? this.store?.get(n) ?? this.textVars.get(J(n)) ?? void 0 : n;
+		if (n === "") return;
+		if (n === "getTimer()") return this.getTimer();
+		let r = wt(n, "eval");
+		if (r !== void 0) {
+			let e = this.resolveExpr(r, t);
+			return e === void 0 ? void 0 : this.store?.get(String(e)) ?? this.textVars.get(q(String(e))) ?? void 0;
+		}
+		return n.startsWith("\"") && n.endsWith("\"") || n.startsWith("'") && n.endsWith("'") ? n.slice(1, -1) : n === "true" ? !0 : n === "false" ? !1 : /^-?\d+(\.\d+)?$/.test(n) ? Number(n) : t && n in t ? t[n] : /^[A-Za-z_$][\w$.]*$/.test(n) ? this.store?.get(n) ?? this.textVars.get(q(n)) ?? void 0 : n;
 	}
 	scopeGet(e, t) {
-		return j(t) && t in e.locals ? e.locals[t] : this.store?.get(t);
+		return I(t) && t in e.locals ? e.locals[t] : this.store?.get(t);
 	}
 	scopeSet(e, t, n) {
-		j(t) && (e.locals[t] = n), this.store?.set(t, n);
+		I(t) && (e.locals[t] = n), this.store?.set(t, n);
 	}
 	scopeFor(e) {
 		return {
 			get: (t) => this.scopeGet(e, t),
 			set: (t, n) => this.scopeSet(e, t, n),
-			has: (t) => j(t) && t in e.locals || (this.store?.has(t) ?? !1)
+			has: (t) => I(t) && t in e.locals || (this.store?.has(t) ?? !1)
 		};
 	}
 	evalGuard(e, t) {
-		return this.store ? e ? z(e.replace(/[\w.]*\btimeMarkDone\s*\(([^)]*)\)/g, (e, t) => {
+		return this.store ? e ? B(e.replace(/[\w.]*\btimeMarkDone\s*\(([^)]*)\)/g, (e, t) => {
 			let n = Number(this.resolveExpr(t.trim()) ?? 0), r = Number(this.store?.get("bkgd.timeTarg") ?? 0);
 			return this.getTimer() > r + n ? "1" : "0";
 		}), t ? this.scopeFor(t) : this.store) : !0 : !e;
@@ -1021,41 +1383,225 @@ var Te = class {
 		return this.parseArgs(e, t).map((e) => typeof e == "string" ? JSON.stringify(e) : String(e)).join(",");
 	}
 	branchPasses(e, t) {
-		return !e || !this.store ? !e : z(M(e, t), this.store);
+		return !e || !this.store ? !e : B(Ue(e, t), this.store);
+	}
+	functionBodyDecisions(e, t) {
+		let n = this.functionGuardLocals(e, t);
+		return e.map((e) => this.branchPasses(e.branchCondition, n));
+	}
+	runFunctionBody(e, t, n = this.functionBodyDecisions(e, t)) {
+		e.forEach((e, r) => {
+			n[r] && this.runBodyStatement(e, t);
+		});
+	}
+	functionGuardLocals(e, t) {
+		let n = { ...t };
+		for (let t of e) {
+			if (t.kind !== "assign" || gt(t.branchCondition, t.target) || !this.branchPasses(t.branchCondition, n)) continue;
+			let e = this.resolveExpr(t.rawValue, n);
+			e !== void 0 && (n[t.target] = e);
+		}
+		return n;
 	}
 	runBodyStatement(e, t) {
 		if (e.kind === "assign") {
 			let n = this.resolveExpr(e.rawValue, t);
-			this.store && n !== void 0 && this.store.set(e.target, n);
+			this.trackSoundObject(e.target, e.rawValue), this.store && n !== void 0 && this.store.set(e.target, n);
 			return;
 		}
 		this.runBodyCall(e, t);
 	}
 	runBodyCall(e, t) {
 		let n = e.functionName, r = e.target;
-		if (X.has(n)) {
-			this.options.onWaiter?.(n, this.parseArgs(e.arguments, t));
-			return;
-		}
-		if (Y.has(n) && r) {
-			let i = this.parseArgs(e.arguments, t)[0] ?? 0;
-			/^_level\d+/i.test(r) ? this.options.onClipCommand?.(r, n, i) : this.runNamedClipCommand(this.root, r, n, i);
-			return;
-		}
-		if (!r || r === "self" || r === "this" || r === "_root" || r === "_level0") this.callFunction(n, e.arguments, t);
-		else if (/^_level\d+/i.test(r)) this.options.onCallFunction?.(r, n, this.resolveArgsString(e.arguments, t));
-		else {
-			let e = this.resolveTarget(this.root, r) ?? this.findClipByName(this.root, r);
-			e && this.callClipFunction(e, n);
+		if (!this.runMovieLoadCall(n, e.arguments, t) && !this.runMovieUnloadCall(n, e.arguments, t) && !this.runSoundMethod(r, n, e.arguments, t)) {
+			if (at.has(n)) {
+				this.options.onWaiter?.(n, this.parseArgs(e.arguments, t));
+				return;
+			}
+			if (ot.has(n)) {
+				let n = this.parseArgs(e.arguments, t)[0];
+				n !== void 0 && this.runSoundMarker(r, String(n), e.arguments);
+				return;
+			}
+			if (it.has(n) && r) {
+				let i = this.parseArgs(e.arguments, t)[0] ?? 0;
+				/^_level\d+/i.test(r) ? this.options.onClipCommand?.(r, n, i) : this.runNamedClipCommand(this.root, r, n, i);
+				return;
+			}
+			if (!r || r === "self" || r === "this" || r === "_root" || r === "_level0") this.callFunction(n, e.arguments, t);
+			else if (/^_level\d+/i.test(r)) this.options.onCallFunction?.(r, n, this.resolveArgsString(e.arguments, t));
+			else {
+				let i = this.resolveTarget(this.root, r) ?? this.findClipByName(this.root, r);
+				i === this.root ? this.callFunction(n, e.arguments, t) : i && this.callClipFunction(i, n);
+			}
 		}
 	}
+	bodySoundCallKey(e, t) {
+		let [n] = this.parseArgs(e.arguments, t);
+		switch (e.functionName) {
+			case "attachSound": return Q("attachSound", n);
+			case "playVO": return Q("playVO", n);
+			case "markSnd":
+			case "markSndSegment": return Q("markSndSegment", n);
+			case "stop": return e.target ? Q("stopSound", q(e.target)) : void 0;
+			default: return;
+		}
+	}
+	runMovieLoadCall(e, t, n) {
+		if (e !== "loadMovieNum" && e !== "loadMovie") return !1;
+		let r = this.parseArgs(t, n), i = r[0] === void 0 ? "" : String(r[0]);
+		return i && this.options.onNavigate?.({
+			command: e,
+			swf: i,
+			level: e === "loadMovieNum" ? vt(r[1], _t(t, 1)) : void 0,
+			executionContext: "function"
+		}), !0;
+	}
+	runMovieUnloadCall(e, t, n) {
+		if (e !== "unloadMovieNum" && e !== "unloadMovie") return !1;
+		let r = this.parseArgs(t, n);
+		return this.options.onNavigate?.({
+			command: e,
+			level: vt(r[0], _t(t, 0)),
+			executionContext: "function"
+		}), !0;
+	}
+	runSoundMarker(e, t, n, r) {
+		t && (this.voWaiting = !0, this.options.onSound?.(this.soundSegmentAction({
+			command: "markSndSegment",
+			target: e,
+			sound: r?.sound ?? t,
+			segment: t,
+			soundSrc: r?.soundSrc,
+			soundDurationMs: r?.soundDurationMs,
+			soundRole: r?.soundRole ?? "vo",
+			executionContext: "function",
+			...n ? { arguments: n } : {}
+		})));
+	}
+	soundSegmentAction(e) {
+		let t = e.segment ?? e.sound, n = t ? this.soundSegmentDurations.get(t) : void 0;
+		return {
+			...e,
+			...t ? { segment: t } : {},
+			soundRole: e.soundRole ?? "vo",
+			soundSrc: e.soundSrc ?? n?.soundSrc,
+			soundDurationMs: e.soundDurationMs ?? n?.durationMs,
+			resolvedSound: e.resolvedSound ?? (n?.baseSound && n.baseSound !== t ? n.baseSound : void 0)
+		};
+	}
+	runSoundMethod(e, t, n, r) {
+		if (!e) return !1;
+		let i = this.soundTargetKey(e);
+		if (t === "attachSound") {
+			let e = this.parseArgs(n, r)[0], t = e === void 0 ? "" : String(e);
+			if (!t) return !0;
+			let a = this.resolveSound(t);
+			return this.soundObjectTargets.add(i), this.soundBindings.set(i, {
+				sound: t,
+				soundSrc: a?.src,
+				soundDurationMs: a?.durationMs
+			}), !0;
+		}
+		if (!this.isSoundTarget(e)) return !1;
+		if (t === "start") {
+			let t = this.soundBindings.get(i);
+			if (!t) return !0;
+			let a = this.parseArgs(n, r), o = Number(a[1] ?? 0) > 1 || /music/i.test(i) ? "music" : "vo", s = o === "music" ? "attachSound" : "playVO";
+			return o === "vo" && (this.voWaiting = !0), this.options.onSound?.({
+				command: s,
+				target: e,
+				sound: t.sound,
+				soundSrc: t.soundSrc,
+				soundDurationMs: t.soundDurationMs,
+				soundRole: o,
+				executionContext: "function"
+			}), !0;
+		}
+		if (t === "stop") return this.options.onSound?.({
+			command: "stopSound",
+			target: e,
+			executionContext: "function"
+		}), !0;
+		if (t === "setVolume") {
+			let t = this.parseArgs(n, r)[0];
+			return this.options.onSound?.({
+				command: "setVolume",
+				target: e,
+				value: typeof t == "boolean" ? Number(t) : t,
+				executionContext: "function"
+			}), !0;
+		}
+		return t === "getVolume";
+	}
+	soundTargetKey(e) {
+		return q(e);
+	}
+	trackSoundObject(e, t) {
+		!e || !t || !/\bnew\s+Sound\s*\(/.test(t) || this.soundObjectTargets.add(this.soundTargetKey(e));
+	}
+	isSoundTarget(e) {
+		return this.soundObjectTargets.has(this.soundTargetKey(e)) || this.soundBindings.has(this.soundTargetKey(e));
+	}
+	resolveSound(e) {
+		let t = this.timeline.control?.soundLibrary, n = t?.[e] ?? t?.[e.toLowerCase()] ?? this.findSoundByAlias(t, e);
+		return typeof n == "string" ? { src: n } : n;
+	}
+	findSoundByAlias(e, t) {
+		if (!e) return;
+		let n = t.toLowerCase();
+		for (let t of Object.values(e)) if (typeof t != "string" && (t.name?.toLowerCase() === n || t.aliases?.some((e) => e.toLowerCase() === n))) return t;
+	}
+	buildSoundSegmentDurations() {
+		let e = A(this.timeline.control);
+		for (let [t, n] of Object.entries(e)) this.soundSegmentDurations.set(t, {
+			baseSound: t,
+			durationMs: n.durationMs
+		});
+		let t = /* @__PURE__ */ new Map(), n = (e) => {
+			let n = e?.trim();
+			if (!n) return;
+			let r = this.soundSegmentBase(n);
+			if (!r) return;
+			let i = t.get(r);
+			i || t.set(r, i = /* @__PURE__ */ new Set()), i.add(n);
+		}, r = (e) => {
+			if (!e) return;
+			e.command === "markSndSegment" && n(e.segment ?? e.sound);
+			let t = e.soundAction;
+			t?.command === "markSndSegment" && n(t.segment ?? t.sound), t?.command === "playVO" && n(t.segment);
+			for (let t of e.functionCalls ?? []) {
+				let e = F(t.arguments);
+				(t.functionName === "markSnd" || t.functionName === "markSndSegment") && n(Ct(e[0])), t.functionName === "playVO" && n(Ct(e[2]));
+			}
+		};
+		for (let e of this.timeline.control?.frameActions ?? []) for (let t of e.actions ?? []) r(t);
+		for (let e of this.timeline.control?.spriteActions ?? []) for (let t of e.actions ?? []) r(t);
+		for (let e of Object.values(this.timeline.control?.definedFunctions ?? {})) for (let t of e.actions ?? []) r(t);
+		for (let e of Object.values(this.timeline.control?.buttonActions ?? {})) r(e.release), r(e.rollOver), r(e.rollOut), r(e.press);
+		for (let [n, r] of t) {
+			let t = this.resolveSound(n), i = t?.durationMs && r.size > 0 ? t.durationMs / r.size : void 0;
+			for (let a of r) {
+				let r = e[a]?.durationMs ?? i;
+				this.soundSegmentDurations.set(a, {
+					baseSound: t?.name ?? n,
+					soundSrc: t?.src,
+					durationMs: r
+				});
+			}
+		}
+	}
+	soundSegmentBase(e) {
+		let t = e.match(/^(.+\d)([a-z]+)$/i);
+		if (t) return this.resolveSound(t[1])?.name ?? t[1];
+	}
 	runNamedClipCommand(e, t, n, r) {
-		let i = t.split(".").filter(Boolean).pop() ?? t, a = this.resolveTarget(e, t) ?? this.findClipByName(e, t) ?? this.findClipByName(this.root, t);
+		let i = t.split(".").filter(Boolean).pop() ?? t, a = this.resolveTarget(e, t) ?? this.findClipByName(e, i) ?? this.findClipByName(this.root, i);
 		if (!a) return this.pendingClipCommands.set(i, {
 			command: n,
 			frame: r
 		}), !1;
-		this.pendingClipCommands.delete(i);
+		this.pendingClipCommands.delete(i), a.name && this.pendingClipCommands.delete(a.name);
 		let o = this.resolveClipFrame(a, r);
 		return o < 0 ? !1 : (a.playing = n === "gotoAndPlay", this.enterFrame(a, o, 0), this.render(), !0);
 	}
@@ -1066,13 +1612,13 @@ var Te = class {
 		let r = Number(t);
 		return Number.isFinite(r) ? Math.max(0, r - 1) : -1;
 	}
-	runFunctionAction(e) {
+	runFunctionAction(e, t) {
 		switch (e.command) {
 			case "stop":
-				this.root.playing = !1;
+				Y(e.target) && (this.root.playing = !1);
 				break;
 			case "play":
-				this.root.playing = !0;
+				Y(e.target) && (this.root.playing = !0);
 				break;
 			case "gotoAndPlay":
 			case "gotoAndStop": {
@@ -1082,11 +1628,16 @@ var Te = class {
 			}
 			case "attachSound":
 			case "playVO":
+			case "markSndSegment":
 			case "stopSound":
-				e.command === "playVO" && (this.voWaiting = !0), this.options.onSound?.(e);
+				e.command === "playVO" && (this.voWaiting = !0), e.command === "markSndSegment" && (this.voWaiting = !0), this.options.onSound?.(e.command === "markSndSegment" ? this.soundSegmentAction(e) : e);
 				break;
 			case "loadMovieNum":
 			case "loadMovie":
+				this.options.onNavigate?.(e);
+				break;
+			case "unloadMovieNum":
+			case "unloadMovie":
 				this.options.onNavigate?.(e);
 				break;
 			case "doRelease":
@@ -1102,51 +1653,77 @@ var Te = class {
 				break;
 			case "setVariable": {
 				let t = this.resolveExpr(e.rawValue ?? String(e.value ?? ""));
-				if (this.store && e.target && t !== void 0) {
+				if (this.trackSoundObject(e.target, e.rawValue), this.store && e.target && t !== void 0) {
 					this.scopeSet(this.root, e.target, t);
-					let n = J(e.target);
+					let n = q(e.target);
 					this.boundTextVars.has(n) && this.textVars.set(n, String(t));
 				}
 				break;
 			}
 			case "callFunctions":
-				this.runCallFunctions(e);
+				this.runCallFunctions(e, this.root, t);
 				break;
 			default: break;
 		}
 	}
-	runCallFunctions(e, t = this.root) {
-		for (let n of e.functionCalls ?? []) {
-			let e = n.target ?? "self", r = n.functionName;
-			if (X.has(r)) this.options.onWaiter?.(r, this.parseArgs(n.arguments));
-			else if (Y.has(r) && e !== "self" && e !== "this" && e !== "_root") {
-				let i = this.parseArgs(n.arguments)[0] ?? 0;
-				/^_level\d+/i.test(e) ? this.options.onClipCommand?.(e, r, i) : this.runNamedClipCommand(t, e, r, i);
-			} else if (e === "self" || e === "this" || e === "_root") e !== "_root" && this.spriteFunctions.get(t.characterId)?.has(r) ? this.callClipFunction(t, r) : this.callFunction(r, n.arguments);
-			else if (/^_level\d+/i.test(e)) this.options.onCallFunction?.(e, r, this.resolveArgsString(n.arguments));
-			else {
-				let n = this.resolveTarget(t, e) ?? this.findClipByName(t, e);
-				n && this.callClipFunction(n, r);
-			}
+	runCallFunctions(e, t = this.root, n, r) {
+		let i = !1;
+		for (let a of e.functionCalls ?? []) {
+			let o = this.runFunctionCall(a, t, n, r);
+			xt(a, e.soundAction) && o && (i = !0);
 		}
+		e.soundAction && !i && this.runSoundMetadataFallback(e.soundAction);
+	}
+	runFunctionCall(e, t, n, r) {
+		let i = e.target ?? "self", a = e.functionName;
+		if (this.runSoundMethod(i, a, e.arguments, n)) return !0;
+		if (at.has(a)) return this.options.onWaiter?.(a, this.parseArgs(e.arguments, n)), !0;
+		if (ot.has(a)) {
+			let t = this.parseArgs(e.arguments, n)[0];
+			if (t !== void 0) return this.runSoundMarker(i, String(t), e.arguments), !0;
+		}
+		if (it.has(a) && i !== "self" && i !== "this" && i !== "_root") {
+			let o = this.parseArgs(e.arguments, n)[0] ?? 0;
+			return /^_level\d+/i.test(i) ? (this.options.onClipCommand?.(i, a, o), !0) : this.runNamedClipCommand(t, i, a, o) ? !0 : r ? this.runNamedClipCommand(r, i, a, o) : !1;
+		}
+		if (i === "self" || i === "this" || i === "_root") return i !== "_root" && this.spriteFunctions.get(t.characterId)?.has(a) ? this.callClipFunction(t, a) : this.callFunction(a, e.arguments);
+		if (/^_level\d+/i.test(i)) return this.options.onCallFunction?.(i, a, this.resolveArgsString(e.arguments, n)), !0;
+		let o = i.split(".").filter(Boolean).pop() ?? i, s = this.resolveTarget(t, i) ?? this.findClipByName(t, o) ?? (r ? this.resolveTarget(r, i) ?? this.findClipByName(r, o) : null);
+		return s === this.root ? this.callFunction(a, e.arguments, n) : s ? this.callClipFunction(s, a) : !1;
+	}
+	runSoundMetadataFallback(e) {
+		if (e.command === "markSndSegment") {
+			let t = e.segment ?? e.sound;
+			t && this.runSoundMarker(e.target, t, e.arguments, e);
+			return;
+		}
+		e.command !== "playVO" || !e.soundSrc || (this.voWaiting = !0, this.options.onSound?.({
+			command: "playVO",
+			target: e.target,
+			sound: e.sound,
+			soundSrc: e.soundSrc,
+			soundDurationMs: e.soundDurationMs,
+			soundRole: e.soundRole ?? "vo",
+			executionContext: "metadata-fallback"
+		}));
 	}
 	callClipFunction(e, t) {
 		let n = this.spriteFunctions.get(e.characterId)?.get(t);
-		if (!n) return;
-		let r = this.scopeFor(e), i = (e) => e === "else", a = n.actions.some((e) => e.functionBranchCondition && !i(e.functionBranchCondition) && z(e.functionBranchCondition, r)), o = n.actions.map((e) => {
+		if (!n) return !1;
+		let r = this.scopeFor(e), i = (e) => e === "else", a = n.actions.some((e) => e.functionBranchCondition && !i(e.functionBranchCondition) && B(e.functionBranchCondition, r)), o = n.actions.map((e) => {
 			let t = e.functionBranchCondition;
-			return i(t) ? !a : !t || z(t, r);
+			return i(t) ? !a : !t || B(t, r);
 		});
 		for (let t = 0; t < n.actions.length; t += 1) this.store && !o[t] || this.runClipAction(e, n.actions[t]);
-		this.render();
+		return this.render(), !0;
 	}
 	runClipAction(e, t) {
 		switch (t.command) {
 			case "stop":
-				e.playing = !1;
+				Y(t.target) && (e.playing = !1);
 				break;
 			case "play":
-				e.playing = !0;
+				Y(t.target) && (e.playing = !0);
 				break;
 			case "gotoAndPlay":
 			case "gotoAndStop": {
@@ -1159,22 +1736,26 @@ var Te = class {
 				break;
 			case "setVariable": {
 				let n = this.resolveExpr(t.rawValue ?? String(t.value ?? ""));
-				t.target && n !== void 0 && this.scopeSet(e, t.target, n);
+				this.trackSoundObject(t.target, t.rawValue), t.target && n !== void 0 && this.scopeSet(e, t.target, n);
 				break;
 			}
 			default: break;
 		}
 	}
 	findClipByName(e, t) {
-		for (let n of e.childClips.values()) {
-			if (n.name === t) return n;
-			let e = this.findClipByName(n, t);
-			if (e) return e;
-		}
-		return null;
+		let n = [], r = (e) => {
+			if (e.name === t) return e;
+			Z(e.name, t) && n.push(e);
+			for (let t of e.childClips.values()) {
+				let e = r(t);
+				if (e) return e;
+			}
+			return null;
+		};
+		return r(e) || (n.length === 1 ? n[0] : null);
 	}
 	buildRoot(e) {
-		let t = new R(Z, "_root", null);
+		let t = new z(J, "_root", null);
 		return this.enterFrame(t, e, 0), t;
 	}
 	onTick() {
@@ -1189,7 +1770,7 @@ var Te = class {
 		for (let t of e.childClips.values()) this.tickClip(t);
 	}
 	enterFrame(e, t, n) {
-		e.currentFrame = N(t, 0, Math.max(0, this.frameCountFor(e) - 1)), this.reconcile(e), e.enteredFrame !== e.currentFrame && (e.enteredFrame = e.currentFrame, this.stopFramesFor(e).has(e.currentFrame) && (e.playing = !1), n < Ee && this.runScript(e, n));
+		e.currentFrame = L(t, 0, Math.max(0, this.frameCountFor(e) - 1)), this.reconcile(e), e.enteredFrame !== e.currentFrame && (e.enteredFrame = e.currentFrame, this.stopFramesFor(e).has(e.currentFrame) && (e.playing = !1), n < ct && this.runScript(e, n));
 	}
 	reconcile(e) {
 		let t = this.framesFor(e);
@@ -1197,21 +1778,26 @@ var Te = class {
 		let n = t[e.currentFrame]?.instances ?? [], r = /* @__PURE__ */ new Set();
 		for (let t of n) {
 			let n = this.getAsset(t.characterId);
-			if (!n || !F(n)) continue;
-			r.add(t.depth);
-			let i = e.childClips.get(t.depth);
-			if (!i || i.characterId !== t.characterId) {
-				let n = new R(t.characterId, t.name, e);
+			if (!n || !Ge(n)) continue;
+			r.add(t.depth), t.name && e.depthNames.set(t.depth, t.name);
+			let i = t.name || e.depthNames.get(t.depth) || "", a = e.childClips.get(t.depth);
+			if (!a || a.characterId !== t.characterId) {
+				let n = new z(t.characterId, i, e);
 				e.childClips.set(t.depth, n), this.enterFrame(n, 0, 0);
-				let r = t.name ? this.pendingClipCommands.get(t.name) : void 0;
-				if (r) {
-					this.pendingClipCommands.delete(t.name);
-					let e = this.resolveClipFrame(n, r.frame);
-					e >= 0 && (n.playing = r.command === "gotoAndPlay", this.enterFrame(n, e, 0));
+				let r = i ? this.pendingClipCommandKey(i) : void 0, a = r ? this.pendingClipCommands.get(r) : void 0;
+				if (a && r) {
+					this.pendingClipCommands.delete(r);
+					let e = this.resolveClipFrame(n, a.frame);
+					e >= 0 && (n.playing = a.command === "gotoAndPlay", this.enterFrame(n, e, 0));
 				}
-			} else t.name && i.name !== t.name && (i.name = t.name);
+			} else i && a.name !== i && (a.name = i);
 		}
 		for (let [t] of e.childClips) r.has(t) || e.childClips.delete(t);
+	}
+	pendingClipCommandKey(e) {
+		if (this.pendingClipCommands.has(e)) return e;
+		let t = Array.from(this.pendingClipCommands.keys()).filter((t) => Z(e, t));
+		return t.length === 1 ? t[0] : void 0;
 	}
 	runScript(e, t) {
 		let n = this.actionsFor(e), r = n.map(() => !0);
@@ -1231,10 +1817,10 @@ var Te = class {
 			let a = n[i];
 			switch (a.command) {
 				case "stop":
-					e.playing = !1;
+					Y(a.target) && (e.playing = !1);
 					break;
 				case "play":
-					e.playing = !0;
+					Y(a.target) && (e.playing = !0);
 					break;
 				case "gotoAndPlay":
 				case "gotoAndStop": {
@@ -1246,7 +1832,7 @@ var Te = class {
 					if (!n || r < 0) break;
 					if (a.branchCondition?.includes("sndDonePlaying") && a.command === "gotoAndPlay" && n === e && r < e.currentFrame) {
 						let t = e.currentFrame - r, n = this.options.isVoiceDone?.() ?? !0, i = this.voWaiting && n || e !== this.root && !this.voWaiting;
-						if (t <= De && i) {
+						if (t <= lt && i) {
 							this.voWaiting = !1;
 							break;
 						}
@@ -1256,11 +1842,16 @@ var Te = class {
 				}
 				case "attachSound":
 				case "playVO":
+				case "markSndSegment":
 				case "stopSound":
-					a.command === "playVO" && (this.voWaiting = !0), this.options.onSound?.(a);
+					a.command === "playVO" && (this.voWaiting = !0), a.command === "markSndSegment" && (this.voWaiting = !0), this.options.onSound?.(a.command === "markSndSegment" ? this.soundSegmentAction(a) : a);
 					break;
 				case "loadMovieNum":
 				case "loadMovie":
+					this.options.onNavigate?.(a);
+					break;
+				case "unloadMovieNum":
+				case "unloadMovie":
 					this.options.onNavigate?.(a);
 					break;
 				case "doRelease":
@@ -1279,9 +1870,9 @@ var Te = class {
 					break;
 				case "setVariable": {
 					let t = this.resolveExpr(a.rawValue ?? String(a.value ?? ""));
-					if (this.store && a.target && t !== void 0) {
+					if (this.trackSoundObject(a.target, a.rawValue), this.store && a.target && t !== void 0) {
 						this.scopeSet(e, a.target, t);
-						let n = J(a.target);
+						let n = q(a.target);
 						this.boundTextVars.has(n) && this.textVars.set(n, String(t));
 					}
 					break;
@@ -1292,12 +1883,23 @@ var Te = class {
 	}
 	resolveTarget(e, t) {
 		if (!t || t === "self" || t === "this") return e;
-		if (t === "_root" || t === "_level0" || t === "root") return this.root;
-		if (t === "_parent") return e.parent ?? e;
-		let n = t.split(".").filter(Boolean), r = n[0] === "_root" || n[0] === "_level0" ? this.root : n[0] === "_parent" ? e.parent : e, i = n[0]?.startsWith("_") ? n.slice(1) : n;
-		for (let e of i) {
+		let n = t.split(".").filter(Boolean), r = e;
+		for (let e = 0; e < n.length; e += 1) {
+			let t = n[e];
+			if (e === 0 && (t === "_root" || t === "_level0" || t === "root")) {
+				r = this.root;
+				continue;
+			}
+			if (e === 0 && /^_level\d+$/i.test(t)) {
+				r = t.toLowerCase() === "_level0" ? this.root : null;
+				continue;
+			}
+			if (t === "_parent") {
+				r = r?.parent ?? r;
+				continue;
+			}
 			if (!r) return null;
-			r = P(r, e);
+			r = We(r, t) ?? this.findClipByName(r, t);
 		}
 		return r;
 	}
@@ -1312,139 +1914,178 @@ var Te = class {
 		let n = e.frameExpression?.match(/^_currentframe\s*([+-])\s*(\d+)$/);
 		if (n && t) {
 			let e = Number(n[2]) * (n[1] === "-" ? -1 : 1);
-			return N(t.currentFrame + e, 0, Math.max(0, this.frameCountFor(t) - 1));
+			return L(t.currentFrame + e, 0, Math.max(0, this.frameCountFor(t) - 1));
 		}
 		return -1;
 	}
 	framesFor(e) {
-		return e.characterId === Z ? this.rootFrames : this.assets[String(e.characterId)]?.timeline ?? null;
+		return e.characterId === J ? this.rootFrames : this.assets[String(e.characterId)]?.timeline ?? null;
 	}
 	frameCountFor(e) {
-		if (e.characterId === Z) return Math.max(1, this.rootFrames.length);
+		if (e.characterId === J) return Math.max(1, this.rootFrames.length);
 		let t = this.assets[String(e.characterId)];
 		return Math.max(1, t?.timeline?.length ?? t?.frames?.length ?? 1);
 	}
 	stopFramesFor(e) {
-		if (e.characterId === Z) return this.rootStop;
+		if (e.characterId === J) return this.rootStop;
 		let t = this.spriteStop.get(e.characterId);
 		return t || (t = new Set(this.timeline.control?.spriteStopFrames?.[String(e.characterId)] ?? []), this.spriteStop.set(e.characterId, t)), t;
 	}
 	actionsFor(e) {
-		return e.characterId === Z ? this.rootActions.get(e.currentFrame) ?? [] : this.spriteActions.get(`${e.characterId}:${e.currentFrame}`) ?? [];
+		return e.characterId === J ? this.rootActions.get(e.currentFrame) ?? [] : this.spriteActions.get(`${e.characterId}:${e.currentFrame}`) ?? [];
 	}
 	getAsset(e) {
 		return this.assets[String(e)] ?? this.assets[`button:${e}`];
 	}
 	render() {
 		let e = [];
-		this.clipByPath = /* @__PURE__ */ new Map(), this.clipByPath.set("0", this.root), this.flatten(this.root, Ce, 1, "0", { n: 0 }, e), this.renderer.apply(e), this.lastNodes = e;
+		this.clipByPath = /* @__PURE__ */ new Map(), this.clipByPath.set("0", this.root), this.flatten(this.root, et, 1, void 0, "0", { n: 0 }, e);
+		let t = new Set(e.filter((e) => e.kind === "button").map((e) => e.key));
+		for (let e of this.buttonVisualStates.keys()) t.has(e) || this.buttonVisualStates.delete(e);
+		this.renderer.apply(e), this.lastNodes = e;
 	}
-	flatten(e, t, n, r, i, a) {
-		let o = this.framesFor(e);
-		if (!o) return;
-		let s = o[e.currentFrame];
+	flatten(e, t, n, r, i, a, o) {
+		let s = this.framesFor(e);
 		if (!s) return;
-		let c = [], l = (e) => {
-			for (; c.length && e > c[c.length - 1].clipDepth;) {
-				let e = c.pop();
-				a.push({
+		let c = s[e.currentFrame];
+		if (!c) return;
+		let l = new Set(c.instances.map((e) => e.depth)), u = [], d = (e) => {
+			for (; u.length && e > u[u.length - 1].clipDepth;) {
+				let e = u.pop();
+				o.push({
 					key: e.key,
 					order: e.order,
 					characterId: 0,
 					kind: "shape",
 					name: "",
 					src: "",
-					origin: Oe,
+					origin: ut,
 					matrix: t,
 					opacity: 1,
 					maskGroup: e.group
 				});
 			}
 		};
-		for (let o of s.instances) {
-			l(o.depth);
-			let s = this.getAsset(o.characterId);
-			if (!s) continue;
-			let u = K(t, o.matrix), d = n * o.opacity, f = `${r}/${o.depth}`, p = e.childClips.get(o.depth);
-			if (o.clipDepth) {
-				let e = I(s, p);
-				e && c.push({
-					key: `${f}#mask`,
-					order: i.n++,
-					clipDepth: o.clipDepth,
+		for (let s of c.instances) {
+			d(s.depth);
+			let c = this.getAsset(s.characterId);
+			if (!c) continue;
+			let l = K(t, s.matrix), f = n * s.opacity, p = X(r, s.colorTransform), m = `${i}/${s.depth}`, h = e.childClips.get(s.depth);
+			if (s.clipDepth) {
+				let e = Ke(c, h);
+				e && u.push({
+					key: `${m}#mask`,
+					order: a.n++,
+					clipDepth: s.clipDepth,
 					group: {
 						mask: {
-							characterId: s.id,
+							characterId: c.id,
 							src: e,
-							origin: s.origin,
-							matrix: u,
-							opacity: 1
+							origin: c.origin,
+							matrix: l,
+							opacity: 1,
+							colorTransform: p
 						},
 						items: []
 					}
 				});
 				continue;
 			}
-			let m = c[c.length - 1];
-			if (m && o.depth <= m.clipDepth) {
-				let e = I(s, p);
-				e && m.group.items.push({
-					characterId: s.id,
+			let g = u[u.length - 1];
+			if (g && s.depth <= g.clipDepth) {
+				let e = Ke(c, h);
+				e && g.group.items.push({
+					characterId: c.id,
 					src: e,
-					origin: s.origin,
-					matrix: u,
-					opacity: d
+					origin: c.origin,
+					matrix: l,
+					opacity: f,
+					colorTransform: p
 				});
 				continue;
 			}
-			if (s.kind === "sprite" && s.frames?.length && !s.overflowsBounds) {
-				let e = p ? N(p.currentFrame, 0, s.frames.length - 1) : 0;
-				a.push(ve(f, i.n++, s, s.frames[e], u, d, o, p?.currentFrame)), p && s.timeline?.length && this.collectButtons(p, u, f, i, a);
+			if (c.kind === "sprite" && c.frames?.length && !c.overflowsBounds) {
+				let e = h ? L(h.currentFrame, 0, c.frames.length - 1) : 0;
+				o.push(qe(m, a.n++, c, c.frames[e], l, f, s, h?.currentFrame, p)), h && c.timeline?.length && this.collectButtons(h, l, p, m, a, o);
 				continue;
 			}
-			if (s.kind === "sprite" && s.timeline?.length && p && p.characterId === s.id) {
-				this.clipByPath.set(f, p), this.flatten(p, u, d, f, i, a);
+			if (c.kind === "sprite" && c.timeline?.length && h && h.characterId === c.id) {
+				this.clipByPath.set(m, h), this.flatten(h, l, f, p, m, a, o);
 				continue;
 			}
-			if (s.kind === "button") {
-				a.push(L(f, i.n++, s, u, o, r, !0, d)), this.collectButtonText(s, u, f, i, a, o);
+			if (c.kind === "button") {
+				o.push(R(m, a.n++, c, l, s, i, !0, f, this.buttonVisualStates.get(m), p)), this.collectButtonText(c, l, p, m, a, o, s);
 				continue;
 			}
-			a.push(this.leafNode(f, i.n++, s, s.src ?? "", u, d, o));
+			o.push(this.leafNode(m, a.n++, c, c.src ?? "", l, f, s, p));
 		}
-		l(Infinity);
+		this.collectLatentButtons(e, t, r, i, a, o, l, n), d(Infinity);
 	}
-	collectButtons(e, t, n, r, i) {
-		this.clipByPath.set(n, e);
-		let a = this.framesFor(e);
-		if (!a) return;
-		let o = a[e.currentFrame];
-		if (o) for (let a of o.instances) {
-			if (a.clipDepth) continue;
-			let o = this.getAsset(a.characterId);
-			if (!o) continue;
-			let s = K(t, a.matrix), c = `${n}/${a.depth}`;
-			if (o.kind === "button") i.push(L(c, r.n++, o, s, a, n, !1)), this.collectButtonText(o, s, c, r, i, a);
-			else if (o.kind === "text") {
-				let e = this.resolveTextField(o.id, o);
-				(e?.normalizedVariableName ? this.textVars.has(e.normalizedVariableName) : e?.text && String(e.text).trim()) && i.push(this.leafNode(c, r.n++, o, o.src ?? "", s, a.opacity, a));
-			} else if (o.kind === "sprite") {
-				let t = e.childClips.get(a.depth);
-				t && this.collectButtons(t, s, c, r, i);
+	collectButtons(e, t, n, r, i, a) {
+		this.clipByPath.set(r, e);
+		let o = this.framesFor(e);
+		if (!o) return;
+		let s = o[e.currentFrame];
+		if (!s) return;
+		let c = new Set(s.instances.map((e) => e.depth));
+		for (let o of s.instances) {
+			if (o.clipDepth) continue;
+			let s = this.getAsset(o.characterId);
+			if (!s) continue;
+			let c = K(t, o.matrix), l = X(n, o.colorTransform), u = `${r}/${o.depth}`;
+			if (s.kind === "button") a.push(R(u, i.n++, s, c, o, r, !1, 1, this.buttonVisualStates.get(u), l)), this.collectButtonText(s, c, l, u, i, a, o);
+			else if (s.kind === "text") {
+				let e = this.resolveTextField(s.id, s);
+				(e?.normalizedVariableName ? this.textVars.has(e.normalizedVariableName) : e?.text && String(e.text).trim()) && a.push(this.leafNode(u, i.n++, s, s.src ?? "", c, o.opacity, o, l));
+			} else if (s.kind === "sprite") {
+				let t = e.childClips.get(o.depth);
+				t && this.collectButtons(t, c, l, u, i, a);
 			}
 		}
+		this.collectLatentButtons(e, t, n, r, i, a, c);
 	}
-	collectButtonText(e, t, n, r, i, a) {
-		for (let o of e.textFields ?? []) {
-			let e = this.getAsset(o.id);
+	collectLatentButtons(e, t, n, r, i, a, o, s = 1) {
+		if (!(e.characterId === J || e.playing)) for (let c of this.latentButtonPlacements(e)) {
+			if (o.has(c.depth)) continue;
+			let e = this.getAsset(c.characterId);
+			if (!e || e.kind !== "button") continue;
+			let l = K(t, c.matrix), u = X(n, c.colorTransform), d = `${r}/${c.depth}`;
+			a.push(R(d, i.n++, e, l, c, r, !1, s, this.buttonVisualStates.get(d), u));
+		}
+	}
+	latentButtonPlacements(e) {
+		let t = e.characterId, n = this.latentButtonPlacementsCache.get(t);
+		if (n) return n;
+		let r = this.framesFor(e);
+		if (!r?.length) return this.latentButtonPlacementsCache.set(t, []), [];
+		let i = /* @__PURE__ */ new Map();
+		for (let e of r) for (let t of e.instances ?? []) i.has(t.depth) || this.getAsset(t.characterId)?.kind !== "button" || !this.buttonControlsOwnerTimeline(t.characterId) || i.set(t.depth, t);
+		let a = [...i.values()];
+		return this.latentButtonPlacementsCache.set(t, a), a;
+	}
+	buttonControlsOwnerTimeline(e) {
+		let t = this.timeline.control?.buttonActions?.[String(e)];
+		return t ? [
+			"rollOver",
+			"press",
+			"release",
+			"rollOut"
+		].some((e) => {
+			let n = t[e];
+			return !!(n && (n.command === "gotoAndPlay" || n.command === "gotoAndStop") && Y(n.target));
+		}) : !1;
+	}
+	collectButtonText(e, t, n, r, i, a, o) {
+		for (let s of e.textFields ?? []) {
+			let e = this.getAsset(s.id);
 			if (!e) continue;
-			let s = this.resolveTextField(o.id, e);
-			if (!s?.normalizedVariableName || !this.textVars.has(s.normalizedVariableName)) continue;
-			let c = K(t, o.matrix);
-			i.push(this.leafNode(`${n}/txt:${o.id}`, r.n++, e, e.src ?? "", c, a.opacity, a));
+			let c = this.resolveTextField(s.id, e);
+			if (!c?.normalizedVariableName || !this.textVars.has(c.normalizedVariableName)) continue;
+			let l = K(t, s.matrix);
+			a.push(this.leafNode(`${r}/txt:${s.id}`, i.n++, e, e.src ?? "", l, o.opacity, o, n));
 		}
 	}
-	leafNode(e, t, n, r, i, a, o) {
+	leafNode(e, t, n, r, i, a, o, s = o.colorTransform) {
 		return {
 			key: e,
 			order: t,
@@ -1455,7 +2096,7 @@ var Te = class {
 			origin: n.origin,
 			matrix: i,
 			opacity: a,
-			colorTransform: o.colorTransform,
+			colorTransform: s,
 			clipDepth: o.clipDepth,
 			text: n.kind === "text" ? this.resolveTextField(n.id, n) : void 0
 		};
@@ -1471,52 +2112,230 @@ var Te = class {
 		} : n ?? r;
 		if (!i) return i;
 		let a = i.normalizedVariableName;
-		return a && this.textVars.has(a) ? {
-			...i,
-			text: this.textVars.get(a)
-		} : i;
+		if (a && this.textVars.has(a)) {
+			let e = this.textVars.get(a) ?? "";
+			return {
+				...i,
+				text: e,
+				align: bt(e, i.align, !!i.html)
+			};
+		}
+		return i;
 	}
 	primeAmbientSound() {
 		if (!this.options.onSound) return;
 		let e;
-		for (let t = 0; t <= this.root.currentFrame; t += 1) for (let n of this.rootActions.get(t) ?? []) n.command === "attachSound" && n.soundRole === "music" && (e = n);
+		for (let t = 0; t < this.root.currentFrame; t += 1) for (let n of this.rootActions.get(t) ?? []) n.command === "attachSound" && n.soundRole === "music" && (e = n);
 		e && this.options.onSound(e);
 	}
-}, Ae = class e {
+};
+function Y(e) {
+	return !e || e === "self" || e === "this" || e === "_root" || e === "_level0" || e === "root";
+}
+function ft(e, t) {
+	return t === "" && st.test(e);
+}
+function X(e, t) {
+	if (!e) return t;
+	if (!t) return e;
+	let n = (t.rm ?? 1) * (e.rm ?? 1), r = (t.gm ?? 1) * (e.gm ?? 1), i = (t.bm ?? 1) * (e.bm ?? 1), a = (t.ra ?? 0) * (e.rm ?? 1) + (e.ra ?? 0), o = (t.ga ?? 0) * (e.gm ?? 1) + (e.ga ?? 0), s = (t.ba ?? 0) * (e.bm ?? 1) + (e.ba ?? 0);
+	if (!(n === 1 && r === 1 && i === 1 && a === 0 && o === 0 && s === 0)) return {
+		rm: n,
+		gm: r,
+		bm: i,
+		ra: a,
+		ga: o,
+		ba: s
+	};
+}
+function pt(e) {
+	if (!e) return "";
+	let t = e.exitNavigation;
+	return t ? [
+		"exit",
+		t.variable,
+		t.value,
+		t.swf,
+		t.level ?? "",
+		t.exitLabel ?? "",
+		t.exitFrame
+	].join("|") : !e.swf && e.frame === void 0 && !e.label ? "" : [
+		"release",
+		e.command ?? "",
+		e.target ?? "",
+		e.swf ?? "",
+		e.level ?? "",
+		e.label ?? "",
+		e.frame ?? ""
+	].join("|");
+}
+function mt(e, t) {
+	let n = new Set((e.ownerSpriteIds ?? []).map(String));
+	return (t.ownerSpriteIds ?? []).some((e) => n.has(String(e)));
+}
+function ht(e, t) {
+	return !(!e || !t || e.command !== t.command || (e.target ?? "self") !== (t.target ?? "self") || (e.label ?? "") !== (t.label ?? "") || (e.frame ?? "") !== (t.frame ?? "") || (e.frameExpression ?? "") !== (t.frameExpression ?? ""));
+}
+function gt(e, t) {
+	if (!e) return !1;
+	let n = q(t), r = new Set([
+		t,
+		n,
+		n.replace(/^_root\./i, ""),
+		n.replace(/^_level0\./i, "")
+	].filter(Boolean));
+	for (let t of r) {
+		let n = t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+		if (RegExp(`(^|[^\\w$])${n}([^\\w$]|$)`).test(e)) return !0;
+	}
+	return !1;
+}
+function _t(e, t) {
+	return F(e)[t]?.trim();
+}
+function vt(e, t) {
+	return yt(e) ?? yt(t);
+}
+function yt(e) {
+	if (e == null) return;
+	let t = String(e).replace(/^["']|["']$/g, "").trim(), n = /^_level(\d+)$/i.exec(t), r = Number(n?.[1] ?? t);
+	return Number.isFinite(r) ? r : void 0;
+}
+function bt(e, t, n) {
+	if (!n) return t;
+	let r = e.match(/<p\b[^>]*\balign\s*=\s*["']?(left|center|right|justify)\b/i) ?? e.match(/\btext-align\s*:\s*(left|center|right|justify)\b/i);
+	return r?.[1] ? r[1].toLowerCase() : "left";
+}
+function Z(e, t) {
+	return !e || !t || e === t || !e.startsWith(t) ? !1 : /^[A-Z0-9_$]/.test(e.slice(t.length));
+}
+function xt(e, t) {
+	return t ? t.command === "markSndSegment" ? e.functionName === "markSnd" || e.functionName === "markSndSegment" : e.functionName === t.command : !1;
+}
+function St(e) {
+	switch (e.command) {
+		case "attachSound": return Q("attachSound", e.sound ?? e.resolvedSound);
+		case "playVO": return Q("playVO", e.sound ?? e.resolvedSound);
+		case "markSndSegment": return Q("markSndSegment", e.segment ?? e.sound ?? e.resolvedSound);
+		case "stopSound": return e.target ? Q("stopSound", q(e.target)) : void 0;
+		default: return;
+	}
+}
+function Q(e, t) {
+	if (!(t == null || t === "")) return `${e}:${String(t)}`;
+}
+function Ct(e) {
+	let t = e?.trim();
+	if (t && (t.startsWith("\"") && t.endsWith("\"") || t.startsWith("'") && t.endsWith("'"))) return t.slice(1, -1);
+}
+function wt(e, t) {
+	let n = `${t}(`;
+	if (!e.startsWith(n) || !e.endsWith(")")) return;
+	let r = 0, i = "";
+	for (let n = t.length; n < e.length; n += 1) {
+		let t = e[n];
+		if (i) {
+			t === i && e[n - 1] !== "\\" && (i = "");
+			continue;
+		}
+		if (t === "\"" || t === "'") i = t;
+		else if (t === "(") r += 1;
+		else if (t === ")" && (--r, r === 0 && n !== e.length - 1)) return;
+	}
+	return r === 0 ? e.slice(n.length, -1).trim() : void 0;
+}
+//#endregion
+//#region src/audio/SoundController.ts
+var Tt = class e {
 	music = null;
 	musicSrc = "";
+	musicOwner;
+	musicTarget = "";
 	voice = null;
+	voiceOwner;
+	voiceTarget = "";
 	voiceStartedAt = 0;
 	voiceDurationMs = 0;
+	pendingVoiceSegmentDurationMs = 0;
+	timings = /* @__PURE__ */ new Map();
+	pendingPlayback = /* @__PURE__ */ new Set();
+	targetVolumes = /* @__PURE__ */ new Map();
 	muted = !1;
+	suspended = !1;
+	listening = !1;
+	pendingMusicStop = 0;
 	static FALLBACK_VO_MS = 5e3;
-	handle(e) {
-		if (!this.muted) switch (e.command) {
+	static FALLBACK_SEGMENT_MS = 2500;
+	static UNLOCK_EVENTS = [
+		"pointerdown",
+		"click",
+		"keydown",
+		"touchstart"
+	];
+	constructor() {
+		this.addUnlockListeners();
+	}
+	handle(e, t) {
+		switch (this.addUnlockListeners(), e.command) {
 			case "attachSound":
-				if (!e.soundSrc) break;
-				e.soundRole === "music" ? this.playMusic(e.soundSrc) : this.playVoice(e.soundSrc);
+				if (this.muted || !e.soundSrc) break;
+				e.soundRole === "music" ? this.playMusic(e, t) : e.soundRole === "vo" && this.playVoice(e, t);
 				break;
 			case "playVO":
-				e.soundSrc && this.playVoice(e.soundSrc);
+				!this.muted && e.soundSrc && this.playVoice(e, t);
+				break;
+			case "markSndSegment":
+				this.markVoiceSegment(this.durationFor(e));
 				break;
 			case "stopSound":
-				this.stopVoice();
+				this.pendingVoiceSegmentDurationMs = 0, this.stopForAction(e);
+				break;
+			case "setVolume":
+				this.setVolume(e);
 				break;
 			default: break;
 		}
 	}
-	playMusic(e) {
-		if (this.musicSrc === e && this.music) return;
-		this.stopMusic();
-		let t = new Audio(S(e));
-		t.loop = !0, t.volume = .4, t.play().catch(() => void 0), this.music = t, this.musicSrc = e;
+	registerTimings(e) {
+		for (let [t, n] of Object.entries(e ?? {})) {
+			let e = Number(n.durationMs);
+			t && Number.isFinite(e) && e > 0 && this.timings.set(t, e);
+		}
 	}
-	playVoice(e) {
-		this.stopVoice();
-		let t = new Audio(S(e));
-		t.volume = 1, this.voiceStartedAt = performance.now(), this.voiceDurationMs = 0, t.addEventListener("loadedmetadata", () => {
-			Number.isFinite(t.duration) && (this.voiceDurationMs = t.duration * 1e3);
-		}), t.play().catch(() => void 0), this.voice = t;
+	durationFor(e) {
+		let t = e.segment ?? e.sound;
+		return (t ? this.timings.get(t) : void 0) ?? e.soundDurationMs;
+	}
+	playMusic(e, t) {
+		let n = e.soundSrc;
+		if (!n) return;
+		this.cancelPendingMusicStop();
+		let r = this.volumeFor(e.target, .5);
+		if (this.musicSrc === n && this.music) {
+			this.musicOwner = t, this.musicTarget = $(e.target), this.music.loop = !0, this.music.volume = r, this.tryPlay(this.music);
+			return;
+		}
+		this.stopMusic();
+		let i = new Audio(O(n));
+		i.preload = "auto", i.loop = !0, i.volume = r, this.music = i, this.musicSrc = n, this.musicOwner = t, this.musicTarget = $(e.target), this.tryPlay(i);
+	}
+	playVoice(e, t) {
+		let n = e.soundSrc;
+		if (!n) return;
+		let r = this.durationFor(e), i = this.pendingVoiceSegmentDurationMs;
+		this.pendingVoiceSegmentDurationMs = 0, this.stopVoice();
+		let a = new Audio(O(n));
+		a.preload = "auto", a.volume = this.volumeFor(e.target, 1), this.voiceStartedAt = performance.now(), this.voiceDurationMs = i || (r && Number.isFinite(r) ? r : 0), a.addEventListener("loadedmetadata", () => {
+			!this.voiceDurationMs && Number.isFinite(a.duration) && (this.voiceDurationMs = a.duration * 1e3);
+		}), this.voice = a, this.voiceOwner = t, this.voiceTarget = $(e.target), this.tryPlay(a);
+	}
+	markVoiceSegment(t) {
+		let n = t && Number.isFinite(t) ? t : e.FALLBACK_SEGMENT_MS;
+		if (!this.voice) {
+			this.pendingVoiceSegmentDurationMs = n;
+			return;
+		}
+		this.voiceStartedAt = performance.now(), this.voiceDurationMs = n;
 	}
 	isVoiceDone() {
 		if (!this.voice || this.voice.ended) return !0;
@@ -1524,27 +2343,100 @@ var Te = class {
 		return performance.now() - this.voiceStartedAt >= t;
 	}
 	stopMusic() {
-		this.music?.pause(), this.music = null, this.musicSrc = "";
+		this.cancelPendingMusicStop();
+		let e = this.music;
+		e && (this.pendingPlayback.delete(e), e.pause(), Et(e)), this.music = null, this.musicSrc = "", this.musicOwner = void 0, this.musicTarget = "";
 	}
 	stopVoice() {
-		this.voice?.pause(), this.voice = null, this.voiceStartedAt = 0, this.voiceDurationMs = 0;
+		let e = this.voice;
+		e && (this.pendingPlayback.delete(e), e.pause(), Et(e)), this.voice = null, this.voiceOwner = void 0, this.voiceTarget = "", this.voiceStartedAt = 0, this.voiceDurationMs = 0;
+	}
+	stopForAction(e) {
+		let t = $(e.target), n = e.soundRole === "music" || t && t === this.musicTarget, r = e.soundRole === "vo" || !t || t === this.voiceTarget;
+		n && this.scheduleMusicStop(), r && this.stopVoice();
+	}
+	setVolume(e) {
+		let t = $(e.target);
+		if (!t) return;
+		let n = Dt(e.value);
+		this.targetVolumes.set(t, n), this.music && t === this.musicTarget && (this.music.volume = n), this.voice && t === this.voiceTarget && (this.voice.volume = n);
+	}
+	volumeFor(e, t) {
+		let n = $(e);
+		return n ? this.targetVolumes.get(n) ?? t : t;
+	}
+	scheduleMusicStop() {
+		let e = this.pendingMusicStop + 1;
+		this.pendingMusicStop = e, queueMicrotask(() => {
+			this.pendingMusicStop === e && (this.pendingMusicStop = 0, this.stopMusic());
+		});
+	}
+	cancelPendingMusicStop() {
+		this.pendingMusicStop = 0;
+	}
+	stopOwner(e) {
+		let t = this.voiceOwner === e;
+		this.musicOwner === e && this.stopMusic(), t && (this.pendingVoiceSegmentDurationMs = 0, this.stopVoice());
 	}
 	suspend() {
-		this.music?.pause(), this.voice?.pause();
+		this.suspended = !0, this.music?.pause(), this.voice?.pause();
 	}
 	resume() {
-		this.music?.play().catch(() => void 0);
+		this.suspended = !1, this.music && this.tryPlay(this.music), this.voice && this.tryPlay(this.voice);
 	}
 	destroy() {
-		this.stopMusic(), this.stopVoice();
+		this.removeUnlockListeners(), this.pendingPlayback.clear(), this.stopMusic(), this.stopVoice(), this.timings.clear(), this.targetVolumes.clear();
 	}
-}, Q = /^_level(\d+)/, $ = class {
+	retryPendingPlayback = () => {
+		if (!(this.suspended || this.muted || !this.pendingPlayback.size)) for (let e of [...this.pendingPlayback]) this.tryPlay(e);
+	};
+	tryPlay(e) {
+		if (this.suspended || this.muted) return;
+		let t = e.play();
+		t?.then && t.then(() => this.pendingPlayback.delete(e), () => {
+			this.isCurrentAudio(e) && !this.suspended && !this.muted ? this.pendingPlayback.add(e) : this.pendingPlayback.delete(e);
+		});
+	}
+	isCurrentAudio(e) {
+		return e === this.music || e === this.voice;
+	}
+	addUnlockListeners() {
+		if (!(this.listening || typeof document > "u")) {
+			for (let t of e.UNLOCK_EVENTS) document.addEventListener(t, this.retryPendingPlayback, {
+				capture: !0,
+				passive: !0
+			});
+			this.listening = !0;
+		}
+	}
+	removeUnlockListeners() {
+		if (!(!this.listening || typeof document > "u")) {
+			for (let t of e.UNLOCK_EVENTS) document.removeEventListener(t, this.retryPendingPlayback, { capture: !0 });
+			this.listening = !1;
+		}
+	}
+};
+function $(e) {
+	return (e ?? "").replace(/^_root\./i, "").replace(/^_level0\./i, "").replace(/^this\./i, "").replace(/^self\./i, "");
+}
+function Et(e) {
+	try {
+		e.currentTime = 0;
+	} catch {}
+}
+function Dt(e) {
+	let t = Number(e);
+	return Number.isFinite(t) ? Math.max(0, Math.min(1, t / 100)) : 1;
+}
+//#endregion
+//#region src/app/PlayerController.ts
+var Ot = /^_level(\d+)/, kt = class {
 	container;
 	options;
-	fonts = new ge();
-	sound = new Ae();
+	fonts = new He();
+	sound = new Tt();
 	levels = /* @__PURE__ */ new Map();
-	store = new Te();
+	store = new rt();
 	loadBurst = /* @__PURE__ */ new Set();
 	pendingCalls = [];
 	waiters = [];
@@ -1597,19 +2489,18 @@ var Te = class {
 		this.emitFrame();
 	}
 	createLevel(e, t, n) {
-		let r = this.levels.get(e);
-		r && (r.player.destroy(), r.layer.remove(), this.levels.delete(e)), this.store.seed(n.control?.globalDefaults), this.fonts.register(n);
-		let i = document.createElement("div");
-		i.className = "player-level", i.style.zIndex = String(e), this.container.append(i);
-		let a = new ke(n, new he(i, {
+		this.levels.get(e) && this.destroyLevel(e), this.store.seed(n.control?.globalDefaults), this.sound.registerTimings(A(n.control)), this.fonts.register(n);
+		let r = document.createElement("div");
+		r.className = "player-level", r.style.zIndex = String(e), this.container.append(r);
+		let i = new dt(n, new Ve(r, {
 			resolveFontFamily: (e) => this.fonts.resolveFamily(e),
-			onButtonEvent: (t, n, r) => this.levels.get(e)?.player.handleButtonEvent(t, n, r)
+			onButtonEvent: (t, n, r, i) => this.levels.get(e)?.player.handleButtonEvent(t, n, r, i)
 		}), {
 			onFrame: e === 0 ? (e, t) => {
 				this.checkWaiters(), this.options.onFrame?.(e, t, this.main?.currentLabel() ?? "");
 			} : void 0,
-			onSound: (e) => this.sound.handle(e),
-			onNavigate: (e) => this.handleNavigate(e),
+			onSound: (t) => this.sound.handle(t, e),
+			onNavigate: (t) => this.handleNavigate(t, e),
 			store: this.store,
 			onCallFunction: (e, t, n) => this.dispatchCall(e, t, n),
 			onClipCommand: (e, t, n) => this.dispatchClipCommand(e, t, n),
@@ -1619,10 +2510,10 @@ var Te = class {
 			startFrame: e > 0 ? 0 : void 0
 		});
 		if (this.levels.set(e, {
-			player: a,
-			layer: i,
+			player: i,
+			layer: r,
 			swf: t
-		}), this.playing && a.play(), this.flushPendingCalls(e), this.prefetchReferenced(n), this.options.debug && e > 0) {
+		}), this.playing && i.play(), this.flushPendingCalls(e), this.prefetchReferenced(n), this.options.debug && e > 0) {
 			let n = this.store.get("bkgd.doAttractLoop");
 			console.log(`[FLASHDBG] load ${t} → _level${e}  doAttractLoop=${JSON.stringify(n)}`), this.watchBottom(t);
 		}
@@ -1643,9 +2534,9 @@ var Te = class {
 		requestAnimationFrame(r);
 	}
 	prefetchReferenced(e) {
-		for (let t of ue(e)) {
+		for (let t of xe(e)) {
 			let e = t.toLowerCase();
-			e === this.mainSwf.toLowerCase() || this.prefetched.has(e) || (this.prefetched.add(e), de(t));
+			e === this.mainSwf.toLowerCase() || this.prefetched.has(e) || (this.prefetched.add(e), Se(t));
 		}
 	}
 	flushPendingCalls(e) {
@@ -1672,7 +2563,7 @@ var Te = class {
 		this.waiters = e;
 	}
 	dispatchClipCommand(e, t, n) {
-		let r = Q.exec(e);
+		let r = Ot.exec(e);
 		if (!r) return;
 		let i = this.levels.get(Number(r[1]))?.player;
 		if (!i) return;
@@ -1680,15 +2571,15 @@ var Te = class {
 		i.runNamedClipCommand(i.rootClip, a, t, n);
 	}
 	async handleLoadVariables(e, t) {
-		let n = t.target;
+		let n = t.variableSource ?? (t.swf && !/\.swf$/i.test(t.swf) ? t.swf : void 0) ?? t.target;
 		if (n) try {
-			let t = await fetch(S(n));
+			let t = await fetch(O(n));
 			if (!t.ok || this.container.hidden) return;
-			this.levels.get(e)?.player.setTextVars(je(await t.text()));
+			this.levels.get(e)?.player.setTextVars(At(await t.text()));
 		} catch {}
 	}
 	dispatchCall(e, t, n) {
-		let r = Q.exec(e);
+		let r = Ot.exec(e);
 		if (!r) return;
 		let i = Number(r[1]), a = this.levels.get(i)?.player;
 		a ? a.callFunction(t, n) : this.pendingCalls.push({
@@ -1697,28 +2588,42 @@ var Te = class {
 			args: n
 		});
 	}
-	handleNavigate(e) {
-		if (e.command !== "loadMovieNum" && e.command !== "loadMovie" || !e.swf) return;
-		let t = Number(e.level ?? 0);
-		if (!e.reload) {
-			if (this.loadBurst.has(t)) return;
-			this.loadBurst.size === 0 && queueMicrotask(() => this.loadBurst.clear()), this.loadBurst.add(t);
+	handleNavigate(e, t = 0) {
+		if (e.command === "unloadMovieNum" || e.command === "unloadMovie") {
+			let n = Number(e.level ?? this.inferLoadLevel(t) ?? 0);
+			n > 0 && this.destroyLevel(n);
+			return;
 		}
-		this.loadLevel(t, e.swf, !!e.reload);
+		if (e.command !== "loadMovieNum" && e.command !== "loadMovie" || !e.swf) return;
+		let n = Number(e.level ?? this.inferLoadLevel(t) ?? 0), r = this.levels.get(n);
+		if (n > 0 && r && (e.reload || r.swf.toLowerCase() !== e.swf.toLowerCase()) && this.sound.stopOwner(n), !e.reload) {
+			if (this.loadBurst.has(n)) return;
+			this.loadBurst.size === 0 && queueMicrotask(() => this.loadBurst.clear()), this.loadBurst.add(n);
+		}
+		this.loadLevel(n, e.swf, !!e.reload);
+	}
+	inferLoadLevel(e) {
+		if (e <= 0) return;
+		let t = [...this.levels.keys()].filter((t) => t > 0 && t < e);
+		return t.length ? Math.max(...t) : void 0;
 	}
 	async loadLevel(e, t, n = !1) {
 		if (e <= 0) return;
 		let r = this.levels.get(e);
 		if (!n && r && r.swf.toLowerCase() === t.toLowerCase() || t.toLowerCase() === this.mainSwf.toLowerCase()) return;
-		let i = await x(t);
+		let i = await D(t);
 		!i || this.container.hidden || this.createLevel(e, t, i);
+	}
+	destroyLevel(e) {
+		let t = this.levels.get(e);
+		t && (this.sound.stopOwner(e), t.player.destroy(), t.layer.remove(), this.levels.delete(e));
 	}
 	emitFrame() {
 		let e = this.main;
 		e && this.options.onFrame?.(e.currentFrame, e.isPlaying, e.currentLabel());
 	}
 };
-function je(e) {
+function At(e) {
 	let t = {};
 	for (let n of e.split("&")) {
 		let e = n.indexOf("=");
@@ -1733,34 +2638,34 @@ function je(e) {
 }
 //#endregion
 //#region src/index.ts
-async function Me(e, t = {}) {
+async function jt(e, t = {}) {
 	let { assetsBaseUrl: n = "", assetSource: r = "files", archiveUrl: i, scene: a = "A-tour.swf", autoplay: o = !0, debug: s = !1, onFrame: c } = t;
-	d(n), m(r), r === "archive" && l(i ?? `${n.replace(/\/+$/, "")}/xp-tour.pack`);
-	let u = await x(a);
-	if (!u) throw Error(`mmtour: failed to load tour scene "${a}" from "${n || "/"}"`);
-	let f = new $(e, {
+	re(n), oe(r), r === "archive" && ne(i ?? `${n.replace(/\/+$/, "")}/xp-tour.pack`), be();
+	let l = await D(a);
+	if (!l) throw Error(`mmtour: failed to load tour scene "${a}" from "${n || "/"}"`);
+	let u = new kt(e, {
 		debug: s,
 		onFrame: c
 	});
-	return f.activate(u, a), o && f.play(), {
-		play: () => f.play(),
-		pause: () => f.pause(),
-		toggle: () => f.toggle(),
-		restart: () => f.restart(),
-		seek: (e) => f.seekRootFrame(e),
+	return u.activate(l, a), o && u.play(), {
+		play: () => u.play(),
+		pause: () => u.pause(),
+		toggle: () => u.toggle(),
+		restart: () => u.restart(),
+		seek: (e) => u.seekRootFrame(e),
 		get frameCount() {
-			return f.frameCount;
+			return u.frameCount;
 		},
 		get currentFrame() {
-			return f.currentFrame;
+			return u.currentFrame;
 		},
 		get isPlaying() {
-			return f.isPlaying;
+			return u.isPlaying;
 		},
-		destroy: () => f.deactivate()
+		destroy: () => u.deactivate()
 	};
 }
 //#endregion
-export { $ as PlayerController, Me as createTourPlayer, p as getAssetSource, f as getAssetsBaseUrl, x as loadTimeline, n as sceneNameFromSwf, t as scenes, l as setArchiveUrl, m as setAssetSource, d as setAssetsBaseUrl };
+export { kt as PlayerController, jt as createTourPlayer, ae as getAssetSource, ie as getAssetsBaseUrl, D as loadTimeline, n as sceneNameFromSwf, t as scenes, ne as setArchiveUrl, oe as setAssetSource, re as setAssetsBaseUrl };
 
 //# sourceMappingURL=index.js.map
