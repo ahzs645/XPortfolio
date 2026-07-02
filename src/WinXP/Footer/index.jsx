@@ -1203,6 +1203,22 @@ const Container = styled.div`
     overflow: hidden;
   }
 
+  ${({ $theme }) => {
+    // XP.css's tray chevron is a Luna-blue gradient circle; on raster-skinned
+    // trays restyle it as a quiet translucent button matching the well art.
+    if ($theme.tray?.type !== 'frames') return '';
+    const dark = $theme.tray.textColor === '#1a1a1a';
+    return `
+    .notification-tray [aria-label='notif-expand'] {
+      background: ${dark ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.22)'} !important;
+      border: 1px solid ${dark ? 'rgba(0, 0, 0, 0.35)' : 'rgba(255, 255, 255, 0.45)'} !important;
+    }
+    .notification-tray [aria-label='notif-expand']:after {
+      filter: ${dark ? 'invert(0.8)' : 'none'};
+    }
+    `;
+  }}
+
   .notification-tray [aria-label='notif-expand'] input {
     position: absolute;
     width: 1px;

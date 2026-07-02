@@ -225,6 +225,29 @@ function regionLuminance(canvas, sx, sy, sw, sh) {
 const textColorFor = (lum, fallback = '#fff') =>
   lum == null ? fallback : (lum > 150 ? '#1a1a1a' : '#fff');
 
+/** Average opaque colour of a canvas region, as an rgb() string (or null). */
+function regionAverageColor(canvas, sx, sy, sw, sh) {
+  try {
+    const ctx = canvas.getContext('2d');
+    const { data } = ctx.getImageData(sx, sy, Math.max(1, sw), Math.max(1, sh));
+    let r = 0;
+    let g = 0;
+    let b = 0;
+    let n = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] < 32) continue;
+      r += data[i];
+      g += data[i + 1];
+      b += data[i + 2];
+      n++;
+    }
+    if (n < (data.length / 4) * 0.05) return null;
+    return `rgb(${Math.round(r / n)}, ${Math.round(g / n)}, ${Math.round(b / n)})`;
+  } catch {
+    return null;
+  }
+}
+
 /* ------------------------------------------------------------------ *
  * ZIP helpers + asset resolution
  * ------------------------------------------------------------------ */
@@ -379,8 +402,15 @@ function buildTitleBar(mainConfig, frameConfig, assets, colours, fonts, textCfg)
 
   if (frameAsset) {
     const frameCount = toInt(val(borders, 'FrameCount'), 2);
-    const strip = composeTwoFrameStrip(frameAsset.canvas, frameCount, 'horizontal');
-    const frames = frameDataUrls(frameAsset.canvas, frameCount, 'horizontal');
+    const captionHeight = toInt(val(section(mainConfig, 'Metrics'), 'CaptionHeight'), 28);
+    // Frames are usually stacked vertically (active over inactive), but some
+    // skins pack them side by side; pick the split whose cell height is
+    // closest to the caption height.
+    const vertCell = frameAsset.height / frameCount;
+    const orientation = Math.abs(vertCell - captionHeight) <= Math.abs(frameAsset.height - captionHeight)
+      ? 'vertical' : 'horizontal';
+    const strip = composeTwoFrameStrip(frameAsset.canvas, frameCount, orientation);
+    const frames = frameDataUrls(frameAsset.canvas, frameCount, orientation);
     // TopMiddleStretch=0 means the caption art tiles horizontally.
     const stretch = val(borders, 'TopMiddleStretch') !== '0';
     return {
@@ -393,7 +423,7 @@ function buildTitleBar(mainConfig, frameConfig, assets, colours, fonts, textCfg)
         activeImage: frames[0],
         inactiveImage: frames[1] || frames[0],
         stretch,
-        height: toInt(val(section(mainConfig, 'Metrics'), 'CaptionHeight'), 28),
+        height: captionHeight,
         textColor,
         inactiveTextColor,
         textShadow: shadow,
@@ -659,8 +689,18 @@ function buildTheme({ mainConfig, frameConfig, xpConfig, assets, skinName }) {
       borderColor: iniColor(val(colours, 'WindowFrame', 'ActiveBorder')) || '#646464',
     };
     if (vertAsset) {
-      windowFrame.sideImage = vertAsset.dataUrl;
+      // VertFrame holds [active | inactive] halves side by side; both window
+      // edges use the active art (the old full-strip path painted the
+      // inactive half on the right border).
+      const sideFrames = frameDataUrls(vertAsset.canvas, 2, 'horizontal');
+      windowFrame.sideImage = sideFrames[0];
+      windowFrame.sideImageInactive = sideFrames[1] || sideFrames[0];
       windowFrame.sideWidth = Math.max(2, Math.round(vertAsset.width / 2));
+      // A border colour sampled from the side art always matches the skin;
+      // scheme colours frequently don't.
+      windowFrame.borderColor = regionAverageColor(
+        vertAsset.canvas, 0, 0, Math.round(vertAsset.width / 2), vertAsset.height,
+      ) || windowFrame.borderColor;
     }
   }
 

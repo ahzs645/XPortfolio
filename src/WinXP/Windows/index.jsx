@@ -443,6 +443,10 @@ const WindowContainer = styled.div`
       return `
         border-color: ${wf?.borderColor || '#646464'} !important;
         background-color: ${wf?.bodyBackground || '#b4b4b4'} !important;
+        /* XP.css paints Luna's blue frame with inset box-shadows and rounded
+           top corners; skin art supplies its own edges. */
+        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.35) !important;
+        border-radius: 0 !important;
 
         .title-bar {
           ${titleBg}
@@ -494,8 +498,13 @@ const WindowContainer = styled.div`
         ${sideImg ? `
           border-left: ${wf.sideWidth || 4}px solid transparent;
           border-right: ${wf.sideWidth || 4}px solid transparent;
-          border-image-source: url(${sideImg});
+          border-image-source: url("${sideImg}");
           border-image-slice: 0 ${wf.sideWidth || 4} fill;
+        ` : ''}
+        ${wf?.sideImageInactive ? `
+          &.inactive {
+            border-image-source: url("${wf.sideImageInactive}");
+          }
         ` : ''}
       `;
     }}
