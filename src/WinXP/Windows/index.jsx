@@ -236,21 +236,28 @@ const Window = memo(function ({
                     $sprite={shellTheme.windowControls.close}
                   />
                 )}
-                {controlSlotMode && shellTheme.windowControls.extras?.map((extra, i) => (
-                  <SpriteButton
-                    key={`extra-${i}`}
-                    as="span"
-                    aria-hidden="true"
-                    $sprite={extra}
-                    style={{
-                      position: 'absolute',
-                      right: Math.round((extra.x - extra.stateWidth) * controlScale),
-                      top: Math.round((extra.y ?? 0) * controlScale),
-                      margin: 0,
-                      pointerEvents: 'none',
-                    }}
-                  />
-                ))}
+                {controlSlotMode && shellTheme.windowControls.extras?.map((extra, i) => {
+                  const inset = shellTheme.titleBar?.slotInset;
+                  const barHeight = shellTheme.titleBar?.height || 28;
+                  const top = inset != null
+                    ? Math.max(0, Math.round(barHeight - Math.max(1, inset - 2) - extra.stateHeight))
+                    : Math.round((extra.y ?? 0) * controlScale);
+                  return (
+                    <SpriteButton
+                      key={`extra-${i}`}
+                      as="span"
+                      aria-hidden="true"
+                      $sprite={extra}
+                      style={{
+                        position: 'absolute',
+                        right: Math.max(0, Math.round((extra.x - extra.stateWidth - (inset || 0)) * controlScale)),
+                        top,
+                        margin: 0,
+                        pointerEvents: 'none',
+                      }}
+                    />
+                  );
+                })}
               </>
             ) : (
               <>
@@ -566,10 +573,17 @@ const WindowContainer = styled.div`
           const anyCoords = [wc.minimize, wc.maximize, wc.restore, wc.close]
             .some((s) => s?.x != null);
           if (!anyCoords) return '';
+          const inset = tb.slotInset || 0;
+          // Borders-path frames (slotInset present) bottom-anchor their
+          // slots to the frame art; classic Personality skins use YCoord
+          // from the caption top (verified against the raster slots).
+          const topFor = (s) => (tb.slotInset != null
+            ? Math.max(0, Math.round((tb.height || 28) - Math.max(1, inset - 2) - (s.stateHeight || 17)))
+            : Math.round((s.y ?? 0) * capScale));
           const posFor = (s) => (s?.x != null ? `
             position: absolute;
-            right: ${Math.round((s.x - (s.stateWidth || 0)) * capScale)}px;
-            top: ${Math.round((s.y ?? 0) * capScale)}px;
+            right: ${Math.max(0, Math.round((s.x - (s.stateWidth || 0) - inset) * capScale))}px;
+            top: ${topFor(s)}px;
             margin: 0 !important;
             pointer-events: auto;
           ` : 'pointer-events: auto;');

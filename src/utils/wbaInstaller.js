@@ -417,7 +417,10 @@ function buildTitleBar(mainConfig, frameConfig, assets, colours, fonts, textCfg)
 
   if (frameAsset) {
     const frameCount = toInt(val(borders, 'FrameCount'), 2);
-    const captionHeight = toInt(val(section(mainConfig, 'Metrics'), 'CaptionHeight'), 28);
+    const captionHeight = toInt(
+      val(section(frameConfig, 'Metrics'), 'CaptionHeight'),
+      toInt(val(section(mainConfig, 'Metrics'), 'CaptionHeight'), 28),
+    );
     // Frames are usually stacked vertically (active over inactive), but some
     // skins pack them side by side; pick the split whose cell height is
     // closest to the caption height.
@@ -443,7 +446,15 @@ function buildTitleBar(mainConfig, frameConfig, assets, colours, fonts, textCfg)
         inactiveImage: frames[1] || frames[0],
         stretch,
         ...caps,
-        height: captionHeight,
+        // Render at the frame's native height so caps, slots and button
+        // sprites stay 1:1 with the raster (CaptionHeight is only used to
+        // pick the frame orientation above).
+        height: Math.max(18, strip.height),
+        // Button XCoord/YCoord are relative to the caption's content box,
+        // which sits shifted down-left inside the frame by the difference
+        // between the frame art and the declared caption height (xbox: the
+        // measured tab slots are exactly 33-29 = 4px off the raw coords).
+        slotInset: Math.max(0, strip.height - captionHeight),
         textColor,
         inactiveTextColor,
         textShadow: shadow,
