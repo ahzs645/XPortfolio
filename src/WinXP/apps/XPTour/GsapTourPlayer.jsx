@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import styled from 'styled-components';
 import { withBaseUrl } from '../../../utils/baseUrl';
+import useLoadingCursor from '../../hooks/useLoadingCursor';
 import { createTourPlayer } from '../../../lib/xptour-player/index.js';
 import '../../../lib/xptour-player/index.css';
 
@@ -17,6 +18,8 @@ function GsapTourPlayer({ scene = 'A-tour.swf', autoplay = true, onExit, onButto
   const [status, setStatus] = useState('loading'); // loading | ready | error
   const [errorMsg, setErrorMsg] = useState('');
   const [scale, setScale] = useState(1);
+
+  useLoadingCursor(status === 'loading');
 
   // Keep the latest callbacks in refs so the boot effect (which re-creates the player)
   // doesn't depend on them — the host can change its response logic without a reboot.
@@ -100,9 +103,8 @@ function GsapTourPlayer({ scene = 'A-tour.swf', autoplay = true, onExit, onButto
 
   // Render over the entire interface (above the desktop, windows, and taskbar).
   return createPortal(
-    <Overlay ref={overlayRef}>
-      <Stage ref={stageRef} style={{ transform: `scale(${scale})` }} />
-      {status === 'loading' && <Message>Loading the Windows XP Tour…</Message>}
+    <Overlay ref={overlayRef} $isActive={status !== 'loading'}>
+      <Stage ref={stageRef} $isVisible={status === 'ready'} style={{ transform: `scale(${scale})` }} />
       {status === 'error' && (
         <Message>
           Couldn’t load the tour.
@@ -118,11 +120,12 @@ const Overlay = styled.div`
   position: fixed;
   inset: 0;
   z-index: 2147483600;
-  background: #000;
+  background: ${({ $isActive }) => ($isActive ? '#000' : 'transparent')};
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: ${({ $isActive }) => ($isActive ? 'auto' : 'none')};
 `;
 
 const Stage = styled.div`
@@ -131,6 +134,7 @@ const Stage = styled.div`
   height: ${STAGE_H}px;
   flex-shrink: 0;
   transform-origin: center center;
+  visibility: ${({ $isVisible }) => ($isVisible ? 'visible' : 'hidden')};
   /* The SWF stage clips to 640x480; the player draws art that extends past those
      bounds (background fills, perspective lines), so clip it here like Flash does —
      otherwise the overflow is visible in the letterbox once scaled up. */

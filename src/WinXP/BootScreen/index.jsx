@@ -38,11 +38,17 @@ function BootScreen({ bootState, onComplete }) {
   useEffect(() => {
     if (!dynamicSvgUrl || !isImagePreloadEnabled()) return;
 
+    const loginImagePaths = [
+      getUserLoginIcon(),
+      ...users.map((user) => user.picture),
+    ];
+
     return addImagePreloadLinks([
       dynamicSvgUrl,
       withBaseUrl('/boot-wordmark.webp'),
+      ...loginImagePaths,
     ]);
-  }, [dynamicSvgUrl, isImagePreloadEnabled]);
+  }, [dynamicSvgUrl, getUserLoginIcon, isImagePreloadEnabled, users]);
 
   // Auto-select user if only one exists
   /* eslint-disable react-hooks/set-state-in-effect -- one-time auto-select */

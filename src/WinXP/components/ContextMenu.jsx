@@ -256,8 +256,15 @@ function MenuLevel({
         const itemHasSubmenu = !item.disabled && submenu.length > 0;
         const isActive = pathStartsWith(activePath, itemPath);
         const isCheckable = item.checked !== undefined;
+        const hasIcon = typeof item.icon === 'string';
+        const hasOverlayIcon = hasIcon && item.iconAsOverlay;
         const key = item.key || `${item.label || 'item'}-${itemPathKey}`;
-        const className = [item.bold && 'bold', hasDivider && 'has-divider']
+        const className = [
+          item.bold && 'bold',
+          hasDivider && 'has-divider',
+          hasIcon && 'has-icon',
+          hasOverlayIcon && 'has-overlay-icon',
+        ]
           .filter(Boolean)
           .join(' ');
         const checkId = `${menuId}-check-${itemPathKey}`;
@@ -295,8 +302,13 @@ function MenuLevel({
               </>
             ) : (
               <>
-                {typeof item.icon === 'string' ? (
-                  <img src={item.icon} alt="" width="16" height="16" />
+                {hasIcon ? (
+                  <img
+                    src={item.icon}
+                    alt=""
+                    width={hasOverlayIcon ? 11 : 16}
+                    height={hasOverlayIcon ? 11 : 16}
+                  />
                 ) : null}
                 {item.label}
               </>
@@ -435,6 +447,21 @@ const MenuRoot = styled.div`
   font-family: Arial, "MS Sans Serif", sans-serif;
   font-size: 12px;
   color: #222;
+
+  ul[role="menu"] > [role="menuitem"].has-icon {
+    padding-left: 31px;
+  }
+
+  ul[role="menu"] > [role="menuitem"].has-icon > img {
+    left: 7px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  ul[role="menu"] > [role="menuitem"].has-overlay-icon > img {
+    left: 11px;
+    top: calc(50% + 3px);
+  }
 `;
 
 export default ContextMenu;

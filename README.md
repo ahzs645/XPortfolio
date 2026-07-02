@@ -36,6 +36,7 @@ Themes are selected via URL params:
 - Prefer `styled-components` for new ordinary app UI.
 - First-party CSS imports are allowed for complex or ported app surfaces where preserving existing styles is lower risk.
 - Vendor CSS imports are allowed for third-party UI packages such as `react-pdf` and `@fortune-sheet/react`.
+- See `docs/DEVELOPMENT_GUIDELINES.md` for UI behavior conventions, including loading-state do's and don'ts.
 
 ## Note on reuse
 

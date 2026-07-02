@@ -773,10 +773,9 @@ export function useBackgroundContextMenu({
       });
     }
 
-    newSubmenu.push({ type: 'divider' });
-
     // Upload (file explorer only)
     if (onUpload) {
+      newSubmenu.push({ type: 'divider' });
       newSubmenu.push({
         label: 'Upload',
         onClick: onUpload,
