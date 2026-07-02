@@ -1096,9 +1096,9 @@ const Container = styled.div`
   }
 
   .taskbar {
-    background: ${({ $theme }) => resolveThemeBg($theme.taskbar.background)};
-    ${({ $theme }) => $theme.taskbar.backgroundRepeat ? `background-repeat: ${$theme.taskbar.backgroundRepeat};` : ''}
-    ${({ $theme }) => $theme.taskbar.backgroundSize ? `background-size: ${$theme.taskbar.backgroundSize};` : ''}
+    background: ${({ $theme }) => resolveThemeBg($theme.taskbar?.background)};
+    ${({ $theme }) => $theme.taskbar?.backgroundRepeat ? `background-repeat: ${$theme.taskbar?.backgroundRepeat};` : ''}
+    ${({ $theme }) => $theme.taskbar?.backgroundSize ? `background-size: ${$theme.taskbar?.backgroundSize};` : ''}
   }
 
   .footer__quick-launch {
@@ -1114,23 +1114,23 @@ const Container = styled.div`
   }
 
   .notification-tray {
-    background: ${({ $theme }) => resolveThemeBg($theme.tray.background)};
-    ${({ $theme }) => $theme.tray.backgroundSize ? `background-size: ${$theme.tray.backgroundSize};` : ''}
-    ${({ $theme }) => $theme.tray.backgroundRepeat ? `background-repeat: ${$theme.tray.backgroundRepeat};` : ''}
+    background: ${({ $theme }) => resolveThemeBg($theme.tray?.background)};
+    ${({ $theme }) => $theme.tray?.backgroundSize ? `background-size: ${$theme.tray?.backgroundSize};` : ''}
+    ${({ $theme }) => $theme.tray?.backgroundRepeat ? `background-repeat: ${$theme.tray?.backgroundRepeat};` : ''}
   }
 
   .notification-tray .external {
-    background: ${({ $theme }) => resolveThemeBg($theme.taskbar.background)};
-    ${({ $theme }) => $theme.taskbar.backgroundRepeat ? `background-repeat: ${$theme.taskbar.backgroundRepeat};` : ''}
-    ${({ $theme }) => $theme.taskbar.backgroundSize ? `background-size: ${$theme.taskbar.backgroundSize};` : ''}
+    background: ${({ $theme }) => resolveThemeBg($theme.taskbar?.background)};
+    ${({ $theme }) => $theme.taskbar?.backgroundRepeat ? `background-repeat: ${$theme.taskbar?.backgroundRepeat};` : ''}
+    ${({ $theme }) => $theme.taskbar?.backgroundSize ? `background-size: ${$theme.taskbar?.backgroundSize};` : ''}
   }
 
   .notification-tray .internal {
     display: flex;
     align-items: center;
-    border-left: ${({ $theme }) => $theme.tray.borderLeft || 'none'};
-    box-shadow: ${({ $theme }) => $theme.tray.boxShadow || 'none'};
-    padding: ${({ $theme }) => $theme.tray.padding || '0 10px'};
+    border-left: ${({ $theme }) => $theme.tray?.borderLeft || 'none'};
+    box-shadow: ${({ $theme }) => $theme.tray?.boxShadow || 'none'};
+    padding: ${({ $theme }) => $theme.tray?.padding || '0 10px'};
     gap: 4px;
     overflow: hidden;
   }
@@ -1163,7 +1163,7 @@ const Container = styled.div`
     flex: 0 1 150px;
     min-width: 110px;
     max-width: 150px;
-    color: ${({ $theme }) => $theme.taskButton.textColor || '#fff'};
+    color: ${({ $theme }) => $theme.taskButton?.textColor || '#fff'};
     border-radius: 2px;
     margin-top: 2px;
     margin-left: 3px;
@@ -1192,13 +1192,13 @@ const Container = styled.div`
 
   /* Inactive/unfocused window - raised button appearance */
   .footer__window.cover {
-    background: ${({ $theme }) => resolveThemeBg($theme.taskButton.cover.background)};
-    box-shadow: ${({ $theme }) => $theme.taskButton.cover.boxShadow};
+    background: ${({ $theme }) => resolveThemeBg($theme.taskButton?.cover?.background)};
+    box-shadow: ${({ $theme }) => $theme.taskButton?.cover?.boxShadow};
     border-color: transparent;
   }
 
   .footer__window.cover:before {
-    ${({ $theme }) => $theme.taskButton.showTopHighlight === false ? 'display: none;' : `
+    ${({ $theme }) => $theme.taskButton?.showTopHighlight === false ? 'display: none;' : `
     display: block;
     content: '';
     position: absolute;
@@ -1211,19 +1211,19 @@ const Container = styled.div`
   }
 
   .footer__window.cover:hover {
-    background: ${({ $theme }) => resolveThemeBg($theme.taskButton.coverHover.background)};
+    background: ${({ $theme }) => resolveThemeBg($theme.taskButton?.coverHover?.background)};
   }
 
   .footer__window.cover:hover:active {
-    background: ${({ $theme }) => resolveThemeBg($theme.taskButton.coverActive?.background || $theme.taskButton.coverHover.background)};
-    ${({ $theme }) => $theme.taskButton.coverActive?.boxShadow ? `box-shadow: ${$theme.taskButton.coverActive.boxShadow};` : ''}
+    background: ${({ $theme }) => resolveThemeBg($theme.taskButton?.coverActive?.background || $theme.taskButton?.coverHover?.background)};
+    ${({ $theme }) => $theme.taskButton?.coverActive?.boxShadow ? `box-shadow: ${$theme.taskButton?.coverActive?.boxShadow};` : ''}
   }
 
   /* Active/focused window - pressed/sunken appearance */
   .footer__window.focus {
-    background: ${({ $theme }) => resolveThemeBg($theme.taskButton.focus.background)};
-    box-shadow: ${({ $theme }) => $theme.taskButton.focus.boxShadow};
-    ${({ $theme }) => $theme.taskButton.focusTextColor ? `color: ${$theme.taskButton.focusTextColor};` : ''}
+    background: ${({ $theme }) => resolveThemeBg($theme.taskButton?.focus?.background)};
+    box-shadow: ${({ $theme }) => $theme.taskButton?.focus?.boxShadow};
+    ${({ $theme }) => $theme.taskButton?.focusTextColor ? `color: ${$theme.taskButton?.focusTextColor};` : ''}
     border-color: transparent;
   }
 
@@ -1232,16 +1232,16 @@ const Container = styled.div`
   }
 
   .footer__window.focus:hover {
-    background: ${({ $theme }) => resolveThemeBg($theme.taskButton.focusHover.background)};
+    background: ${({ $theme }) => resolveThemeBg($theme.taskButton?.focusHover?.background)};
   }
 
   .footer__window.focus:hover:active {
-    background: ${({ $theme }) => resolveThemeBg($theme.taskButton.focusActive?.background || $theme.taskButton.focusHover.background)};
+    background: ${({ $theme }) => resolveThemeBg($theme.taskButton?.focusActive?.background || $theme.taskButton?.focusHover?.background)};
   }
 
   .footer__time {
     margin: 0;
-    color: ${({ $theme }) => $theme.tray.textColor || '#fff'};
+    color: ${({ $theme }) => $theme.tray?.textColor || '#fff'};
     font-size: 11px;
     font-weight: lighter;
     text-shadow: none;

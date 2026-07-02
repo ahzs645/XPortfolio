@@ -12,6 +12,7 @@
  * pieces degrade gracefully, and only referenced BMPs are decoded.
  */
 import JSZip from 'jszip';
+import { LUNA_THEME } from '../WinXP/styles/themes/luna';
 
 /* ------------------------------------------------------------------ *
  * INI parsing + case-insensitive access
@@ -324,7 +325,10 @@ function buildTitleBar(mainConfig, frameConfig, assets, colours, fonts, textCfg)
         frameWidth: strip.width,
         frameHeight: strip.height,
         frameCount: 2,
-        height: toInt(val(personality, 'TopTopHeight'), 28),
+        // TopTopHeight is the fixed top *slice* for 3-segment stretching (can
+        // be as small as 3px); the caption's natural height is one frame of
+        // the Top bitmap.
+        height: Math.max(18, strip.height),
         textColor: iniColor(val(colours, 'ActiveTitle'))
           || (aR != null ? `rgb(${aR}, ${val(personality, 'ActiveTextG') || 255}, ${val(personality, 'ActiveTextB') || 255})` : 'rgb(255, 255, 255)'),
         inactiveTextColor: iniColor(val(colours, 'InactiveTitle'))
@@ -385,7 +389,14 @@ function buildWindowControls(mainConfig, assets) {
 
 /** Taskbar / tray / start button / task buttons from the .xp config (if present). */
 function buildTaskbar(xpConfig, mainConfig, assets, colours) {
-  const out = { taskbar: {}, tray: {}, taskButton: {}, startButton: { type: 'default' } };
+  // Skins without .xp taskbar sections degrade to the Luna taskbar; consumers
+  // (Footer) dereference nested state objects like taskButton.cover.
+  const out = {
+    taskbar: LUNA_THEME.taskbar,
+    tray: LUNA_THEME.tray,
+    taskButton: LUNA_THEME.taskButton,
+    startButton: { type: 'default' },
+  };
 
   const taskbarImg = resolveAsset(assets, val(section(xpConfig, 'Taskbar.Horz'), 'Image'));
   if (taskbarImg) {
@@ -448,7 +459,7 @@ function buildTaskbar(xpConfig, mainConfig, assets, colours) {
 /** Start menu from StartPanel.* sections. Needs top/left/right/bottom to render. */
 function buildStartMenu(xpConfig, assets) {
   const img = (sec, ...keys) => {
-    const a = resolveAsset(assets, val(section(xpConfig, sec), ...keys));
+    const a = resolveAsset(assets, val(section(xpConfig, sec), 'Image', ...keys));
     return a ? a.dataUrl : null;
   };
 
