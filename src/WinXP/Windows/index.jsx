@@ -474,8 +474,16 @@ const WindowContainer = styled.div`
           : `padding-left: ${Math.max(0, (tb.textShiftX || 0) - 24)}px;`;
       const capHeight = tb.height || 28;
       const fontPx = parseInt(tb.fontSize, 10) || 13;
-      const maxShiftY = Math.max(0, Math.floor((capHeight - fontPx) / 2) - 1);
-      const shiftY = Math.max(-maxShiftY, Math.min(maxShiftY, tb.textShiftY || 0));
+      const centerMax = Math.max(0, Math.floor((capHeight - fontPx) / 2) - 1);
+      let shiftY = tb.textShiftY || 0;
+      if (shiftY > centerMax) {
+        // Shifts too large to be centre-relative are measured from the
+        // caption top (SantaXP puts its title 40px down, in the red band).
+        shiftY = Math.min(shiftY, capHeight - fontPx - 1) - Math.floor((capHeight - fontPx) / 2);
+      } else if (shiftY < -centerMax) {
+        // Text can't rise above the bar; keep it centred (xbox says -10).
+        shiftY = 0;
+      }
 
       return `
         border-color: ${wf?.borderColor || '#646464'} !important;
@@ -518,6 +526,40 @@ const WindowContainer = styled.div`
           align-items: center;
           gap: 0;
         }
+
+        ${(() => {
+          // Skins bake button slots into the caption art and give each
+          // button an XCoord (from the window's right edge to the button's
+          // left edge) and YCoord. Overlay the controls on the full bar so
+          // sprites land exactly on their slots.
+          const wc = $shellTheme?.windowControls;
+          if (wc?.type !== 'sprite') return '';
+          const anyCoords = [wc.minimize, wc.maximize, wc.restore, wc.close]
+            .some((s) => s?.x != null);
+          if (!anyCoords) return '';
+          const posFor = (s) => (s?.x != null ? `
+            position: absolute;
+            right: ${Math.round((s.x - (s.stateWidth || 0)) * capScale)}px;
+            top: ${Math.round((s.y ?? 0) * capScale)}px;
+            margin: 0 !important;
+            pointer-events: auto;
+          ` : 'pointer-events: auto;');
+          return `
+          .title-bar {
+            position: relative;
+          }
+          .title-bar-controls {
+            position: absolute !important;
+            inset: 0 !important;
+            z-index: 1;
+            pointer-events: none;
+          }
+          .title-bar-controls button[aria-label="Minimize"] { ${posFor(wc.minimize)} }
+          .title-bar-controls button[aria-label="Maximize"] { ${posFor(wc.maximize)} }
+          .title-bar-controls button[aria-label="Restore"] { ${posFor(wc.restore)} }
+          .title-bar-controls button[aria-label="Close"] { ${posFor(wc.close)} }
+          `;
+        })()}
 
         .title-bar-controls button:not([class]) {
           /* Hide default xp.css button styling for image themes */

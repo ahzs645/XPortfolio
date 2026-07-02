@@ -519,10 +519,14 @@ function buildWindowControls(mainConfig, assets) {
 
   // Each button image is a horizontal strip of square-ish state cells
   // (normal / mouseover / pressed, often followed by inactive variants).
-  const sprite = (asset) => {
+  // XCoord/YCoord place the button on the caption art (Align=1: XCoord is
+  // the distance from the window's right edge to the button's left edge) so
+  // sprites land exactly on the slots drawn into the frame.
+  const sprite = (asset, btn) => {
     if (!asset) return { spriteSheet: '', stateWidth: 19, stateHeight: 17 };
     const count = detectFrameCount(asset.width, asset.height);
     const frames = frameDataUrls(asset.canvas, count, 'horizontal');
+    const rightAligned = val(btn, 'Align') === '1';
     return {
       normal: frames[0],
       hover: frames[1] || frames[0],
@@ -530,15 +534,17 @@ function buildWindowControls(mainConfig, assets) {
       spriteSheet: asset.dataUrl,
       stateWidth: Math.round(asset.width / count),
       stateHeight: asset.height,
+      x: rightAligned ? toInt(val(btn, 'XCoord'), null) : null,
+      y: toInt(val(btn, 'YCoord'), null),
     };
   };
 
   return {
     type: 'sprite',
-    close: sprite(closeAsset),
-    minimize: sprite(minAsset),
-    maximize: sprite(maxAsset),
-    restore: sprite(restoreAsset || maxAsset),
+    close: sprite(closeAsset, closeBtn),
+    minimize: sprite(minAsset, minBtn),
+    maximize: sprite(maxAsset, maxBtn),
+    restore: sprite(restoreAsset || maxAsset, restoreBtn || maxBtn),
   };
 }
 
