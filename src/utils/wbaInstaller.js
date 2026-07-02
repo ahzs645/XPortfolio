@@ -12,6 +12,7 @@
  * pieces degrade gracefully, and only referenced BMPs are decoded.
  */
 import JSZip from 'jszip';
+import { LUNA_THEME } from '../WinXP/styles/themes/luna';
 
 /* ------------------------------------------------------------------ *
  * INI parsing + case-insensitive access
@@ -158,6 +159,95 @@ function composeTwoFrameStrip(canvas, frameCount, orientation) {
   return { dataUrl: canvasToDataUrl(out), width: cellW, height: cellH };
 }
 
+/**
+ * Crop each frame out of a frame strip into its own data URL.
+ * WindowBlinds packs button/taskbar states as equal cells along one axis.
+ */
+function frameDataUrls(canvas, count, orientation) {
+  const n = Math.max(1, count);
+  const cellW = orientation === 'horizontal' ? Math.round(canvas.width / n) : canvas.width;
+  const cellH = orientation === 'vertical' ? Math.round(canvas.height / n) : canvas.height;
+  const urls = [];
+  for (let i = 0; i < n; i++) {
+    const out = document.createElement('canvas');
+    out.width = cellW;
+    out.height = cellH;
+    out.getContext('2d').drawImage(
+      canvas,
+      orientation === 'horizontal' ? i * cellW : 0,
+      orientation === 'vertical' ? i * cellH : 0,
+      cellW, cellH, 0, 0, cellW, cellH,
+    );
+    urls.push(canvasToDataUrl(out));
+  }
+  return urls;
+}
+
+/**
+ * Guess how many state frames a control-button strip holds. Skins ship 2-6
+ * square-ish cells side by side; pick the divisor whose cell is closest to
+ * square.
+ */
+function detectFrameCount(width, height, candidates = [6, 5, 4, 3, 2]) {
+  let best = null;
+  for (const c of candidates) {
+    if (width % c !== 0) continue;
+    const score = Math.abs(width / c - height);
+    if (!best || score < best.score) best = { count: c, score };
+  }
+  return best ? best.count : 3;
+}
+
+/**
+ * Average luminance (0-255) of an opaque region of a canvas, used to pick a
+ * readable text colour over raster art. Returns null if the region is
+ * (almost) fully transparent.
+ */
+function regionLuminance(canvas, sx, sy, sw, sh) {
+  try {
+    const ctx = canvas.getContext('2d');
+    const { data } = ctx.getImageData(sx, sy, Math.max(1, sw), Math.max(1, sh));
+    let sum = 0;
+    let n = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] < 32) continue;
+      sum += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+      n++;
+    }
+    if (n < (data.length / 4) * 0.05) return null;
+    return sum / n;
+  } catch {
+    return null;
+  }
+}
+
+/** Black-or-white text colour for a given backdrop luminance. */
+const textColorFor = (lum, fallback = '#fff') =>
+  lum == null ? fallback : (lum > 150 ? '#1a1a1a' : '#fff');
+
+/** Average opaque colour of a canvas region, as an rgb() string (or null). */
+function regionAverageColor(canvas, sx, sy, sw, sh) {
+  try {
+    const ctx = canvas.getContext('2d');
+    const { data } = ctx.getImageData(sx, sy, Math.max(1, sw), Math.max(1, sh));
+    let r = 0;
+    let g = 0;
+    let b = 0;
+    let n = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] < 32) continue;
+      r += data[i];
+      g += data[i + 1];
+      b += data[i + 2];
+      n++;
+    }
+    if (n < (data.length / 4) * 0.05) return null;
+    return `rgb(${Math.round(r / n)}, ${Math.round(g / n)}, ${Math.round(b / n)})`;
+  } catch {
+    return null;
+  }
+}
+
 /* ------------------------------------------------------------------ *
  * ZIP helpers + asset resolution
  * ------------------------------------------------------------------ */
@@ -273,6 +363,21 @@ function buildColors(colours) {
 }
 
 /** Title bar: prefer UIS1 framed strip, else classic Personality, else CSS. */
+/**
+ * Fixed caption end caps: TopTopHeight is the start (left) cap and
+ * TopBotHeight the end (right) cap, measured along the bar. Art between them
+ * is the repeatable middle (xbox: 88px logo cap | plain middle | 124px
+ * button-decor cap). Caps that leave no middle are ignored.
+ */
+function titleBarCaps(sec, frameWidth) {
+  const capLeft = toInt(val(sec, 'TopTopHeight'), 0);
+  const capRight = toInt(val(sec, 'TopBotHeight'), 0);
+  if (capLeft < 0 || capRight < 0 || capLeft + capRight >= frameWidth - 2) {
+    return { capLeft: 0, capRight: 0 };
+  }
+  return { capLeft, capRight };
+}
+
 function buildTitleBar(mainConfig, frameConfig, assets, colours, fonts, textCfg) {
   const personality = section(mainConfig, 'Personality');
 
@@ -288,9 +393,48 @@ function buildTitleBar(mainConfig, frameConfig, assets, colours, fonts, textCfg)
     ? `${val(textCfg, 'ShadowOffset') || 1}px ${val(textCfg, 'ShadowOffset') || 1}px 0 rgb(${val(textCfg, 'ShadowTextR') || 0}, ${val(textCfg, 'ShadowTextG') || 0}, ${val(textCfg, 'ShadowTextB') || 0})`
     : 'none';
 
+  // Caption text colour: skin ActiveText RGB, else the Windows scheme's
+  // TitleText (NOT ActiveTitle — that's the caption *background* colour).
+  const rgbTriple = (sec, r, g, b) => {
+    const rv = val(sec, r);
+    if (rv == null) return null;
+    return `rgb(${rv}, ${val(sec, g) || 0}, ${val(sec, b) || 0})`;
+  };
+  const textColor = rgbTriple(personality, 'ActiveTextR', 'ActiveTextG', 'ActiveTextB')
+    || iniColor(val(colours, 'TitleText'))
+    || 'rgb(255, 255, 255)';
+  const inactiveTextColor = rgbTriple(personality, 'InactiveTextR', 'InactiveTextG', 'InactiveTextB')
+    || iniColor(val(colours, 'InactiveTitleText'))
+    || 'rgb(180, 180, 180)';
+
+  // Caption text layout (0=left, 1=center, 2=right), pixel shifts from skin.
+  const alignVal = val(personality, 'TextAlignment');
+  const textLayout = {
+    textAlign: alignVal === '1' ? 'center' : alignVal === '2' ? 'right' : 'left',
+    textShiftX: toInt(val(personality, 'TextShift'), 0),
+    textShiftY: toInt(val(personality, 'TextShiftVert'), 0),
+  };
+
   if (frameAsset) {
     const frameCount = toInt(val(borders, 'FrameCount'), 2);
-    const strip = composeTwoFrameStrip(frameAsset.canvas, frameCount, 'horizontal');
+    const captionHeight = toInt(
+      val(section(frameConfig, 'Metrics'), 'CaptionHeight'),
+      toInt(val(section(mainConfig, 'Metrics'), 'CaptionHeight'), 28),
+    );
+    // Frames are usually stacked vertically (active over inactive), but some
+    // skins pack them side by side; pick the split whose cell height is
+    // closest to the caption height.
+    const vertCell = frameAsset.height / frameCount;
+    const orientation = Math.abs(vertCell - captionHeight) <= Math.abs(frameAsset.height - captionHeight)
+      ? 'vertical' : 'horizontal';
+    const strip = composeTwoFrameStrip(frameAsset.canvas, frameCount, orientation);
+    const frames = frameDataUrls(frameAsset.canvas, frameCount, orientation);
+    // TopMiddleStretch=0 means the caption art tiles horizontally.
+    const stretch = val(borders, 'TopMiddleStretch') !== '0';
+    // TopTopHeight/TopBotHeight are the fixed start/end caps measured along
+    // the bar (e.g. a logo on the left, button decor on the right); only the
+    // middle between them repeats.
+    const caps = titleBarCaps(borders, strip.width);
     return {
       titleBar: {
         type: 'image',
@@ -298,13 +442,26 @@ function buildTitleBar(mainConfig, frameConfig, assets, colours, fonts, textCfg)
         frameWidth: strip.width,
         frameHeight: strip.height,
         frameCount: 2,
-        height: toInt(val(section(mainConfig, 'Metrics'), 'CaptionHeight'), 28),
-        textColor: iniColor(val(colours, 'ActiveTitle')) || 'rgb(220, 220, 220)',
-        inactiveTextColor: iniColor(val(colours, 'InactiveTitle')) || 'rgb(180, 180, 180)',
+        activeImage: frames[0],
+        inactiveImage: frames[1] || frames[0],
+        stretch,
+        ...caps,
+        // Render at the frame's native height so caps, slots and button
+        // sprites stay 1:1 with the raster (CaptionHeight is only used to
+        // pick the frame orientation above).
+        height: Math.max(18, strip.height),
+        // Button XCoord/YCoord are relative to the caption's content box,
+        // which sits shifted down-left inside the frame by the difference
+        // between the frame art and the declared caption height (xbox: the
+        // measured tab slots are exactly 33-29 = 4px off the raw coords).
+        slotInset: Math.max(0, strip.height - captionHeight),
+        textColor,
+        inactiveTextColor,
         textShadow: shadow,
         fontFamily,
         fontSize,
         fontWeight: 'normal',
+        ...textLayout,
       },
       vertFrame: val(borders, 'VertFrame'),
     };
@@ -315,8 +472,11 @@ function buildTitleBar(mainConfig, frameConfig, assets, colours, fonts, textCfg)
   if (topAsset) {
     const frameCount = toInt(val(personality, 'TopFrame'), 2);
     const strip = composeTwoFrameStrip(topAsset.canvas, frameCount, 'vertical');
-    const aR = val(personality, 'ActiveTextR');
-    const iR = val(personality, 'InactiveTextR');
+    const frames = frameDataUrls(topAsset.canvas, frameCount, 'vertical');
+    // Raster caption art tiles horizontally unless the skin opts out
+    // (TopStretch=1 means "stretch, don't tile").
+    const stretch = val(personality, 'TopStretch') === '1';
+    const caps = titleBarCaps(personality, strip.width);
     return {
       titleBar: {
         type: 'image',
@@ -324,15 +484,19 @@ function buildTitleBar(mainConfig, frameConfig, assets, colours, fonts, textCfg)
         frameWidth: strip.width,
         frameHeight: strip.height,
         frameCount: 2,
-        height: toInt(val(personality, 'TopTopHeight'), 28),
-        textColor: iniColor(val(colours, 'ActiveTitle'))
-          || (aR != null ? `rgb(${aR}, ${val(personality, 'ActiveTextG') || 255}, ${val(personality, 'ActiveTextB') || 255})` : 'rgb(255, 255, 255)'),
-        inactiveTextColor: iniColor(val(colours, 'InactiveTitle'))
-          || (iR != null ? `rgb(${iR}, ${val(personality, 'InactiveTextG') || 0}, ${val(personality, 'InactiveTextB') || 0})` : 'rgb(180, 180, 180)'),
+        activeImage: frames[0],
+        inactiveImage: frames[1] || frames[0],
+        stretch,
+        ...caps,
+        // The caption's natural height is one frame of the Top bitmap.
+        height: Math.max(18, strip.height),
+        textColor,
+        inactiveTextColor,
         textShadow: shadow,
         fontFamily,
         fontSize,
         fontWeight: 'normal',
+        ...textLayout,
       },
       vertFrame: null, // classic Left/Right are separate; rely on borderColor instead
     };
@@ -364,47 +528,116 @@ function buildWindowControls(mainConfig, assets) {
 
   if (!closeAsset && !minAsset && !maxAsset) return { type: 'css' };
 
-  // Each button image is a horizontal sprite of states (normal/hover/pressed).
-  const sprite = (asset) => {
+  // Each button image is a horizontal strip of square-ish state cells
+  // (normal / mouseover / pressed, often followed by inactive variants).
+  // XCoord/YCoord place the button on the caption art (Align=1: XCoord is
+  // the distance from the window's right edge to the button's left edge) so
+  // sprites land exactly on the slots drawn into the frame.
+  const sprite = (asset, btn) => {
     if (!asset) return { spriteSheet: '', stateWidth: 19, stateHeight: 17 };
+    const count = detectFrameCount(asset.width, asset.height);
+    const frames = frameDataUrls(asset.canvas, count, 'horizontal');
+    const rightAligned = val(btn, 'Align') === '1';
     return {
+      normal: frames[0],
+      hover: frames[1] || frames[0],
+      pressed: frames[2] || frames[1] || frames[0],
       spriteSheet: asset.dataUrl,
-      stateWidth: Math.round(asset.width / 3),
+      stateWidth: Math.round(asset.width / count),
       stateHeight: asset.height,
+      x: rightAligned ? toInt(val(btn, 'XCoord'), null) : null,
+      y: toInt(val(btn, 'YCoord'), null),
     };
   };
 
-  return {
+  const controls = {
     type: 'sprite',
-    close: sprite(closeAsset),
-    minimize: sprite(minAsset),
-    maximize: sprite(maxAsset),
-    restore: sprite(restoreAsset || maxAsset),
+    close: sprite(closeAsset, closeBtn),
+    minimize: sprite(minAsset, minBtn),
+    maximize: sprite(maxAsset, maxBtn),
+    restore: sprite(restoreAsset || maxAsset, restoreBtn || maxBtn),
   };
+
+  // Skins also define roll-up/help/launcher buttons whose slots are baked
+  // into the caption art; render their sprites decoratively so those slots
+  // don't sit empty. Roll-up/roll-down pairs share an XCoord — keep one.
+  const seenX = new Set();
+  const extras = [];
+  for (const b of buttons) {
+    const action = val(b, 'Action');
+    if (action === '0' || action === '22' || action === '23' || action === '-1') continue;
+    if (val(b, 'Align') !== '1') continue;
+    const asset = resolveAsset(assets, val(b, 'ButtonImage'));
+    const x = toInt(val(b, 'XCoord'), null);
+    if (!asset || x == null || seenX.has(x)) continue;
+    seenX.add(x);
+    extras.push(sprite(asset, b));
+  }
+  if (extras.length) controls.extras = extras;
+
+  return controls;
 }
 
 /** Taskbar / tray / start button / task buttons from the .xp config (if present). */
 function buildTaskbar(xpConfig, mainConfig, assets, colours) {
-  const out = { taskbar: {}, tray: {}, taskButton: {}, startButton: { type: 'default' } };
+  // Skins without .xp taskbar sections degrade to the Luna taskbar; consumers
+  // (Footer) dereference nested state objects like taskButton.cover.
+  const out = {
+    taskbar: LUNA_THEME.taskbar,
+    tray: LUNA_THEME.tray,
+    taskButton: LUNA_THEME.taskButton,
+    startButton: { type: 'default' },
+  };
 
-  const taskbarImg = resolveAsset(assets, val(section(xpConfig, 'Taskbar.Horz'), 'Image'));
+  // Read the 9-slice metadata skins attach to taskbar parts: fixed raster
+  // caps (LeftWidth/TopHeight/...), tiled-or-stretched middles (Tile), and
+  // the content box the part was designed to hold (ContentLeft/...).
+  const sliceOf = (sec) => ({
+    top: toInt(val(sec, 'TopHeight'), 0),
+    right: toInt(val(sec, 'RightWidth'), 0),
+    bottom: toInt(val(sec, 'BottomHeight'), 0),
+    left: toInt(val(sec, 'LeftWidth'), 0),
+  });
+  const contentOf = (sec) => ({
+    top: toInt(val(sec, 'ContentTop'), 0),
+    right: toInt(val(sec, 'ContentRight'), 0),
+    bottom: toInt(val(sec, 'ContentBottom'), 0),
+    left: toInt(val(sec, 'ContentLeft'), 0),
+  });
+
+  const taskbarSec = section(xpConfig, 'Taskbar.Horz');
+  const taskbarImg = resolveAsset(assets, val(taskbarSec, 'Image'));
   if (taskbarImg) {
     out.taskbar = {
-      background: `url(${taskbarImg.dataUrl})`,
+      background: `url("${taskbarImg.dataUrl}")`,
       backgroundRepeat: 'repeat',
       backgroundSize: 'auto 100%',
     };
   }
 
-  const trayImg = resolveAsset(assets, val(section(xpConfig, 'Taskbar.TrayHorz'), 'Image'));
+  const traySec = section(xpConfig, 'Taskbar.TrayHorz');
+  const trayImg = resolveAsset(assets, val(traySec, 'Image'));
   if (trayImg) {
+    const content = contentOf(traySec);
+    const trayLum = regionLuminance(
+      trayImg.canvas,
+      content.left, 0,
+      Math.max(1, trayImg.width - content.left - content.right), trayImg.height,
+    );
     out.tray = {
-      background: `url(${trayImg.dataUrl})`,
+      type: 'frames',
+      image: trayImg.dataUrl,
+      width: trayImg.width,
+      height: trayImg.height,
+      slice: sliceOf(traySec),
+      tile: val(traySec, 'Tile') !== '0',
+      content,
+      background: `url("${trayImg.dataUrl}")`,
       backgroundSize: 'auto 100%',
       backgroundRepeat: 'repeat-x',
       borderLeft: 'none',
       boxShadow: 'none',
-      textColor: iniColor(val(colours, 'TitleText')) || '#000',
+      textColor: textColorFor(trayLum, iniColor(val(colours, 'TitleText')) || '#000'),
       padding: '0 10px 0 21px',
     };
   }
@@ -423,22 +656,38 @@ function buildTaskbar(xpConfig, mainConfig, assets, colours) {
     };
   }
 
-  const taskImg = resolveAsset(assets, val(section(xpConfig, 'Taskbar.ButtonHorz'), 'Image'));
+  const taskSec = section(xpConfig, 'Taskbar.ButtonHorz');
+  const taskImg = resolveAsset(assets, val(taskSec, 'Image'));
   if (taskImg) {
-    const states = 6;
+    // Fixed WindowBlinds template: 6 cells side by side —
+    // [normal, hover, pressed, focused, focused-hover, focused-pressed].
+    const states = taskImg.width % 6 === 0 ? 6 : detectFrameCount(taskImg.width, taskImg.height);
     const w = Math.round(taskImg.width / states);
-    const slice = (i) => `url(${taskImg.dataUrl}) -${w * i}px 0px / auto 100% no-repeat`;
+    const frames = frameDataUrls(taskImg.canvas, states, 'horizontal');
+    const at = (i) => frames[Math.min(i, frames.length - 1)];
+    const lum = (i) => regionLuminance(taskImg.canvas, Math.min(i, states - 1) * w, 0, w, taskImg.height);
+    // Frame 0 can be fully transparent (flat-until-hover designs); fall back
+    // to the taskbar art for a readable text colour.
+    const taskbarLum = taskbarImg
+      ? regionLuminance(taskbarImg.canvas, 0, 0, taskbarImg.width, taskbarImg.height)
+      : null;
     out.taskButton = {
-      type: 'sprite',
-      textColor: '#ddd',
-      focusTextColor: '#fff',
+      type: 'frames',
+      frameWidth: w,
+      frameHeight: taskImg.height,
+      slice: sliceOf(taskSec),
+      tile: val(taskSec, 'Tile') === '1',
+      states: {
+        cover: at(0),
+        coverHover: at(1),
+        coverActive: at(2),
+        focus: at(3),
+        focusHover: at(4),
+        focusActive: at(5),
+      },
+      textColor: textColorFor(lum(0) ?? taskbarLum),
+      focusTextColor: textColorFor(lum(3) ?? taskbarLum),
       showTopHighlight: false,
-      cover: { background: slice(0), boxShadow: 'none' },
-      coverHover: { background: slice(1) },
-      coverActive: { background: slice(2) },
-      focus: { background: slice(3), boxShadow: 'none' },
-      focusHover: { background: slice(4) },
-      focusActive: { background: slice(5) },
     };
   }
 
@@ -448,7 +697,7 @@ function buildTaskbar(xpConfig, mainConfig, assets, colours) {
 /** Start menu from StartPanel.* sections. Needs top/left/right/bottom to render. */
 function buildStartMenu(xpConfig, assets) {
   const img = (sec, ...keys) => {
-    const a = resolveAsset(assets, val(section(xpConfig, sec), ...keys));
+    const a = resolveAsset(assets, val(section(xpConfig, sec), 'Image', ...keys));
     return a ? a.dataUrl : null;
   };
 
@@ -496,8 +745,18 @@ function buildTheme({ mainConfig, frameConfig, xpConfig, assets, skinName }) {
       borderColor: iniColor(val(colours, 'WindowFrame', 'ActiveBorder')) || '#646464',
     };
     if (vertAsset) {
-      windowFrame.sideImage = vertAsset.dataUrl;
+      // VertFrame holds [active | inactive] halves side by side; both window
+      // edges use the active art (the old full-strip path painted the
+      // inactive half on the right border).
+      const sideFrames = frameDataUrls(vertAsset.canvas, 2, 'horizontal');
+      windowFrame.sideImage = sideFrames[0];
+      windowFrame.sideImageInactive = sideFrames[1] || sideFrames[0];
       windowFrame.sideWidth = Math.max(2, Math.round(vertAsset.width / 2));
+      // A border colour sampled from the side art always matches the skin;
+      // scheme colours frequently don't.
+      windowFrame.borderColor = regionAverageColor(
+        vertAsset.canvas, 0, 0, Math.round(vertAsset.width / 2), vertAsset.height,
+      ) || windowFrame.borderColor;
     }
   }
 

@@ -192,6 +192,21 @@ function WinXP() {
     };
   }, [activeTheme]);
 
+  // Menus, tooltips and other overlays portal into #xp-portal-root, outside
+  // the shell container — mirror the theme vars onto the document root so
+  // they inherit there too.
+  useEffect(() => {
+    const root = document.documentElement;
+    for (const [key, value] of Object.entries(shellThemeVars)) {
+      root.style.setProperty(key, value);
+    }
+    return () => {
+      for (const key of Object.keys(shellThemeVars)) {
+        root.style.removeProperty(key);
+      }
+    };
+  }, [shellThemeVars]);
+
   // Icon manager hook
   const {
     alignToGridEnabled,

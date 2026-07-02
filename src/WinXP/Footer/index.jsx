@@ -33,6 +33,72 @@ function resolveThemeBg(value) {
   });
 }
 
+/**
+ * CSS for one task-button state. WBA skins ship each state as a raster frame
+ * with fixed 9-slice caps that must not distort — rendered via border-image
+ * (caps stay 1:1, the middle tiles or stretches per the skin's Tile flag).
+ * Builtin themes keep their plain CSS backgrounds. Both need !important to
+ * beat XP.css's `.taskbar .running-applications .app-button.active` rule.
+ */
+/**
+ * Horizontal 3-slice border-image for a raster frame: the left/right caps
+ * stay fixed (scaled to the element height), the middle tiles or stretches,
+ * and the art's full column height maps onto the element. Vertical caps are
+ * deliberately not used as borders — taskbar parts render at close to their
+ * native height, and reserving top+bottom slices can eat the whole content
+ * box (e.g. a 26+4px slice pair on a 30px tray leaves 0px for the clock).
+ */
+function horizontalSliceCss(image, slice, tile, sourceHeight, renderHeight, important) {
+  const k = sourceHeight > 0 && renderHeight > 0 ? renderHeight / sourceHeight : 1;
+  const left = Math.round((slice?.left || 0) * k);
+  const right = Math.round((slice?.right || 0) * k);
+  const bang = important ? ' !important' : '';
+  return `
+    border-style: solid${bang};
+    border-color: transparent${bang};
+    border-radius: 0${bang};
+    border-width: 0 ${right}px 0 ${left}px${bang};
+    border-image: url("${image}") 0 ${slice?.right || 0} 0 ${slice?.left || 0} fill / 0 ${right}px 0 ${left}px ${tile ? 'repeat' : 'stretch'} stretch${bang};
+  `;
+}
+
+const TASK_BUTTON_HEIGHT = 22;
+
+function taskButtonStateCss(taskButton, key) {
+  const frame = taskButton?.states?.[key];
+  if (frame) {
+    return `
+      background: transparent !important;
+      box-shadow: none !important;
+      filter: none !important;
+      ${horizontalSliceCss(frame, taskButton.slice, taskButton.tile, taskButton.frameHeight, TASK_BUTTON_HEIGHT, true)}
+    `;
+  }
+  const state = taskButton?.[key];
+  if (!state?.background) return '';
+  return `
+    background: ${resolveThemeBg(state.background)} !important;
+    ${state.boxShadow ? `box-shadow: ${state.boxShadow} !important;` : ''}
+  `;
+}
+
+/** Raster tray well: 3-slice art + the skin's designed content padding. */
+function trayFrameCss(tray) {
+  if (tray?.type !== 'frames') return '';
+  const s = tray.slice || {};
+  const c = tray.content || {};
+  return `
+    ${horizontalSliceCss(tray.image, s, tray.tile, tray.height, tray.height, false)}
+    box-sizing: border-box;
+    min-width: ${tray.width || 0}px;
+    padding:
+      ${Math.max(0, c.top || 0)}px
+      ${Math.max(6, (c.right || 0) - (s.right || 0) + 6)}px
+      ${Math.max(0, c.bottom || 0)}px
+      ${Math.max(0, (c.left || 0) - (s.left || 0))}px;
+  `;
+}
+
 const MAX_VISIBLE_TASKBAR_WINDOWS = 2;
 
 const getTime = () => {
@@ -1012,25 +1078,23 @@ const WindowOverflowButton = styled.button`
   border: none;
 
   &.cover {
-    background: ${({ $theme }) => resolveThemeBg($theme?.taskButton?.cover?.background)};
-    box-shadow: ${({ $theme }) => $theme?.taskButton?.cover?.boxShadow};
+    ${({ $theme }) => taskButtonStateCss($theme?.taskButton, 'cover')}
   }
 
   &.cover:hover {
-    background: ${({ $theme }) => resolveThemeBg($theme?.taskButton?.coverHover?.background)};
+    ${({ $theme }) => taskButtonStateCss($theme?.taskButton, 'coverHover')}
   }
 
   &.focus {
-    background: ${({ $theme }) => resolveThemeBg($theme?.taskButton?.focus?.background)};
-    box-shadow: ${({ $theme }) => $theme?.taskButton?.focus?.boxShadow};
+    ${({ $theme }) => taskButtonStateCss($theme?.taskButton, 'focus')}
   }
 
   &.focus:hover {
-    background: ${({ $theme }) => resolveThemeBg($theme?.taskButton?.focusHover?.background)};
+    ${({ $theme }) => taskButtonStateCss($theme?.taskButton, 'focusHover')}
   }
 
   &:active {
-    background: ${({ $theme }) => resolveThemeBg($theme?.taskButton?.focusActive?.background) || '#0c358a'};
+    ${({ $theme }) => taskButtonStateCss($theme?.taskButton, 'focusActive') || 'background: #0c358a;'}
   }
 `;
 
@@ -1096,9 +1160,9 @@ const Container = styled.div`
   }
 
   .taskbar {
-    background: ${({ $theme }) => resolveThemeBg($theme.taskbar.background)};
-    ${({ $theme }) => $theme.taskbar.backgroundRepeat ? `background-repeat: ${$theme.taskbar.backgroundRepeat};` : ''}
-    ${({ $theme }) => $theme.taskbar.backgroundSize ? `background-size: ${$theme.taskbar.backgroundSize};` : ''}
+    background: ${({ $theme }) => resolveThemeBg($theme.taskbar?.background)};
+    ${({ $theme }) => $theme.taskbar?.backgroundRepeat ? `background-repeat: ${$theme.taskbar?.backgroundRepeat};` : ''}
+    ${({ $theme }) => $theme.taskbar?.backgroundSize ? `background-size: ${$theme.taskbar?.backgroundSize};` : ''}
   }
 
   .footer__quick-launch {
@@ -1114,26 +1178,46 @@ const Container = styled.div`
   }
 
   .notification-tray {
-    background: ${({ $theme }) => resolveThemeBg($theme.tray.background)};
-    ${({ $theme }) => $theme.tray.backgroundSize ? `background-size: ${$theme.tray.backgroundSize};` : ''}
-    ${({ $theme }) => $theme.tray.backgroundRepeat ? `background-repeat: ${$theme.tray.backgroundRepeat};` : ''}
+    ${({ $theme }) => $theme.tray?.type === 'frames' ? 'background: none;' : `
+    background: ${resolveThemeBg($theme.tray?.background)};
+    ${$theme.tray?.backgroundSize ? `background-size: ${$theme.tray?.backgroundSize};` : ''}
+    ${$theme.tray?.backgroundRepeat ? `background-repeat: ${$theme.tray?.backgroundRepeat};` : ''}
+    `}
   }
 
   .notification-tray .external {
-    background: ${({ $theme }) => resolveThemeBg($theme.taskbar.background)};
-    ${({ $theme }) => $theme.taskbar.backgroundRepeat ? `background-repeat: ${$theme.taskbar.backgroundRepeat};` : ''}
-    ${({ $theme }) => $theme.taskbar.backgroundSize ? `background-size: ${$theme.taskbar.backgroundSize};` : ''}
+    background: ${({ $theme }) => resolveThemeBg($theme.taskbar?.background)};
+    ${({ $theme }) => $theme.taskbar?.backgroundRepeat ? `background-repeat: ${$theme.taskbar?.backgroundRepeat};` : ''}
+    ${({ $theme }) => $theme.taskbar?.backgroundSize ? `background-size: ${$theme.taskbar?.backgroundSize};` : ''}
   }
 
   .notification-tray .internal {
     display: flex;
     align-items: center;
-    border-left: ${({ $theme }) => $theme.tray.borderLeft || 'none'};
-    box-shadow: ${({ $theme }) => $theme.tray.boxShadow || 'none'};
-    padding: ${({ $theme }) => $theme.tray.padding || '0 10px'};
+    ${({ $theme }) => $theme.tray?.type === 'frames' ? trayFrameCss($theme.tray) : `
+    border-left: ${$theme.tray?.borderLeft || 'none'};
+    box-shadow: ${$theme.tray?.boxShadow || 'none'};
+    padding: ${$theme.tray?.padding || '0 10px'};
+    `}
     gap: 4px;
     overflow: hidden;
   }
+
+  ${({ $theme }) => {
+    // XP.css's tray chevron is a Luna-blue gradient circle; on raster-skinned
+    // trays restyle it as a quiet translucent button matching the well art.
+    if ($theme.tray?.type !== 'frames') return '';
+    const dark = $theme.tray.textColor === '#1a1a1a';
+    return `
+    .notification-tray [aria-label='notif-expand'] {
+      background: ${dark ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.22)'} !important;
+      border: 1px solid ${dark ? 'rgba(0, 0, 0, 0.35)' : 'rgba(255, 255, 255, 0.45)'} !important;
+    }
+    .notification-tray [aria-label='notif-expand']:after {
+      filter: ${dark ? 'invert(0.8)' : 'none'};
+    }
+    `;
+  }}
 
   .notification-tray [aria-label='notif-expand'] input {
     position: absolute;
@@ -1163,7 +1247,7 @@ const Container = styled.div`
     flex: 0 1 150px;
     min-width: 110px;
     max-width: 150px;
-    color: ${({ $theme }) => $theme.taskButton.textColor || '#fff'};
+    color: ${({ $theme }) => $theme.taskButton?.textColor || '#fff'} !important;
     border-radius: 2px;
     margin-top: 2px;
     margin-left: 3px;
@@ -1192,13 +1276,12 @@ const Container = styled.div`
 
   /* Inactive/unfocused window - raised button appearance */
   .footer__window.cover {
-    background: ${({ $theme }) => resolveThemeBg($theme.taskButton.cover.background)};
-    box-shadow: ${({ $theme }) => $theme.taskButton.cover.boxShadow};
+    ${({ $theme }) => taskButtonStateCss($theme.taskButton, 'cover')}
     border-color: transparent;
   }
 
   .footer__window.cover:before {
-    ${({ $theme }) => $theme.taskButton.showTopHighlight === false ? 'display: none;' : `
+    ${({ $theme }) => $theme.taskButton?.showTopHighlight === false ? 'display: none;' : `
     display: block;
     content: '';
     position: absolute;
@@ -1211,19 +1294,18 @@ const Container = styled.div`
   }
 
   .footer__window.cover:hover {
-    background: ${({ $theme }) => resolveThemeBg($theme.taskButton.coverHover.background)};
+    ${({ $theme }) => taskButtonStateCss($theme.taskButton, 'coverHover')}
   }
 
   .footer__window.cover:hover:active {
-    background: ${({ $theme }) => resolveThemeBg($theme.taskButton.coverActive?.background || $theme.taskButton.coverHover.background)};
-    ${({ $theme }) => $theme.taskButton.coverActive?.boxShadow ? `box-shadow: ${$theme.taskButton.coverActive.boxShadow};` : ''}
+    ${({ $theme }) => taskButtonStateCss($theme.taskButton, 'coverActive')
+      || taskButtonStateCss($theme.taskButton, 'coverHover')}
   }
 
   /* Active/focused window - pressed/sunken appearance */
   .footer__window.focus {
-    background: ${({ $theme }) => resolveThemeBg($theme.taskButton.focus.background)};
-    box-shadow: ${({ $theme }) => $theme.taskButton.focus.boxShadow};
-    ${({ $theme }) => $theme.taskButton.focusTextColor ? `color: ${$theme.taskButton.focusTextColor};` : ''}
+    ${({ $theme }) => taskButtonStateCss($theme.taskButton, 'focus')}
+    ${({ $theme }) => $theme.taskButton?.focusTextColor ? `color: ${$theme.taskButton?.focusTextColor} !important;` : ''}
     border-color: transparent;
   }
 
@@ -1232,16 +1314,17 @@ const Container = styled.div`
   }
 
   .footer__window.focus:hover {
-    background: ${({ $theme }) => resolveThemeBg($theme.taskButton.focusHover.background)};
+    ${({ $theme }) => taskButtonStateCss($theme.taskButton, 'focusHover')}
   }
 
   .footer__window.focus:hover:active {
-    background: ${({ $theme }) => resolveThemeBg($theme.taskButton.focusActive?.background || $theme.taskButton.focusHover.background)};
+    ${({ $theme }) => taskButtonStateCss($theme.taskButton, 'focusActive')
+      || taskButtonStateCss($theme.taskButton, 'focusHover')}
   }
 
   .footer__time {
     margin: 0;
-    color: ${({ $theme }) => $theme.tray.textColor || '#fff'};
+    color: ${({ $theme }) => $theme.tray?.textColor || '#fff'} !important;
     font-size: 11px;
     font-weight: lighter;
     text-shadow: none;

@@ -46,6 +46,23 @@
   color: var(--xp-menu-text);
 }
 
+/* Context/menubar menus: XP.css hardcodes Luna's #316ac5 for
+   `ul [role=menuitem]` hover/focus states. Context menus portal into
+   #xp-portal-root, outside the shell container. */
+[data-xp-shell-root] ul[role="menu"],
+#xp-portal-root ul[role="menu"] {
+  background: var(--xp-menu-bg);
+  color: var(--xp-menu-text);
+}
+
+#xp-portal-root ul [role="menuitem"]:hover,
+#xp-portal-root ul [role="menuitem"]:focus,
+#xp-portal-root ul [role="menuitem"]:focus-within,
+#xp-portal-root ul [role="menuitem"]:active,
+[data-xp-shell-root] ul [role="menuitem"]:hover,
+[data-xp-shell-root] ul [role="menuitem"]:focus,
+[data-xp-shell-root] ul [role="menuitem"]:focus-within,
+[data-xp-shell-root] ul [role="menuitem"]:active,
 [data-xp-shell-root] .menu__item:hover,
 [data-xp-shell-root] .menu__item.active,
 [data-xp-shell-root] .all-programs-item:hover,
