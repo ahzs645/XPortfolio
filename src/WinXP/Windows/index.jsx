@@ -285,24 +285,52 @@ const Window = memo(function ({
   );
 });
 
+/*
+ * Skin control buttons are raster frames cropped from the skin's state strip.
+ * XP.css targets .title-bar-controls button[aria-label=...] with its own
+ * vector art at higher specificity, so every visual property that must come
+ * from the skin needs !important. Legacy themes (spriteSheet only) keep the
+ * old background-position slicing.
+ */
+const spriteStateCss = (image) => (image ? `background-image: url("${image}") !important;` : '');
+
 const SpriteButton = styled.button`
   all: unset;
-  width: ${({ $sprite }) => $sprite?.stateWidth || 19}px;
-  height: ${({ $sprite }) => $sprite?.stateHeight || 17}px;
-  background-image: url(${({ $sprite }) => withBaseUrl($sprite?.spriteSheet)});
-  background-repeat: no-repeat;
-  background-size: auto 100%;
-  background-position: 0 0;
+  width: ${({ $sprite }) => $sprite?.stateWidth || 19}px !important;
+  height: ${({ $sprite }) => $sprite?.stateHeight || 17}px !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  ${({ $sprite }) => spriteStateCss($sprite?.normal || withBaseUrl($sprite?.spriteSheet))}
+  background-repeat: no-repeat !important;
+  background-size: ${({ $sprite }) => ($sprite?.normal ? '100% 100%' : 'auto 100%')} !important;
+  background-position: 0 0 !important;
   cursor: pointer;
   flex-shrink: 0;
   margin-left: 2px;
 
+  /* XP.css draws its glyphs via :after overlays — remove them entirely. */
+  &:before,
+  &:after {
+    content: none !important;
+    background: none !important;
+    box-shadow: none !important;
+  }
+
   &:hover {
-    background-position: -${({ $sprite }) => $sprite?.stateWidth || 19}px 0;
+    ${({ $sprite }) => ($sprite?.normal
+      ? spriteStateCss($sprite.hover)
+      : `background-position: -${$sprite?.stateWidth || 19}px 0 !important;`)}
   }
 
   &:active {
-    background-position: -${({ $sprite }) => ($sprite?.stateWidth || 19) * 2}px 0;
+    ${({ $sprite }) => ($sprite?.normal
+      ? spriteStateCss($sprite.pressed)
+      : `background-position: -${($sprite?.stateWidth || 19) * 2}px 0 !important;`)}
   }
 
   &:disabled {
@@ -374,21 +402,56 @@ const WindowContainer = styled.div`
 
       const frameImg = tb.frameImage ? withBaseUrl(tb.frameImage) : '';
       const sideImg = wf?.sideImage ? withBaseUrl(wf.sideImage) : '';
+
+      // Raster caption art: tile at natural scale unless the skin says
+      // stretch. Separate active/inactive frames allow repeat-x; older
+      // persisted themes only carry the 2-cell strip and keep stretching.
+      const titleBg = tb.activeImage
+        ? (tb.stretch ? `
+          background-image: url("${tb.activeImage}") !important;
+          background-repeat: no-repeat !important;
+          background-size: 100% 100% !important;
+        ` : `
+          background-image: url("${tb.activeImage}") !important;
+          background-repeat: repeat-x !important;
+          background-size: auto 100% !important;
+        `)
+        : `
+          background-image: url(${frameImg}) !important;
+          background-position: left top !important;
+          background-repeat: no-repeat !important;
+          background-size: 200% 100% !important;
+        `;
+      const titleBgInactive = tb.activeImage
+        ? `background-image: url("${tb.inactiveImage || tb.activeImage}") !important;`
+        : 'background-position: right top !important;';
+
+      // Caption text placement from the skin (alignment + pixel shifts).
+      // TextShift is measured from the window edge; the app icon in front of
+      // the text already occupies ~24px of it. The vertical shift is applied
+      // from the centered position and clamped so text stays inside the bar.
+      const textAlignCss = tb.textAlign === 'center'
+        ? 'justify-content: center;'
+        : tb.textAlign === 'right'
+          ? `justify-content: flex-end; padding-right: ${Math.max(0, (tb.textShiftX || 0))}px;`
+          : `padding-left: ${Math.max(0, (tb.textShiftX || 0) - 24)}px;`;
+      const capHeight = tb.height || 28;
+      const fontPx = parseInt(tb.fontSize, 10) || 13;
+      const maxShiftY = Math.max(0, Math.floor((capHeight - fontPx) / 2) - 1);
+      const shiftY = Math.max(-maxShiftY, Math.min(maxShiftY, tb.textShiftY || 0));
+
       return `
         border-color: ${wf?.borderColor || '#646464'} !important;
         background-color: ${wf?.bodyBackground || '#b4b4b4'} !important;
 
         .title-bar {
-          background-image: url(${frameImg}) !important;
-          background-position: left top !important;
-          background-repeat: no-repeat !important;
-          background-size: 200% 100% !important;
+          ${titleBg}
           height: ${tb.height || 28}px !important;
           min-height: ${tb.height || 28}px !important;
         }
 
         &.inactive .title-bar {
-          background-position: right top !important;
+          ${titleBgInactive}
         }
 
         .title-bar-text {
@@ -397,6 +460,12 @@ const WindowContainer = styled.div`
           font-family: ${tb.fontFamily || 'Tahoma, sans-serif'} !important;
           font-size: ${tb.fontSize || '13px'} !important;
           font-weight: ${tb.fontWeight || 'normal'} !important;
+          display: flex;
+          align-items: center;
+          flex: 1;
+          min-width: 0;
+          ${textAlignCss}
+          ${shiftY ? `position: relative; top: ${shiftY}px;` : ''}
         }
 
         &.inactive .title-bar-text {

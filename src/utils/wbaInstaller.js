@@ -159,6 +159,72 @@ function composeTwoFrameStrip(canvas, frameCount, orientation) {
   return { dataUrl: canvasToDataUrl(out), width: cellW, height: cellH };
 }
 
+/**
+ * Crop each frame out of a frame strip into its own data URL.
+ * WindowBlinds packs button/taskbar states as equal cells along one axis.
+ */
+function frameDataUrls(canvas, count, orientation) {
+  const n = Math.max(1, count);
+  const cellW = orientation === 'horizontal' ? Math.round(canvas.width / n) : canvas.width;
+  const cellH = orientation === 'vertical' ? Math.round(canvas.height / n) : canvas.height;
+  const urls = [];
+  for (let i = 0; i < n; i++) {
+    const out = document.createElement('canvas');
+    out.width = cellW;
+    out.height = cellH;
+    out.getContext('2d').drawImage(
+      canvas,
+      orientation === 'horizontal' ? i * cellW : 0,
+      orientation === 'vertical' ? i * cellH : 0,
+      cellW, cellH, 0, 0, cellW, cellH,
+    );
+    urls.push(canvasToDataUrl(out));
+  }
+  return urls;
+}
+
+/**
+ * Guess how many state frames a control-button strip holds. Skins ship 2-6
+ * square-ish cells side by side; pick the divisor whose cell is closest to
+ * square.
+ */
+function detectFrameCount(width, height, candidates = [6, 5, 4, 3, 2]) {
+  let best = null;
+  for (const c of candidates) {
+    if (width % c !== 0) continue;
+    const score = Math.abs(width / c - height);
+    if (!best || score < best.score) best = { count: c, score };
+  }
+  return best ? best.count : 3;
+}
+
+/**
+ * Average luminance (0-255) of an opaque region of a canvas, used to pick a
+ * readable text colour over raster art. Returns null if the region is
+ * (almost) fully transparent.
+ */
+function regionLuminance(canvas, sx, sy, sw, sh) {
+  try {
+    const ctx = canvas.getContext('2d');
+    const { data } = ctx.getImageData(sx, sy, Math.max(1, sw), Math.max(1, sh));
+    let sum = 0;
+    let n = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] < 32) continue;
+      sum += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+      n++;
+    }
+    if (n < (data.length / 4) * 0.05) return null;
+    return sum / n;
+  } catch {
+    return null;
+  }
+}
+
+/** Black-or-white text colour for a given backdrop luminance. */
+const textColorFor = (lum, fallback = '#fff') =>
+  lum == null ? fallback : (lum > 150 ? '#1a1a1a' : '#fff');
+
 /* ------------------------------------------------------------------ *
  * ZIP helpers + asset resolution
  * ------------------------------------------------------------------ */
@@ -289,9 +355,34 @@ function buildTitleBar(mainConfig, frameConfig, assets, colours, fonts, textCfg)
     ? `${val(textCfg, 'ShadowOffset') || 1}px ${val(textCfg, 'ShadowOffset') || 1}px 0 rgb(${val(textCfg, 'ShadowTextR') || 0}, ${val(textCfg, 'ShadowTextG') || 0}, ${val(textCfg, 'ShadowTextB') || 0})`
     : 'none';
 
+  // Caption text colour: skin ActiveText RGB, else the Windows scheme's
+  // TitleText (NOT ActiveTitle — that's the caption *background* colour).
+  const rgbTriple = (sec, r, g, b) => {
+    const rv = val(sec, r);
+    if (rv == null) return null;
+    return `rgb(${rv}, ${val(sec, g) || 0}, ${val(sec, b) || 0})`;
+  };
+  const textColor = rgbTriple(personality, 'ActiveTextR', 'ActiveTextG', 'ActiveTextB')
+    || iniColor(val(colours, 'TitleText'))
+    || 'rgb(255, 255, 255)';
+  const inactiveTextColor = rgbTriple(personality, 'InactiveTextR', 'InactiveTextG', 'InactiveTextB')
+    || iniColor(val(colours, 'InactiveTitleText'))
+    || 'rgb(180, 180, 180)';
+
+  // Caption text layout (0=left, 1=center, 2=right), pixel shifts from skin.
+  const alignVal = val(personality, 'TextAlignment');
+  const textLayout = {
+    textAlign: alignVal === '1' ? 'center' : alignVal === '2' ? 'right' : 'left',
+    textShiftX: toInt(val(personality, 'TextShift'), 0),
+    textShiftY: toInt(val(personality, 'TextShiftVert'), 0),
+  };
+
   if (frameAsset) {
     const frameCount = toInt(val(borders, 'FrameCount'), 2);
     const strip = composeTwoFrameStrip(frameAsset.canvas, frameCount, 'horizontal');
+    const frames = frameDataUrls(frameAsset.canvas, frameCount, 'horizontal');
+    // TopMiddleStretch=0 means the caption art tiles horizontally.
+    const stretch = val(borders, 'TopMiddleStretch') !== '0';
     return {
       titleBar: {
         type: 'image',
@@ -299,13 +390,17 @@ function buildTitleBar(mainConfig, frameConfig, assets, colours, fonts, textCfg)
         frameWidth: strip.width,
         frameHeight: strip.height,
         frameCount: 2,
+        activeImage: frames[0],
+        inactiveImage: frames[1] || frames[0],
+        stretch,
         height: toInt(val(section(mainConfig, 'Metrics'), 'CaptionHeight'), 28),
-        textColor: iniColor(val(colours, 'ActiveTitle')) || 'rgb(220, 220, 220)',
-        inactiveTextColor: iniColor(val(colours, 'InactiveTitle')) || 'rgb(180, 180, 180)',
+        textColor,
+        inactiveTextColor,
         textShadow: shadow,
         fontFamily,
         fontSize,
         fontWeight: 'normal',
+        ...textLayout,
       },
       vertFrame: val(borders, 'VertFrame'),
     };
@@ -316,8 +411,10 @@ function buildTitleBar(mainConfig, frameConfig, assets, colours, fonts, textCfg)
   if (topAsset) {
     const frameCount = toInt(val(personality, 'TopFrame'), 2);
     const strip = composeTwoFrameStrip(topAsset.canvas, frameCount, 'vertical');
-    const aR = val(personality, 'ActiveTextR');
-    const iR = val(personality, 'InactiveTextR');
+    const frames = frameDataUrls(topAsset.canvas, frameCount, 'vertical');
+    // Raster caption art tiles horizontally unless the skin opts out
+    // (TopStretch=1 means "stretch, don't tile").
+    const stretch = val(personality, 'TopStretch') === '1';
     return {
       titleBar: {
         type: 'image',
@@ -325,18 +422,20 @@ function buildTitleBar(mainConfig, frameConfig, assets, colours, fonts, textCfg)
         frameWidth: strip.width,
         frameHeight: strip.height,
         frameCount: 2,
+        activeImage: frames[0],
+        inactiveImage: frames[1] || frames[0],
+        stretch,
         // TopTopHeight is the fixed top *slice* for 3-segment stretching (can
         // be as small as 3px); the caption's natural height is one frame of
         // the Top bitmap.
         height: Math.max(18, strip.height),
-        textColor: iniColor(val(colours, 'ActiveTitle'))
-          || (aR != null ? `rgb(${aR}, ${val(personality, 'ActiveTextG') || 255}, ${val(personality, 'ActiveTextB') || 255})` : 'rgb(255, 255, 255)'),
-        inactiveTextColor: iniColor(val(colours, 'InactiveTitle'))
-          || (iR != null ? `rgb(${iR}, ${val(personality, 'InactiveTextG') || 0}, ${val(personality, 'InactiveTextB') || 0})` : 'rgb(180, 180, 180)'),
+        textColor,
+        inactiveTextColor,
         textShadow: shadow,
         fontFamily,
         fontSize,
         fontWeight: 'normal',
+        ...textLayout,
       },
       vertFrame: null, // classic Left/Right are separate; rely on borderColor instead
     };
@@ -368,12 +467,18 @@ function buildWindowControls(mainConfig, assets) {
 
   if (!closeAsset && !minAsset && !maxAsset) return { type: 'css' };
 
-  // Each button image is a horizontal sprite of states (normal/hover/pressed).
+  // Each button image is a horizontal strip of square-ish state cells
+  // (normal / mouseover / pressed, often followed by inactive variants).
   const sprite = (asset) => {
     if (!asset) return { spriteSheet: '', stateWidth: 19, stateHeight: 17 };
+    const count = detectFrameCount(asset.width, asset.height);
+    const frames = frameDataUrls(asset.canvas, count, 'horizontal');
     return {
+      normal: frames[0],
+      hover: frames[1] || frames[0],
+      pressed: frames[2] || frames[1] || frames[0],
       spriteSheet: asset.dataUrl,
-      stateWidth: Math.round(asset.width / 3),
+      stateWidth: Math.round(asset.width / count),
       stateHeight: asset.height,
     };
   };
@@ -398,24 +503,55 @@ function buildTaskbar(xpConfig, mainConfig, assets, colours) {
     startButton: { type: 'default' },
   };
 
-  const taskbarImg = resolveAsset(assets, val(section(xpConfig, 'Taskbar.Horz'), 'Image'));
+  // Read the 9-slice metadata skins attach to taskbar parts: fixed raster
+  // caps (LeftWidth/TopHeight/...), tiled-or-stretched middles (Tile), and
+  // the content box the part was designed to hold (ContentLeft/...).
+  const sliceOf = (sec) => ({
+    top: toInt(val(sec, 'TopHeight'), 0),
+    right: toInt(val(sec, 'RightWidth'), 0),
+    bottom: toInt(val(sec, 'BottomHeight'), 0),
+    left: toInt(val(sec, 'LeftWidth'), 0),
+  });
+  const contentOf = (sec) => ({
+    top: toInt(val(sec, 'ContentTop'), 0),
+    right: toInt(val(sec, 'ContentRight'), 0),
+    bottom: toInt(val(sec, 'ContentBottom'), 0),
+    left: toInt(val(sec, 'ContentLeft'), 0),
+  });
+
+  const taskbarSec = section(xpConfig, 'Taskbar.Horz');
+  const taskbarImg = resolveAsset(assets, val(taskbarSec, 'Image'));
   if (taskbarImg) {
     out.taskbar = {
-      background: `url(${taskbarImg.dataUrl})`,
+      background: `url("${taskbarImg.dataUrl}")`,
       backgroundRepeat: 'repeat',
       backgroundSize: 'auto 100%',
     };
   }
 
-  const trayImg = resolveAsset(assets, val(section(xpConfig, 'Taskbar.TrayHorz'), 'Image'));
+  const traySec = section(xpConfig, 'Taskbar.TrayHorz');
+  const trayImg = resolveAsset(assets, val(traySec, 'Image'));
   if (trayImg) {
+    const content = contentOf(traySec);
+    const trayLum = regionLuminance(
+      trayImg.canvas,
+      content.left, 0,
+      Math.max(1, trayImg.width - content.left - content.right), trayImg.height,
+    );
     out.tray = {
-      background: `url(${trayImg.dataUrl})`,
+      type: 'frames',
+      image: trayImg.dataUrl,
+      width: trayImg.width,
+      height: trayImg.height,
+      slice: sliceOf(traySec),
+      tile: val(traySec, 'Tile') !== '0',
+      content,
+      background: `url("${trayImg.dataUrl}")`,
       backgroundSize: 'auto 100%',
       backgroundRepeat: 'repeat-x',
       borderLeft: 'none',
       boxShadow: 'none',
-      textColor: iniColor(val(colours, 'TitleText')) || '#000',
+      textColor: textColorFor(trayLum, iniColor(val(colours, 'TitleText')) || '#000'),
       padding: '0 10px 0 21px',
     };
   }
@@ -434,22 +570,38 @@ function buildTaskbar(xpConfig, mainConfig, assets, colours) {
     };
   }
 
-  const taskImg = resolveAsset(assets, val(section(xpConfig, 'Taskbar.ButtonHorz'), 'Image'));
+  const taskSec = section(xpConfig, 'Taskbar.ButtonHorz');
+  const taskImg = resolveAsset(assets, val(taskSec, 'Image'));
   if (taskImg) {
-    const states = 6;
+    // Fixed WindowBlinds template: 6 cells side by side —
+    // [normal, hover, pressed, focused, focused-hover, focused-pressed].
+    const states = taskImg.width % 6 === 0 ? 6 : detectFrameCount(taskImg.width, taskImg.height);
     const w = Math.round(taskImg.width / states);
-    const slice = (i) => `url(${taskImg.dataUrl}) -${w * i}px 0px / auto 100% no-repeat`;
+    const frames = frameDataUrls(taskImg.canvas, states, 'horizontal');
+    const at = (i) => frames[Math.min(i, frames.length - 1)];
+    const lum = (i) => regionLuminance(taskImg.canvas, Math.min(i, states - 1) * w, 0, w, taskImg.height);
+    // Frame 0 can be fully transparent (flat-until-hover designs); fall back
+    // to the taskbar art for a readable text colour.
+    const taskbarLum = taskbarImg
+      ? regionLuminance(taskbarImg.canvas, 0, 0, taskbarImg.width, taskbarImg.height)
+      : null;
     out.taskButton = {
-      type: 'sprite',
-      textColor: '#ddd',
-      focusTextColor: '#fff',
+      type: 'frames',
+      frameWidth: w,
+      frameHeight: taskImg.height,
+      slice: sliceOf(taskSec),
+      tile: val(taskSec, 'Tile') === '1',
+      states: {
+        cover: at(0),
+        coverHover: at(1),
+        coverActive: at(2),
+        focus: at(3),
+        focusHover: at(4),
+        focusActive: at(5),
+      },
+      textColor: textColorFor(lum(0) ?? taskbarLum),
+      focusTextColor: textColorFor(lum(3) ?? taskbarLum),
       showTopHighlight: false,
-      cover: { background: slice(0), boxShadow: 'none' },
-      coverHover: { background: slice(1) },
-      coverActive: { background: slice(2) },
-      focus: { background: slice(3), boxShadow: 'none' },
-      focusHover: { background: slice(4) },
-      focusActive: { background: slice(5) },
     };
   }
 
