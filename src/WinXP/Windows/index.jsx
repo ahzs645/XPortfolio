@@ -403,11 +403,47 @@ const WindowContainer = styled.div`
       const frameImg = tb.frameImage ? withBaseUrl(tb.frameImage) : '';
       const sideImg = wf?.sideImage ? withBaseUrl(wf.sideImage) : '';
 
-      // Raster caption art: tile at natural scale unless the skin says
-      // stretch. Separate active/inactive frames allow repeat-x; older
-      // persisted themes only carry the 2-cell strip and keep stretching.
-      const titleBg = tb.activeImage
-        ? (tb.stretch ? `
+      // Raster caption art. Skins mark fixed end caps (logo / button decor)
+      // with TopTopHeight/TopBotHeight; only the middle between them repeats
+      // (or stretches). The art lives on an absolutely-positioned ::before so
+      // the cap-sized borders never push the caption's content around.
+      // Older persisted themes only carry the 2-cell strip and keep
+      // stretching it.
+      const capL = tb.capLeft || 0;
+      const capR = tb.capRight || 0;
+      const capScale = tb.frameHeight ? (tb.height || 28) / tb.frameHeight : 1;
+      let titleBg;
+      let titleBgInactive;
+      if (tb.activeImage && (capL || capR)) {
+        const bwL = Math.round(capL * capScale);
+        const bwR = Math.round(capR * capScale);
+        titleBg = `
+          background: none !important;
+          position: relative;
+          &::before {
+            content: '' !important;
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: none;
+            border-style: solid;
+            border-color: transparent;
+            border-width: 0 ${bwR}px 0 ${bwL}px;
+            border-image: url("${tb.activeImage}") 0 ${capR} 0 ${capL} fill / 0 ${bwR}px 0 ${bwL}px ${tb.stretch ? 'stretch' : 'repeat'} stretch;
+          }
+          & > * {
+            position: relative;
+            z-index: 1;
+          }
+        `;
+        titleBgInactive = `
+          &::before {
+            border-image-source: url("${tb.inactiveImage || tb.activeImage}");
+          }
+        `;
+      } else if (tb.activeImage) {
+        titleBg = tb.stretch ? `
           background-image: url("${tb.activeImage}") !important;
           background-repeat: no-repeat !important;
           background-size: 100% 100% !important;
@@ -415,16 +451,17 @@ const WindowContainer = styled.div`
           background-image: url("${tb.activeImage}") !important;
           background-repeat: repeat-x !important;
           background-size: auto 100% !important;
-        `)
-        : `
+        `;
+        titleBgInactive = `background-image: url("${tb.inactiveImage || tb.activeImage}") !important;`;
+      } else {
+        titleBg = `
           background-image: url(${frameImg}) !important;
           background-position: left top !important;
           background-repeat: no-repeat !important;
           background-size: 200% 100% !important;
         `;
-      const titleBgInactive = tb.activeImage
-        ? `background-image: url("${tb.inactiveImage || tb.activeImage}") !important;`
-        : 'background-position: right top !important;';
+        titleBgInactive = 'background-position: right top !important;';
+      }
 
       // Caption text placement from the skin (alignment + pixel shifts).
       // TextShift is measured from the window edge; the app icon in front of

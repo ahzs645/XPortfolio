@@ -363,6 +363,21 @@ function buildColors(colours) {
 }
 
 /** Title bar: prefer UIS1 framed strip, else classic Personality, else CSS. */
+/**
+ * Fixed caption end caps: TopTopHeight is the start (left) cap and
+ * TopBotHeight the end (right) cap, measured along the bar. Art between them
+ * is the repeatable middle (xbox: 88px logo cap | plain middle | 124px
+ * button-decor cap). Caps that leave no middle are ignored.
+ */
+function titleBarCaps(sec, frameWidth) {
+  const capLeft = toInt(val(sec, 'TopTopHeight'), 0);
+  const capRight = toInt(val(sec, 'TopBotHeight'), 0);
+  if (capLeft < 0 || capRight < 0 || capLeft + capRight >= frameWidth - 2) {
+    return { capLeft: 0, capRight: 0 };
+  }
+  return { capLeft, capRight };
+}
+
 function buildTitleBar(mainConfig, frameConfig, assets, colours, fonts, textCfg) {
   const personality = section(mainConfig, 'Personality');
 
@@ -413,6 +428,10 @@ function buildTitleBar(mainConfig, frameConfig, assets, colours, fonts, textCfg)
     const frames = frameDataUrls(frameAsset.canvas, frameCount, orientation);
     // TopMiddleStretch=0 means the caption art tiles horizontally.
     const stretch = val(borders, 'TopMiddleStretch') !== '0';
+    // TopTopHeight/TopBotHeight are the fixed start/end caps measured along
+    // the bar (e.g. a logo on the left, button decor on the right); only the
+    // middle between them repeats.
+    const caps = titleBarCaps(borders, strip.width);
     return {
       titleBar: {
         type: 'image',
@@ -423,6 +442,7 @@ function buildTitleBar(mainConfig, frameConfig, assets, colours, fonts, textCfg)
         activeImage: frames[0],
         inactiveImage: frames[1] || frames[0],
         stretch,
+        ...caps,
         height: captionHeight,
         textColor,
         inactiveTextColor,
@@ -445,6 +465,7 @@ function buildTitleBar(mainConfig, frameConfig, assets, colours, fonts, textCfg)
     // Raster caption art tiles horizontally unless the skin opts out
     // (TopStretch=1 means "stretch, don't tile").
     const stretch = val(personality, 'TopStretch') === '1';
+    const caps = titleBarCaps(personality, strip.width);
     return {
       titleBar: {
         type: 'image',
@@ -455,9 +476,8 @@ function buildTitleBar(mainConfig, frameConfig, assets, colours, fonts, textCfg)
         activeImage: frames[0],
         inactiveImage: frames[1] || frames[0],
         stretch,
-        // TopTopHeight is the fixed top *slice* for 3-segment stretching (can
-        // be as small as 3px); the caption's natural height is one frame of
-        // the Top bitmap.
+        ...caps,
+        // The caption's natural height is one frame of the Top bitmap.
         height: Math.max(18, strip.height),
         textColor,
         inactiveTextColor,
