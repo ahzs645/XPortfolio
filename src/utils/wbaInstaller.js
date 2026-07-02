@@ -539,13 +539,32 @@ function buildWindowControls(mainConfig, assets) {
     };
   };
 
-  return {
+  const controls = {
     type: 'sprite',
     close: sprite(closeAsset, closeBtn),
     minimize: sprite(minAsset, minBtn),
     maximize: sprite(maxAsset, maxBtn),
     restore: sprite(restoreAsset || maxAsset, restoreBtn || maxBtn),
   };
+
+  // Skins also define roll-up/help/launcher buttons whose slots are baked
+  // into the caption art; render their sprites decoratively so those slots
+  // don't sit empty. Roll-up/roll-down pairs share an XCoord — keep one.
+  const seenX = new Set();
+  const extras = [];
+  for (const b of buttons) {
+    const action = val(b, 'Action');
+    if (action === '0' || action === '22' || action === '23' || action === '-1') continue;
+    if (val(b, 'Align') !== '1') continue;
+    const asset = resolveAsset(assets, val(b, 'ButtonImage'));
+    const x = toInt(val(b, 'XCoord'), null);
+    if (!asset || x == null || seenX.has(x)) continue;
+    seenX.add(x);
+    extras.push(sprite(asset, b));
+  }
+  if (extras.length) controls.extras = extras;
+
+  return controls;
 }
 
 /** Taskbar / tray / start button / task buttons from the .xp config (if present). */

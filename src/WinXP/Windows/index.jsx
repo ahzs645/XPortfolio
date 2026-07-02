@@ -152,6 +152,19 @@ const Window = memo(function ({
 
   if (!show) return null;
 
+  // Decorative extra skin buttons position on the caption art like the main
+  // controls: frame-pixel coordinates scaled to the rendered caption height.
+  const controlScale = shellTheme?.titleBar?.frameHeight
+    ? (shellTheme.titleBar.height || 28) / shellTheme.titleBar.frameHeight
+    : 1;
+  const controlSlotMode = shellTheme?.windowControls?.type === 'sprite'
+    && [
+      shellTheme.windowControls.minimize,
+      shellTheme.windowControls.maximize,
+      shellTheme.windowControls.restore,
+      shellTheme.windowControls.close,
+    ].some((s) => s?.x != null);
+
   return (
     <WindowContainer
       ref={ref}
@@ -223,6 +236,21 @@ const Window = memo(function ({
                     $sprite={shellTheme.windowControls.close}
                   />
                 )}
+                {controlSlotMode && shellTheme.windowControls.extras?.map((extra, i) => (
+                  <SpriteButton
+                    key={`extra-${i}`}
+                    as="span"
+                    aria-hidden="true"
+                    $sprite={extra}
+                    style={{
+                      position: 'absolute',
+                      right: Math.round((extra.x - extra.stateWidth) * controlScale),
+                      top: Math.round((extra.y ?? 0) * controlScale),
+                      margin: 0,
+                      pointerEvents: 'none',
+                    }}
+                  />
+                ))}
               </>
             ) : (
               <>
@@ -464,14 +492,15 @@ const WindowContainer = styled.div`
       }
 
       // Caption text placement from the skin (alignment + pixel shifts).
-      // TextShift is measured from the window edge; the app icon in front of
-      // the text already occupies ~24px of it. The vertical shift is applied
-      // from the centered position and clamped so text stays inside the bar.
+      // TextShift marks where the icon+title block starts, measured from the
+      // window edge in frame pixels (scaled with the caption). The vertical
+      // shift is applied from the centered position and kept inside the bar.
+      const shiftX = Math.max(0, Math.round((tb.textShiftX || 0) * capScale));
       const textAlignCss = tb.textAlign === 'center'
         ? 'justify-content: center;'
         : tb.textAlign === 'right'
-          ? `justify-content: flex-end; padding-right: ${Math.max(0, (tb.textShiftX || 0))}px;`
-          : `padding-left: ${Math.max(0, (tb.textShiftX || 0) - 24)}px;`;
+          ? `justify-content: flex-end; padding-right: ${shiftX}px;`
+          : `padding-left: ${shiftX}px;`;
       const capHeight = tb.height || 28;
       const fontPx = parseInt(tb.fontSize, 10) || 13;
       const centerMax = Math.max(0, Math.floor((capHeight - fontPx) / 2) - 1);
