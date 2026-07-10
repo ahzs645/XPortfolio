@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import { Page } from 'react-pdf';
 
-const PDF_ICON = "/icons/pdf/PDF.ico";
+const PDF_ICON = "/icons/pdf/PDF-64.webp";
 
 const Sidebar = ({ pdfDocument, onPageClick, activePage, defaultCollapsed = false }) => {
   const [activeTab, setActiveTab] = useState("bookmarks");

@@ -45,7 +45,7 @@ export const fileIcons = {
   '.svg': '/icons/luna/file_jpg.png',
   '.webp': '/icons/image-viewer.png',
   '.bmp': '/icons/paint.webp',
-  '.pdf': '/icons/pdf/PDF.ico',
+  '.pdf': '/icons/pdf/PDF-64.webp',
   '.docx': '/icons/xp/MSWord.gif',
   '.doc': '/icons/xp/MSWord.gif',
   '.xlsx': '/icons/xp/MSExcel-file.gif',

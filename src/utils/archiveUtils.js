@@ -1,4 +1,7 @@
-import JSZip from 'jszip';
+async function createZipInstance() {
+  const { default: JSZip } = await import('jszip');
+  return new JSZip();
+}
 
 /**
  * Create a zip archive from files/folders
@@ -8,7 +11,7 @@ import JSZip from 'jszip';
  * @returns {Promise<{blob: Blob, filename: string}>} - The zip blob and suggested filename
  */
 export async function createArchive(fileSystem, itemIds, getFileContent) {
-  const zip = new JSZip();
+  const zip = await createZipInstance();
 
   // Helper to add item to zip recursively
   const addItemToZip = async (itemId, parentPath = '') => {
@@ -71,7 +74,7 @@ export async function createArchive(fileSystem, itemIds, getFileContent) {
  * @returns {Promise<string[]>} - Array of created item IDs
  */
 export async function extractArchive(zipData, fileSystem, targetFolderId, createItem, createFile) {
-  const zip = new JSZip();
+  const zip = await createZipInstance();
 
   // Load the zip file
   let loadData = zipData;

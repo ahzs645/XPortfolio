@@ -28,7 +28,7 @@ export const Container = styled.div`
   height: 100%;
   overflow: hidden;
   position: relative;
-  background: url('${({ $wallpaper }) => $wallpaper || '/bliss.jpg'}') no-repeat center center fixed;
+  background: url('${({ $wallpaper }) => $wallpaper || '/bliss-1920.webp'}') no-repeat center center fixed;
   background-size: cover;
   filter: ${({ $crtEnabled, $colorDepth }) => {
     const crt = $crtEnabled

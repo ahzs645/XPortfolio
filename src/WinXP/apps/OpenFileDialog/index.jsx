@@ -242,7 +242,7 @@ const FILE_FILTERS = {
 // Icons for file types
 const FILE_ICONS = {
   folder: '/icons/xp/FolderClosed.png',
-  pdf: '/icons/pdf/PDF.ico',
+  pdf: '/icons/pdf/PDF-64.webp',
   image: '/icons/xp/image.png',
   text: '/icons/xp/Notepad.png',
   default: '/icons/xp/Default.png',

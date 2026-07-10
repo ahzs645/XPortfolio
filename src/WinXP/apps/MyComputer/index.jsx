@@ -16,7 +16,6 @@ import { ProgramLayout, TaskPanel } from '../../../components';
 import { withBaseUrl } from '../../../utils/baseUrl';
 import { ContextMenu } from '../../components/ContextMenu';
 import { useFileContextMenu, useBackgroundContextMenu } from '../../hooks/useFileContextMenu';
-import { createArchive, extractArchive } from '../../../utils/archiveUtils';
 import { ExplorerContent, ViewMenu, SearchPanel, FolderTree, ControlPanelView } from './components';
 import { getSimpleFileType, sortItems, filterItems, formatDetailDate } from './utils';
 import {
@@ -527,6 +526,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   const handleAddToArchive = useCallback(async () => {
     if (selectedItems.length === 0) return;
     try {
+      const { createArchive } = await import('../../../utils/archiveUtils');
       const { blob, filename } = await createArchive(fileSystem, selectedItems, getFileContent);
       const dataUrl = await new Promise((resolve) => {
         const reader = new FileReader();
@@ -546,6 +546,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   const handleSendToCompressedFolder = useCallback(async () => {
     if (selectedItems.length === 0) return;
     try {
+      const { createArchive } = await import('../../../utils/archiveUtils');
       const { blob, filename } = await createArchive(fileSystem, selectedItems, getFileContent);
       const dataUrl = await new Promise((resolve) => {
         const reader = new FileReader();
@@ -591,6 +592,7 @@ function MyComputer({ onClose, onMinimize, onMaximize, onUpdateHeader, initialPa
   const handleExtractHere = useCallback(async () => {
     if (!selectedItem || selectedItems.length !== 1) return;
     try {
+      const { extractArchive } = await import('../../../utils/archiveUtils');
       const content = await getFileContent(selectedItem.id);
       if (content) {
         const targetFolder = currentFolder || SYSTEM_IDS.MY_DOCUMENTS;

@@ -98,6 +98,8 @@ export function ThemeProvider({ children }) {
 
   // Parse the bundled WindowBlinds skins (cached after first run).
   useEffect(() => {
+    if (BUNDLED_WBA_THEMES.length === 0) return undefined;
+
     let isMounted = true;
     (async () => {
       const { parseWbaFile } = await import('../utils/wbaInstaller');

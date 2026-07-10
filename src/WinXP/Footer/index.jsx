@@ -176,7 +176,7 @@ function Footer({
     preloadImages([
       '/gui/taskbar/welcome.webp',
       '/icons/about.webp',
-      '/gui/taskbar/windows-update.png',
+      '/gui/taskbar/windows-update-64.webp',
       '/gui/taskbar/crt.webp',
       '/gui/taskbar/crt-off.webp',
       '/gui/taskbar/fullscreen.webp',
@@ -613,7 +613,7 @@ function Footer({
           <TrayIcon
             ref={updateIconRef}
             className="tray-icon--update"
-            src={withBaseUrl('/gui/taskbar/windows-update.png')}
+            src={withBaseUrl('/gui/taskbar/windows-update-64.webp')}
             alt="Windows Update"
             title={updateTooltip}
             onClick={() => window.dispatchEvent(new Event('xp:update-icon-click'))}

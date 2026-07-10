@@ -366,7 +366,7 @@ function AdobeReader({ onClose, onMinimize, onMaximize, pdfData, pdfName, pdfPat
         menus={ADOBE_MENUS}
         onAction={handleMenuAction}
         windowActions={{ onClose, onMinimize, onMaximize }}
-        logo="/icons/pdf/PDF.ico"
+        logo="/icons/pdf/PDF-64.webp"
       />
 
       {/* Toolbar */}

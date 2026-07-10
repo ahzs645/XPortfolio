@@ -150,7 +150,7 @@ const ErrorText = styled.div`
 // Available shortcut targets (programs that can be launched)
 const AVAILABLE_TARGETS = [
   { name: 'About Me', icon: '/icons/about.webp', target: 'About Me' },
-  { name: 'Resume', icon: '/icons/pdf/PDF.ico', target: 'Resume' },
+  { name: 'Resume', icon: '/icons/pdf/PDF-64.webp', target: 'Resume' },
   { name: 'Contact', icon: '/icons/contact.webp', target: 'Contact' },
   { name: 'Calculator', icon: '/icons/xp/Calculator.png', target: 'Calculator' },
   { name: 'Notepad', icon: '/icons/xp/Notepad.png', target: 'Notepad' },

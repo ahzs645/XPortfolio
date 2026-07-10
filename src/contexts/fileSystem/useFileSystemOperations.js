@@ -493,7 +493,7 @@ export function useFileSystemOperations(fileSystem, setFileSystem, dataClient = 
       } else if (fileContent.type.startsWith('video/')) {
         icon = '/icons/media-player.png';
       } else if (fileContent.type === 'application/pdf') {
-        icon = '/icons/pdf/PDF.ico';
+        icon = '/icons/pdf/PDF-64.webp';
       } else if (fileContent.type === 'application/zip' || fileContent.type === 'application/x-rar-compressed') {
         icon = XP_ICONS.rar;
       } else if (fileContent.type === 'text/plain') {

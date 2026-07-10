@@ -5,9 +5,10 @@
   "type": "module",
   "packageManager": "pnpm@10.28.0",
   "scripts": {
+    "predev": "node scripts/generate-cv-json.js",
     "dev": "vite",
-    "prebuild": "node scripts/generate-build-version.js",
-    "build": "node scripts/generate-build-version.js && vite build",
+    "prebuild": "node scripts/generate-cv-json.js && node scripts/generate-build-version.js",
+    "build": "vite build",
     "build:all": "bash scripts/build-all.sh",
     "build:externals": "node scripts/build-externals.js",
     "lint": "eslint src --max-warnings=0",

@@ -318,6 +318,16 @@ function Icons({
     onDoubleClick(icon);
   }, [onDoubleClick, isMobile]);
 
+  const handleIconKeyDown = useCallback((event, icon) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (!icon.isFocus) {
+      onMouseDown(icon.id);
+    }
+    onDoubleClick(icon);
+  }, [onDoubleClick, onMouseDown]);
+
   const handleContextMenu = useCallback((e, icon) => {
     e.preventDefault();
     e.stopPropagation();
@@ -588,6 +598,9 @@ function Icons({
           <Icon
             key={icon.id}
             ref={(el) => (iconRefs.current[index] = el)}
+            role="button"
+            tabIndex={0}
+            aria-label={icon.title}
             draggable={!isRenaming && !isMobile}
             onDragStart={(e) => handleDragStart(e, icon)}
             onDrag={handleDrag}
@@ -597,6 +610,7 @@ function Icons({
             onMouseMove={handleIconMouseMove}
             onMouseLeave={handleIconMouseLeave}
             onDoubleClick={() => !isRenaming && handleDoubleClick(icon)}
+            onKeyDown={(event) => !isRenaming && handleIconKeyDown(event, icon)}
             onContextMenu={(e) => handleContextMenu(e, icon)}
             onTouchStart={(e) => !isRenaming && handleTouchStart(e, icon)}
             onTouchMove={(e) => !isRenaming && handleTouchMove(e, icon)}
@@ -682,6 +696,11 @@ const Icon = styled.div`
   z-index: ${({ $isDragging }) => ($isDragging ? 10002 : 1)};
   border-radius: ${({ $isDropTarget }) => ($isDropTarget ? '4px' : '0')};
   transition: ${({ $isDropTarget }) => ($isDropTarget ? 'background 0.15s, border 0.15s' : 'none')};
+
+  &:focus-visible {
+    outline: 1px dotted #fff;
+    outline-offset: -3px;
+  }
 `;
 
 const IconImageWrapper = styled.div`

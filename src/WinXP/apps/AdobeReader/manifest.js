@@ -69,7 +69,7 @@ export default {
     "resume": {
     type: 'program',
     appKey: 'Resume',
-    icon: '/icons/pdf/PDF.ico',
+    icon: '/icons/pdf/PDF-64.webp',
     title: 'My Resume',
     description: 'View my CV',
   },

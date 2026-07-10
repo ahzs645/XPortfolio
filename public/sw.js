@@ -18,10 +18,19 @@
  * is left behind before the registration itself is removed.
  */
 
-const VERSION = 'v1';
+const VERSION = 'v2';
 const PRECACHE = `xportfolio-precache-${VERSION}`;
 const RUNTIME = `xportfolio-runtime-${VERSION}`;
 const RUNTIME_MAX_ENTRIES = 150;
+const RUNTIME_MAX_RESPONSE_BYTES = 2 * 1024 * 1024;
+const LARGE_ASSET_PATHS = [
+  /\/(?:games|ruffle)\//i,
+  /\/apps\/xp-tour\//i,
+  /\/apps\/jspaint\/lib\/tracky-mouse\//i,
+  /\/content\/sample-music\//i,
+  /\/assets\/apps\/wow\//i,
+];
+const LARGE_MEDIA_EXTENSION = /\.(?:bin|data|mp3|mp4|ogg|pack|wasm|webm)(?:$|\?)/i;
 
 // Resolve base-aware URLs (e.g. when deployed under /repo-name/).
 const SCOPE_PATH = new URL(self.registration ? self.registration.scope : self.location.href).pathname;
@@ -95,11 +104,19 @@ async function trimCache(cacheName, maxEntries) {
 }
 
 function shouldCacheResponse(request, response) {
+  const url = new URL(request.url);
+  const path = `${url.pathname}${url.search}`;
+  const contentLength = Number(response?.headers?.get('content-length') || 0);
+  const isShellSound = /\/sounds\/[^/]+\.wav(?:$|\?)/i.test(path);
+
   return Boolean(
     response &&
     response.ok &&
     response.status === 200 &&
-    !request.headers.has('range')
+    !request.headers.has('range') &&
+    !LARGE_ASSET_PATHS.some((pattern) => pattern.test(path)) &&
+    (!LARGE_MEDIA_EXTENSION.test(path) || isShellSound) &&
+    (contentLength === 0 || contentLength <= RUNTIME_MAX_RESPONSE_BYTES)
   );
 }
 

@@ -1,6 +1,4 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import yaml from 'js-yaml';
-import { marked } from 'marked';
 import { appDataClient } from '../storage';
 import { withBaseUrl } from '../utils/baseUrl';
 import { setImagePreloadMode } from '../utils/imagePreloader';
@@ -49,15 +47,16 @@ function getDefaultConfig() {
     // Content paths
     PROFILE_PHOTO: 'profile.jpg',
     CV_YAML_PATH: 'CV.yaml',
+    CV_JSON_PATH: 'CV.json',
     CV_PDF_PATH: 'CV.pdf',
     ABOUT_MD: 'content/about.md',
 
     // User interface assets
-    USER_LOGIN_ICON: '/favicon.png',
-    USER_START_MENU_ICON: '/favicon.png',
+    USER_LOGIN_ICON: '/Resources/Profile Pics/chess-256.webp',
+    USER_START_MENU_ICON: '/Resources/Profile Pics/chess-256.webp',
     LOADING_IMAGE_PATH: '/xp.svg',
-    WALLPAPER_DESKTOP_PATH: '/bliss.jpg',
-    WALLPAPER_MOBILE_PATH: '/bliss.jpg',
+    WALLPAPER_DESKTOP_PATH: '/bliss-1920.webp',
+    WALLPAPER_MOBILE_PATH: '/bliss-mobile-1280.webp',
 
     // Desktop icons
     DESKTOP_PROGRAMS: 'myComputer,recycleBin,about,resume,projects,contact,calculator,minesweeper',
@@ -186,17 +185,30 @@ export function ConfigProvider({ children }) {
           envConfig = { ...envConfig, ...parseEnv(configText) };
         }
 
-        // Load CV.yaml
-        let cvPath = envConfig.CV_YAML_PATH || 'CV.yaml';
-        if (cvPath.startsWith('public/')) {
-          cvPath = cvPath.substring(7);
+        // Prefer build-generated JSON so the startup bundle does not need a
+        // YAML parser. Custom deployments can omit it and fall back to YAML.
+        let cvJsonPath = envConfig.CV_JSON_PATH || 'CV.json';
+        if (cvJsonPath.startsWith('public/')) {
+          cvJsonPath = cvJsonPath.substring(7);
         }
-        const cvResponse = await fetch(withBaseUrl(cvPath));
         let cvContent = getDefaultCVData();
+        const cvJsonResponse = await fetch(withBaseUrl(cvJsonPath));
 
-        if (cvResponse.ok) {
-          const cvText = await cvResponse.text();
-          cvContent = yaml.load(cvText);
+        if (cvJsonResponse.ok) {
+          cvContent = await cvJsonResponse.json();
+        } else {
+          let cvYamlPath = envConfig.CV_YAML_PATH || 'CV.yaml';
+          if (cvYamlPath.startsWith('public/')) {
+            cvYamlPath = cvYamlPath.substring(7);
+          }
+          const cvYamlResponse = await fetch(withBaseUrl(cvYamlPath));
+          if (cvYamlResponse.ok) {
+            const [{ default: yaml }, cvText] = await Promise.all([
+              import('js-yaml'),
+              cvYamlResponse.text(),
+            ]);
+            cvContent = yaml.load(cvText);
+          }
         }
 
         setConfig(envConfig);
@@ -426,7 +438,7 @@ export function ConfigProvider({ children }) {
       }
       return withBaseUrl(wallpaperPath);
     }
-    return withBaseUrl('/bliss.jpg');
+    return withBaseUrl(isMobile ? '/bliss-mobile-1280.webp' : '/bliss-1920.webp');
   };
 
   const setWallpaperPath = (path, options = {}) => {
@@ -637,6 +649,8 @@ export function ConfigProvider({ children }) {
 
   useEffect(() => {
     if (!config) return;
+    let cancelled = false;
+    let idleId = null;
 
     async function loadAboutContent() {
       try {
@@ -644,15 +658,32 @@ export function ConfigProvider({ children }) {
         const response = await fetch(withBaseUrl(aboutPath));
         if (response.ok) {
           const markdown = await response.text();
+          const { marked } = await import('marked');
           const html = marked(markdown);
-          setAboutContent({ markdown, html });
+          if (!cancelled) {
+            setAboutContent({ markdown, html });
+          }
         }
       } catch (err) {
         console.error('Failed to load about content:', err);
       }
     }
 
-    loadAboutContent();
+    const timerId = window.setTimeout(() => {
+      if (typeof window.requestIdleCallback === 'function') {
+        idleId = window.requestIdleCallback(loadAboutContent, { timeout: 2000 });
+      } else {
+        loadAboutContent();
+      }
+    }, 1500);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timerId);
+      if (idleId !== null && typeof window.cancelIdleCallback === 'function') {
+        window.cancelIdleCallback(idleId);
+      }
+    };
   }, [config]);
 
   // Get about content

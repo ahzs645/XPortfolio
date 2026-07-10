@@ -162,7 +162,7 @@ export default function UpdateToast() {
     <UpdateBalloon
       className="update-balloon"
       displayColorDepth={colorDepth}
-      icon="/gui/taskbar/windows-update.png"
+      icon="/gui/taskbar/windows-update-64.webp"
       iconAlt="Windows Update"
       title="Update Available"
       width={280}

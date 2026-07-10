@@ -9,8 +9,7 @@ import { addImagePreloadLinks } from '../../utils/imagePreloader';
 import cursorManager from '../../utils/cursorManager';
 
 function BootScreen({ bootState, onComplete }) {
-  const FALLBACK_WELCOME_DURATION_MS = 2000;
-  const WELCOME_COMPLETION_BUFFER_MS = 150;
+  const WELCOME_DURATION_MS = 1800;
   const [showLogin, setShowLogin] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
@@ -24,7 +23,7 @@ function BootScreen({ bootState, onComplete }) {
     isLoading: usersLoading,
     loginUser,
   } = useUserAccounts();
-  const { playLogin, prewarmBalloon, getSoundDurationMs } = useSystemSounds();
+  const { playLogin } = useSystemSounds();
 
   const dynamicSvgUrl = getDynamicXPSvgUrl();
   const isLoading = configLoading || usersLoading || !dynamicSvgUrl;
@@ -136,27 +135,17 @@ function BootScreen({ bootState, onComplete }) {
       }
     }
 
-    const loginSoundDurationMs = await getSoundDurationMs('login', FALLBACK_WELCOME_DURATION_MS);
-    const welcomeDurationMs = Math.max(
-      FALLBACK_WELCOME_DURATION_MS,
-      loginSoundDurationMs + WELCOME_COMPLETION_BUFFER_MS
-    );
-
     // Don't hide login screen - just show welcome overlay on top
     setShowWelcome(true);
 
     // Play the Windows login sound
     playLogin();
 
-    // Prewarm balloon sound for later use
-    setTimeout(() => {
-      prewarmBalloon();
-    }, 50);
-
-    // After welcome message, transition to desktop
+    // Keep the authentic welcome transition without blocking the desktop for
+    // the full sound duration. The sound is allowed to finish after entry.
     setTimeout(() => {
       onComplete();
-    }, welcomeDurationMs);
+    }, WELCOME_DURATION_MS);
   };
 
   const handleCancelPassword = () => {
@@ -166,6 +155,12 @@ function BootScreen({ bootState, onComplete }) {
     if (users.length > 1) {
       setSelectedUserId(null);
     }
+  };
+
+  const handleUserCardKeyDown = (event, userId) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    handleUserClick(userId);
   };
 
   if (showLogin) {
@@ -212,6 +207,12 @@ function BootScreen({ bootState, onComplete }) {
                         <UserCard
                           $locked={isLocked}
                           $selected={isSelected}
+                          role={isSelected ? undefined : 'button'}
+                          tabIndex={isSelected ? -1 : 0}
+                          aria-label={isSelected ? undefined : `Log on as ${user.name}`}
+                          onKeyDown={(event) => {
+                            if (!isSelected) handleUserCardKeyDown(event, user.id);
+                          }}
                           onClick={(e) => {
                             // Don't trigger handleUserClick if password input is already showing
                             if (isSelected) {
@@ -299,7 +300,13 @@ function BootScreen({ bootState, onComplete }) {
                 </PasswordContainer>
               ) : (
                 // Single user without password
-                <UserCard onClick={() => handleUserClick(selectedUserId || users[0]?.id)}>
+                <UserCard
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Log on as ${userName}`}
+                  onKeyDown={(event) => handleUserCardKeyDown(event, selectedUserId || users[0]?.id)}
+                  onClick={() => handleUserClick(selectedUserId || users[0]?.id)}
+                >
                   <UserIcon src={userIcon} alt={userName} />
                   <UserInfo>
                     <UserNameText>{userName}</UserNameText>
@@ -726,6 +733,11 @@ const UserCard = styled.div`
 
   transition: opacity 0.5s ease, transform 0.5s ease, background 0.3s ease;
   transform: translateY(0);
+
+  &:focus-visible {
+    outline: 1px dotted #fff;
+    outline-offset: -4px;
+  }
 
   &::before {
     content: '';

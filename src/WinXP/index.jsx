@@ -68,6 +68,7 @@ function WinXP() {
   const { explorer } = useShellSettings();
   const [crtEnabled, setCrtEnabled] = useState(true);
   const { showClippy, clippyHiddenOnMobile, handleEndClippy, handleHideClippyMobile, handleShowClippyMobile } = useClippyState();
+  const [clippyReady, setClippyReady] = useState(false);
   const [hasPendingUpdates] = useState(true); // Set to true to show update dialog
   const ref = useRef(null);
   const mouse = useMouse(ref);
@@ -177,6 +178,34 @@ function WinXP() {
   // Determine if mobile based on viewport width
   const isMobile = width < 768;
   const wallpaperPath = getWallpaperPath(isMobile);
+  const isClippyRunning = showClippy && clippyReady;
+
+  // Clippy's sprite map is intentionally deferred until the desktop has had a
+  // chance to paint and the main thread becomes idle.
+  /* eslint-disable react-hooks/set-state-in-effect -- reset deferred mount between sessions */
+  useEffect(() => {
+    if (state.bootState !== BOOT_STATE.DESKTOP || !showClippy) {
+      setClippyReady(false);
+      return undefined;
+    }
+
+    let idleId = null;
+    const timerId = window.setTimeout(() => {
+      if (typeof window.requestIdleCallback === 'function') {
+        idleId = window.requestIdleCallback(() => setClippyReady(true), { timeout: 2000 });
+      } else {
+        setClippyReady(true);
+      }
+    }, 1500);
+
+    return () => {
+      window.clearTimeout(timerId);
+      if (idleId !== null && typeof window.cancelIdleCallback === 'function') {
+        window.cancelIdleCallback(idleId);
+      }
+    };
+  }, [state.bootState, showClippy]);
+  /* eslint-enable react-hooks/set-state-in-effect */
   const shellThemeVars = useMemo(() => {
     const colors = activeTheme?.colors || {};
 
@@ -506,7 +535,7 @@ function WinXP() {
         <div style={{
           position: 'fixed',
           inset: 0,
-          background: wallpaperPath ? `url(${wallpaperPath}) center/cover no-repeat` : '#3a6ea5',
+          background: '#3a6ea5',
           zIndex: 99999,
         }} />
       );
@@ -517,7 +546,7 @@ function WinXP() {
   return (
     <AppProvider appSettings={appSettings} dispatch={dispatch} addAppAction={ADD_APP}>
       <MessageBoxProvider dispatch={dispatch} appSettings={appSettings} addAppAction={ADD_APP}>
-      <RunningAppsProvider apps={state.apps} onEndTask={handleEndTask} onSwitchTo={handleSwitchToApp} showClippy={showClippy} onEndClippy={handleEndClippy}>
+      <RunningAppsProvider apps={state.apps} onEndTask={handleEndTask} onSwitchTo={handleSwitchToApp} showClippy={isClippyRunning} onEndClippy={handleEndClippy}>
       <PwaLaunchHandler />
       <Container
         ref={ref}
@@ -578,7 +607,7 @@ function WinXP() {
             onMaximize={onMaximizeWindow}
             focusedAppId={focusedAppId}
           />
-          {showClippy && !(isMobile && clippyHiddenOnMobile) && (
+          {isClippyRunning && !(isMobile && clippyHiddenOnMobile) && (
             <Clippy isMobile={isMobile} onHideMobile={handleHideClippyMobile} />
           )}
           <Footer

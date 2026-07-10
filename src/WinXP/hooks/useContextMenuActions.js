@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { ADD_APP } from '../constants/actions';
 import { SYSTEM_IDS } from '../../contexts/FileSystemContext';
-import { createArchive, extractArchive } from '../../utils/archiveUtils';
 import { useMobileAppLauncher } from './useMobileAppLauncher';
 import useSystemSounds from '../../hooks/useSystemSounds';
 
@@ -181,6 +180,7 @@ export function useContextMenuActions({
       }
       case 'addToArchive': {
         try {
+          const { createArchive } = await import('../../utils/archiveUtils');
           const { blob, filename } = await createArchive(fileSystem, targetIds, getFileContent);
           const dataUrl = await new Promise((resolve) => {
             const reader = new FileReader();
@@ -199,6 +199,7 @@ export function useContextMenuActions({
       }
       case 'extractHere': {
         try {
+          const { extractArchive } = await import('../../utils/archiveUtils');
           const fileItem = fileSystem?.[icon.id];
           if (fileItem) {
             const content = await getFileContent(icon.id);

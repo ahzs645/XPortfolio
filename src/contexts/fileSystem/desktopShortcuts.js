@@ -5,7 +5,7 @@ import { XP_ICONS, SHORTCUT_SIZE } from './constants';
 // Note: 'projects' removed - now using Projects briefcase folder instead
 export const DESKTOP_SHORTCUT_CATALOG = {
   about: { id: 'shortcut-about', name: 'About Me.lnk', icon: '/icons/about.webp', target: 'About Me', size: SHORTCUT_SIZE },
-  resume: { id: 'shortcut-resume', name: 'Resume.lnk', icon: '/icons/pdf/PDF.ico', target: 'Resume', size: SHORTCUT_SIZE },
+  resume: { id: 'shortcut-resume', name: 'Resume.lnk', icon: '/icons/pdf/PDF-64.webp', target: 'Resume', size: SHORTCUT_SIZE },
   contact: { id: 'shortcut-contact', name: 'Contact.lnk', icon: '/icons/contact.webp', target: 'Contact', size: SHORTCUT_SIZE },
   calculator: { id: 'shortcut-calculator', name: 'Calculator.lnk', icon: XP_ICONS.calculator, target: 'Calculator', size: SHORTCUT_SIZE },
   minesweeper: { id: 'shortcut-minesweeper', name: 'Minesweeper.lnk', icon: XP_ICONS.minesweeper, target: 'Minesweeper', size: SHORTCUT_SIZE },

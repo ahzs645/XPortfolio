@@ -1,7 +1,7 @@
 import { XP_ICONS } from './constants';
 
 const EXTENSION_ICON_MAP = {
-  '.pdf': '/icons/pdf/PDF.ico',
+  '.pdf': '/icons/pdf/PDF-64.webp',
   '.doc': XP_ICONS.fileDoc,
   '.docx': XP_ICONS.fileDoc,
   '.rtf': XP_ICONS.fileDoc,
