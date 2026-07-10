@@ -31,6 +31,25 @@ function parseEnv(envText) {
   return config;
 }
 
+function normalizeConfiguredResourcePath(value) {
+  if (typeof value !== 'string') return value;
+
+  let normalized = value.trim();
+  if (/^https?%3A%2F%2F/i.test(normalized)) {
+    try {
+      normalized = decodeURIComponent(normalized);
+    } catch {
+      // Leave malformed encoded values untouched so the fetch error is clear.
+    }
+  }
+
+  if (normalized.startsWith('public/')) {
+    normalized = normalized.substring(7);
+  }
+
+  return normalized;
+}
+
 // Get default config values
 function getDefaultConfig() {
   return {
@@ -187,27 +206,37 @@ export function ConfigProvider({ children }) {
 
         // Prefer build-generated JSON so the startup bundle does not need a
         // YAML parser. Custom deployments can omit it and fall back to YAML.
-        let cvJsonPath = envConfig.CV_JSON_PATH || 'CV.json';
-        if (cvJsonPath.startsWith('public/')) {
-          cvJsonPath = cvJsonPath.substring(7);
-        }
         let cvContent = getDefaultCVData();
-        const cvJsonResponse = await fetch(withBaseUrl(cvJsonPath));
+        let cvJsonResponse = null;
 
-        if (cvJsonResponse.ok) {
+        // An explicitly empty CV_JSON_PATH disables JSON and makes YAML the
+        // primary source. This is useful for a live, remotely hosted CV.
+        if (envConfig.CV_JSON_PATH !== null) {
+          const cvJsonPath = normalizeConfiguredResourcePath(envConfig.CV_JSON_PATH || 'CV.json');
+          try {
+            cvJsonResponse = await fetch(withBaseUrl(cvJsonPath));
+          } catch (err) {
+            console.warn('Failed to load CV JSON; falling back to YAML:', err);
+          }
+        }
+
+        if (cvJsonResponse?.ok) {
           cvContent = await cvJsonResponse.json();
         } else {
-          let cvYamlPath = envConfig.CV_YAML_PATH || 'CV.yaml';
-          if (cvYamlPath.startsWith('public/')) {
-            cvYamlPath = cvYamlPath.substring(7);
-          }
-          const cvYamlResponse = await fetch(withBaseUrl(cvYamlPath));
-          if (cvYamlResponse.ok) {
-            const [{ default: yaml }, cvText] = await Promise.all([
-              import('js-yaml'),
-              cvYamlResponse.text(),
-            ]);
-            cvContent = yaml.load(cvText);
+          const cvYamlPath = normalizeConfiguredResourcePath(envConfig.CV_YAML_PATH || 'CV.yaml');
+          try {
+            const cvYamlResponse = await fetch(withBaseUrl(cvYamlPath));
+            if (cvYamlResponse.ok) {
+              const [{ default: yaml }, cvText] = await Promise.all([
+                import('js-yaml'),
+                cvYamlResponse.text(),
+              ]);
+              cvContent = yaml.load(cvText);
+            } else {
+              console.warn(`Failed to load CV YAML: ${cvYamlResponse.status}`);
+            }
+          } catch (err) {
+            console.warn('Failed to load CV YAML; using default CV data:', err);
           }
         }
 
