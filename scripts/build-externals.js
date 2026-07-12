@@ -42,6 +42,39 @@ function hasBinary(name) {
   }
 }
 
+function getInstallCommand(project, projectDir) {
+  const packageManager = project.packageManager;
+
+  if (!hasBinary(packageManager)) {
+    throw new Error(`Required package manager not found: ${packageManager}`);
+  }
+
+  switch (packageManager) {
+    case 'npm':
+      return existsSync(join(projectDir, 'package-lock.json')) ? 'npm ci' : 'npm install';
+    case 'pnpm': {
+      const ignoreWorkspace = project.ignoreWorkspace ? ' --ignore-workspace' : '';
+      return existsSync(join(projectDir, 'pnpm-lock.yaml'))
+        ? `pnpm install${ignoreWorkspace} --frozen-lockfile`
+        : `pnpm install${ignoreWorkspace}`;
+    }
+    case 'yarn':
+      return existsSync(join(projectDir, 'yarn.lock'))
+        ? 'yarn install --frozen-lockfile'
+        : 'yarn install';
+    default:
+      return `${packageManager} install`;
+  }
+}
+
+function requirePaths(baseDir, entries, label) {
+  for (const entry of entries || []) {
+    if (!existsSync(join(baseDir, entry))) {
+      throw new Error(`${label} not found: ${entry}`);
+    }
+  }
+}
+
 // ── main ────────────────────────────────────────────────────
 const manifestPath = join(PROJECT_ROOT, 'external', 'manifest.json');
 if (!existsSync(manifestPath)) {
@@ -56,7 +89,7 @@ const onlyProject = process.argv.includes('--only')
 
 // Initialize submodules
 header('Initializing git submodules');
-run('git submodule init && git submodule update --recursive', PROJECT_ROOT);
+run('git submodule update --init --recursive', PROJECT_ROOT);
 
 let built = 0;
 let failed = 0;
@@ -76,11 +109,9 @@ for (const project of manifest.projects) {
   try {
     // 1. Install dependencies
     if (project.packageManager && project.packageManager !== 'none') {
-      const pm = project.packageManager;
-      // Fall back to npm if preferred package manager isn't available
-      const actualPm = (pm !== 'npm' && !hasBinary(pm)) ? 'npm' : pm;
-      log(`Installing dependencies (${actualPm})...`);
-      run(`${actualPm} install`, projectDir);
+      const installCommand = getInstallCommand(project, projectDir);
+      log(`Installing dependencies: ${installCommand}`);
+      run(installCommand, projectDir);
     }
 
     // 2. Build
@@ -95,6 +126,10 @@ for (const project of manifest.projects) {
     if (!project.copyFiles && !project.buildOutput) {
       log('No deploy artifacts configured; leaving existing committed files in place.');
     } else {
+      if (project.copyFiles) {
+        requirePaths(projectDir, project.copyFiles, 'Required source');
+      }
+
       // Clean target directory
       if (existsSync(targetDir)) {
         rmSync(targetDir, { recursive: true, force: true });
@@ -106,10 +141,7 @@ for (const project of manifest.projects) {
         for (const entry of project.copyFiles) {
           const src = join(projectDir, entry);
           const dest = join(targetDir, entry);
-          if (existsSync(src)) {
-            cpSync(src, dest, { recursive: true });
-          }
-          // Silently skip missing optional files
+          cpSync(src, dest, { recursive: true });
         }
       } else if (project.buildOutput) {
         // Copy entire build output directory
@@ -120,6 +152,8 @@ for (const project of manifest.projects) {
         cpSync(buildDir, targetDir, { recursive: true });
       }
     }
+
+    requirePaths(targetDir, project.requiredDeployFiles, 'Required deploy artifact');
 
     success(`${project.name} built and deployed to ${project.deployTarget}`);
     built++;

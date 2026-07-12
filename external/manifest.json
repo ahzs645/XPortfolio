@@ -7,6 +7,7 @@
       "buildCommand": "npm run build",
       "buildOutput": "build",
       "deployTarget": "public/games/spider-solitaire",
+      "requiredDeployFiles": ["index.html"],
       "type": "game",
       "envOverrides": { "CI": "false" }
     },
@@ -14,9 +15,11 @@
       "name": "js-solitaire",
       "path": "external/js-solitaire",
       "packageManager": "pnpm",
-      "buildCommand": "pnpm run build",
+      "ignoreWorkspace": true,
+      "buildCommand": "pnpm --ignore-workspace run build",
       "buildOutput": "dist",
       "deployTarget": "public/games/solitaire",
+      "requiredDeployFiles": ["index.html"],
       "type": "game"
     },
     {
@@ -26,6 +29,7 @@
       "buildCommand": null,
       "buildOutput": null,
       "deployTarget": "public/games/command-and-conquer",
+      "requiredDeployFiles": ["index.html", "js", "css"],
       "type": "game",
       "copyFiles": [
         "index.html",
@@ -46,8 +50,9 @@
       "buildCommand": null,
       "buildOutput": null,
       "deployTarget": "public/games/legoIsland",
+      "requiredDeployFiles": ["index.html", "isle.js", "isle.wasm"],
       "type": "game",
-      "note": "Pre-built WASM artifacts (isle.html, isle.js, isle.wasm) are committed directly to public/games/legoIsland/ since building from source requires Emscripten/CMake"
+      "note": "Pre-built WASM artifacts (index.html, isle.js, isle.wasm) are committed directly to public/games/legoIsland/ since building from source requires Emscripten/CMake"
     },
     {
       "name": "jspaint",
@@ -56,9 +61,12 @@
       "buildCommand": null,
       "buildOutput": null,
       "deployTarget": "public/apps/jspaint",
+      "requiredDeployFiles": ["index.html", "about.html", "privacy.html"],
       "type": "app",
       "copyFiles": [
         "index.html",
+        "about.html",
+        "privacy.html",
         "src",
         "lib",
         "images",
