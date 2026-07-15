@@ -8,7 +8,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { isAppDisabled } from '../apps/Installer/disabledApps';
 import { withBaseUrl } from '../../utils/baseUrl';
 import { preloadImages } from '../../utils/imagePreloader';
-import { positionFlyout } from '../../../external/XPandeder.css/js/xp-start-menu.js';
+import { positionStartMenuFlyout } from './startMenuPositioning';
 import {
   START_MENU_CATALOG,
   PINNED_LEFT,
@@ -367,7 +367,7 @@ function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemC
       return;
     }
 
-    const repositionSubmenu = () => positionFlyout(submenuRef.current, itemRef.current);
+    const repositionSubmenu = () => positionStartMenuFlyout(submenuRef.current, itemRef.current);
 
     repositionSubmenu();
     window.addEventListener('resize', repositionSubmenu);
@@ -464,7 +464,7 @@ function NestedFolderItem({ folder, isOpen, folderItems, onHover, onLeave, onIte
   useLayoutEffect(() => {
     if (!isOpen) return;
 
-    const repositionSubmenu = () => positionFlyout(submenuRef.current, itemRef.current);
+    const repositionSubmenu = () => positionStartMenuFlyout(submenuRef.current, itemRef.current);
 
     repositionSubmenu();
     window.addEventListener('resize', repositionSubmenu);
