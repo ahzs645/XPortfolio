@@ -1,6 +1,7 @@
 import { withBaseUrl } from './baseUrl';
 
 const preloadedImages = new Set();
+const retainedImages = new Map();
 let imagePreloadMode = 'balanced';
 
 export function setImagePreloadMode(mode) {
@@ -17,20 +18,42 @@ export function canPreloadImages(level = 'balanced') {
   return true;
 }
 
-export function preloadImage(path) {
+export function preloadImage(path, { retain = false } = {}) {
   if (!canPreloadImages() || !path || typeof window === 'undefined') return;
 
   const href = withBaseUrl(path);
-  if (preloadedImages.has(href)) return;
+  if (preloadedImages.has(href) && (!retain || retainedImages.has(href))) return;
   preloadedImages.add(href);
 
   const img = new Image();
+  img.decoding = 'async';
+  if (retain) retainedImages.set(href, img);
+  img.addEventListener('error', () => {
+    preloadedImages.delete(href);
+    retainedImages.delete(href);
+  }, { once: true });
   img.src = href;
+  img.decode?.().catch(() => {
+    // A failed speculative decode should not affect the eventual visible image.
+  });
 }
 
-export function preloadImages(paths) {
+export function preloadImages(paths, options) {
   if (!Array.isArray(paths)) return;
-  paths.forEach(preloadImage);
+  paths.forEach((path) => preloadImage(path, options));
+}
+
+export function preloadImagesOnIdle(paths, options = {}) {
+  if (!Array.isArray(paths) || typeof window === 'undefined') return () => {};
+
+  const run = () => preloadImages(paths, options);
+  if (typeof window.requestIdleCallback === 'function') {
+    const idleId = window.requestIdleCallback(run, { timeout: options.timeout || 1500 });
+    return () => window.cancelIdleCallback?.(idleId);
+  }
+
+  const timeoutId = window.setTimeout(run, 0);
+  return () => window.clearTimeout(timeoutId);
 }
 
 export function addImagePreloadLinks(paths) {

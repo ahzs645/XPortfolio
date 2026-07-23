@@ -1,0 +1,197 @@
+/**
+ * Generate compact 32x32 variants for raster images used by the Start menu.
+ *
+ * The generated module imports every optimized image so Vite fingerprints the
+ * files in production. Runtime callers can therefore use long-lived browser
+ * caching without risking stale icons after a source image changes.
+ */
+
+import { createHash } from 'node:crypto';
+import {
+  access,
+  mkdir,
+  readFile,
+  readdir,
+  unlink,
+  writeFile,
+} from 'node:fs/promises';
+import { dirname, extname, join, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { decodeIco, isIco } from 'icojs';
+import sharp from 'sharp';
+
+const scriptDir = dirname(fileURLToPath(import.meta.url));
+const projectRoot = join(scriptDir, '..');
+const publicDir = join(projectRoot, 'public');
+const appsDir = join(projectRoot, 'src/WinXP/apps');
+const generatedDir = join(projectRoot, 'src/generated');
+const iconOutputDir = join(generatedDir, 'menu-icons');
+const modulePath = join(generatedDir, 'menuIconMap.js');
+const targetSize = 32;
+const supportedExtensions = new Set(['.gif', '.ico', '.jpeg', '.jpg', '.png', '.webp']);
+
+async function pathExists(path) {
+  try {
+    await access(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function collectSourceFiles() {
+  const files = [
+    join(projectRoot, 'src/WinXP/config/startMenuConfig.js'),
+    join(projectRoot, 'src/WinXP/config/externalProjects.js'),
+    join(projectRoot, 'src/WinXP/Footer/FooterMenu.jsx'),
+  ];
+
+  const appDirectories = await readdir(appsDir, { withFileTypes: true });
+  for (const entry of appDirectories) {
+    if (!entry.isDirectory()) continue;
+    const manifestPath = join(appsDir, entry.name, 'manifest.js');
+    if (await pathExists(manifestPath)) files.push(manifestPath);
+  }
+
+  return files;
+}
+
+async function collectIconPaths() {
+  const iconPaths = new Set();
+  const iconPropertyPattern = /\bicon\s*:\s*(['"])(\/[^'"]+)\1/g;
+
+  for (const sourcePath of await collectSourceFiles()) {
+    const source = await readFile(sourcePath, 'utf8');
+    for (const match of source.matchAll(iconPropertyPattern)) {
+      const iconPath = match[2];
+      if (supportedExtensions.has(extname(iconPath).toLowerCase())) {
+        iconPaths.add(iconPath);
+      }
+    }
+  }
+
+  return [...iconPaths].sort();
+}
+
+function selectIcoFrame(frames) {
+  return [...frames].sort((a, b) => {
+    const aSize = Math.max(a.width, a.height);
+    const bSize = Math.max(b.width, b.height);
+    const aDistance = aSize >= targetSize ? aSize - targetSize : 10000 + targetSize - aSize;
+    const bDistance = bSize >= targetSize ? bSize - targetSize : 10000 + targetSize - bSize;
+    return aDistance - bDistance || (b.bpp || 0) - (a.bpp || 0);
+  })[0];
+}
+
+async function getSharpInput(sourcePath) {
+  const sourceBuffer = await readFile(sourcePath);
+  if (extname(sourcePath).toLowerCase() !== '.ico' && !isIco(sourceBuffer)) return sourceBuffer;
+
+  const frames = await decodeIco(sourceBuffer, 'image/png');
+  const frame = selectIcoFrame(frames);
+  if (!frame) throw new Error('ICO contains no decodable frames');
+  return Buffer.from(frame.buffer);
+}
+
+function outputName(contents) {
+  const hash = createHash('sha256').update(contents).digest('hex').slice(0, 10);
+  return `menu-icon-${hash}.png`;
+}
+
+async function writeIfChanged(path, contents) {
+  try {
+    const existing = await readFile(path);
+    if (Buffer.compare(existing, contents) === 0) return;
+  } catch {
+    // The generated file does not exist yet.
+  }
+  await writeFile(path, contents);
+}
+
+async function optimizeIcon(iconPath) {
+  const sourcePath = join(publicDir, iconPath.replace(/^\/+/, ''));
+  if (!(await pathExists(sourcePath))) return null;
+
+  const input = await getSharpInput(sourcePath);
+  const metadata = await sharp(input, { animated: false }).metadata();
+  const sourceSize = Math.max(metadata.width || targetSize, metadata.height || targetSize);
+  const kernel = sourceSize <= targetSize ? sharp.kernel.nearest : sharp.kernel.lanczos3;
+
+  const contents = await sharp(input, { animated: false })
+    .resize(targetSize, targetSize, {
+      fit: 'contain',
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+      kernel,
+    })
+    .png({
+      adaptiveFiltering: true,
+      compressionLevel: 9,
+    })
+    .toBuffer();
+
+  return {
+    contents,
+    fileName: outputName(contents),
+    iconPath,
+  };
+}
+
+function buildModule(entries) {
+  const uniqueFileNames = [...new Set(entries.map((entry) => entry.fileName))];
+  const importIndex = new Map(uniqueFileNames.map((fileName, index) => [fileName, index]));
+  const imports = uniqueFileNames
+    .map((fileName, index) => `import menuIcon${index} from './menu-icons/${fileName}?no-inline';`)
+    .join('\n');
+  const mappings = entries
+    .map((entry) => `  ${JSON.stringify(entry.iconPath)}: menuIcon${importIndex.get(entry.fileName)},`)
+    .join('\n');
+
+  return `/* This file is generated by scripts/generate-menu-icons.mjs. */\n`
+    + `${imports}\n\n`
+    + `export const MENU_ICON_URLS = Object.freeze({\n${mappings}\n});\n`;
+}
+
+async function removeStaleIcons(expectedNames) {
+  const existing = await readdir(iconOutputDir);
+  await Promise.all(
+    existing
+      .filter((name) => name.endsWith('.png') && !expectedNames.has(name))
+      .map((name) => unlink(join(iconOutputDir, name)))
+  );
+}
+
+await mkdir(iconOutputDir, { recursive: true });
+
+const iconPaths = await collectIconPaths();
+const entries = [];
+const skipped = [];
+
+for (const iconPath of iconPaths) {
+  try {
+    const entry = await optimizeIcon(iconPath);
+    if (entry) entries.push(entry);
+    else skipped.push(iconPath);
+  } catch (error) {
+    console.warn(`[Menu icons] Skipped ${iconPath}: ${error.message}`);
+    skipped.push(iconPath);
+  }
+}
+
+for (const entry of entries) {
+  await writeIfChanged(join(iconOutputDir, entry.fileName), entry.contents);
+}
+
+await removeStaleIcons(new Set(entries.map((entry) => entry.fileName)));
+await writeIfChanged(modulePath, Buffer.from(buildModule(entries)));
+
+const uniqueEntries = [...new Map(entries.map((entry) => [entry.fileName, entry])).values()];
+const totalBytes = uniqueEntries.reduce((sum, entry) => sum + entry.contents.length, 0);
+const outputPath = relative(projectRoot, iconOutputDir);
+console.log(
+  `[Menu icons] Generated ${entries.length} mappings and ${uniqueEntries.length} unique 32x32 icons `
+  + `in ${outputPath} `
+  + `(${(totalBytes / 1024).toFixed(1)} KiB)`
+);
+if (skipped.length) {
+  console.log(`[Menu icons] Skipped ${skipped.length} missing or unsupported icon references`);
+}

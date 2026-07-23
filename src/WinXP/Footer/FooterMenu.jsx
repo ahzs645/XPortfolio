@@ -7,7 +7,8 @@ import { useStartMenu } from '../../contexts/StartMenuContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { isAppDisabled } from '../apps/Installer/disabledApps';
 import { withBaseUrl } from '../../utils/baseUrl';
-import { preloadImages } from '../../utils/imagePreloader';
+import { preloadImages, preloadImagesOnIdle } from '../../utils/imagePreloader';
+import { withMenuIconUrl } from '../../utils/menuIcons';
 import { positionStartMenuFlyout } from './startMenuPositioning';
 import {
   START_MENU_CATALOG,
@@ -28,6 +29,17 @@ function getMenuItemOrFolder(key) {
   return null;
 }
 
+function isItemEnabled(item) {
+  if (item.type === 'separator') return true;
+  if (item.type === 'folder') return true;
+  if (item.type === 'openFolder') return true;
+  if (item.type === 'externalProject') return true;
+  if (item.type === 'program' && item.appKey) {
+    return !isAppDisabled(item.appKey);
+  }
+  return true;
+}
+
 const RECENTLY_USED_ITEMS = [
   { key: 'photoshop', title: 'Adobe Photoshop', icon: '/icons/vanity/photoshop.webp', disabled: true },
   { key: 'premiere', title: 'Adobe Premiere Pro', icon: '/icons/vanity/premiere.webp', disabled: true },
@@ -41,16 +53,16 @@ const RECENTLY_USED_ITEMS = [
   { key: 'copilot', title: 'GitHub Copilot', icon: '/icons/vanity/copilot.webp', disabled: true },
 ];
 
-function collectMenuIcons(items, icons = []) {
+function collectMenuIcons(items, { recursive = true } = {}, icons = []) {
   items.forEach((item) => {
     if (!item || item.type === 'separator') return;
-    if (item.icon) icons.push(item.icon);
+    if (item.icon) icons.push(withMenuIconUrl(item.icon));
 
-    if (item.type === 'folder' && Array.isArray(item.items)) {
+    if (recursive && item.type === 'folder' && Array.isArray(item.items)) {
       const folderItems = item.items
         .map((itemKey) => getMenuItemOrFolder(itemKey))
         .filter(Boolean);
-      collectMenuIcons(folderItems, icons);
+      collectMenuIcons(folderItems, { recursive }, icons);
     }
   });
 
@@ -98,52 +110,56 @@ function FooterMenu({ className, onClick, onLaunchInstalledApp }) {
     }
   }
 
-  const isItemEnabled = (item) => {
-    if (item.type === 'separator') return true;
-    if (item.type === 'folder') return true;
-    if (item.type === 'openFolder') return true;
-    if (item.type === 'externalProject') return true;
-    if (item.type === 'program' && item.appKey) {
-      return !isAppDisabled(item.appKey);
-    }
-    return true;
-  };
+  const leftItems = useMemo(
+    () => (dynamicMenuItems?.leftItems || PINNED_LEFT.map((key) => ({
+      key,
+      ...getMenuItem(key),
+    }))).filter((item) => item.type && isItemEnabled(item)),
+    [dynamicMenuItems?.leftItems]
+  );
 
-  const leftItems = (dynamicMenuItems?.leftItems || PINNED_LEFT.map((key) => ({
-    key,
-    ...getMenuItem(key),
-  }))).filter((item) => item.type && isItemEnabled(item));
+  const rightItems = useMemo(
+    () => (dynamicMenuItems?.rightItems || PINNED_RIGHT.map((key) => ({
+      key,
+      ...getMenuItem(key),
+    }))).filter((item) => item.type && isItemEnabled(item)),
+    [dynamicMenuItems?.rightItems]
+  );
 
-  const rightItems = (dynamicMenuItems?.rightItems || PINNED_RIGHT.map((key) => ({
-    key,
-    ...getMenuItem(key),
-  }))).filter((item) => item.type && isItemEnabled(item));
-
-  const allProgramsItems = (dynamicMenuItems?.allProgramsItems || ALL_PROGRAMS_ORDER.map((key) => ({
-    key,
-    ...getMenuItem(key),
-  }))).filter((item) => item.type && isItemEnabled(item));
+  const allProgramsItems = useMemo(
+    () => (dynamicMenuItems?.allProgramsItems || ALL_PROGRAMS_ORDER.map((key) => ({
+      key,
+      ...getMenuItem(key),
+    }))).filter((item) => item.type && isItemEnabled(item)),
+    [dynamicMenuItems?.allProgramsItems]
+  );
 
   const startMenuIconPaths = useMemo(() => {
-    const installedAppIcons = installedApps.map((app) => app.icon || '/icons/xp/Programs.png');
-
-    return [
-      userPicture,
-      '/icons/xp/Programs.png',
-      '/icons/recently-used.webp',
-      '/icons/shutdown.webp',
-      '/icons/logoff.webp',
-      ...collectMenuIcons(leftItems),
-      ...collectMenuIcons(rightItems),
-      ...collectMenuIcons(allProgramsItems),
-      ...RECENTLY_USED_ITEMS.map((item) => item.icon),
-      ...installedAppIcons,
+    const eager = isImagePreloadEnabled('eager');
+    const icons = [
+      withMenuIconUrl(userPicture),
+      withMenuIconUrl('/icons/xp/Programs.png'),
+      withMenuIconUrl('/icons/recently-used.webp'),
+      withMenuIconUrl('/icons/shutdown.webp'),
+      withMenuIconUrl('/icons/logoff.webp'),
+      ...collectMenuIcons(leftItems, { recursive: eager }),
+      ...collectMenuIcons(rightItems, { recursive: eager }),
+      ...collectMenuIcons(allProgramsItems, { recursive: eager }),
     ];
-  }, [allProgramsItems, installedApps, leftItems, rightItems, userPicture]);
+
+    if (eager) {
+      icons.push(
+        ...RECENTLY_USED_ITEMS.map((item) => withMenuIconUrl(item.icon)),
+        ...installedApps.map((app) => withMenuIconUrl(app.icon || '/icons/xp/Programs.png'))
+      );
+    }
+
+    return icons;
+  }, [allProgramsItems, installedApps, isImagePreloadEnabled, leftItems, rightItems, userPicture]);
 
   useEffect(() => {
     if (!isImagePreloadEnabled()) return;
-    preloadImages(startMenuIconPaths);
+    return preloadImagesOnIdle(startMenuIconPaths, { retain: true });
   }, [isImagePreloadEnabled, startMenuIconPaths]);
 
   const rootClassName = className ? `${className} start-menu xp-start-menu` : 'start-menu xp-start-menu';
@@ -223,7 +239,7 @@ function FooterMenu({ className, onClick, onLaunchInstalledApp }) {
               onMouseEnter={() => setShowInstalledApps(true)}
               onMouseLeave={() => setShowInstalledApps(false)}
             >
-              <img className="start-menu-item-img" src={withBaseUrl('/icons/xp/Programs.png')} alt="Installed Apps" />
+              <img className="start-menu-item-img" src={withMenuIconUrl('/icons/xp/Programs.png')} alt="Installed Apps" />
               <div className="start-menu-item-texts">
                 <div className="start-menu-item-text">Installed Apps</div>
               </div>
@@ -245,7 +261,7 @@ function FooterMenu({ className, onClick, onLaunchInstalledApp }) {
             onMouseEnter={() => setShowRecentlyUsed(true)}
             onMouseLeave={() => setShowRecentlyUsed(false)}
           >
-            <img className="start-menu-item-img" src={withBaseUrl('/icons/recently-used.webp')} alt="Recently Used" />
+            <img className="start-menu-item-img" src={withMenuIconUrl('/icons/recently-used.webp')} alt="Recently Used" />
             <div className="start-menu-item-texts">
               <div className="start-menu-item-text">Recently Used</div>
             </div>
@@ -281,7 +297,7 @@ function MenuItem({ item, onClick, emphasize = false, withArrow = false }) {
       className={`start-menu-item ${emphasize ? 'emphasize' : ''} ${withArrow ? 'with-arrow' : ''}`}
       onClick={onClick}
     >
-      <img className="start-menu-item-img" src={withBaseUrl(item.icon)} alt={item.title} />
+      <img className="start-menu-item-img" src={withMenuIconUrl(item.icon)} alt={item.title} />
       <div className="start-menu-item-texts">
         <div className="start-menu-item-text">{item.title}</div>
         {item.description && (
@@ -338,7 +354,7 @@ function AllProgramsMenu({ items, activeFolder, onItemClick, onFolderHover, isIm
               tabIndex={0}
               onClick={() => onItemClick(item)}
             >
-              <img src={withBaseUrl(item.icon)} alt="" />
+              <img src={withMenuIconUrl(item.icon)} alt="" />
               <span>{item.title}</span>
             </div>
           );
@@ -354,8 +370,11 @@ function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemC
   const [activeSubfolder, setActiveSubfolder] = useState(null);
 
   function handleHover() {
-    if (isImagePreloadEnabled('eager')) {
-      preloadImages(collectMenuIcons(folderItems));
+    if (isImagePreloadEnabled()) {
+      preloadImages(
+        collectMenuIcons(folderItems, { recursive: isImagePreloadEnabled('eager') }),
+        { retain: true }
+      );
     }
     onHover();
   }
@@ -387,7 +406,7 @@ function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemC
       role="menuitem"
       tabIndex={0}
     >
-      <img src={withBaseUrl(folder.icon)} alt="" />
+      <img src={withMenuIconUrl(folder.icon)} alt="" />
       <span>{folder.title}</span>
       <span className="start-menu-submenu-item-arrow" aria-hidden="true" />
       {isOpen && (
@@ -438,7 +457,7 @@ function FolderMenuItem({ folder, isOpen, folderItems, onHover, onLeave, onItemC
                   tabIndex={0}
                   onClick={() => onItemClick(item)}
                 >
-                  <img src={withBaseUrl(item.icon)} alt="" />
+                  <img src={withMenuIconUrl(item.icon)} alt="" />
                   <span>{item.title}</span>
                 </div>
               );
@@ -455,8 +474,11 @@ function NestedFolderItem({ folder, isOpen, folderItems, onHover, onLeave, onIte
   const submenuRef = useRef(null);
 
   function handleHover() {
-    if (isImagePreloadEnabled('eager')) {
-      preloadImages(collectMenuIcons(folderItems));
+    if (isImagePreloadEnabled()) {
+      preloadImages(
+        collectMenuIcons(folderItems, { recursive: isImagePreloadEnabled('eager') }),
+        { retain: true }
+      );
     }
     onHover();
   }
@@ -483,7 +505,7 @@ function NestedFolderItem({ folder, isOpen, folderItems, onHover, onLeave, onIte
       role="menuitem"
       tabIndex={0}
     >
-      <img src={withBaseUrl(folder.icon)} alt="" />
+      <img src={withMenuIconUrl(folder.icon)} alt="" />
       <span>{folder.title}</span>
       <span className="start-menu-submenu-item-arrow" aria-hidden="true" />
       {isOpen && (
@@ -502,7 +524,7 @@ function NestedFolderItem({ folder, isOpen, folderItems, onHover, onLeave, onIte
                 tabIndex={0}
                 onClick={() => onItemClick(item)}
               >
-                <img src={withBaseUrl(item.icon)} alt="" />
+                <img src={withMenuIconUrl(item.icon)} alt="" />
                 <span>{item.title}</span>
               </div>
             ))}
@@ -525,7 +547,7 @@ function RecentlyUsedMenu({ items }) {
             role="menuitem"
             tabIndex={item.disabled ? -1 : 0}
           >
-            <img src={withBaseUrl(item.icon)} alt="" />
+            <img src={withMenuIconUrl(item.icon)} alt="" />
             <span>{item.title}</span>
           </div>
         ))}
@@ -548,9 +570,9 @@ function InstalledAppsMenu({ apps, onAppClick }) {
             onClick={() => onAppClick(app)}
           >
             <img
-              src={withBaseUrl(app.icon || '/icons/xp/Programs.png')}
+              src={withMenuIconUrl(app.icon || '/icons/xp/Programs.png')}
               alt=""
-              onError={(e) => { e.target.src = withBaseUrl('/icons/xp/Programs.png'); }}
+              onError={(e) => { e.target.src = withMenuIconUrl('/icons/xp/Programs.png'); }}
             />
             <span>{app.name}</span>
           </div>
