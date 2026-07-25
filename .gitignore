@@ -16,6 +16,9 @@ external/js-solitaire/node_modules/
 external/jspaint/node_modules/
 external/jspaint/out/
 
+# Generated from the pinned playsrc submodule by scripts/sync-playsrc-runtime.mjs
+/public/tf2/
+
 # CI-generated app copies in public (symlinks in dev, copies in CI)
 # Keep these tracked if you want local builds to work without running submodule builds
 # public/games/spider-solitaire/

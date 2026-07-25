@@ -3,39 +3,79 @@ import ReactDOM from 'react-dom';
 import styled from 'styled-components';
 import { withBaseUrl } from '../../../utils/baseUrl';
 import { getXpPortalRoot } from '../../../utils/portalRoot';
+import { QQ_PET_EN, translateQqPetSwfText } from './copy';
 
-// Animation data extracted from original QQ Pet
+const MMTOUR_LOADER = '/apps/qqpet-gsap/mmtour-loader.js';
+const MMTOUR_PLAYER_CSS = '/apps/qqpet-gsap/vendor/mmtour-player.css';
+const PACK_ROOT = '/games/qqpenguin-gsap/packs';
+const ORIGINAL_UI_ROOT = '/games/qqpenguin/assets/original-ui';
+let mmTourModulePromise;
+
+function loadMmTourModule() {
+  if (window.__QQPET_MMTOUR__) return Promise.resolve(window.__QQPET_MMTOUR__);
+  if (mmTourModulePromise) return mmTourModulePromise;
+
+  const cssUrl = withBaseUrl(MMTOUR_PLAYER_CSS);
+  if (!document.querySelector(`link[href="${cssUrl}"]`)) {
+    const stylesheet = document.createElement('link');
+    stylesheet.rel = 'stylesheet';
+    stylesheet.href = cssUrl;
+    document.head.appendChild(stylesheet);
+  }
+
+  mmTourModulePromise = new Promise((resolve, reject) => {
+    const onReady = () => {
+      window.removeEventListener('qqpet-mmtour-ready', onReady);
+      resolve(window.__QQPET_MMTOUR__);
+    };
+    window.addEventListener('qqpet-mmtour-ready', onReady);
+
+    const script = document.createElement('script');
+    script.type = 'module';
+    script.src = withBaseUrl(MMTOUR_LOADER);
+    script.dataset.qqpetMmtour = '';
+    script.onerror = () => {
+      window.removeEventListener('qqpet-mmtour-ready', onReady);
+      mmTourModulePromise = null;
+      script.remove();
+      reject(new Error('Could not load the mmTour QQ Pet runtime.'));
+    };
+    document.head.appendChild(script);
+  });
+
+  return mmTourModulePromise;
+}
+
+// Original QQ Pet animations converted to self-contained mmTour archives.
 const ANIMATIONS = [
-  { id: 0, name: "来", nameEn: "come", path: "Penguin/GG/other/lai0.swf", frame: 65, speed: 12 },
-  { id: 7, name: "平常", nameEn: "idle", path: "common.swf", frame: 1238, speed: 6 },
-  { id: 15, name: "喂食", nameEn: "feed", path: "Penguin/GG/e/chi1.swf", frame: 139, speed: 12 },
-  { id: 16, name: "喂食", nameEn: "feed", path: "Penguin/GG/e/chi2.swf", frame: 141, speed: 12 },
-  { id: 18, name: "清洁", nameEn: "clean", path: "Penguin/GG/e/xizao.swf", frame: 103, speed: 12 },
-  { id: 19, name: "吃药", nameEn: "medicine", path: "Penguin/GG/bing/1.swf", frame: 92, speed: 12 },
-  { id: 22, name: "工作", nameEn: "work", path: "Penguin/GG/e/work.swf", frame: 78, speed: 12 },
-  { id: 23, name: "学习", nameEn: "study", path: "Penguin/GG/e/study.swf", frame: 53, speed: 12 },
-  { id: 8, name: "右脚", nameEn: "touch", path: "Penguin/GG/chang/2.swf", frame: 30, speed: 12 },
-  { id: 9, name: "左脚", nameEn: "touch", path: "Penguin/GG/chang/4.swf", frame: 30, speed: 12 },
-];
-
-// Menu actions
-const MENU_ACTIONS = [
-  { id: 'feed', label: '喂食', icon: '🍖', animation: 'feed' },
-  { id: 'clean', label: '清洁', icon: '🛁', animation: 'clean' },
-  { id: 'medicine', label: '吃药', icon: '💊', animation: 'medicine' },
-  { id: 'play', label: '打工', icon: '💼', animation: 'work' },
-  { id: 'study', label: '学习', icon: '📚', animation: 'study' },
+  { id: 0, action: 'come', pack: 'other-lai0.mmtour.pack', scene: 'lai0.swf', frame: 65, speed: 12 },
+  { id: 7, action: 'idle', pack: 'common.mmtour.pack', scene: 'common.swf', frame: 1238, speed: 6 },
+  { id: 15, action: 'feed', pack: 'feed-chi1.mmtour.pack', scene: 'chi1.swf', frame: 139, speed: 12 },
+  { id: 16, action: 'feed', pack: 'feed-chi2.mmtour.pack', scene: 'chi2.swf', frame: 141, speed: 12 },
+  { id: 17, action: 'feed', pack: 'feed-chi3.mmtour.pack', scene: 'chi3.swf', frame: 231, speed: 12 },
+  { id: 18, action: 'clean', pack: 'clean-xizao.mmtour.pack', scene: 'xizao.swf', frame: 103, speed: 12 },
+  { id: 19, action: 'medicine', pack: 'medicine-1.mmtour.pack', scene: '1.swf', frame: 92, speed: 12 },
+  { id: 20, action: 'medicine', pack: 'medicine-2.mmtour.pack', scene: '2.swf', frame: 92, speed: 12 },
+  { id: 21, action: 'medicine', pack: 'medicine-3.mmtour.pack', scene: '3.swf', frame: 150, speed: 12 },
+  { id: 22, action: 'work', pack: 'work.mmtour.pack', scene: 'work.swf', frame: 78, speed: 12 },
+  { id: 23, action: 'study', pack: 'study.mmtour.pack', scene: 'study.swf', frame: 53, speed: 12 },
+  { id: 8, action: 'touch', pack: 'touch-2.mmtour.pack', scene: '2.swf', frame: 30, speed: 12 },
+  { id: 9, action: 'touch', pack: 'touch-4.mmtour.pack', scene: '4.swf', frame: 30, speed: 12 },
 ];
 
 // Helper functions outside component to avoid recreating them
-const getAnimationsByName = (nameEn) => ANIMATIONS.filter(a => a.nameEn === nameEn);
+const getAnimationsByName = (action) => ANIMATIONS.filter(animation => animation.action === action);
 const randomChoice = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
 function QQPenguin({ onClose, onMinimize }) {
   const containerRef = useRef(null);
+  const mmTourRef = useRef(null);
   const playerRef = useRef(null);
+  const playerHostRef = useRef(null);
   const timeoutRef = useRef(null);
+  const menuTimerRef = useRef(null);
   const initializedRef = useRef(false);
+  const loadVersionRef = useRef(0);
   const dialogRef = useRef(null);
 
   // Always show login dialog (set to true)
@@ -114,106 +154,117 @@ function QQPenguin({ onClose, onMinimize }) {
 
   // Load animation helper using ref to avoid stale closures
   const loadAnimation = async (nameEn, callback) => {
-    if (!playerRef.current) return;
+    if (!mmTourRef.current || !containerRef.current) return;
 
     const anims = getAnimationsByName(nameEn);
     if (anims.length === 0) return;
 
     const anim = randomChoice(anims);
     const duration = (1000 * anim.frame) / anim.speed;
+    const loadVersion = ++loadVersionRef.current;
+
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    const host = document.createElement('div');
+    Object.assign(host.style, {
+      position: 'absolute',
+      inset: '0',
+      width: '100%',
+      height: '100%',
+      visibility: 'hidden',
+      background: 'transparent',
+      pointerEvents: 'none',
+    });
+    containerRef.current.appendChild(host);
 
     try {
-      await playerRef.current.load({
-        url: '/games/qqpenguin/' + anim.path,
-        autoplay: 'on',
-        warnOnUnsupportedContent: false,
-        unmuteOverlay: 'hidden',
-        wmode: 'transparent',
-        windowMode: 'transparent',
-        splashScreen: false,
-        preloader: false,
+      const player = await mmTourRef.current.createDecompiledPlayer(host, {
+        assetSource: 'archive',
+        archiveUrl: withBaseUrl(`${PACK_ROOT}/${anim.pack}`),
+        scene: anim.scene,
+        autoplay: true,
+        translateText: translateQqPetSwfText,
       });
+
+      if (loadVersion !== loadVersionRef.current) {
+        player.destroy();
+        host.remove();
+        return;
+      }
+
+      // Let mmTour paint its first frame while hidden, then swap players in one
+      // frame. The outgoing animation remains visible during archive loading.
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      if (loadVersion !== loadVersionRef.current) {
+        player.destroy();
+        host.remove();
+        return;
+      }
+
+      const previousPlayer = playerRef.current;
+      const previousHost = playerHostRef.current;
+
+      // QQ Pet SWFs declare a white stage but were originally embedded with
+      // Flash's transparent window mode so the penguin floats over the desktop.
+      containerRef.current.style.background = 'transparent';
+      host.style.setProperty('background', 'transparent', 'important');
+      host.style.visibility = 'visible';
+      playerRef.current = player;
+      playerHostRef.current = host;
+      previousPlayer?.destroy();
+      previousHost?.remove();
+
       if (callback) {
         timeoutRef.current = setTimeout(callback, duration);
       }
     } catch (e) {
-      console.error('Failed to load animation:', e);
+      if (loadVersion === loadVersionRef.current) {
+        console.error(`Failed to load mmTour animation ${anim.pack}:`, e);
+      }
+      host.remove();
     }
   };
 
-  // Initialize Ruffle player after login
+  // Initialize the web-native mmTour/GSAP player after login.
   useEffect(() => {
     if (showLogin) return;
     if (initializedRef.current) return;
 
     initializedRef.current = true;
+    let cancelled = false;
 
-    const initRuffle = async () => {
-      if (!window.RufflePlayer) {
-        console.error('Ruffle not loaded');
-        return;
-      }
-
-      const ruffle = window.RufflePlayer.newest();
-      const player = ruffle.createPlayer();
-      player.style.width = '250px';
-      player.style.height = '200px';
-      player.style.zIndex = '-1';
-
-      player.config = {
-        autoplay: 'on',
-        unmuteOverlay: 'hidden',
-        contextMenu: 'off',
-        warnOnUnsupportedContent: false,
-        forceScale: true,
-        forceAlign: true,
-        wmode: 'transparent',
-        windowMode: 'transparent',
-        splashScreen: false,
-        preloader: false,
-        showSwfDownload: false,
-      };
-
-      if (containerRef.current) {
-        containerRef.current.innerHTML = '';
-        containerRef.current.appendChild(player);
-        playerRef.current = player;
-
-        try {
-          await player.load({
-            url: '/games/qqpenguin/common.swf',
-            autoplay: 'on',
-            warnOnUnsupportedContent: false,
-            unmuteOverlay: 'hidden',
-            wmode: 'transparent',
-            windowMode: 'transparent',
-            splashScreen: false,
-            preloader: false,
-          });
-        } catch (e) {
-          console.error('Failed to load animation:', e);
-        }
-
-        setTimeout(() => {
-          setBubbleMessage('Hi,主人 我来也!!\n想我了吧?呵呵\n点击菜单按钮可以操作我哦~');
-          setShowBubble(true);
-        }, 500);
+    const initMmTour = async () => {
+      try {
+        mmTourRef.current = await loadMmTourModule();
+        if (cancelled) return;
+        setBubbleMessage(QQ_PET_EN.bubble.greeting);
+        setShowBubble(true);
+        await loadAnimation('come', () => {
+          setShowBubble(false);
+          loadAnimation('idle');
+        });
+      } catch (e) {
+        console.error('Failed to initialize the mmTour/GSAP QQ Pet player:', e);
       }
     };
 
-    if (!window.RufflePlayer) {
-      const script = document.createElement('script');
-      script.src = '/games/qqpenguin/Ruffle/ruffle.js';
-      script.onload = initRuffle;
-      document.head.appendChild(script);
-    } else {
-      initRuffle();
-    }
+    initMmTour();
 
     return () => {
+      cancelled = true;
+      initializedRef.current = false;
+      loadVersionRef.current += 1;
+      clearTimeout(menuTimerRef.current);
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
+      playerRef.current?.destroy();
+      playerRef.current = null;
+      playerHostRef.current?.remove();
+      playerHostRef.current = null;
+      mmTourRef.current = null;
     };
   }, [showLogin]);
 
@@ -226,7 +277,6 @@ function QQPenguin({ onClose, onMinimize }) {
 
   const handleBubbleButton = () => {
     setShowBubble(false);
-    loadAnimation('touch', () => loadAnimation('idle'));
   };
 
   const handlePetClick = (e) => {
@@ -234,12 +284,10 @@ function QQPenguin({ onClose, onMinimize }) {
     e.stopPropagation();
     if (!showBubble && !showMenu) {
       loadAnimation('touch', () => loadAnimation('idle'));
-      setBubbleMessage('嘿嘿~');
+      setBubbleMessage(QQ_PET_EN.bubble.chuckle);
       setShowBubble(true);
     } else if (showBubble) {
-      // Toggle menu on second click
       setShowBubble(false);
-      setShowMenu(true);
     }
   };
 
@@ -250,10 +298,14 @@ function QQPenguin({ onClose, onMinimize }) {
     setShowBubble(false);
   };
 
-  const handleOpenMenu = (e) => {
-    e.stopPropagation();
-    setShowBubble(false);
+  const showQuickbar = () => {
+    clearTimeout(menuTimerRef.current);
     setShowMenu(true);
+  };
+
+  const hideQuickbarSoon = () => {
+    clearTimeout(menuTimerRef.current);
+    menuTimerRef.current = setTimeout(() => setShowMenu(false), 500);
   };
 
   const handleMenuAction = (action) => {
@@ -272,16 +324,16 @@ function QQPenguin({ onClose, onMinimize }) {
         switch (action.id) {
           case 'clean':
             newStats.cleanliness = Math.min(100, prev.cleanliness + 20);
-            setBubbleMessage('洗得真舒服~');
+            setBubbleMessage(QQ_PET_EN.bubble.bathed);
             break;
           case 'play':
             newStats.happiness = Math.min(100, prev.happiness + 15);
             newStats.hunger = Math.max(0, prev.hunger - 5);
-            setBubbleMessage('打工赚钱啦!');
+            setBubbleMessage(QQ_PET_EN.bubble.worked);
             break;
           case 'study':
             newStats.happiness = Math.min(100, prev.happiness + 10);
-            setBubbleMessage('好好学习天天向上!');
+            setBubbleMessage(QQ_PET_EN.bubble.studied);
             break;
         }
         return newStats;
@@ -304,7 +356,7 @@ function QQPenguin({ onClose, onMinimize }) {
       hunger: Math.min(100, prev.hunger + item.value),
       happiness: Math.min(100, prev.happiness + 5),
     }));
-    setBubbleMessage(`${item.name}真好吃!`);
+    setBubbleMessage(QQ_PET_EN.bubble.ate(item.name));
     setShowBubble(true);
   };
 
@@ -314,9 +366,9 @@ function QQPenguin({ onClose, onMinimize }) {
     loadAnimation('medicine', () => loadAnimation('idle'));
     setStats(prev => ({
       ...prev,
-      health: Math.min(100, prev.health + 20),
+      health: Math.min(100, prev.health + QQ_PET_EN.detail.medicine.value),
     }));
-    setBubbleMessage('吃了药感觉好多了~');
+    setBubbleMessage(QQ_PET_EN.bubble.medicine);
     setShowBubble(true);
   };
 
@@ -346,13 +398,14 @@ function QQPenguin({ onClose, onMinimize }) {
               <CloseBtn id="close" onClick={onClose} />
               <MinBtn id="min" onClick={onMinimize} />
             </LoginHeader>
+            <LoginTitle>{QQ_PET_EN.login.title}</LoginTitle>
             <PetIcon />
-            <PetLabel>Q宠宝贝</PetLabel>
+            <PetLabel>{QQ_PET_EN.login.petName}</PetLabel>
             <CheckboxRow>
               <CheckboxIcon checked={rememberChoice} onClick={() => setRememberChoice(!rememberChoice)} />
-              <CheckboxLabel>记住我的选择</CheckboxLabel>
+              <CheckboxLabel>{QQ_PET_EN.login.remember}</CheckboxLabel>
             </CheckboxRow>
-            <OkButton onClick={handleLogin}>确定</OkButton>
+            <OkButton onClick={handleLogin}>{QQ_PET_EN.login.confirm}</OkButton>
           </LoginDialog>
         </LoginOverlay>
       ) : (
@@ -360,33 +413,35 @@ function QQPenguin({ onClose, onMinimize }) {
           {/* Speech Bubble */}
           {showBubble && (
             <Bubble style={{
-              left: petPos.x + 125 - 75,
-              top: petPos.y - 120,
+              left: petPos.x + 18,
+              top: petPos.y - 125,
             }}>
               <BubbleMessage>{bubbleMessage}</BubbleMessage>
-              <BubbleButtons>
-                <BubbleBtn onClick={handleBubbleButton}>真乖</BubbleBtn>
-                <BubbleBtn onClick={handleBubbleButton}>哈哈</BubbleBtn>
-                <BubbleBtn onClick={handleOpenMenu} style={{ background: '#FFB74D' }}>菜单</BubbleBtn>
-              </BubbleButtons>
+              <BubbleBtn $left={52} onClick={handleBubbleButton}>{QQ_PET_EN.bubble.praise}</BubbleBtn>
+              <BubbleBtn $left={116} onClick={handleBubbleButton}>{QQ_PET_EN.bubble.laugh}</BubbleBtn>
             </Bubble>
           )}
 
-          {/* Action Menu - Original QQ Pet Context Menu Style */}
+          {/* Original five-button QQ Pet hover toolbar */}
           {showMenu && (
-            <ContextMenu style={{
-              left: petPos.x + 125 - 75,
-              top: petPos.y - 150,
-            }}>
-              <ContextMenuStart />
-              {MENU_ACTIONS.map(action => (
-                <ContextMenuOption key={action.id} onClick={() => handleMenuAction(action)}>
-                  <MenuOptionIcon>{action.icon}</MenuOptionIcon>
-                  <MenuOptionText>{action.label}</MenuOptionText>
-                </ContextMenuOption>
+            <Quickbar
+              onMouseOver={showQuickbar}
+              onMouseLeave={hideQuickbarSoon}
+              style={{
+                left: petPos.x + 78,
+                top: petPos.y + 178,
+              }}
+            >
+              {QQ_PET_EN.menu.map(action => (
+                <QuickbarButton
+                  key={action.id}
+                  $icon={action.icon}
+                  title={action.label}
+                  aria-label={action.label}
+                  onClick={() => handleMenuAction(action)}
+                />
               ))}
-              <ContextMenuEnd />
-            </ContextMenu>
+            </Quickbar>
           )}
 
           {/* Detail Menu - Original QQ Pet Style */}
@@ -396,31 +451,32 @@ function QQPenguin({ onClose, onMinimize }) {
               top: petPos.y - 130,
             }}>
               <DetailTitle>
-                {detailMenuType === 'feed' ? '请选择食物:' : '请选择药品:'}
+                {detailMenuType === 'feed' ? QQ_PET_EN.detail.chooseFood : QQ_PET_EN.detail.chooseMedicine}
               </DetailTitle>
               <DetailCloseBtn onClick={handleDetailMenuClose}>×</DetailCloseBtn>
               <ItemList>
                 {detailMenuType === 'feed' ? (
                   <>
-                    <ItemCard onClick={() => handleFeedItem({ name: '冰淇淋', value: 15 })}>
-                      <ItemIcon src={withBaseUrl('/games/qqpenguin/assets/icecream.png')} />
-                      <ItemText>冰淇淋 +15</ItemText>
-                    </ItemCard>
-                    <ItemCard onClick={() => handleFeedItem({ name: '月饼', value: 25 })}>
-                      <ItemIcon src={withBaseUrl('/games/qqpenguin/assets/mooncake.png')} />
-                      <ItemText>月饼 +25</ItemText>
-                    </ItemCard>
+                    {QQ_PET_EN.detail.foods.map(item => (
+                      <ItemCard key={item.id} onClick={() => handleFeedItem(item)}>
+                        <ItemIcon src={withBaseUrl(item.image)} />
+                        <ItemText>{item.name} +{item.value}</ItemText>
+                      </ItemCard>
+                    ))}
                   </>
                 ) : (
                   <ItemCard onClick={handleMedicineItem}>
-                    <ItemIcon src={withBaseUrl('/games/qqpenguin/assets/riyongping.png')} />
-                    <ItemText>感冒药 +20</ItemText>
+                    <ItemIcon src={withBaseUrl(QQ_PET_EN.detail.medicine.image)} />
+                    <ItemText>{QQ_PET_EN.detail.medicine.name} +{QQ_PET_EN.detail.medicine.value}</ItemText>
                   </ItemCard>
                 )}
               </ItemList>
               <DetailFooter>
                 <VipIcon>💎</VipIcon>
-                <span><a href="#" onClick={(e) => e.preventDefault()}>开通粉钻</a>,体验尊贵专属特权。</span>
+                <span>
+                  <a href="#" onClick={(e) => e.preventDefault()}>{QQ_PET_EN.detail.vipLink}</a>
+                  {QQ_PET_EN.detail.vipSuffix}
+                </span>
               </DetailFooter>
             </DetailMenu>
           )}
@@ -428,7 +484,10 @@ function QQPenguin({ onClose, onMinimize }) {
           {/* Pet Container */}
           <PetContainer
             ref={containerRef}
+            data-testid="qqpet-stage"
             onMouseDown={handlePetMouseDown}
+            onMouseOver={showQuickbar}
+            onMouseLeave={hideQuickbarSoon}
             onClick={handlePetClick}
             onContextMenu={handleContextMenu}
             style={{
@@ -477,6 +536,20 @@ const LoginHeader = styled.div`
   flex-direction: row-reverse;
 `;
 
+const LoginTitle = styled.div`
+  position: absolute;
+  top: 1px;
+  left: 31px;
+  width: 112px;
+  height: 21px;
+  display: flex;
+  align-items: center;
+  padding-left: 3px;
+  background: linear-gradient(#55c8ee, #43bae6);
+  color: #082b3b;
+  font: bold 12px Tahoma, sans-serif;
+`;
+
 const CloseBtn = styled.div`
   width: 38px;
   height: 18px;
@@ -506,6 +579,25 @@ const PetIcon = styled.div`
   height: 136px;
   background-image: url(${withBaseUrl('/games/qqpenguin/assets/icon.png')});
   background-size: cover;
+
+  &::after {
+    content: 'QQ Pet';
+    position: absolute;
+    left: 17px;
+    bottom: 12px;
+    width: 102px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #b86600;
+    border-radius: 16px;
+    background: linear-gradient(#ffd94f, #f4a900);
+    color: #943500;
+    font: bold 16px Tahoma, sans-serif;
+    text-align: center;
+    text-shadow: 0 1px #fff5a8;
+  }
 `;
 
 const PetLabel = styled.div`
@@ -583,106 +675,85 @@ const PetOverlay = styled.div`
 
 const Bubble = styled.div`
   position: absolute;
-  background: white;
-  border-radius: 15px;
-  padding: 15px 20px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  width: 226px;
+  height: 157px;
+  background-image: url(${withBaseUrl('/games/qqpenguin/assets/bubble.png')});
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
   pointer-events: auto;
-  min-width: 150px;
   z-index: 10001;
-
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 10px solid transparent;
-    border-top-color: white;
-    border-bottom: 0;
-  }
 `;
 
 const BubbleMessage = styled.div`
-  font-size: 14px;
-  color: #333;
-  margin-bottom: 10px;
+  position: absolute;
+  left: 40px;
+  top: 65px;
+  width: 120px;
+  color: rgb(113, 59, 31);
+  font-family: 'Times New Roman', serif;
+  font-size: 13px;
+  line-height: 15px;
   white-space: pre-line;
   text-align: center;
 `;
 
-const BubbleButtons = styled.div`
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-`;
-
 const BubbleBtn = styled.button`
-  padding: 5px 15px;
-  background: #87CEEB;
+  position: absolute;
+  left: ${({ $left }) => $left}px;
+  top: 106px;
+  width: 48px;
+  height: 18px;
+  padding: 0;
+  background-color: transparent;
+  background-image: url(${withBaseUrl(`${ORIGINAL_UI_ROOT}/bubble-button.png`)});
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
   border: none;
-  border-radius: 15px;
-  color: #333;
+  color: rgb(113, 59, 31);
+  font-family: 'Times New Roman', serif;
   font-size: 12px;
+  line-height: 18px;
   cursor: pointer;
-  &:hover { background: #7AC5E0; }
+  &:hover { opacity: 0.8; }
 `;
 
-// Context Menu Styles (original QQ Pet style - vertical layout)
-const ContextMenu = styled.div`
+const Quickbar = styled.div`
   position: absolute;
-  width: 150px;
+  width: 101px;
+  height: 22px;
+  background:
+    url(${withBaseUrl(`${ORIGINAL_UI_ROOT}/quickbar-left.png`)}) 0 0 no-repeat,
+    url(${withBaseUrl(`${ORIGINAL_UI_ROOT}/quickbar-middle.bmp`)}) 20px 0 repeat-x,
+    url(${withBaseUrl(`${ORIGINAL_UI_ROOT}/quickbar-right.bmp`)}) 100px 0 no-repeat;
   pointer-events: auto;
-  font-size: 12px;
-  line-height: 100%;
   z-index: 10001;
   display: flex;
-  flex-direction: column;
 `;
 
-const ContextMenuStart = styled.div`
-  width: 100%;
-  height: 7px;
-  background-image: url(${withBaseUrl('/games/qqpenguin/assets/menu-start.bmp')});
-  background-repeat: repeat-x;
-  background-size: auto 100%;
-`;
-
-const ContextMenuOption = styled.div`
-  width: 100%;
-  height: 22px;
-  background-image: url(${withBaseUrl('/games/qqpenguin/assets/menu-option.bmp')});
-  background-repeat: repeat-x;
-  background-size: auto 100%;
-  display: flex;
-  align-items: center;
+const QuickbarButton = styled.button`
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  max-width: 18px;
+  min-height: 18px;
+  max-height: 18px;
+  flex: 0 0 18px;
+  margin: 2px 1px;
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  background-image: ${({ $icon }) => `url(${withBaseUrl(`${ORIGINAL_UI_ROOT}/${$icon}-normal.bmp`)})`};
+  background-size: 18px 18px;
+  background-repeat: no-repeat;
   cursor: pointer;
-  padding-left: 8px;
 
   &:hover {
-    filter: brightness(0.92);
-    background-color: rgba(200, 230, 255, 0.3);
+    background-image: ${({ $icon }) => `url(${withBaseUrl(`${ORIGINAL_UI_ROOT}/${$icon}-hover.bmp`)})`};
   }
-`;
 
-const ContextMenuEnd = styled.div`
-  width: 100%;
-  height: 7px;
-  background-image: url(${withBaseUrl('/games/qqpenguin/assets/menu-end.bmp')});
-  background-repeat: repeat-x;
-  background-size: auto 100%;
-`;
-
-const MenuOptionText = styled.span`
-  color: #1775a3;
-  font-family: 'Times New Roman', serif;
-  font-weight: bold;
-  font-size: 12px;
-  margin-left: 5px;
-`;
-
-const MenuOptionIcon = styled.span`
-  font-size: 14px;
+  &:active {
+    background-image: ${({ $icon }) => `url(${withBaseUrl(`${ORIGINAL_UI_ROOT}/${$icon}-active.bmp`)})`};
+  }
 `;
 
 // Detail Menu Styles (original QQ Pet style)
@@ -781,6 +852,7 @@ const PetContainer = styled.div`
   position: absolute;
   width: 250px;
   height: 200px;
+  background: transparent !important;
   pointer-events: auto;
   user-select: none;
 `;

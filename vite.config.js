@@ -1,5 +1,8 @@
 import { defineConfig } from 'vite'
 import { execSync } from 'child_process'
+import { readFileSync } from 'fs'
+import { resolve } from 'path'
+import process from 'node:process'
 import react from '@vitejs/plugin-react'
 import svgr from 'vite-plugin-svgr'
 
@@ -10,6 +13,46 @@ function getBuildVersion() {
     return commitSha
   } catch {
     return Date.now().toString(36)
+  }
+}
+
+function serveLocalPlaysrcConfig(middlewares) {
+  middlewares.use('/tf2/playsrc-config.json', (request, response) => {
+    try {
+      const configPath = resolve(process.cwd(), 'public/tf2/playsrc-config.json')
+      const config = JSON.parse(readFileSync(configPath, 'utf8'))
+      const forwardedProtocol = request.headers['x-forwarded-proto']?.split(',')[0]
+      const protocol = forwardedProtocol || (request.socket.encrypted ? 'https' : 'http')
+      const host = request.headers.host
+
+      if (!host) {
+        response.statusCode = 400
+        response.end('Missing Host header')
+        return
+      }
+
+      config.assetOrigin = `${protocol}://${host}`
+      response.statusCode = 200
+      response.setHeader('Content-Type', 'application/json; charset=utf-8')
+      response.setHeader('Cache-Control', 'no-store')
+      response.end(JSON.stringify(config))
+    } catch (error) {
+      response.statusCode = 503
+      response.setHeader('Content-Type', 'text/plain; charset=utf-8')
+      response.end(`playsrc runtime is unavailable: ${error.message}`)
+    }
+  })
+}
+
+function playsrcLocalBridge() {
+  return {
+    name: 'xportfolio-playsrc-local-bridge',
+    configureServer(server) {
+      serveLocalPlaysrcConfig(server.middlewares)
+    },
+    configurePreviewServer(server) {
+      serveLocalPlaysrcConfig(server.middlewares)
+    },
   }
 }
 
@@ -34,15 +77,27 @@ export default defineConfig(({ mode }) => {
 
   return {
     base,
-    plugins: [react(), svgr()],
+    plugins: [playsrcLocalBridge(), react(), svgr()],
     define: {
       __BUILD_VERSION__: JSON.stringify(buildVersion),
     },
     server: {
       headers: crossOriginIsolationHeaders,
+      proxy: {
+        '/objects': {
+          target: 'https://assets.playsrc.online',
+          changeOrigin: true,
+        },
+      },
     },
     preview: {
       headers: crossOriginIsolationHeaders,
+      proxy: {
+        '/objects': {
+          target: 'https://assets.playsrc.online',
+          changeOrigin: true,
+        },
+      },
     },
     esbuild: {
       drop: mode === 'production' ? ['console', 'debugger'] : [],

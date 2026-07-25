@@ -77,6 +77,31 @@
         "favicon.ico",
         "manifest.webmanifest"
       ]
+    },
+    {
+      "name": "steam-app",
+      "path": "external/steam-app",
+      "packageManager": "none",
+      "buildCommand": null,
+      "buildOutput": null,
+      "deployTarget": "public/apps/steam",
+      "requiredDeployFiles": ["index.html", "public/pages/library.html"],
+      "type": "app",
+      "copyFiles": [
+        "index.html",
+        "public"
+      ]
+    },
+    {
+      "name": "playsrc",
+      "path": "external/playsrc",
+      "packageManager": "none",
+      "buildCommand": "node ../../scripts/sync-playsrc-runtime.mjs",
+      "buildOutput": null,
+      "deployTarget": "public/tf2",
+      "requiredDeployFiles": ["index.html", "playsrc-config.json", "assets"],
+      "type": "game",
+      "note": "Pins the playsrc source while syncing its matching published frontend. Local Vite proxies origin-restricted game objects; production requires an equivalent deployed asset proxy."
     }
   ]
 }

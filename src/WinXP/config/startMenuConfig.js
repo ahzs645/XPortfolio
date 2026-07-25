@@ -91,7 +91,7 @@ export const START_MENU_FOLDERS = {
     type: 'folder',
     title: 'Games',
     icon: '/icons/folder-icon.png',
-    items: ['minesweeper', 'solitaire', 'spiderSolitaire', 'pinball', 'esheep', 'doom', 'quake', 'runescape', 'worldOfWarcraft', 'wizard101', 'legoIsland', 'diablo', 'starcraft', 'commandAndConquer', 'redAlert2', 'qqGames'],
+    items: ['steam', 'minesweeper', 'solitaire', 'spiderSolitaire', 'pinball', 'esheep', 'doom', 'quake', 'runescape', 'worldOfWarcraft', 'wizard101', 'legoIsland', 'diablo', 'starcraft', 'commandAndConquer', 'redAlert2', 'qqGames'],
   },
   systemTools: {
     type: 'folder',

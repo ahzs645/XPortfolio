@@ -16,3 +16,6 @@
 [submodule "external/XPandeder.css"]
 	path = external/XPandeder.css
 	url = https://github.com/ahzs645/XPandeder.css.git
+[submodule "external/playsrc"]
+	path = external/playsrc
+	url = https://github.com/ahzs645/playsrc.git

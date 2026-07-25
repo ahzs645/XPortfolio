@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A Steam-inspired launcher for Source games in XPortfolio.">
+    <title>Steam · Source Library</title>
+    <link rel="icon" href="./public/images/steam-logo.png">
+    <link rel="stylesheet" href="./public/css/styles.css">
+    <link rel="stylesheet" href="./public/css/main-style.css">
+</head>
+<body>
+    <div class="main-container">
+        <header class="app-header">
+            <ul class="simple-menu" aria-label="Application menu">
+                <li>Steam</li>
+                <li>View</li>
+                <li>Friends</li>
+                <li>Games</li>
+                <li>Help</li>
+            </ul>
+
+            <ul class="info-menu" aria-label="Account and window controls">
+                <li class="borded">
+                    <img src="./public/images/icons/notfy.svg" alt="Notifications">
+                </li>
+                <li class="borded">
+                    <img src="./public/images/icons/mail.svg" alt="Messages">
+                </li>
+                <li class="borded">
+                    <div class="profile-info">
+                        <img id="profile" src="./public/images/profile.png" alt="ahzs645 profile">
+                        <h3>
+                            <span class="profile-name">ahzs645</span>
+                            <img src="./public/images/icons/down.svg" alt="">
+                        </h3>
+                        <span class="account-status">ONLINE</span>
+                    </div>
+                </li>
+                <li>
+                    <img src="./public/images/icons/full.svg" alt="Big Picture mode" title="Big Picture mode">
+                </li>
+                <li><button id="minimize" type="button" aria-label="Minimize Steam" title="Minimize"></button></li>
+                <li><button id="maximize" type="button" aria-label="Maximize Steam" title="Maximize"></button></li>
+                <li>
+                    <button id="exit" type="button" aria-label="Close Steam" title="Close">
+                        <span class="cross-dir"></span>
+                        <span class="cross-esq"></span>
+                    </button>
+                </li>
+            </ul>
+
+            <nav aria-label="Primary navigation">
+                <ul class="main-menu">
+                    <li class="arrows active">
+                        <img src="./public/images/icons/arrow.svg" alt="Back">
+                    </li>
+                    <li class="arrows">
+                        <img src="./public/images/icons/arrow.svg" alt="Forward">
+                    </li>
+                    <li class="select-menu">Store</li>
+                    <li class="select-menu active">Library</li>
+                    <li class="select-menu">Community</li>
+                    <li class="select-menu"><span id="profile-name">ahzs645</span></li>
+                </ul>
+            </nav>
+        </header>
+
+        <iframe
+            class="library-frame"
+            src="./public/pages/library.html"
+            title="Source games library"
+        ></iframe>
+
+        <footer>
+            <div id="add-game">
+                <img src="./public/images/icons/add-btn.svg" alt="">
+                <h2>Add a game</h2>
+            </div>
+            <div id="downloads">
+                <h2>Ready to play</h2>
+                <h3>2 games in library</h3>
+            </div>
+            <div id="talking-open">
+                <h2>Friends &amp;<br>Chat</h2>
+                <img src="./public/images/icons/chat-btn.svg" alt="">
+            </div>
+            <img class="resize" src="./public/images/icons/dot-menu.svg" alt="">
+        </footer>
+    </div>
+</body>
+</html>

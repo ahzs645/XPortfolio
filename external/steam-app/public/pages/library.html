@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Source library</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/library-style.css">
+    <link rel="stylesheet" href="../css/scroll.css">
+</head>
+<body>
+    <aside class="library-sidebar">
+        <button class="home-button" type="button">
+            <span>Library home</span>
+            <span class="home-grid" aria-hidden="true">
+                <i></i><i></i><i></i><i></i>
+            </span>
+        </button>
+
+        <div class="library-filter">
+            <button class="filter-select" type="button" aria-label="Library filter">
+                Games
+                <img src="../images/icons/down.svg" alt="">
+            </button>
+            <img src="../images/icons/clock.svg" alt="Recently played" title="Recently played">
+            <img src="../images/icons/play-button.svg" class="active" alt="Ready to play" title="Ready to play">
+        </div>
+
+        <label class="library-search">
+            <img src="../images/icons/loupe.svg" alt="">
+            <input id="game-search" type="search" placeholder="Search by name" autocomplete="off">
+        </label>
+
+        <div class="collection-header">
+            <img src="../images/icons/bar.svg" alt="">
+            <h2>Source collection <span>(2)</span></h2>
+        </div>
+
+        <div class="game-list" id="game-list">
+            <button class="game-list-item active" type="button" data-game="tf2" aria-pressed="true">
+                <img src="../images/games/tf2-library-cover.jpg" alt="">
+                <span>
+                    <strong>Team Fortress 2</strong>
+                    <small>Browser-ready</small>
+                </span>
+            </button>
+            <button class="game-list-item" type="button" data-game="hl2" aria-pressed="false">
+                <img src="../images/games/hl2-library-cover.jpg" alt="">
+                <span>
+                    <strong>Half-Life 2</strong>
+                    <small>Steam required</small>
+                </span>
+            </button>
+            <p class="no-results" id="no-results" hidden>No games match your search.</p>
+        </div>
+
+        <div class="sidebar-note">
+            <span class="status-dot"></span>
+            <span>Independent launcher demo</span>
+        </div>
+    </aside>
+
+    <main class="game-detail" id="game-detail">
+        <div class="hero" id="game-hero">
+            <div class="hero-shade"></div>
+            <div class="hero-content">
+                <p class="game-state" id="game-state">Browser-ready</p>
+                <h1 id="game-title">Team Fortress 2</h1>
+                <p class="game-subtitle" id="game-subtitle">TF2 jump practice, powered by playsrc.</p>
+            </div>
+        </div>
+
+        <section class="play-panel" aria-label="Game actions">
+            <button class="play-button" id="primary-action" type="button">
+                <span class="play-icon" aria-hidden="true"></span>
+                <span id="primary-label">Play TF2</span>
+            </button>
+            <button class="icon-action" id="source-action" type="button" title="View project source" aria-label="View project source">
+                <span>&lt;/&gt;</span>
+            </button>
+            <div class="launch-status">
+                <span id="launch-status-label">Launches standalone</span>
+                <small id="launch-status-copy">Best for fullscreen and pointer lock</small>
+            </div>
+        </section>
+
+        <section class="game-body">
+            <div class="game-summary">
+                <div class="section-heading">
+                    <div>
+                        <p>Game overview</p>
+                        <h2 id="overview-title">Your browser is the console</h2>
+                    </div>
+                    <span class="platform-chip" id="platform-chip">WEB</span>
+                </div>
+                <p class="overview-copy" id="overview-copy">
+                    Practice TF2 jump maps directly in a browser through an independent,
+                    clean-room Source 1 engine project. The game opens in its own tab for
+                    reliable fullscreen, audio, and pointer-lock controls.
+                </p>
+                <div class="feature-grid">
+                    <article>
+                        <span class="feature-number">01</span>
+                        <h3 id="feature-one-title">Standalone launch</h3>
+                        <p id="feature-one-copy">Keeps the game fast and avoids nested-frame input restrictions.</p>
+                    </article>
+                    <article>
+                        <span class="feature-number">02</span>
+                        <h3 id="feature-two-title">Open source runtime</h3>
+                        <p id="feature-two-copy">Original playsrc code is available under MIT with separate Valve notices.</p>
+                    </article>
+                </div>
+            </div>
+
+            <aside class="project-card">
+                <p class="project-kicker">Portfolio integration</p>
+                <h2 id="project-title">Powered by playsrc</h2>
+                <p id="project-copy">
+                    An independent fan project by Hona. This launcher integration is maintained by ahzs645.
+                </p>
+                <dl>
+                    <div>
+                        <dt>Availability</dt>
+                        <dd id="availability">Browser preview</dd>
+                    </div>
+                    <div>
+                        <dt>Content</dt>
+                        <dd id="content-policy">Not bundled</dd>
+                    </div>
+                </dl>
+                <a id="project-link" href="https://github.com/Hona/playsrc" target="_blank" rel="noopener noreferrer">
+                    View upstream project
+                </a>
+            </aside>
+        </section>
+
+        <p class="legal-note" id="legal-note">
+            Team Fortress, Source, Steam, Valve, and related trademarks belong to Valve Corporation.
+            This independent portfolio project is not affiliated with or endorsed by Valve.
+        </p>
+    </main>
+
+    <script src="../js/buttons.js"></script>
+</body>
+</html>
