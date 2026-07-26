@@ -59,6 +59,9 @@ const ANIMATIONS = [
   { id: 21, action: 'medicine', pack: 'medicine-3.mmtour.pack', scene: '3.swf', frame: 150, speed: 12 },
   { id: 22, action: 'work', pack: 'work.mmtour.pack', scene: 'work.swf', frame: 78, speed: 12 },
   { id: 23, action: 'study', pack: 'study.mmtour.pack', scene: 'study.swf', frame: 53, speed: 12 },
+  { id: 24, action: 'drag', pack: 'drag.mmtour.pack', scene: 'drag.swf', frame: 8, speed: 12 },
+  { id: 25, action: 'drop', pack: 'land.mmtour.pack', scene: 'land.swf', frame: 34, speed: 12 },
+  { id: 26, action: 'grab', pack: 'drag0.mmtour.pack', scene: 'drag0.swf', frame: 10, speed: 12 },
   { id: 8, action: 'touch', pack: 'touch-2.mmtour.pack', scene: '2.swf', frame: 30, speed: 12 },
   { id: 9, action: 'touch', pack: 'touch-4.mmtour.pack', scene: '4.swf', frame: 30, speed: 12 },
 ];
@@ -74,13 +77,18 @@ function QQPenguin({ onClose, onMinimize }) {
   const playerHostRef = useRef(null);
   const timeoutRef = useRef(null);
   const menuTimerRef = useRef(null);
+  const longPressTimerRef = useRef(null);
   const initializedRef = useRef(false);
   const loadVersionRef = useRef(0);
   const dialogRef = useRef(null);
+  const isDraggingDialogRef = useRef(false);
+  const isDraggingPetRef = useRef(false);
+  const petPressRef = useRef(false);
 
   // Always show login dialog (set to true)
   const [showLogin, setShowLogin] = useState(true);
-  const [rememberChoice, setRememberChoice] = useState(false);
+  const [petSelected, setPetSelected] = useState(true);
+  const [rememberChoice, setRememberChoice] = useState(true);
   const [showBubble, setShowBubble] = useState(false);
   const [bubbleMessage, setBubbleMessage] = useState('');
   const [showMenu, setShowMenu] = useState(false);
@@ -106,51 +114,33 @@ function QQPenguin({ onClose, onMinimize }) {
   // Dialog drag handlers
   const handleMouseDown = (e) => {
     if (e.target.id === 'close' || e.target.id === 'min') return;
+    isDraggingDialogRef.current = true;
     setIsDragging(true);
     dragStart.current = { x: e.clientX - dialogPos.x, y: e.clientY - dialogPos.y };
   };
 
   // Pet drag handlers
   const handlePetMouseDown = (e) => {
-    if (e.button === 2) return; // Right click handled separately
+    if (e.button !== 0) return; // Right click is handled separately.
     e.preventDefault();
+    e.stopPropagation();
+    clearTimeout(longPressTimerRef.current);
     hasDragged.current = false;
-    setIsDraggingPet(true);
+    petPressRef.current = true;
     dragStart.current = { x: e.clientX - petPos.x, y: e.clientY - petPos.y };
+    longPressTimerRef.current = setTimeout(() => {
+      if (!petPressRef.current) return;
+      hasDragged.current = true;
+      isDraggingPetRef.current = true;
+      setIsDraggingPet(true);
+      clearTimeout(menuTimerRef.current);
+      setShowMenu(false);
+      setShowBubble(false);
+      loadAnimation('grab', () => {
+        if (isDraggingPetRef.current) loadAnimation('drag');
+      });
+    }, 200);
   };
-
-  useEffect(() => {
-    if (!isDragging && !isDraggingPet) return;
-
-    const handleMouseMove = (e) => {
-      if (isDragging) {
-        setDialogPos({
-          x: e.clientX - dragStart.current.x,
-          y: e.clientY - dragStart.current.y,
-        });
-      }
-      if (isDraggingPet) {
-        hasDragged.current = true;
-        setPetPos({
-          x: e.clientX - dragStart.current.x,
-          y: e.clientY - dragStart.current.y,
-        });
-      }
-    };
-
-    const handleMouseUp = () => {
-      setIsDragging(false);
-      setIsDraggingPet(false);
-      setTimeout(() => { hasDragged.current = false; }, 50);
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging, isDraggingPet]);
 
   // Load animation helper using ref to avoid stale closures
   const loadAnimation = async (nameEn, callback) => {
@@ -227,6 +217,52 @@ function QQPenguin({ onClose, onMinimize }) {
     }
   };
 
+  // The source waits 200 ms before picking the pet up. While held it plays the
+  // grab animation once, loops the drag pose, then plays the landing animation.
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (isDraggingDialogRef.current) {
+        setDialogPos({
+          x: e.clientX - dragStart.current.x,
+          y: e.clientY - dragStart.current.y,
+        });
+      }
+      if (isDraggingPetRef.current) {
+        setPetPos({
+          x: e.clientX - dragStart.current.x,
+          y: e.clientY - dragStart.current.y,
+        });
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (isDraggingDialogRef.current) {
+        isDraggingDialogRef.current = false;
+        setIsDragging(false);
+      }
+
+      if (!petPressRef.current) return;
+      petPressRef.current = false;
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+
+      if (!isDraggingPetRef.current) return;
+      isDraggingPetRef.current = false;
+      setIsDraggingPet(false);
+      loadAnimation('drop', () => loadAnimation('idle'));
+      // Keep the following click from being interpreted as a pet tap.
+      setTimeout(() => { hasDragged.current = false; }, 50);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      clearTimeout(longPressTimerRef.current);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
   // Initialize the web-native mmTour/GSAP player after login.
   useEffect(() => {
     if (showLogin) return;
@@ -269,6 +305,7 @@ function QQPenguin({ onClose, onMinimize }) {
   }, [showLogin]);
 
   const handleLogin = () => {
+    if (!petSelected) return;
     if (rememberChoice) {
       localStorage.setItem('qqpet_skip_login', 'true');
     }
@@ -398,14 +435,24 @@ function QQPenguin({ onClose, onMinimize }) {
               <CloseBtn id="close" onClick={onClose} />
               <MinBtn id="min" onClick={onMinimize} />
             </LoginHeader>
-            <LoginTitle>{QQ_PET_EN.login.title}</LoginTitle>
-            <PetIcon />
-            <PetLabel>{QQ_PET_EN.login.petName}</PetLabel>
-            <CheckboxRow>
-              <CheckboxIcon checked={rememberChoice} onClick={() => setRememberChoice(!rememberChoice)} />
-              <CheckboxLabel>{QQ_PET_EN.login.remember}</CheckboxLabel>
+            <PetIcon onClick={() => setPetSelected(selected => !selected)} />
+            <PetLabel
+              $checked={petSelected}
+              role="checkbox"
+              aria-checked={petSelected}
+              onClick={() => setPetSelected(selected => !selected)}
+            >
+              Q宠宝贝
+            </PetLabel>
+            <CheckboxRow
+              $checked={rememberChoice}
+              role="checkbox"
+              aria-checked={rememberChoice}
+              onClick={() => setRememberChoice(remember => !remember)}
+            >
+              记住我的选择
             </CheckboxRow>
-            <OkButton onClick={handleLogin}>{QQ_PET_EN.login.confirm}</OkButton>
+            <OkButton onClick={handleLogin}>确定</OkButton>
           </LoginDialog>
         </LoginOverlay>
       ) : (
@@ -417,8 +464,10 @@ function QQPenguin({ onClose, onMinimize }) {
               top: petPos.y - 125,
             }}>
               <BubbleMessage>{bubbleMessage}</BubbleMessage>
-              <BubbleBtn $left={52} onClick={handleBubbleButton}>{QQ_PET_EN.bubble.praise}</BubbleBtn>
-              <BubbleBtn $left={116} onClick={handleBubbleButton}>{QQ_PET_EN.bubble.laugh}</BubbleBtn>
+              <BubbleActions>
+                <BubbleBtn onClick={handleBubbleButton}>{QQ_PET_EN.bubble.praise}</BubbleBtn>
+                <BubbleBtn onClick={handleBubbleButton}>{QQ_PET_EN.bubble.laugh}</BubbleBtn>
+              </BubbleActions>
             </Bubble>
           )}
 
@@ -428,8 +477,11 @@ function QQPenguin({ onClose, onMinimize }) {
               onMouseOver={showQuickbar}
               onMouseLeave={hideQuickbarSoon}
               style={{
-                left: petPos.x + 78,
-                top: petPos.y + 178,
+                // The converted SWFs use a 250px stage, but the pet artwork is
+                // authored around x≈68 inside it. Center the 101px source bar on
+                // that visible artwork instead of on the stage rectangle.
+                left: petPos.x + 18,
+                top: petPos.y + 130,
               }}
             >
               {QQ_PET_EN.menu.map(action => (
@@ -536,20 +588,6 @@ const LoginHeader = styled.div`
   flex-direction: row-reverse;
 `;
 
-const LoginTitle = styled.div`
-  position: absolute;
-  top: 1px;
-  left: 31px;
-  width: 112px;
-  height: 21px;
-  display: flex;
-  align-items: center;
-  padding-left: 3px;
-  background: linear-gradient(#55c8ee, #43bae6);
-  color: #082b3b;
-  font: bold 12px Tahoma, sans-serif;
-`;
-
 const CloseBtn = styled.div`
   width: 38px;
   height: 18px;
@@ -579,25 +617,7 @@ const PetIcon = styled.div`
   height: 136px;
   background-image: url(${withBaseUrl('/games/qqpenguin/assets/icon.png')});
   background-size: cover;
-
-  &::after {
-    content: 'QQ Pet';
-    position: absolute;
-    left: 17px;
-    bottom: 12px;
-    width: 102px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid #b86600;
-    border-radius: 16px;
-    background: linear-gradient(#ffd94f, #f4a900);
-    color: #943500;
-    font: bold 16px Tahoma, sans-serif;
-    text-align: center;
-    text-shadow: 0 1px #fff5a8;
-  }
+  cursor: pointer;
 `;
 
 const PetLabel = styled.div`
@@ -605,19 +625,17 @@ const PetLabel = styled.div`
   left: 50%;
   top: 50%;
   transform: translate(-50%, 350%);
+  width: 78px;
+  height: 17px;
+  background-image: url(${({ $checked }) => withBaseUrl($checked
+    ? '/games/qqpenguin/assets/checkbox.png'
+    : '/games/qqpenguin/assets/pet-label-icon.png')});
+  background-repeat: no-repeat;
+  text-align: right;
+  line-height: 17px;
   font-size: 12px;
   color: #333;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-
-  &::before {
-    content: '';
-    width: 17px;
-    height: 17px;
-    background-image: url(${withBaseUrl('/games/qqpenguin/assets/pet-label-icon.png')});
-    background-size: cover;
-  }
+  cursor: pointer;
 `;
 
 const CheckboxRow = styled.div`
@@ -625,24 +643,17 @@ const CheckboxRow = styled.div`
   left: 50%;
   top: 50%;
   transform: translate(-140%, 510%);
-  display: flex;
-  align-items: center;
-  gap: 3px;
+  width: 110px;
+  height: 17px;
+  background-image: url(${({ $checked }) => withBaseUrl($checked
+    ? '/games/qqpenguin/assets/checkbox.png'
+    : '/games/qqpenguin/assets/pet-label-icon.png')});
+  background-repeat: no-repeat;
+  text-align: right;
+  line-height: 17px;
   font-size: 12px;
   color: #333;
   cursor: pointer;
-`;
-
-const CheckboxIcon = styled.div`
-  width: 17px;
-  height: 17px;
-  background-image: url(${withBaseUrl('/games/qqpenguin/assets/checkbox.png')});
-  background-size: cover;
-  cursor: pointer;
-`;
-
-const CheckboxLabel = styled.span`
-  margin-top: -2px;
 `;
 
 const OkButton = styled.div`
@@ -697,11 +708,21 @@ const BubbleMessage = styled.div`
   text-align: center;
 `;
 
-const BubbleBtn = styled.button`
+const BubbleActions = styled.div`
   position: absolute;
-  left: ${({ $left }) => $left}px;
+  left: 48px;
   top: 106px;
-  width: 48px;
+  width: 130px;
+  height: 18px;
+  display: flex;
+  gap: 6px;
+`;
+
+const BubbleBtn = styled.button`
+  box-sizing: border-box;
+  flex: 0 0 62px;
+  width: 62px;
+  min-width: 0;
   height: 18px;
   padding: 0;
   background-color: transparent;
@@ -713,6 +734,7 @@ const BubbleBtn = styled.button`
   font-family: 'Times New Roman', serif;
   font-size: 12px;
   line-height: 18px;
+  white-space: nowrap;
   cursor: pointer;
   &:hover { opacity: 0.8; }
 `;
