@@ -71,7 +71,7 @@ export default defineConfig(({ mode }) => {
   const buildVersion = getBuildVersion()
   const crossOriginIsolationHeaders = {
     'Cross-Origin-Opener-Policy': 'same-origin',
-    'Cross-Origin-Embedder-Policy': 'require-corp',
+    'Cross-Origin-Embedder-Policy': 'credentialless',
     'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' data: blob:; font-src 'self' data: blob:; connect-src 'self' https: blob:; frame-src 'self' https: blob:; worker-src 'self' blob:;",
   }
 
@@ -83,21 +83,9 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       headers: crossOriginIsolationHeaders,
-      proxy: {
-        '/objects': {
-          target: 'https://assets.playsrc.online',
-          changeOrigin: true,
-        },
-      },
     },
     preview: {
       headers: crossOriginIsolationHeaders,
-      proxy: {
-        '/objects': {
-          target: 'https://assets.playsrc.online',
-          changeOrigin: true,
-        },
-      },
     },
     esbuild: {
       drop: mode === 'production' ? ['console', 'debugger'] : [],

@@ -18,13 +18,14 @@
  * is left behind before the registration itself is removed.
  */
 
-const VERSION = 'v2';
+const VERSION = 'v3';
 const PRECACHE = `xportfolio-precache-${VERSION}`;
 const RUNTIME = `xportfolio-runtime-${VERSION}`;
 const RUNTIME_MAX_ENTRIES = 150;
 const RUNTIME_MAX_RESPONSE_BYTES = 2 * 1024 * 1024;
 const LARGE_ASSET_PATHS = [
   /\/(?:games|ruffle)\//i,
+  /\/objects\/sha256\//i,
   /\/apps\/xp-tour\//i,
   /\/apps\/jspaint\/lib\/tracky-mouse\//i,
   /\/content\/sample-music\//i,
@@ -38,6 +39,22 @@ const SCOPE_PATH = new URL(self.registration ? self.registration.scope : self.lo
 function scoped(path) {
   const clean = path.replace(/^\/+/, '');
   return `${SCOPE_PATH}${clean}`;
+}
+
+function withIsolationHeaders(response) {
+  if (!response || response.type === 'opaque' || response.type === 'error' || response.status === 0) {
+    return response;
+  }
+
+  const headers = new Headers(response.headers);
+  headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+  headers.set('Cross-Origin-Embedder-Policy', 'credentialless');
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
 }
 
 const APP_SHELL = [
@@ -174,21 +191,25 @@ self.addEventListener('fetch', (event) => {
   // Only handle same-origin requests; let everything else hit the network.
   if (url.origin !== self.location.origin) return;
 
-  // Skip SW for requests that explicitly opt-out of caching.
-  if (request.cache === 'no-store') return;
+  // Requests that opt out of caching still receive the isolation headers
+  // required by the embedded playsrc WebAssembly runtime.
+  if (request.cache === 'no-store') {
+    event.respondWith(fetch(request).then(withIsolationHeaders));
+    return;
+  }
 
   // Navigation requests (full document loads) use network-first with an
   // offline fallback to the cached app shell.
   if (request.mode === 'navigate') {
-    event.respondWith(handleNavigate(request));
+    event.respondWith(handleNavigate(request).then(withIsolationHeaders));
     return;
   }
 
   // Keep update checks fresh.
   if (url.pathname.endsWith('/version.json')) {
-    event.respondWith(networkFirst(request));
+    event.respondWith(networkFirst(request).then(withIsolationHeaders));
     return;
   }
 
-  event.respondWith(staleWhileRevalidate(request));
+  event.respondWith(staleWhileRevalidate(request).then(withIsolationHeaders));
 });

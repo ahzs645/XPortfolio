@@ -101,7 +101,7 @@
       "deployTarget": "public/tf2",
       "requiredDeployFiles": ["index.html", "playsrc-config.json", "assets"],
       "type": "game",
-      "note": "Pins the playsrc source while syncing its matching published frontend. Local Vite proxies origin-restricted game objects; production requires an equivalent deployed asset proxy."
+      "note": "Pins the playsrc source and syncs its matching frontend plus required immutable TF2 objects into a generated cache inside the submodule."
     }
   ]
 }

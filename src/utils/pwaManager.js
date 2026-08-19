@@ -30,8 +30,22 @@ export function initPwaManager() {
   if (!isSupported()) return;
 
   const register = () => {
+    if (!window.crossOriginIsolated) {
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        const reloadKey = 'xportfolio-isolation-reload';
+        if (sessionStorage.getItem(reloadKey)) return;
+        sessionStorage.setItem(reloadKey, '1');
+        window.location.reload();
+      }, { once: true });
+    }
+
     navigator.serviceWorker
       .register(withBaseUrl('/sw.js'), { scope: withBaseUrl('/') })
+      .then(() => {
+        if (window.crossOriginIsolated) {
+          sessionStorage.removeItem('xportfolio-isolation-reload');
+        }
+      })
       .catch((err) => {
         console.warn('[PWA] Service worker registration failed', err);
       });

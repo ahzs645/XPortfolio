@@ -3,14 +3,14 @@ import styled from 'styled-components';
 import { withBaseUrl } from '../../../utils/baseUrl';
 
 const CONFIGURED_TF2_URL = import.meta.env.VITE_PLAYSRC_TF2_EMBED_URL?.trim();
-const TF2_EMBED_URL = CONFIGURED_TF2_URL || (import.meta.env.DEV ? withBaseUrl('/tf2/') : '');
+const TF2_EMBED_URL = CONFIGURED_TF2_URL || withBaseUrl('/tf2/');
 
 const GAME_DETAILS = {
   tf2: {
     eyebrow: 'TEAM FORTRESS 2 · PLAYSRC',
     title: 'Embedded runtime not connected',
-    copy: 'Local development uses the playsrc submodule through XPortfolio’s same-origin runtime bridge. Production still needs an embeddable playsrc deployment and asset proxy; set VITE_PLAYSRC_TF2_EMBED_URL to that deployment.',
-    status: 'Waiting for a production playsrc deployment',
+    copy: 'The playsrc runtime and its required TF2 object set are hosted directly by XPortfolio from the pinned playsrc submodule cache.',
+    status: 'Local playsrc runtime unavailable',
     link: 'https://github.com/ahzs645/playsrc',
     linkLabel: 'View your playsrc fork',
   },

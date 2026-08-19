@@ -18,6 +18,7 @@ external/jspaint/out/
 
 # Generated from the pinned playsrc submodule by scripts/sync-playsrc-runtime.mjs
 /public/tf2/
+/public/objects
 
 # CI-generated app copies in public (symlinks in dev, copies in CI)
 # Keep these tracked if you want local builds to work without running submodule builds
