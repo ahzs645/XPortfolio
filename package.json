@@ -17,6 +17,7 @@
     "pretest": "node scripts/generate-menu-icons.mjs",
     "test": "vitest run",
     "preview": "vite preview",
+    "verify:tf2-deployment": "node scripts/verify-tf2-deployment.mjs",
     "version:bump": "node scripts/generate-build-version.js --bump"
   },
   "dependencies": {

@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { withBaseUrl } from '../../../utils/baseUrl';
+import { connectTf2Launcher } from './tf2Bridge';
 
 const CONFIGURED_TF2_URL = import.meta.env.VITE_PLAYSRC_TF2_EMBED_URL?.trim();
-const TF2_EMBED_URL = CONFIGURED_TF2_URL || withBaseUrl('/tf2/');
+const TF2_EMBED_URL = CONFIGURED_TF2_URL || withBaseUrl('/tf2/index.html');
+const TF2_CONFIG_URL = withBaseUrl('/tf2/playsrc-config.json');
 
 const GAME_DETAILS = {
   tf2: {
@@ -26,10 +28,17 @@ const GAME_DETAILS = {
 
 function SourceGame({ gameId = 'tf2' }) {
   const game = GAME_DETAILS[gameId] || GAME_DETAILS.tf2;
+  const frameRef = useRef(null);
+
+  useEffect(() => {
+    if (gameId !== 'tf2' || CONFIGURED_TF2_URL || !frameRef.current) return undefined;
+    return connectTf2Launcher(frameRef.current, { configUrl: TF2_CONFIG_URL });
+  }, [gameId]);
 
   if (gameId === 'tf2' && TF2_EMBED_URL) {
     return (
       <GameFrame
+        ref={frameRef}
         src={TF2_EMBED_URL}
         title="Team Fortress 2 powered by playsrc"
         allowFullScreen

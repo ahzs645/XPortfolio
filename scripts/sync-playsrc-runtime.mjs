@@ -3,6 +3,7 @@
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import {
+  cp,
   lstat,
   mkdir,
   readFile,
@@ -25,6 +26,15 @@ const OBJECT_CACHE_ROOT = join(PLAYSRC_DIR, '.xportfolio-assets');
 const OBJECT_CACHE_DIR = join(OBJECT_CACHE_ROOT, 'objects', 'sha256');
 const OBJECT_CACHE_MARKER = join(OBJECT_CACHE_ROOT, 'object-source.json');
 const PUBLIC_OBJECT_LINK = join(PROJECT_ROOT, 'public', 'objects');
+const SOURCE_BUILD_DIR = join(
+  PLAYSRC_DIR,
+  'apps',
+  'web',
+  'tf2',
+  'dist',
+  'cloudflare',
+  'tf2',
+);
 const PUBLIC_ORIGIN = 'https://playsrc.online';
 const OBJECT_ORIGIN = 'https://assets.playsrc.online';
 const DEPLOYED_ASSET_ORIGIN = process.env.VITE_PLAYSRC_ASSET_ORIGIN?.trim()
@@ -32,6 +42,7 @@ const DEPLOYED_ASSET_ORIGIN = process.env.VITE_PLAYSRC_ASSET_ORIGIN?.trim()
 const RUNTIME_PATH = '/tf2/';
 const CONFIG_PATH = '/tf2/playsrc-config.json';
 const ASSET_PATTERN = /\/tf2\/assets\/[A-Za-z0-9._-]+/g;
+const BUILD_FROM_SOURCE = process.env.PLAYSRC_BUILD_FROM_SOURCE === '1';
 
 function sha256(value) {
   return createHash('sha256').update(value).digest('hex');
@@ -108,6 +119,75 @@ async function canReuseRuntime(commit, applicationBuild) {
   } catch {
     return false;
   }
+}
+
+async function reusableRuntime(commit) {
+  try {
+    const config = JSON.parse(
+      await readFile(join(OUTPUT_DIR, 'playsrc-config.json'), 'utf8'),
+    );
+    if (config.applicationBuild !== sha256(commit)) return null;
+    return await canReuseRuntime(commit, config.applicationBuild) ? config : null;
+  } catch {
+    return null;
+  }
+}
+
+async function writeRuntimeMarker(commit, applicationBuild, assets, source) {
+  await writeFile(
+    MARKER_PATH,
+    `${JSON.stringify({
+      source,
+      commit,
+      applicationBuild,
+      assetOrigin: DEPLOYED_ASSET_ORIGIN,
+      assets,
+    }, null, 2)}\n`,
+  );
+}
+
+async function buildRuntimeFromSource(commit) {
+  console.log(`Building playsrc ${commit.slice(0, 12)} from the pinned submodule.`);
+  try {
+    execFileSync(
+      'bun',
+      [
+        '-e',
+        'import { buildStaticSite } from "./tools/playsrc/src/deploy.ts"; await buildStaticSite("jump_beef")',
+      ],
+      { cwd: PLAYSRC_DIR, env: process.env, stdio: 'inherit' },
+    );
+  } catch {
+    throw new Error(
+      'Unable to build playsrc from source. Install the pinned Bun, Rust, and wasm-bindgen toolchain used by the deploy workflow.',
+    );
+  }
+
+  const config = JSON.parse(
+    await readFile(join(SOURCE_BUILD_DIR, 'playsrc-config.json'), 'utf8'),
+  );
+  const expectedApplicationBuild = sha256(commit);
+  if (config.applicationBuild !== expectedApplicationBuild) {
+    throw new Error('The source-built playsrc application identity does not match the submodule commit.');
+  }
+
+  const runtimeConfig = { ...config, assetOrigin: DEPLOYED_ASSET_ORIGIN };
+  await rm(OUTPUT_DIR, { recursive: true, force: true });
+  await cp(SOURCE_BUILD_DIR, OUTPUT_DIR, { recursive: true });
+  await writeFile(
+    join(OUTPUT_DIR, 'playsrc-config.json'),
+    `${JSON.stringify(runtimeConfig)}\n`,
+  );
+  const assets = (await readdir(join(OUTPUT_DIR, 'assets')))
+    .filter((name) => /\.(?:css|js)$/.test(name)).length;
+  await writeRuntimeMarker(
+    commit,
+    config.applicationBuild,
+    assets,
+    `external/playsrc@${commit}`,
+  );
+  console.log(`Built playsrc ${commit.slice(0, 12)} frontend (${assets} assets) from source.`);
+  return runtimeConfig;
 }
 
 function objectDescriptor(sha, byteLength) {
@@ -288,6 +368,19 @@ async function syncObjectStore(config) {
 
 async function main() {
   const commit = submoduleCommit();
+  const reusable = await reusableRuntime(commit);
+  if (reusable) {
+    console.log(`playsrc runtime already matches ${commit.slice(0, 12)}.`);
+    await syncObjectStore(reusable);
+    return;
+  }
+
+  if (BUILD_FROM_SOURCE) {
+    const config = await buildRuntimeFromSource(commit);
+    await syncObjectStore(config);
+    return;
+  }
+
   const configResponse = await fetchOk(new URL(CONFIG_PATH, PUBLIC_ORIGIN));
   const config = await configResponse.json();
   const expectedApplicationBuild = sha256(commit);
@@ -298,7 +391,7 @@ async function main() {
         `The public playsrc runtime does not match submodule commit ${commit}.`,
         `Expected applicationBuild ${expectedApplicationBuild},`,
         `but playsrc.online reports ${config.applicationBuild}.`,
-        'Build the fork locally or publish that commit before syncing it into XPortfolio.',
+        'Run the source build with PLAYSRC_BUILD_FROM_SOURCE=1 or publish that commit before syncing it into XPortfolio.',
       ].join(' '),
     );
   }
@@ -308,61 +401,53 @@ async function main() {
     assetOrigin: DEPLOYED_ASSET_ORIGIN,
   };
 
-  if (await canReuseRuntime(commit, config.applicationBuild)) {
-    console.log(`playsrc runtime already matches ${commit.slice(0, 12)}.`);
-  } else {
-    const indexResponse = await fetchOk(new URL(RUNTIME_PATH, PUBLIC_ORIGIN));
-    const indexHtml = await indexResponse.text();
-    const queuedAssets = [...new Set(indexHtml.match(ASSET_PATTERN) || [])];
-    const visitedAssets = new Set();
-    const downloadedAssets = new Map();
+  const indexResponse = await fetchOk(new URL(RUNTIME_PATH, PUBLIC_ORIGIN));
+  const indexHtml = await indexResponse.text();
+  const queuedAssets = [...new Set(indexHtml.match(ASSET_PATTERN) || [])];
+  const visitedAssets = new Set();
+  const downloadedAssets = new Map();
 
-    while (queuedAssets.length > 0) {
-      const assetPath = queuedAssets.shift();
-      if (visitedAssets.has(assetPath)) continue;
-      visitedAssets.add(assetPath);
+  while (queuedAssets.length > 0) {
+    const assetPath = queuedAssets.shift();
+    if (visitedAssets.has(assetPath)) continue;
+    visitedAssets.add(assetPath);
 
-      const response = await fetchOk(new URL(assetPath, PUBLIC_ORIGIN));
-      const bytes = new Uint8Array(await response.arrayBuffer());
-      downloadedAssets.set(assetPath, bytes);
+    const response = await fetchOk(new URL(assetPath, PUBLIC_ORIGIN));
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    downloadedAssets.set(assetPath, bytes);
 
-      if (assetPath.endsWith('.js') || assetPath.endsWith('.css')) {
-        const source = new TextDecoder().decode(bytes);
-        for (const nestedAsset of source.match(ASSET_PATTERN) || []) {
-          if (!visitedAssets.has(nestedAsset)) queuedAssets.push(nestedAsset);
-        }
+    if (assetPath.endsWith('.js') || assetPath.endsWith('.css')) {
+      const source = new TextDecoder().decode(bytes);
+      for (const nestedAsset of source.match(ASSET_PATTERN) || []) {
+        if (!visitedAssets.has(nestedAsset)) queuedAssets.push(nestedAsset);
       }
     }
-
-    await rm(OUTPUT_DIR, { recursive: true, force: true });
-    await mkdir(OUTPUT_DIR, { recursive: true });
-    await writeFile(join(OUTPUT_DIR, 'index.html'), indexHtml);
-    await writeFile(
-      join(OUTPUT_DIR, 'playsrc-config.json'),
-      `${JSON.stringify(runtimeConfig)}\n`,
-    );
-
-    for (const [assetPath, bytes] of downloadedAssets) {
-      const outputPath = assetOutputPath(assetPath);
-      await mkdir(dirname(outputPath), { recursive: true });
-      await writeFile(outputPath, bytes);
-    }
-
-    await writeFile(
-      MARKER_PATH,
-      `${JSON.stringify({
-        source: `${PUBLIC_ORIGIN}${RUNTIME_PATH}`,
-        commit,
-        applicationBuild: config.applicationBuild,
-        assetOrigin: DEPLOYED_ASSET_ORIGIN,
-        assets: downloadedAssets.size,
-      }, null, 2)}\n`,
-    );
-
-    console.log(
-      `Synced playsrc ${commit.slice(0, 12)} frontend (${downloadedAssets.size} assets) to public/tf2.`,
-    );
   }
+
+  await rm(OUTPUT_DIR, { recursive: true, force: true });
+  await mkdir(OUTPUT_DIR, { recursive: true });
+  await writeFile(join(OUTPUT_DIR, 'index.html'), indexHtml);
+  await writeFile(
+    join(OUTPUT_DIR, 'playsrc-config.json'),
+    `${JSON.stringify(runtimeConfig)}\n`,
+  );
+
+  for (const [assetPath, bytes] of downloadedAssets) {
+    const outputPath = assetOutputPath(assetPath);
+    await mkdir(dirname(outputPath), { recursive: true });
+    await writeFile(outputPath, bytes);
+  }
+
+  await writeRuntimeMarker(
+    commit,
+    config.applicationBuild,
+    downloadedAssets.size,
+    `${PUBLIC_ORIGIN}${RUNTIME_PATH}`,
+  );
+
+  console.log(
+    `Synced playsrc ${commit.slice(0, 12)} frontend (${downloadedAssets.size} assets) to public/tf2.`,
+  );
 
   await syncObjectStore(config);
 }

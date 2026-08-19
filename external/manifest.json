@@ -95,13 +95,16 @@
     {
       "name": "playsrc",
       "path": "external/playsrc",
-      "packageManager": "none",
+      "packageManager": "bun",
       "buildCommand": "node ../../scripts/sync-playsrc-runtime.mjs",
+      "envOverrides": {
+        "PLAYSRC_BUILD_FROM_SOURCE": "1"
+      },
       "buildOutput": null,
       "deployTarget": "public/tf2",
       "requiredDeployFiles": ["index.html", "playsrc-config.json", "assets"],
       "type": "game",
-      "note": "Pins the playsrc source and syncs its matching frontend plus required immutable TF2 objects into a generated cache inside the submodule."
+      "note": "Builds the pinned playsrc source directly and syncs its required immutable TF2 objects into a generated cache inside the submodule."
     }
   ]
 }

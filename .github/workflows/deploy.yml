@@ -83,6 +83,39 @@ jobs:
       - name: Enable Corepack (for pnpm)
         run: corepack enable
 
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: canary
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@1.97.1
+
+      - name: Set up threaded Rust
+        uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c
+        with:
+          toolchain: nightly-2025-12-10
+          components: rust-src
+
+      - name: Install wasm-bindgen
+        run: cargo +1.97.1 install wasm-bindgen-cli --version 0.2.126 --locked
+
+      - name: Resolve playsrc revision
+        id: playsrc-revision
+        run: echo "sha=$(git -C external/playsrc rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore playsrc immutable object cache
+        uses: actions/cache@v4
+        with:
+          path: external/playsrc/.xportfolio-assets
+          key: playsrc-objects-${{ runner.os }}-${{ steps.playsrc-revision.outputs.sha }}
+
+      - name: Restore playsrc Rust build cache
+        uses: actions/cache@v4
+        with:
+          path: external/playsrc/target
+          key: playsrc-rust-${{ runner.os }}-${{ steps.playsrc-revision.outputs.sha }}
+
       - name: Build and deploy external apps
         run: node scripts/build-externals.js
 
@@ -100,6 +133,9 @@ jobs:
         env:
           VITE_BASE: /
         run: pnpm run build
+
+      - name: Verify embedded TF2 release
+        run: pnpm run verify:tf2-deployment
 
       # ============================================================================
       # DEPLOY TO GITHUB PAGES
